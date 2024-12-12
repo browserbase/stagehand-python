@@ -32,7 +32,18 @@ const initStagehand = async (
   return stagehand;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get('url');
+  const action = searchParams.get('action');
+
+  if (!url || !action) {
+    return new NextResponse(
+      JSON.stringify({ error: 'Missing required parameters: url and action' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   // Create a readable stream
   const stream = new ReadableStream({
     async start(controller) {
@@ -40,18 +51,14 @@ export async function GET() {
       const encoder = new TextEncoder();
       const stagehand = await initStagehand(logger, controller, encoder);
 
-      await stagehand.page.goto("https://github.com/browserbase/stagehand");
-      await stagehand.act({ action: "click on the contributors" });
-      const contributor = await stagehand.extract({
-        instruction: "extract the top contributor",
-        schema: z.object({
-          username: z.string(),
-          url: z.string(),
-        }),
-      });
-      console.log("our favorite contributor is", contributor);
-
-      controller.close();
+      try {
+        await stagehand.page.goto(url);
+        await stagehand.act({ action });
+      } catch (error) {
+        logger.log({ type: 'error', message: error.message });
+      } finally {
+        controller.close();
+      }
     },
   });
 
