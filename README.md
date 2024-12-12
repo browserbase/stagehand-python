@@ -1,41 +1,62 @@
-Test running API
+# Stagehand Python SDK
 
-`curl -N http://localhost:3000/api/streamtest`
+A Python SDK for BrowserBase Stagehand, enabling automated browser control and data extraction.
 
-
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pip install stagehand-sdk
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```python
+import asyncio
+from stagehand import Stagehand
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+async def main():
+    # Initialize the Stagehand client
+    browser = Stagehand(
+        env="BROWSERBASE",
+        api_key="your-api-key",
+        project_id="your-project-id"
+    )
+    
+    # Perform browser actions
+    result = await browser.act("Navigate to google.com")
+    
+    # Extract data using a schema
+    data = await browser.extract("Get the search results", {
+        "results": [{"title": "string", "url": "string"}]
+    })
+    
+    # Close the browser
+    await browser.close()
 
-## Learn More
+# Run the example
+asyncio.run(main())
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `env`: Environment to use (default: "BROWSERBASE")
+- `api_key`: Your BrowserBase API key (can also be set via BROWSERBASE_API_KEY environment variable)
+- `project_id`: Your BrowserBase project ID (can also be set via BROWSERBASE_PROJECT_ID environment variable)
+- `verbose`: Verbosity level (default: 0)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+- Automated browser control with natural language commands
+- Data extraction with schema validation
+- Async/await support
+- Automatic NextJS server management
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Requirements
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Python 3.7+
+- httpx
+- asyncio
+
+## License
+
+MIT License 
