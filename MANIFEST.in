@@ -1,6 +1,6 @@
 include README.md
 include requirements.txt
-recursive-include stagehand/server *
 global-exclude *.pyc
 global-exclude __pycache__
-global-exclude .DS_Store 
+global-exclude .DS_Store
+global-exclude */node_modules/* 

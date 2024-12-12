@@ -23,8 +23,4 @@ setup(
         "httpx>=0.24.0",
         "asyncio>=3.4.3",
     ],
-    package_data={
-        'stagehand': ['server/**/*'],
-    },
-    include_package_data=True,
 ) 
