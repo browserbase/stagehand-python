@@ -1,16 +1,16 @@
-// app/api/stream/route.ts
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
-  const action = searchParams.get("action");
+  const instruction = searchParams.get("instruction");
 
-  if (!url || !action) {
+  if (!url || !instruction) {
     return new NextResponse(
-      JSON.stringify({ error: "Missing required parameters: url and action" }),
+      JSON.stringify({ error: "Missing required parameters: url and instruction" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -23,7 +23,15 @@ export async function GET(request: Request) {
 
       try {
         await stagehand.page.goto(url);
-        await stagehand.act({ action });
+
+        const schema = z.any(); // Replace with actual schema for validation
+        const data = await stagehand.extract({ instruction, schema });
+
+        logger.log({
+          category: "extract",
+          message: JSON.stringify(data),
+          level: 1,
+        });
       } catch (error: any) {
         logger.log({ category: "error", message: error.message, level: 0 });
       } finally {
@@ -40,4 +48,4 @@ export async function GET(request: Request) {
       Connection: "keep-alive",
     },
   });
-}
+} 

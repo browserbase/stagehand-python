@@ -1,4 +1,3 @@
-// app/api/stream/route.ts
 import { NextResponse } from "next/server";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
@@ -6,11 +5,11 @@ import { initStagehand } from "../utils/initStagehand";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
-  const action = searchParams.get("action");
+  const instruction = searchParams.get("instruction") || undefined;
 
-  if (!url || !action) {
+  if (!url) {
     return new NextResponse(
-      JSON.stringify({ error: "Missing required parameters: url and action" }),
+      JSON.stringify({ error: "Missing required parameter: url" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -23,7 +22,14 @@ export async function GET(request: Request) {
 
       try {
         await stagehand.page.goto(url);
-        await stagehand.act({ action });
+
+        const observations = await stagehand.observe({ instruction });
+
+        logger.log({
+          category: "observe",
+          message: JSON.stringify(observations),
+          level: 1,
+        });
       } catch (error: any) {
         logger.log({ category: "error", message: error.message, level: 0 });
       } finally {
@@ -40,4 +46,4 @@ export async function GET(request: Request) {
       Connection: "keep-alive",
     },
   });
-}
+} 
