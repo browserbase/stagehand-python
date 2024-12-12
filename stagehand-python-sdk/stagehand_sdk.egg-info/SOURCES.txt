@@ -1,0 +1,10 @@
+MANIFEST.in
+README.md
+setup.py
+stagehand/__init__.py
+stagehand/client.py
+stagehand_sdk.egg-info/PKG-INFO
+stagehand_sdk.egg-info/SOURCES.txt
+stagehand_sdk.egg-info/dependency_links.txt
+stagehand_sdk.egg-info/requires.txt
+stagehand_sdk.egg-info/top_level.txt
