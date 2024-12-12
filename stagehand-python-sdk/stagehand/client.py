@@ -2,9 +2,11 @@
 import os
 import asyncio
 import subprocess
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, Callable, AsyncIterator
 from pathlib import Path
 import httpx
+import json
+
 class StagehandServer:
     def __init__(self):
         self.server_process = None
@@ -44,6 +46,7 @@ class Stagehand:
         api_key: Optional[str] = None,
         project_id: Optional[str] = None,
         verbose: int = 0,
+        on_log: Optional[Callable[[Dict[str, Any]], None]] = None,
         **kwargs
     ):
         self._server = StagehandServer()
@@ -55,6 +58,7 @@ class Stagehand:
             **kwargs
         }
         self._initialized = False
+        self.on_log = on_log
 
     async def init(self, **kwargs):
         await self._server.ensure_server_running()
@@ -77,7 +81,8 @@ class Stagehand:
             await self.init()
         
         async with httpx.AsyncClient() as client:
-            response = await client.post(
+            async with client.stream(
+                "POST",
                 f"{self._server.server_url}/api/act",
                 json={
                     "action": action,
@@ -85,8 +90,25 @@ class Stagehand:
                     "variables": variables or {},
                     **kwargs
                 }
-            )
-            return response.json()
+            ) as response:
+                response.raise_for_status()
+                result = None
+                
+                async for line in response.aiter_lines():
+                    if not line.strip():
+                        continue
+                    
+                    try:
+                        data = json.loads(line)
+                        if self.on_log:
+                            self.on_log(data)
+                            
+                        # The last message will contain the result
+                        result = data.get("result")
+                    except json.JSONDecodeError:
+                        continue
+                
+                return result
 
     async def extract(self, instruction: str, schema: Dict, **kwargs):
         if not self._initialized:
