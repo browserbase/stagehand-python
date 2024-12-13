@@ -4,15 +4,7 @@ import { initStagehand } from "../utils/initStagehand";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get("url");
   const instruction = searchParams.get("instruction") || undefined;
-
-  if (!url) {
-    return new NextResponse(
-      JSON.stringify({ error: "Missing required parameter: url" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -21,8 +13,6 @@ export async function GET(request: Request) {
       const stagehand = await initStagehand(logger, controller, encoder);
 
       try {
-        await stagehand.page.goto(url);
-
         const observations = await stagehand.observe({ instruction });
 
         logger.log({

@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const instruction = searchParams.get("instruction");
+  const url = searchParams.get("url");
 
-  if (!instruction) {
+  if (!url) {
     return new NextResponse(
-      JSON.stringify({ error: "Missing required parameter: instruction" }),
+      JSON.stringify({ error: "Missing required parameter: url" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -21,14 +20,9 @@ export async function GET(request: Request) {
       const stagehand = await initStagehand(logger, controller, encoder);
 
       try {
-        const schema = z.any(); // Replace with actual schema for validation
-        const data = await stagehand.extract({ instruction, schema });
-
-        logger.log({
-          category: "extract",
-          message: JSON.stringify(data),
-          level: 1,
-        });
+        await stagehand.page.goto(url);
+        // TODO - do we need to wait for the dom to settle?
+        
       } catch (error: any) {
         logger.log({ category: "error", message: error.message, level: 0 });
       } finally {
