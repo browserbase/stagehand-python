@@ -17,6 +17,8 @@ async def main():
         project_id="your-project",
         on_log=log_handler  # Add the log handler to get real-time updates
     )
+    # Initialize the browser
+    await browser.init()
     
     try:
         # Use exactly like the TypeScript version, but now with streaming logs

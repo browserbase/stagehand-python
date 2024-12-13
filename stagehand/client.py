@@ -56,7 +56,7 @@ class Stagehand:
             # Wait for server to be ready
             await self._wait_for_server()
 
-    async def _wait_for_server(self, timeout: int = 30):
+    async def _wait_for_server(self, timeout: int = 10):
         start_time = asyncio.get_event_loop().time()
         while True:
             try:
