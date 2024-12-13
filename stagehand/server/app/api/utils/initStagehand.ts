@@ -1,4 +1,5 @@
-import { AvailableModel, LogLine, Stagehand } from "@browserbasehq/stagehand";
+
+import { AvailableModel, ConstructorParams, LogLine, Stagehand } from "@browserbasehq/stagehand";
 import { ActionLogger } from "@/lib/actionLogger";
 
 const env: "BROWSERBASE" | "LOCAL" = "BROWSERBASE";
@@ -17,10 +18,12 @@ const defaultStagehandOptions = {
 export const initStagehand = async (
   logger: ActionLogger,
   controller: ReadableStreamController<Uint8Array>,
-  encoder: TextEncoder
+  encoder: TextEncoder,
+  options: Partial<ConstructorParams> = {}
 ): Promise<Stagehand> => {
   const stagehand = new Stagehand({
     ...defaultStagehandOptions,
+    ...options,
     logger: (logLine: LogLine) => {
       logger.log(logLine);
     },
@@ -31,4 +34,4 @@ export const initStagehand = async (
   await stagehand.init({ modelName, domSettleTimeoutMs });
 
   return stagehand;
-}; 
+};

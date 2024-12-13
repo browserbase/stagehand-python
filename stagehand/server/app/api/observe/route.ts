@@ -2,15 +2,15 @@
 import { NextResponse } from "next/server";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
-
+import { ConstructorParams } from "@browserbasehq/stagehand";
 export async function POST(request: Request) {
-  const { instruction, url } = await request.json();
+  const { instruction, url, constructorOptions } = await request.json();
 
   const stream = new ReadableStream({
     async start(controller) {
       const logger = new ActionLogger();
       const encoder = new TextEncoder();
-      const stagehand = await initStagehand(logger, controller, encoder);
+      const stagehand = await initStagehand(logger, controller, encoder, constructorOptions as Partial<ConstructorParams>);
 
       try {
         if (url) {

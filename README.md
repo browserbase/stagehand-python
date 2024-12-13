@@ -5,7 +5,7 @@ A Python SDK for BrowserBase Stagehand, enabling automated browser control and d
 ## Installation
 
 ```bash
-pip install stagehand-sdk
+pip install stagehand-py
 ```
 
 ## Usage

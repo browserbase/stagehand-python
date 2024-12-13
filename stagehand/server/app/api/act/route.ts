@@ -2,9 +2,10 @@
 import { NextResponse } from "next/server";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
+import { ConstructorParams } from "@browserbasehq/stagehand";
 
 export async function POST(request: Request) {
-  const { action, url, variables } = await request.json();
+  const { action, url, variables, constructorOptions } = await request.json();
 
   if (!action) {
     return NextResponse.json(
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
     async start(controller) {
       const logger = new ActionLogger();
       const encoder = new TextEncoder();
-      const stagehand = await initStagehand(logger, controller, encoder);
+      const stagehand = await initStagehand(logger, controller, encoder, constructorOptions as Partial<ConstructorParams>);
 
       try {
         if (url) {
