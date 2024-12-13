@@ -1,18 +1,20 @@
+// app/api/extract/route.ts
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const instruction = searchParams.get("instruction");
+export async function POST(request: Request) {
+  const { instruction, url, schemaDefinition } = await request.json();
 
-  if (!instruction) {
-    return new NextResponse(
-      JSON.stringify({ error: "Missing required parameter: instruction" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+  if (!instruction || !schemaDefinition) {
+    return NextResponse.json(
+      { error: "Missing required parameters: instruction and schemaDefinition" },
+      { status: 400 }
     );
   }
+
+  const schema = z.object(schemaDefinition);
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -21,9 +23,10 @@ export async function GET(request: Request) {
       const stagehand = await initStagehand(logger, controller, encoder);
 
       try {
-        const schema = z.any(); // Replace with actual schema for validation
+        if (url) {
+          await stagehand.page.goto(url);
+        }
         const data = await stagehand.extract({ instruction, schema });
-
         logger.log({
           category: "extract",
           message: JSON.stringify(data),
@@ -42,7 +45,7 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      Connection: "keep-alive",
+      "Connection": "keep-alive",
     },
   });
-} 
+}

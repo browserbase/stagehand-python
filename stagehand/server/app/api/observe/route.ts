@@ -1,10 +1,10 @@
+// app/api/observe/route.ts
 import { NextResponse } from "next/server";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const instruction = searchParams.get("instruction") || undefined;
+export async function POST(request: Request) {
+  const { instruction, url } = await request.json();
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -13,8 +13,10 @@ export async function GET(request: Request) {
       const stagehand = await initStagehand(logger, controller, encoder);
 
       try {
+        if (url) {
+          await stagehand.page.goto(url);
+        }
         const observations = await stagehand.observe({ instruction });
-
         logger.log({
           category: "observe",
           message: JSON.stringify(observations),
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      Connection: "keep-alive",
+      "Connection": "keep-alive",
     },
   });
-} 
+}

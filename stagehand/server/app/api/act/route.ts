@@ -3,14 +3,13 @@ import { NextResponse } from "next/server";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const action = searchParams.get("action");
+export async function POST(request: Request) {
+  const { action, url, variables } = await request.json();
 
   if (!action) {
-    return new NextResponse(
-      JSON.stringify({ error: "Missing required parameter: action" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+    return NextResponse.json(
+      { error: "Missing required parameter: action" },
+      { status: 400 }
     );
   }
 
@@ -21,7 +20,10 @@ export async function GET(request: Request) {
       const stagehand = await initStagehand(logger, controller, encoder);
 
       try {
-        await stagehand.act({ action });
+        if (url) {
+          await stagehand.page.goto(url);
+        }
+        await stagehand.act({ action, variables });
       } catch (error: any) {
         logger.log({ category: "error", message: error.message, level: 0 });
       } finally {

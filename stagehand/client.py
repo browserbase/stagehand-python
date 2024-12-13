@@ -1,32 +1,46 @@
 # stagehand/client.py
-import os
 import asyncio
 import subprocess
-from typing import Optional, Dict, Any, Union, Callable, AsyncIterator
+from typing import Optional, Dict, Any, Callable, Awaitable
 from pathlib import Path
 import httpx
 import json
 
-class StagehandServer:
-    def __init__(self):
-        self.server_process = None
-        self.server_url = "http://localhost:3000"
-    
-    async def ensure_server_running(self):
+
+class Stagehand:
+    def __init__(
+        self,
+        env: str = "BROWSERBASE",
+        api_key: Optional[str] = None,
+        project_id: Optional[str] = None,
+        server_url: str = "http://localhost:3000",
+        on_log: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
+    ):
+        self.env = env
+        self.api_key = api_key
+        self.project_id = project_id
+        self.server_url = server_url
+        self.on_log = on_log
+
+        self.server_process: Optional[subprocess.Popen] = None
+
+    async def init(self):
+        await self._ensure_server_running()
+
+    async def _ensure_server_running(self):
         if self.server_process is None:
-            # Start NextJS server in background
+            # Start Next.js server in the background
             server_dir = Path(__file__).parent / "server"
             self.server_process = subprocess.Popen(
                 ["npm", "run", "start"],
                 cwd=server_dir,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
             )
             # Wait for server to be ready
             await self._wait_for_server()
-    
+
     async def _wait_for_server(self, timeout: int = 30):
-        import httpx
         start_time = asyncio.get_event_loop().time()
         while True:
             try:
@@ -39,93 +53,67 @@ class StagehandServer:
                     raise TimeoutError("Server failed to start")
                 await asyncio.sleep(0.5)
 
-class Stagehand:
-    def __init__(
-        self,
-        env: str = "BROWSERBASE",
-        api_key: Optional[str] = None,
-        project_id: Optional[str] = None,
-        verbose: int = 0,
-        on_log: Optional[Callable[[Dict[str, Any]], None]] = None,
-        **kwargs
-    ):
-        self._server = StagehandServer()
-        self.config = {
-            "env": env,
-            "apiKey": api_key or os.getenv("BROWSERBASE_API_KEY"),
-            "projectId": project_id or os.getenv("BROWSERBASE_PROJECT_ID"),
-            "verbose": verbose,
-            **kwargs
-        }
-        self._initialized = False
-        self.on_log = on_log
-
-    async def init(self, **kwargs):
-        await self._server.ensure_server_running()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self._server.server_url}/api/init",
-                json={"config": self.config, **kwargs}
-            )
-            self._initialized = True
-            return response.json()
+    async def close(self):
+        if self.server_process:
+            self.server_process.terminate()
+            self.server_process = None
 
     async def act(
         self,
         action: str,
-        use_vision: Union[str, bool] = "fallback",
-        variables: Dict[str, Any] = None,
-        **kwargs
+        url: Optional[str] = None,
+        variables: Optional[Dict[str, Any]] = None,
     ):
-        if not self._initialized:
-            await self.init()
-        
+        payload = {
+            "action": action,
+            "url": url,
+            "variables": variables,
+        }
+        await self._stream_request("/api/act", payload)
+
+    async def extract(
+        self,
+        instruction: str,
+        schema: Dict[str, Any],
+        url: Optional[str] = None,
+    ):
+        payload = {
+            "instruction": instruction,
+            "schema": schema,
+            "url": url,
+        }
+        await self._stream_request("/api/extract", payload)
+
+    async def observe(
+        self,
+        instruction: str,
+        url: Optional[str] = None,
+    ):
+        payload = {
+            "instruction": instruction,
+            "url": url,
+        }
+        await self._stream_request("/api/observe", payload)
+
+    async def _stream_request(self, endpoint: str, payload: Dict[str, Any]):
         async with httpx.AsyncClient() as client:
             async with client.stream(
-                "POST",
-                f"{self._server.server_url}/api/act",
-                json={
-                    "action": action,
-                    "useVision": use_vision,
-                    "variables": variables or {},
-                    **kwargs
-                }
+                "POST", f"{self.server_url}{endpoint}", json=payload
             ) as response:
-                response.raise_for_status()
-                result = None
-                
+                if response.status_code != 200:
+                    error_text = await response.aread()
+                    print(f"Error: {error_text.decode('utf-8')}")
+                    return
                 async for line in response.aiter_lines():
-                    if not line.strip():
-                        continue
-                    
-                    try:
-                        data = json.loads(line)
+                    if line:
+                        log_data = self._parse_log_line(line)
                         if self.on_log:
-                            self.on_log(data)
-                            
-                        # The last message will contain the result
-                        result = data.get("result")
-                    except json.JSONDecodeError:
-                        continue
-                
-                return result
+                            await self.on_log(log_data)
+                        else:
+                            print(log_data)
 
-    async def extract(self, instruction: str, schema: Dict, **kwargs):
-        if not self._initialized:
-            await self.init()
-            
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self._server.server_url}/api/extract",
-                json={
-                    "instruction": instruction,
-                    "schema": schema,
-                    **kwargs
-                }
-            )
-            return response.json()
-
-    async def close(self):
-        if self._server.server_process:
-            self._server.server_process.terminate()
-            self._server.server_process = None
+    def _parse_log_line(self, line: str) -> Dict[str, Any]:
+        try:
+            return json.loads(line)
+        except json.JSONDecodeError:
+            return {"message": line}
