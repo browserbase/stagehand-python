@@ -6,6 +6,8 @@ import httpx
 import json
 from pydantic import BaseModel
 import time
+import socket
+import os
 
 class Stagehand:
     def __init__(
@@ -45,16 +47,53 @@ class Stagehand:
 
     async def _ensure_server_running(self):
         if self.server_process is None:
+            # Check if port 3000 is available
+            port = 3000
+            while not await self._is_port_available(port):
+                port += 1
+            
             # Start Next.js server in the background
             server_dir = Path(__file__).parent / "server"
+            print(f"Starting server in {server_dir} on port {port}")
+            
+            # Set environment variables including PORT
+            env = os.environ.copy()
+            env["PORT"] = str(port)
+            
             self.server_process = subprocess.Popen(
-                ["npm", "run", "dev "],
+                ["npm", "run", "dev"],
                 cwd=server_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                bufsize=1,
+                universal_newlines=True,
+                env=env  # Pass the environment variables
             )
+            
+            # Update the server_url with the actual port
+            self.server_url = f"http://localhost:{port}"
+            
+            # Create tasks to read stdout and stderr
+            asyncio.create_task(self._log_subprocess_output(self.server_process.stdout, "Server output"))
+            asyncio.create_task(self._log_subprocess_output(self.server_process.stderr, "Server error"))
+            
             # Wait for server to be ready
             await self._wait_for_server()
+
+    async def _is_port_available(self, port: int) -> bool:
+        try:
+            # Try to create a socket binding
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.bind(('localhost', port))
+            sock.close()
+            return True
+        except OSError:
+            return False
+
+    async def _log_subprocess_output(self, pipe, prefix: str):
+        for line in iter(pipe.readline, ''):
+            self._log(f"{prefix}: {line.strip()}", level=1)
+        pipe.close()
 
     async def _wait_for_server(self, timeout: int = 10):
         start_time = asyncio.get_event_loop().time()

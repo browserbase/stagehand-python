@@ -19,7 +19,9 @@ async def main():
     )
     # Initialize the browser
     await browser.init()
-    
+
+    print("Browser initialized")
+
     try:
         # Use exactly like the TypeScript version, but now with streaming logs
         result = await browser.act("Navigate to google.com")

@@ -31,7 +31,7 @@ export const initStagehand = async (
 
   logger.init(stagehand, controller, encoder);
 
-  await stagehand.init({ modelName, domSettleTimeoutMs });
+  await stagehand.init({});
 
   return stagehand;
 };
