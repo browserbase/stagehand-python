@@ -21,7 +21,7 @@ async def log_handler(log_data: dict):
 async def main():
     # Creates instance and automatically manages NextJS server
     browser = Stagehand(
-        env="LOCAL",
+        env="BROWSERBASE",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="claude-3-5-sonnet-20241022",
