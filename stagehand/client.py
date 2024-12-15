@@ -4,10 +4,15 @@ from typing import Optional, Dict, Any, Callable, Awaitable, Type
 from pathlib import Path
 import httpx
 import json
+from typing import Union
 from pydantic import BaseModel
 import time
 import socket
 import os
+# from litellm import completion
+from dotenv import load_dotenv
+# from utils import EXTRACT_SCHEMA_PROMPT
+load_dotenv()
 
 class Stagehand:
     def __init__(
@@ -154,19 +159,40 @@ class Stagehand:
     async def extract(
         self,
         instruction: str,
-        schema: Type[BaseModel],
+        schema: Union[Type[BaseModel], Dict[str, Any]],
         url: Optional[str] = None,
+        model_name: Optional[str] = None,
     ) -> Any:
+        if isinstance(schema, dict):
+            schema_definition = schema
+        elif issubclass(schema, BaseModel):
+            schema_definition = schema.schema()
+        else:
+            raise ValueError("schema must be a Pydantic model class or a dictionary")
+
+        
+        # schema_prompt = EXTRACT_SCHEMA_PROMPT.format(schema=json.dumps(schema.schema()))
+        # response = completion(model="gpt-4o", messages=[{"role": "user", "content": schema_prompt}])
+        # schema = response.choices[0].message.content
+        # print('incoming schema', schema)
+        # print('incoming schema json', schema.schema())
+        # print('schema', schema)
+
         payload = {
             "instruction": instruction,
-            "schema": schema.schema(),
+            "schemaDefinition": schema_definition,
             "url": url,
-            "modelName": self.model_name,
+            "modelName": model_name or self.model_name,
         }
-        response_data = await self._stream_request("/api/extract", payload)
-        if response_data:
-            return schema.parse_obj(response_data)
-        else:
+        print('payload', payload)
+        try:
+            response_data = await self._stream_request("/api/extract", payload)
+            if response_data:
+                return schema.parse_obj(response_data)
+            else:
+                return None
+        except Exception as e:
+            print(f"Error: {e}")
             return None
 
     async def observe(
@@ -196,19 +222,32 @@ class Stagehand:
         return response_data
     
     async def _stream_request(self, endpoint: str, payload: Dict[str, Any]) -> Any:
-        payload["constructorOptions"] = {
-            "env": self.env,
-            "apiKey": self.api_key,
-            "projectId": self.project_id,
-            "verbose": self.verbose,
-            "debugDom": self.debug_dom,
-            "headless": self.headless,
-            "domSettleTimeoutMs": self.dom_settle_timeout_ms,
-            "enableCaching": self.enable_caching,
-            "browserbaseResumeSessionID": self.browserbase_resume_session_id,
-            "modelName": self.model_name,
-            "modelClientOptions": self.model_client_options
-        }
+        constructor_options = {}
+        if self.env:
+            constructor_options["env"] = self.env
+        if self.api_key:
+            constructor_options["apiKey"] = self.api_key
+        if self.project_id:
+            constructor_options["projectId"] = self.project_id
+        if self.verbose:
+            constructor_options["verbose"] = self.verbose
+        if self.debug_dom:
+            constructor_options["debugDom"] = self.debug_dom
+        if self.headless:
+            constructor_options["headless"] = self.headless
+        if self.dom_settle_timeout_ms:
+            constructor_options["domSettleTimeoutMs"] = self.dom_settle_timeout_ms
+        if self.enable_caching:
+            constructor_options["enableCaching"] = self.enable_caching
+        if self.browserbase_resume_session_id:
+            constructor_options["browserbaseResumeSessionID"] = self.browserbase_resume_session_id
+        if self.model_name:
+            constructor_options["modelName"] = self.model_name
+        if self.model_client_options:
+            constructor_options["modelClientOptions"] = self.model_client_options
+
+        if constructor_options:
+            payload["constructorOptions"] = constructor_options
         async with httpx.AsyncClient() as client:
             async with client.stream(
                 "POST", f"{self.server_url}{endpoint}", json=payload

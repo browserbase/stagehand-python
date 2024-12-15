@@ -3,6 +3,10 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from stagehand import Stagehand
+from pydantic import BaseModel
+
+class ExtractSchema(BaseModel):
+    stars: int
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,9 +21,10 @@ async def log_handler(log_data: dict):
 async def main():
     # Creates instance and automatically manages NextJS server
     browser = Stagehand(
-        env="BROWSERBASE",
+        env="LOCAL",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        model_name="claude-3-5-sonnet-20241022",
         on_log=log_handler  # Add the log handler to get real-time updates
     )
     # Initialize the browser
@@ -28,10 +33,25 @@ async def main():
     print("Browser initialized")
 
     try:
-        # Use exactly like the TypeScript version, but now with streaming logs
-        result = await browser.act(action="Search for OpenAI", url="https://google.com")
-        print("\nAction result:", result)
-        print('-'*100)
+
+        # Define schema for stars extraction
+        extract_schema = {
+            "type": "object",
+            "properties": {
+                "stars": {
+                    "type": "number",
+                    "description": "the number of stars for the project"
+                }
+            },
+            "required": ["stars"]
+        }
+        
+        data = await browser.extract(
+            instruction="Extract the number of stars for the project",
+            schema=extract_schema,
+            url="https://github.com/facebook/react"
+        )
+        print("\nExtracted stars:", data)
     except Exception as e:
         print(f"Error: {e}")
 
