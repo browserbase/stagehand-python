@@ -9,7 +9,8 @@ from pydantic import BaseModel
 import time
 import socket
 import os
-# from litellm import completion
+import json
+import re
 from dotenv import load_dotenv
 # from utils import EXTRACT_SCHEMA_PROMPT
 load_dotenv()
@@ -99,11 +100,17 @@ class Stagehand:
             return False
 
     async def _read_stream(self, stream: asyncio.StreamReader, prefix: str):
+        buffer = ''
         while True:
-            line = await stream.readline()
-            if not line:
+            chunk = await stream.read(1024)
+            if not chunk:
+                if buffer:
+                    self._log(f"{prefix}: {buffer}", level=1)
                 break
-            self._log(f"{prefix}: {line.decode().strip()}", level=1)
+            buffer += chunk.decode(errors='replace')
+            *lines, buffer = buffer.split('\n')
+            for line in lines:
+                self._log(f"{prefix}: {line.strip()}", level=1)
 
     async def _wait_for_server(self, timeout: int = 30):
         print(f"Waiting for server to start on {self.server_url}")
@@ -165,19 +172,13 @@ class Stagehand:
     ) -> Any:
         if isinstance(schema, dict):
             schema_definition = schema
+            parse_response = False
         elif issubclass(schema, BaseModel):
             schema_definition = schema.schema()
+            parse_response = True
         else:
             raise ValueError("schema must be a Pydantic model class or a dictionary")
-
         
-        # schema_prompt = EXTRACT_SCHEMA_PROMPT.format(schema=json.dumps(schema.schema()))
-        # response = completion(model="gpt-4o", messages=[{"role": "user", "content": schema_prompt}])
-        # schema = response.choices[0].message.content
-        # print('incoming schema', schema)
-        # print('incoming schema json', schema.schema())
-        # print('schema', schema)
-
         payload = {
             "instruction": instruction,
             "schemaDefinition": schema_definition,
@@ -188,7 +189,10 @@ class Stagehand:
         try:
             response_data = await self._stream_request("/api/extract", payload)
             if response_data:
-                return schema.parse_obj(response_data)
+                if parse_response:
+                    return schema.parse_obj(response_data)
+                else:
+                    return response_data
             else:
                 return None
         except Exception as e:
@@ -264,11 +268,29 @@ class Stagehand:
                         data += line
                 return json.loads(data)
 
+
+
     def _parse_log_line(self, line: str) -> Dict[str, Any]:
-        try:
-            return json.loads(line)
-        except json.JSONDecodeError:
-            return {"message": line}
+        # Remove any leading/trailing whitespace
+        line = line.strip()
+        # If the line starts with '{' and ends with '}', it's likely a JSON object
+        if line.startswith('{') and line.endswith('}'):
+            try:
+                return json.loads(line)
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error: {e}")
+                print(f"Problematic line: {repr(line)}")
+        else:
+            # Attempt to extract JSON from within the line
+            json_match = re.search(r'({.*})', line)
+            if json_match:
+                try:
+                    return json.loads(json_match.group(1))
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error: {e}")
+                    print(f"Problematic JSON extracted: {repr(json_match.group(1))}")
+        # If all else fails, return the line as a message
+        return {"message": line}
 
     def _log(self, message: str, level: int = 1, auxiliary: Dict[str, Any] = None):
         if self.verbose >= level:
