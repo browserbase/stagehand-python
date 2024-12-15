@@ -45,38 +45,41 @@ class Stagehand:
     async def init(self):
         await self._ensure_server_running()
 
+
     async def _ensure_server_running(self):
         if self.server_process is None:
             # Check if port 3000 is available
             port = 3000
             while not await self._is_port_available(port):
                 port += 1
-            
+
             # Start Next.js server in the background
             server_dir = Path(__file__).parent / "server"
             print(f"Starting server in {server_dir} on port {port}")
-            
+
             # Set environment variables including PORT
             env = os.environ.copy()
             env["PORT"] = str(port)
-            
-            self.server_process = subprocess.Popen(
-                ["npm", "run", "dev"],
-                cwd=server_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                bufsize=1,
-                universal_newlines=True,
-                env=env  # Pass the environment variables
+            env = {str(k): str(v) for k, v in env.items()}
+
+            # Use asyncio subprocess to avoid blocking the event loop
+            self.server_process = await asyncio.create_subprocess_exec(
+                "npm",
+                "run",
+                "dev",
+                cwd=str(server_dir),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
-            
+
             # Update the server_url with the actual port
             self.server_url = f"http://localhost:{port}"
-            
+
             # Create tasks to read stdout and stderr
-            asyncio.create_task(self._log_subprocess_output(self.server_process.stdout, "Server output"))
-            asyncio.create_task(self._log_subprocess_output(self.server_process.stderr, "Server error"))
-            
+            asyncio.create_task(self._read_stream(self.server_process.stdout, "Server output"))
+            asyncio.create_task(self._read_stream(self.server_process.stderr, "Server error"))
+
             # Wait for server to be ready
             await self._wait_for_server()
 
@@ -90,23 +93,36 @@ class Stagehand:
         except OSError:
             return False
 
-    async def _log_subprocess_output(self, pipe, prefix: str):
-        for line in iter(pipe.readline, ''):
-            self._log(f"{prefix}: {line.strip()}", level=1)
-        pipe.close()
+    async def _read_stream(self, stream: asyncio.StreamReader, prefix: str):
+        while True:
+            line = await stream.readline()
+            if not line:
+                break
+            self._log(f"{prefix}: {line.decode().strip()}", level=1)
 
-    async def _wait_for_server(self, timeout: int = 10):
-        start_time = asyncio.get_event_loop().time()
+    async def _wait_for_server(self, timeout: int = 30):
+        print(f"Waiting for server to start on {self.server_url}")
+        start_time = time.time()
         while True:
             try:
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{self.server_url}/api/health")
+                    response = await client.get(f"{self.server_url}/api/healthcheck")
                     if response.status_code == 200:
+                        print("Server successfully started!")
                         return
-            except:
-                if asyncio.get_event_loop().time() - start_time > timeout:
-                    raise TimeoutError("Server failed to start")
-                await asyncio.sleep(0.5)
+                    else:
+                        print(f"Server returned status code: {response.status_code}")
+            except httpx.ConnectError:
+                print("Connection refused - server not ready yet")
+            except Exception as e:
+                print(f"Error checking server status: {str(e)}")
+
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"Server failed to start after {timeout} seconds")
+
+            await asyncio.sleep(0.5)
+            print(f"Waiting for server to start on {self.server_url}")
+
 
     async def act(
         self,
@@ -231,4 +247,5 @@ class Stagehand:
     async def close(self):
         if self.server_process:
             self.server_process.terminate()
+            await self.server_process.wait()
             self.server_process = None
