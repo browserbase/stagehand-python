@@ -1,10 +1,10 @@
 // app/api/extract/route.ts
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { ActionLogger } from "@/lib/actionLogger";
 import { initStagehand } from "../utils/initStagehand";
 import { ConstructorParams } from "@browserbasehq/stagehand";
-
+import { jsonSchemaToZod } from "../utils/convertSchema";
+import { AnyZodObject } from "zod";
 export async function POST(request: Request) {
   const { instruction, url, schemaDefinition, constructorOptions } = await request.json();
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const schema = z.object(schemaDefinition);
+  const zodSchema = jsonSchemaToZod(schemaDefinition) as AnyZodObject;
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         if (url) {
           await stagehand.page.goto(url);
         }
-        const data = await stagehand.extract({ instruction, schema });
+        const data = await stagehand.extract({ instruction, schema: zodSchema });
         logger.log({
           category: "extract",
           message: JSON.stringify(data),
