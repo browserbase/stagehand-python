@@ -20,7 +20,7 @@ async def log_handler(log_data: dict):
 
 async def main():
     # Creates instance and automatically manages NextJS server
-    browser = Stagehand(
+    stagehand = Stagehand(
         env="BROWSERBASE",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
@@ -28,7 +28,7 @@ async def main():
         on_log=log_handler  # Add the log handler to get real-time updates
     )
     # Initialize the browser
-    await browser.init()
+    await stagehand.init()
 
     print("Browser initialized")
 
@@ -46,7 +46,7 @@ async def main():
             "required": ["stars"]
         }
         
-        data = await browser.extract(
+        data = await stagehand.extract(
             instruction="Extract the number of stars for the project",
             schema=extract_schema,
             url="https://github.com/facebook/react"

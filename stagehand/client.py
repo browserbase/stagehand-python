@@ -19,7 +19,7 @@ class Stagehand:
     def __init__(
         self,
         env: str = "LOCAL",
-        server_url: str = "http://localhost:3000",
+        server_url: Optional[str] = None,
         on_log: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
         verbose: int = 1,
         debug_dom: bool = False,
@@ -31,9 +31,10 @@ class Stagehand:
         dom_settle_timeout_ms: Optional[int] = None,
         browserbase_resume_session_id: Optional[str] = None,
         model_client_options: Optional[Dict[str, Any]] = None,
+        launch_server: bool = True,
     ):
         self.env = env
-        self.server_url = server_url
+        self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL", "http://localhost:3000")
         self.on_log = on_log
         self.verbose = verbose
         self.debug_dom = debug_dom
@@ -45,11 +46,13 @@ class Stagehand:
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
         self.browserbase_resume_session_id = browserbase_resume_session_id
         self.model_client_options = model_client_options
+        self.launch_server = launch_server
 
         self.server_process: Optional[subprocess.Popen] = None
 
     async def init(self):
-        await self._ensure_server_running()
+        if self.launch_server:
+            await self._ensure_server_running()
 
 
     async def _ensure_server_running(self):

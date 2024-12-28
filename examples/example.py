@@ -16,20 +16,20 @@ async def log_handler(log_data: dict):
 
 async def main():
     # Creates instance and automatically manages NextJS server
-    browser = Stagehand(
+    stagehand = Stagehand(
         env="BROWSERBASE",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         on_log=log_handler  # Add the log handler to get real-time updates
     )
     # Initialize the browser
-    await browser.init()
+    await stagehand.init()
 
     print("Browser initialized")
 
     try:
         # Use exactly like the TypeScript version, but now with streaming logs
-        result = await browser.act(action="Search for OpenAI", url="https://google.com")
+        result = await stagehand.act(action="Search for OpenAI", url="https://google.com")
         print("\nAction result:", result)
         print('-'*100)
     except Exception as e:
