@@ -1,6 +1,6 @@
 # Stagehand Python SDK
 
-A Python SDK for BrowserBase Stagehand, enabling automated browser control and data extraction.
+A Python SDK for Stagehand, enabling automated browser control and data extraction.
 
 ## Installation
 
