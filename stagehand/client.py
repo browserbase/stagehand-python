@@ -20,7 +20,7 @@ class Stagehand:
 
     def __init__(
         self,
-        server_url: str = "http://localhost:3000",
+        server_url: Optional[str] = None,
         session_id: Optional[str] = None,
         browserbase_api_key: Optional[str] = None,
         browserbase_project_id: Optional[str] = None,
@@ -44,7 +44,7 @@ class Stagehand:
         :param debug_dom: Whether or not to enable DOM debug mode.
         """
 
-        self.server_url = server_url
+        self.server_url = server_url or os.getenv("SERVER_URL", "http://localhost:3000")
         self.session_id = session_id
         self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
         self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
