@@ -2,24 +2,20 @@ import asyncio
 import json
 import time
 import httpx
+import os
 from typing import Optional, Dict, Any, Callable, Awaitable, List, Union
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
-
 class Stagehand:
     """
-    Stagehand client for interacting with a running BrowserBase/Stagehand server.
-
-    This version:
-    - No longer attempts to automatically spawn an underlying Next.js server.
-    - Instead, it just pings /api/healthcheck to verify availability.
-    - Then it calls /api/execute with the required headers for each request (method + args).
-    - Streams back the logs line by line, and calls on_log() if provided.
-    - Returns the final 'result' from the server's “finished” message, if present.
+    Python client for interacting with a running BrowserBase/Stagehand server.
+    
+    Now supports automatically creating a new session if no session_id is provided.
+    You can also optionally provide modelName, domSettleTimeoutMs, verbose, and debugDom,
+    which will be sent to the server if a new session is created.
     """
 
     def __init__(
@@ -31,38 +27,52 @@ class Stagehand:
         openai_api_key: Optional[str] = None,
         on_log: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
         verbose: int = 1,
+        model_name: Optional[str] = None,
+        dom_settle_timeout_ms: Optional[int] = None,
+        debug_dom: Optional[bool] = None,
     ):
         """
         :param server_url: The running Stagehand/BrowserBase server URL.
-        :param session_id: Your existing BrowserBase session ID.
+        :param session_id: An existing BrowserBase session ID (if you already have one).
         :param browserbase_api_key: Your BrowserBase API key.
         :param browserbase_project_id: Your BrowserBase project ID.
-        :param openai_api_key: Your OpenAI API key (if needed).
+        :param openai_api_key: Your OpenAI API key (if needed, or used as the modelApiKey).
         :param on_log: Async callback for log messages streamed from the server.
         :param verbose: Verbosity level for console logs from this client.
+        :param model_name: Model name to use when creating a new session (e.g., "gpt-4o").
+        :param dom_settle_timeout_ms: Additional time for the DOM to settle.
+        :param debug_dom: Whether or not to enable DOM debug mode.
         """
+
         self.server_url = server_url
-        self.session_id = session_id or os.getenv("BROWSERBASE_SESSION_ID")
+        self.session_id = session_id
         self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
         self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
         self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
         self.on_log = on_log
         self.verbose = verbose
+        self.model_name = model_name
+        self.dom_settle_timeout_ms = dom_settle_timeout_ms
+        self.debug_dom = debug_dom
 
-        # Validate essential fields
-        if not self.session_id:
-            raise ValueError("session_id is required (or set BROWSERBASE_SESSION_ID in env).")
-        if not self.browserbase_api_key:
-            raise ValueError("browserbase_api_key is required (or set BROWSERBASE_API_KEY in env).")
-        if not self.browserbase_project_id:
-            raise ValueError("browserbase_project_id is required (or set BROWSERBASE_PROJECT_ID in env).")
+        # Validate essential fields if session_id was given;
+        # if session_id is not provided, we'll create one later.
+        if self.session_id:
+            if not self.browserbase_api_key:
+                raise ValueError("browserbase_api_key is required (or set BROWSERBASE_API_KEY in env).")
+            if not self.browserbase_project_id:
+                raise ValueError("browserbase_project_id is required (or set BROWSERBASE_PROJECT_ID in env).")
 
     async def init(self):
         """
         Confirm the server is up by pinging /api/healthcheck.
-        Raise an exception if the server is not responsive.
+        If no session_id is provided, create a new session using /api/start-session.
         """
         await self._check_server_health()
+
+        if not self.session_id:
+            await self._create_session()
+            self._log(f"Created new session: {self.session_id}", level=1)
 
     async def _check_server_health(self, timeout: int = 10):
         """
@@ -85,6 +95,46 @@ class Stagehand:
                 raise TimeoutError(f"Server not responding after {timeout} seconds.")
             await asyncio.sleep(0.5)
 
+    async def _create_session(self):
+        """
+        Create a new session by calling /api/start-session on the server.
+        Depends on browserbase_api_key, browserbase_project_id, and openai_api_key.
+        """
+        if not self.browserbase_api_key:
+            raise ValueError("browserbase_api_key is required to create a session.")
+        if not self.browserbase_project_id:
+            raise ValueError("browserbase_project_id is required to create a session.")
+        if not self.openai_api_key:
+            raise ValueError("openai_api_key is required as modelApiKey to create a session.")
+
+        payload = {
+            "modelName": self.model_name,
+            "domSettleTimeoutMs": self.dom_settle_timeout_ms,
+            "verbose": self.verbose,
+            "debugDom": self.debug_dom,
+        }
+
+        headers = {
+            "browserbase-api-key": self.browserbase_api_key,
+            "browserbase-project-id": self.browserbase_project_id,
+            "model-api-key": self.openai_api_key,
+            "Content-Type": "application/json"
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{self.server_url}/api/start-session",
+                json=payload,
+                headers=headers,
+            )
+            if resp.status_code != 200:
+                raise RuntimeError(f"Failed to create session: {resp.text}")
+            data = resp.json()
+            if "sessionId" not in data:
+                raise RuntimeError(f"Missing sessionId in response: {resp.text}")
+
+            self.session_id = data["sessionId"]
+            
     async def navigate(self, url: str):
         """
         Example convenience method wrapping 'goto'.
