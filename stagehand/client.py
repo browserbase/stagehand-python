@@ -134,7 +134,7 @@ class Stagehand:
                 raise RuntimeError(f"Missing sessionId in response: {resp.text}")
 
             self.session_id = data["sessionId"]
-            
+
     async def navigate(self, url: str):
         """
         Example convenience method wrapping 'goto'.

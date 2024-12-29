@@ -35,23 +35,29 @@ async def main():
     print(f"Created new session with ID: {stagehand.session_id}")
 
     try:
+
+        await stagehand.navigate("https://github.com/facebook/react")
+        print("Navigation complete.")
+
         # Define schema for stars extraction
-        extract_schema = {
-            "type": "object",
-            "properties": {
-                "stars": {
-                    "type": "number",
-                    "description": "the number of stars for the project"
-                }
-            },
-            "required": ["stars"]
-        }
+        # extract_schema = {
+        #     "type": "object",
+        #     "properties": {
+        #         "stars": {
+        #             "type": "number",
+        #             "description": "the number of stars for the project"
+        #         }
+        #     },
+        #     "required": ["stars"]
+        # }
+
+        # we can either use a pydantic model or a json schema via dict
+        extract_schema = ExtractSchema
         
         # Extract data using the schema
         data = await stagehand.extract(
             instruction="Extract the number of stars for the project",
-            schema=extract_schema,
-            url="https://github.com/facebook/react"
+            schema=extract_schema
         )
         print("\nExtracted stars:", data)
 

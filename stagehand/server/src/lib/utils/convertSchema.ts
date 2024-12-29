@@ -47,7 +47,8 @@ export function jsonSchemaToZod(schema: any): ZodTypeAny {
         zodString = zodString.describe(schema.description);
       }
       return zodString;
-
+    
+    case "integer":
     case "number":
       let zodNumber = z.number();
       if (schema.minimum !== undefined) {

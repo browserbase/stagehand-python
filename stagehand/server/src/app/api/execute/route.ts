@@ -20,6 +20,9 @@ import { jsonSchemaToZod } from "@/lib/utils/convertSchema";
 export async function POST(request: NextRequest) {
   const { method, args } = executeRequestSchema.parse(await request.json());
 
+  console.log("method", method);
+  console.log("args", args);
+
   const headersList = await headers();
 
   const browserbaseSessionId = headersList.get("browserbase-session-id");
