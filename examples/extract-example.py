@@ -19,13 +19,19 @@ async def log_handler(log_data: dict):
         print(f"❌ {log_data['error']}")
 
 async def main():
-    # Creates instance and automatically manages NextJS server
+    # TODO - create the session, need backend endpoint for this.
+    # the session commands all of the params for the session for stagehand to use
+
+    
+    # Create a Stagehand instance, referencing an existing session
     stagehand = Stagehand(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="claude-3-5-sonnet-20241022",
-        on_log=log_handler  # Add the log handler to get real-time updates
+        server_url="http://localhost:3000",
+        session_id=os.getenv("BROWSERBASE_SESSION_ID"),
+        browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
+        browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        on_log=log_handler,
+        verbose=2,
     )
     # Initialize the browser
     await stagehand.init()
