@@ -54,6 +54,7 @@ class Stagehand:
         self.model_name = model_name
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
         self.debug_dom = debug_dom
+        self._client: Optional[httpx.AsyncClient] = None
 
         # Validate essential fields if session_id was given;
         # if session_id is not provided, we'll create one later.
@@ -62,6 +63,18 @@ class Stagehand:
                 raise ValueError("browserbase_api_key is required (or set BROWSERBASE_API_KEY in env).")
             if not self.browserbase_project_id:
                 raise ValueError("browserbase_project_id is required (or set BROWSERBASE_PROJECT_ID in env).")
+
+    async def __aenter__(self):
+        """Initialize the httpx client and session when entering context."""
+        self._client = httpx.AsyncClient()
+        await self.init()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Clean up resources when exiting context."""
+        if self._client:
+            await self._client.aclose()
+        self._client = None
 
     async def init(self):
         """
