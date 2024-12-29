@@ -11,11 +11,13 @@ class ExtractSchema(BaseModel):
 load_dotenv()
 
 async def log_handler(log_data: dict):
-    # Pretty print the log data - you can customize this to your needs
+    """
+    Example async log handler. Prints real-time logs from the server.
+    """
     if "message" in log_data:
         print(f"🤖 {log_data['message']}")
-    elif "error" in log_data:
-        print(f"❌ {log_data['error']}")
+    else:
+        print(f"🤖 LOG: {log_data}")
 
 async def main():
     # Create a Stagehand instance with automatic session creation
@@ -24,10 +26,10 @@ async def main():
         browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
         browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        on_log=log_handler,
+        on_log=log_handler,  # attach the log handler to receive streaming logs
         verbose=2,
-        model_name="gpt-4o",
-        debug_dom=True,
+        model_name="gpt-4o",  # optional - defaults to server's default
+        debug_dom=True,  # optional - defaults to server's default
     )
 
     # Initialize - this will create a new session
@@ -38,6 +40,9 @@ async def main():
 
         await stagehand.navigate("https://github.com/facebook/react")
         print("Navigation complete.")
+
+        result = await stagehand.act("find the number of stars for the project but dont click on the link")
+        print("Action result:", result)
 
         # Define schema for stars extraction
         # extract_schema = {

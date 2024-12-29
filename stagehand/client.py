@@ -33,6 +33,8 @@ class Stagehand:
         model_name: Optional[str] = None,
         dom_settle_timeout_ms: Optional[int] = None,
         debug_dom: Optional[bool] = None,
+        httpx_client: Optional[httpx.AsyncClient] = None,
+        timeout_settings: Optional[httpx.Timeout] = None,
     ):
         """
         :param server_url: The running Stagehand/BrowserBase server URL.
@@ -45,6 +47,8 @@ class Stagehand:
         :param model_name: Model name to use when creating a new session (e.g., "gpt-4o").
         :param dom_settle_timeout_ms: Additional time for the DOM to settle.
         :param debug_dom: Whether or not to enable DOM debug mode.
+        :param httpx_client: Optional custom httpx.AsyncClient instance.
+        :param timeout_settings: Optional custom timeout settings for httpx.
         """
 
         self.server_url = server_url or os.getenv("SERVER_URL", "http://localhost:3000")
@@ -57,6 +61,13 @@ class Stagehand:
         self.model_name = model_name
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
         self.debug_dom = debug_dom
+        self.httpx_client = httpx_client
+        self.timeout_settings = timeout_settings or httpx.Timeout(
+            connect=10.0,  # connection timeout
+            read=120.0,    # read timeout
+            write=10.0,    # write timeout
+            pool=10.0,     # pool timeout
+        )
         self._client: Optional[httpx.AsyncClient] = None
 
         # Validate essential fields if session_id was given;
@@ -69,13 +80,13 @@ class Stagehand:
 
     async def __aenter__(self):
         """Initialize the httpx client and session when entering context."""
-        self._client = httpx.AsyncClient()
+        self._client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
         await self.init()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Clean up resources when exiting context."""
-        if self._client:
+        if self._client and not self.httpx_client:  # Only close if we created it
             await self._client.aclose()
         self._client = None
 
@@ -93,11 +104,14 @@ class Stagehand:
     async def _check_server_health(self, timeout: int = 10):
         """
         Ping /api/healthcheck to verify the server is available.
+        Uses exponential backoff for retries.
         """
         start = time.time()
+        attempt = 0
         while True:
             try:
-                async with httpx.AsyncClient() as client:
+                client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+                async with client:
                     resp = await client.get(f"{self.server_url}/api/healthcheck")
                     if resp.status_code == 200:
                         data = resp.json()
@@ -106,10 +120,13 @@ class Stagehand:
                             return
             except Exception as e:
                 self._log(f"Healthcheck error: {str(e)}", level=2)
-
+                
             if time.time() - start > timeout:
                 raise TimeoutError(f"Server not responding after {timeout} seconds.")
-            await asyncio.sleep(0.5)
+                
+            wait_time = min(2 ** attempt * 0.5, 5.0)  # Exponential backoff, capped at 5 seconds
+            await asyncio.sleep(wait_time)
+            attempt += 1
 
     async def _create_session(self):
         """
@@ -137,7 +154,8 @@ class Stagehand:
             "Content-Type": "application/json"
         }
 
-        async with httpx.AsyncClient() as client:
+        client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+        async with client:
             resp = await client.post(
                 f"{self.server_url}/api/start-session",
                 json=payload,
@@ -216,15 +234,8 @@ class Stagehand:
         # We'll collect final_result from the 'finished' system message
         final_result = None
 
-        # Configure longer timeouts for streaming responses
-        timeout_settings = httpx.Timeout(
-            connect=10.0,  # connection timeout
-            read=120.0,    # read timeout
-            write=10.0,   # write timeout
-            pool=10.0,    # pool timeout
-        )
-
-        async with httpx.AsyncClient(timeout=timeout_settings) as client:
+        client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+        async with client:
             async with client.stream(
                 "POST",
                 f"{self.server_url}/api/execute",
