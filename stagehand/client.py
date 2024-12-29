@@ -3,11 +3,14 @@ import json
 import time
 import httpx
 import os
+import logging
 from typing import Optional, Dict, Any, Callable, Awaitable, List, Union
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class Stagehand:
     """
@@ -281,7 +284,15 @@ class Stagehand:
     def _log(self, message: str, level: int = 1):
         """
         Internal logging with optional verbosity control.
+        Maps internal level to Python logging levels.
         """
         if self.verbose >= level:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            print(f"{timestamp}::[stagehand] {message}")
+            formatted_msg = f"{timestamp}::[stagehand] {message}"
+            
+            if level == 1:
+                logger.info(formatted_msg)
+            elif level == 2:
+                logger.warning(formatted_msg)
+            else:
+                logger.debug(formatted_msg)
