@@ -153,7 +153,7 @@ class Stagehand:
         # Configure longer timeouts for streaming responses
         timeout_settings = httpx.Timeout(
             connect=10.0,  # connection timeout
-            read=60.0,    # read timeout
+            read=120.0,    # read timeout
             write=10.0,   # write timeout
             pool=10.0,    # pool timeout
         )
