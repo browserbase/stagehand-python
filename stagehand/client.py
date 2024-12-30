@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Stagehand:
     """
-    Python client for interacting with a running BrowserBase/Stagehand server.
+    Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
     
     Now supports automatically creating a new session if no session_id is provided.
     You can also optionally provide modelName, domSettleTimeoutMs, verbose, and debugDom,
@@ -37,10 +37,10 @@ class Stagehand:
         timeout_settings: Optional[httpx.Timeout] = None,
     ):
         """
-        :param server_url: The running Stagehand/BrowserBase server URL.
-        :param session_id: An existing BrowserBase session ID (if you already have one).
-        :param browserbase_api_key: Your BrowserBase API key.
-        :param browserbase_project_id: Your BrowserBase project ID.
+        :param server_url: The running Stagehand server URL.
+        :param session_id: An existing Browserbase session ID (if you already have one).
+        :param browserbase_api_key: Your Browserbase API key.
+        :param browserbase_project_id: Your Browserbase project ID.
         :param openai_api_key: Your OpenAI API key (if needed, or used as the modelApiKey).
         :param on_log: Async callback for log messages streamed from the server.
         :param verbose: Verbosity level for console logs from this client.
