@@ -7,12 +7,22 @@ load_dotenv()
 
 async def log_handler(log_data: dict):
     """
-    Example async log handler. Prints real-time logs from the server.
+    Enhanced async log handler that shows more detailed server logs.
     """
-    if "message" in log_data:
-        print(f"🤖 {log_data['message']}")
+    # Print the full log data structure
+    if "type" in log_data:
+        log_type = log_data["type"]
+        data = log_data.get("data", {})
+        
+        if log_type == "system":
+            print(f"🔧 SYSTEM: {data}")
+        elif log_type == "log":
+            print(f"📝 LOG: {data}")
+        else:
+            print(f"ℹ️ OTHER [{log_type}]: {data}")
     else:
-        print(f"🤖 LOG: {log_data}")
+        # Fallback for any other format
+        print(f"🤖 RAW LOG: {log_data}")
 
 async def main():
     # Create a Stagehand client - it will create a new session automatically

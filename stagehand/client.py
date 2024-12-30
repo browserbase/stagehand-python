@@ -258,21 +258,27 @@ class Stagehand:
                             line = line[len("data: "):]
                         
                         message = json.loads(line)
+                        logger.info(f"Message: {message}")
                         
-                        # Log non-system messages
-                        if message.get("type") != "system":
-                            self._log(
-                                message.get("data", {}).get("message", {}).get("message", ""),
-                                level=message.get("data", {}).get("message", {}).get("level", 1),
-                            )
-                            continue
-
-                        # Handle system messages
-                        if message.get("type") == "system":
+                        # Handle different message types
+                        msg_type = message.get("type")
+                        
+                        if msg_type == "system":
                             status = message.get("data", {}).get("status")
-                            
                             if status == "finished":
-                                return message.get("data", {}).get("result")
+                                final_result = message.get("data", {}).get("result")
+                                return final_result
+                        elif msg_type == "log":
+                            # Log message from data.message
+                            log_msg = message.get("data", {}).get("message", "")
+                            self._log(log_msg, level=1)
+                            if self.on_log:
+                                await self.on_log(message)
+                        else:
+                            # Log any other message types
+                            self._log(f"Unknown message type: {msg_type}", level=2)
+                            if self.on_log:
+                                await self.on_log(message)
 
                     except json.JSONDecodeError:
                         self._log(f"Could not parse line as JSON: {line}", level=2)
