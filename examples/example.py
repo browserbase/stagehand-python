@@ -27,7 +27,7 @@ async def log_handler(log_data: dict):
 async def main():
     # Create a Stagehand client - it will create a new session automatically
     stagehand = Stagehand(
-        server_url="http://localhost:3000",
+        server_url=os.getenv("SERVER_URL"),
         browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
         browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
