@@ -159,11 +159,14 @@ class Stagehand:
         # Set up Playwright connection
         self._playwright = await async_playwright().start()
         
+        # TODO - use browserbase python SDK here?
+
         # Connect to Browserbase CDP endpoint
         connect_url = f"wss://connect.browserbase.com?apiKey={self.browserbase_api_key}&sessionId={self.session_id}"
         self._browser = await self._playwright.chromium.connect_over_cdp(connect_url)
         
         # Get or create browser context and page
+        # TODO - will this be handled here or on BB?
         self._context = self._browser.contexts()[0] if self._browser.contexts() else await self._browser.new_context()
         self._playwright_page = self._context.pages[0] if self._context.pages else await self._context.new_page()
         
