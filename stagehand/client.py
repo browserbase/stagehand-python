@@ -1,3 +1,69 @@
+
+# 2. Modify the Existing Stagehand Class
+# In the current Stagehand class:
+# Add a property page: Optional[StagehandPage] = None.
+# This will be a reference to our new Pythonic Playwright page object.
+# Initialize Playwright in Stagehand.__aenter__ (or in a dedicated method like init_playwright) if a local user wants to do normal browser operations.
+# Connect to the remote Browserbase instance or start a local browser if needed.
+# Create a Playwright page or context linked to the session_id.
+# Set up self.page = StagehandPage(...) once the browser context is connected.
+# This ensures that stagehand.page is a valid object for typical Playwright methods (page.goto(), page.wait_for_selector(), etc.).
+# Proxy AI actions. When a user calls:
+# await stagehand.page.act("search for something") → Under the hood, StagehandPage.act should call the existing _execute("act", ...) method to talk to NextJS.
+# await stagehand.page.extract(...) → Similarly, pass to _execute("extract", ...).
+# await stagehand.page.observe(...) → Pass to _execute("observe", ...).
+# Meanwhile, all other page actions (like goto, click, wait_for_selector) are handled purely in Python via Playwright’s normal APIs.
+# ---
+# 4. Managing the Remote Browser Context
+# Connect to Browserbase:
+# If Browserbase provides a WebSocket/CDP endpoint for the remote browser, call browser = await playwright.chromium.connect_over_cdp(remote_endpoint) or a similar method. Then fetch the relevant context/page.
+# Alternatively, if you must spin up a local browser and the NextJS side does the same, that’s more complicated. Generally, you want them to share the same underlying browser session.
+# Tie in the session_id to ensure both the NextJS server and Python are operating on the same remote instance. That might happen automatically if you connect to an endpoint that’s pinned to the session, or you might have to pass the session ID as part of the browser’s connect arguments.
+# Once connected, create or retrieve the page object:
+# Or if you’re reusing an existing context from the NextJS session, you might do context.pages[0] to retrieve the page.
+
+# . Updating the Existing Stagehand Workflow
+# a. New Initialization Flow
+# • In Stagehand.__aenter__, after (or before) _check_server_health(), also set up the Playwright connection:
+# async def __aenter__(self):
+#     self._client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+#     await self.init()
+#     # Connect to remote playwright / or launch local.
+#     self._playwright = await async_playwright().start()
+#     self._browser = await self._playwright.chromium.connect_over_cdp(self.remote_cdp_endpoint)
+#     # or however you're connecting with session_id
+#     self._context = await self._browser.new_context()
+#     self._playwright_page = await self._context.new_page()
+
+#     # Wrap with StagehandPage
+#     self.page = StagehandPage(self._playwright_page, self)
+
+#     return self
+
+# b. Proxy the AI Actions
+# Existing methods like await self.act("some action") can remain. Under the hood they’ll do:
+
+# # If called via Stagehand directly:
+# async def act(self, action: str):
+#     return await self.page.act(action)
+
+# Then page.act calls _execute("act", ...). So you have a single path for all AI calls, but now they exist on both Stagehand itself and the new StagehandPage.
+
+# 6. Handling Edge Cases
+# Synchronization: Ensuring local Python operations with the page do not conflict with the NextJS operations. If NextJS is also controlling the page, you’ll want to handle concurrency carefully.
+# Session expiry or reloading: If the NextJS side tears down the session, ensure the Python side re-initializes or fails gracefully.
+# Error handling: If a user calls Python’s page.goto(...) but no remote browser is actually connected, define a good exception path.
+# ---
+# 7. Summary
+# By adding a custom StagehandPage class (that either subclasses or proxies Playwright’s own Page), we can expose a Pythonic browser automation interface in the Stagehand library. Normal Playwright methods (e.g. wait_for_selector, click) stay local and synchronous. The special AI-based instructions (act, extract, observe) get redirected to your existing NextJS-based _execute calls. This consolidates everything into a single Python interface:
+# • Users do:
+
+#   async with Stagehand(...) as sh:
+#       await sh.page.goto("https://example.com")
+#       el = await sh.page.wait_for_selector("#my-element")
+#       await sh.page.act("click the button to continue")
+# • Internally, goto, wait_for_selector, etc. call real Playwright. act calls _execute → NextJS AI flow.
+# This approach combines the power of local Pythonic Playwright with your existing “AI action” approach, preserving backward compatibility while adding a straightforward user experience for normal browser automation.
 import asyncio
 import json
 import time
@@ -7,6 +73,8 @@ import logging
 from typing import Optional, Dict, Any, Callable, Awaitable, List, Union
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from playwright.async_api import async_playwright
+from .playwright_proxy import StagehandPage
 
 load_dotenv()
 
@@ -69,6 +137,11 @@ class Stagehand:
             pool=10.0,     # pool timeout
         )
         self._client: Optional[httpx.AsyncClient] = None
+        self._playwright = None
+        self._browser = None
+        self._context = None
+        self._playwright_page = None
+        self.page: Optional[StagehandPage] = None
 
         # Validate essential fields if session_id was given;
         # if session_id is not provided, we'll create one later.
@@ -82,10 +155,33 @@ class Stagehand:
         """Initialize the httpx client and session when entering context."""
         self._client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
         await self.init()
+        
+        # Set up Playwright connection
+        self._playwright = await async_playwright().start()
+        
+        # Connect to Browserbase CDP endpoint
+        connect_url = f"wss://connect.browserbase.com?apiKey={self.browserbase_api_key}&sessionId={self.session_id}"
+        self._browser = await self._playwright.chromium.connect_over_cdp(connect_url)
+        
+        # Get or create browser context and page
+        self._context = self._browser.contexts()[0] if self._browser.contexts() else await self._browser.new_context()
+        self._playwright_page = self._context.pages[0] if self._context.pages else await self._context.new_page()
+        
+        # Create StagehandPage wrapper
+        self.page = StagehandPage(self._playwright_page, self)
+        
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Clean up resources when exiting context."""
+        if self._playwright_page:
+            await self._playwright_page.close()
+        if self._context:
+            await self._context.close()
+        if self._browser:
+            await self._browser.close()
+        if self._playwright:
+            await self._playwright.stop()
         if self._client and not self.httpx_client:  # Only close if we created it
             await self._client.aclose()
         self._client = None
@@ -168,49 +264,6 @@ class Stagehand:
                 raise RuntimeError(f"Missing sessionId in response: {resp.text}")
 
             self.session_id = data["sessionId"]
-
-    async def navigate(self, url: str):
-        """
-        Example convenience method wrapping 'goto'.
-        """
-        return await self._execute("goto", [url])
-
-    async def act(self, action: str):
-        """
-        Example convenience method for 'act'.
-        """
-        return await self._execute("act", [{"action": action}])
-
-    async def observe(self, options: Optional[Dict[str, Any]] = None):
-        """
-        Example convenience method for 'observe'.
-        Options might include: {"timeoutMs": 5000} etc.
-        """
-        return await self._execute("observe", [options or {}])
-
-    async def extract(
-        self,
-        instruction: str,
-        schema: Union[Dict[str, Any], type(BaseModel)],
-        **kwargs
-    ) -> Any:
-        """
-        Extract data from the page using a JSON schema or a Pydantic model.
-        """
-        if isinstance(schema, type) and issubclass(schema, BaseModel):
-            # Convert Pydantic schema to JSON schema
-            schema_definition = schema.schema()
-        elif isinstance(schema, dict):
-            schema_definition = schema
-        else:
-            raise ValueError("schema must be a dict or a Pydantic model class.")
-
-        # Build args object
-        args_obj = {"instruction": instruction, "schemaDefinition": schema_definition}
-        # Merge any additional kwargs (like url, modelName, etc.)
-        args_obj.update(kwargs)
-
-        return await self._execute("extract", [args_obj])
 
     async def _execute(self, method: str, args: List[Any]) -> Any:
         """
