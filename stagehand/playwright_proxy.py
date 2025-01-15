@@ -277,6 +277,7 @@ class StagehandPage:
     def __getattr__(self, name):
         return getattr(self.page, name)
 
+# TODO - we may not need the below.
 class PlaywrightProxy:
     """Manages Playwright browser connection to Browserbase"""
     
