@@ -1,69 +1,3 @@
-
-# 2. Modify the Existing Stagehand Class
-# In the current Stagehand class:
-# Add a property page: Optional[StagehandPage] = None.
-# This will be a reference to our new Pythonic Playwright page object.
-# Initialize Playwright in Stagehand.__aenter__ (or in a dedicated method like init_playwright) if a local user wants to do normal browser operations.
-# Connect to the remote Browserbase instance or start a local browser if needed.
-# Create a Playwright page or context linked to the session_id.
-# Set up self.page = StagehandPage(...) once the browser context is connected.
-# This ensures that stagehand.page is a valid object for typical Playwright methods (page.goto(), page.wait_for_selector(), etc.).
-# Proxy AI actions. When a user calls:
-# await stagehand.page.act("search for something") → Under the hood, StagehandPage.act should call the existing _execute("act", ...) method to talk to NextJS.
-# await stagehand.page.extract(...) → Similarly, pass to _execute("extract", ...).
-# await stagehand.page.observe(...) → Pass to _execute("observe", ...).
-# Meanwhile, all other page actions (like goto, click, wait_for_selector) are handled purely in Python via Playwright’s normal APIs.
-# ---
-# 4. Managing the Remote Browser Context
-# Connect to Browserbase:
-# If Browserbase provides a WebSocket/CDP endpoint for the remote browser, call browser = await playwright.chromium.connect_over_cdp(remote_endpoint) or a similar method. Then fetch the relevant context/page.
-# Alternatively, if you must spin up a local browser and the NextJS side does the same, that’s more complicated. Generally, you want them to share the same underlying browser session.
-# Tie in the session_id to ensure both the NextJS server and Python are operating on the same remote instance. That might happen automatically if you connect to an endpoint that’s pinned to the session, or you might have to pass the session ID as part of the browser’s connect arguments.
-# Once connected, create or retrieve the page object:
-# Or if you’re reusing an existing context from the NextJS session, you might do context.pages[0] to retrieve the page.
-
-# . Updating the Existing Stagehand Workflow
-# a. New Initialization Flow
-# • In Stagehand.__aenter__, after (or before) _check_server_health(), also set up the Playwright connection:
-# async def __aenter__(self):
-#     self._client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
-#     await self.init()
-#     # Connect to remote playwright / or launch local.
-#     self._playwright = await async_playwright().start()
-#     self._browser = await self._playwright.chromium.connect_over_cdp(self.remote_cdp_endpoint)
-#     # or however you're connecting with session_id
-#     self._context = await self._browser.new_context()
-#     self._playwright_page = await self._context.new_page()
-
-#     # Wrap with StagehandPage
-#     self.page = StagehandPage(self._playwright_page, self)
-
-#     return self
-
-# b. Proxy the AI Actions
-# Existing methods like await self.act("some action") can remain. Under the hood they’ll do:
-
-# # If called via Stagehand directly:
-# async def act(self, action: str):
-#     return await self.page.act(action)
-
-# Then page.act calls _execute("act", ...). So you have a single path for all AI calls, but now they exist on both Stagehand itself and the new StagehandPage.
-
-# 6. Handling Edge Cases
-# Synchronization: Ensuring local Python operations with the page do not conflict with the NextJS operations. If NextJS is also controlling the page, you’ll want to handle concurrency carefully.
-# Session expiry or reloading: If the NextJS side tears down the session, ensure the Python side re-initializes or fails gracefully.
-# Error handling: If a user calls Python’s page.goto(...) but no remote browser is actually connected, define a good exception path.
-# ---
-# 7. Summary
-# By adding a custom StagehandPage class (that either subclasses or proxies Playwright’s own Page), we can expose a Pythonic browser automation interface in the Stagehand library. Normal Playwright methods (e.g. wait_for_selector, click) stay local and synchronous. The special AI-based instructions (act, extract, observe) get redirected to your existing NextJS-based _execute calls. This consolidates everything into a single Python interface:
-# • Users do:
-
-#   async with Stagehand(...) as sh:
-#       await sh.page.goto("https://example.com")
-#       el = await sh.page.wait_for_selector("#my-element")
-#       await sh.page.act("click the button to continue")
-# • Internally, goto, wait_for_selector, etc. call real Playwright. act calls _execute → NextJS AI flow.
-# This approach combines the power of local Pythonic Playwright with your existing “AI action” approach, preserving backward compatibility while adding a straightforward user experience for normal browser automation.
 import asyncio
 import json
 import time
@@ -74,7 +8,7 @@ from typing import Optional, Dict, Any, Callable, Awaitable, List, Union
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
-from .playwright_proxy import StagehandPage
+from .page import StagehandPage
 
 load_dotenv()
 

@@ -50,14 +50,16 @@ async def main():
     print(f"Created new session with ID: {stagehand.session_id}")
 
 
-    # server side - navigate FIRST
+    # server side - navigate FIRST (need to inject scripts into the browsers current context's DOM from TS first)
     await stagehand.page.navigate("https://www.google.com")
     print("Navigation complete server side.")
-
+    # Wait 5 seconds
+    await asyncio.sleep(5)
+    print("Waited 5 seconds")
     # Example: navigate to google.com
     # client side - navigate, does not work yet.
-    # await stagehand.page.goto("https://www.google.com")
-    # print("Navigation complete client side.")
+    await stagehand.page.goto("https://www.google.com")
+    print("Navigation complete client side.")
 
     # Example: ACT to do something like 'search for openai'
     result = await stagehand.page.act("search for openai")
