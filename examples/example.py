@@ -1,9 +1,16 @@
 import asyncio
 import os
+import logging
 from dotenv import load_dotenv
 from stagehand.client import Stagehand
 
 load_dotenv()
+# Configure logging at the start of the script
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 async def log_handler(log_data: dict):
     """
@@ -43,15 +50,15 @@ async def main():
     print(f"Created new session with ID: {stagehand.session_id}")
 
     # Example: navigate to google.com
-    await stagehand.page.navigate("https://www.google.com")
+    await stagehand.page.goto("https://www.google.com")
     print("Navigation complete.")
 
     # Example: ACT to do something like 'search for openai'
-    result = await stagehand.act("search for openai")
+    result = await stagehand.page.act("search for openai")
     print("Action result:", result)
 
     # You can observe the DOM or environment after that
-    observations = await stagehand.observe({"timeoutMs": 3000})
+    observations = await stagehand.page.observe({"timeoutMs": 3000})
     print("Observations:", observations)
 
 if __name__ == "__main__":

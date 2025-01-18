@@ -196,9 +196,10 @@ class Stagehand:
         )
         self._log(f"Connecting to remote browser at: {connect_url}", level=1)
         self._browser = await self._playwright.chromium.connect_over_cdp(connect_url)
-
+        self._log(f"Connected to remote browser: {self._browser}", level=1)
+        
         # Access or create a context
-        existing_contexts = self._browser.contexts()
+        existing_contexts = self._browser.contexts
         self._log(f"Existing contexts: {len(existing_contexts)}", level=1)
         if existing_contexts:
             self._context = existing_contexts[0]

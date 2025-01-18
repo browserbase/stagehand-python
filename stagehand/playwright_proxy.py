@@ -277,31 +277,31 @@ class StagehandPage:
     def __getattr__(self, name):
         return getattr(self.page, name)
 
-# TODO - we may not need the below.
-class PlaywrightProxy:
-    """Manages Playwright browser connection to Browserbase"""
+# # TODO - we may not need the below.
+# class PlaywrightProxy:
+#     """Manages Playwright browser connection to Browserbase"""
     
-    def __init__(self, api_key: str, project_id: str):
-        self.api_key = api_key
-        self.project_id = project_id
-        self.browser: Optional[Browser] = None
-        self.context: Optional[BrowserContext] = None
+#     def __init__(self, api_key: str, project_id: str):
+#         self.api_key = api_key
+#         self.project_id = project_id
+#         self.browser: Optional[Browser] = None
+#         self.context: Optional[BrowserContext] = None
         
-    async def connect(self, connect_url: str):
-        """Connect to remote Browserbase browser"""
-        playwright = await async_playwright().start()
-        self.browser = await playwright.chromium.connect_over_cdp(connect_url)
-        self.context = self.browser.contexts[0]
-        return self.context
+#     async def connect(self, connect_url: str):
+#         """Connect to remote Browserbase browser"""
+#         playwright = await async_playwright().start()
+#         self.browser = await playwright.chromium.connect_over_cdp(connect_url)
+#         self.context = self.browser.contexts[0]
+#         return self.context
         
-    async def new_page(self, stagehand_client) -> StagehandPage:
-        """Create new page wrapped in StagehandPage"""
-        if not self.context:
-            raise RuntimeError("Must connect() before creating pages")
-        page = await self.context.new_page()
-        return StagehandPage(page, stagehand_client)
+#     async def new_page(self, stagehand_client) -> StagehandPage:
+#         """Create new page wrapped in StagehandPage"""
+#         if not self.context:
+#             raise RuntimeError("Must connect() before creating pages")
+#         page = await self.context.new_page()
+#         return StagehandPage(page, stagehand_client)
         
-    async def close(self):
-        """Clean up browser resources"""
-        if self.browser:
-            await self.browser.close()
+#     async def close(self):
+#         """Clean up browser resources"""
+#         if self.browser:
+#             await self.browser.close()
