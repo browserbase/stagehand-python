@@ -43,7 +43,7 @@ async def main():
     print(f"Created new session with ID: {stagehand.session_id}")
 
     # Example: navigate to google.com
-    await stagehand.navigate("https://www.google.com")
+    await stagehand.page.navigate("https://www.google.com")
     print("Navigation complete.")
 
     # Example: ACT to do something like 'search for openai'
