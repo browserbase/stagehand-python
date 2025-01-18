@@ -57,11 +57,12 @@ async def main():
     await asyncio.sleep(5)
     print("Waited 5 seconds")
     # Example: navigate to google.com
-    # client side - navigate, does not work yet.
+    # client side - navigate
     await stagehand.page.goto("https://www.google.com")
     print("Navigation complete client side.")
 
     # Example: ACT to do something like 'search for openai'
+    # NOTE: need to inject scripts into the browsers current context's DOM from TS first before we can do this
     result = await stagehand.page.act("search for openai")
     print("Action result:", result)
 
