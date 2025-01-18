@@ -51,7 +51,7 @@ async def main():
 
 
     # server side - navigate FIRST (need to inject scripts into the browsers current context's DOM from TS first)
-    await stagehand.page.navigate("https://www.google.com")
+    await stagehand.page.navigate("https://news.ycombinator.com/")
     print("Navigation complete server side.")
     # Wait 5 seconds
     await asyncio.sleep(5)
