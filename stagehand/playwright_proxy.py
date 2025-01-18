@@ -251,7 +251,12 @@ class StagehandPage:
     async def goto(self, url: str, **kwargs):
         """Navigate to URL using Playwright directly"""
         return await self.page.goto(url, **kwargs)
-        
+
+    # add server side navigate
+    async def navigate(self, url: str, **kwargs):
+        """Navigate to URL using Stagehand server"""
+        return await self._stagehand._execute("goto", [url])
+    
     async def act(self, action: str):
         """Execute AI action via Stagehand server"""
         return await self._stagehand._execute("act", [{"action": action}])

@@ -49,9 +49,15 @@ async def main():
     await stagehand.init()
     print(f"Created new session with ID: {stagehand.session_id}")
 
+
+    # server side - navigate FIRST
+    await stagehand.page.navigate("https://www.google.com")
+    print("Navigation complete server side.")
+
     # Example: navigate to google.com
-    await stagehand.page.goto("https://www.google.com")
-    print("Navigation complete.")
+    # client side - navigate, does not work yet.
+    # await stagehand.page.goto("https://www.google.com")
+    # print("Navigation complete client side.")
 
     # Example: ACT to do something like 'search for openai'
     result = await stagehand.page.act("search for openai")
