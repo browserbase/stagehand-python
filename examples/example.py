@@ -49,22 +49,30 @@ async def main():
     await stagehand.init()
     print(f"Created new session with ID: {stagehand.session_id}")
 
+    await asyncio.sleep(10)
 
-    # server side - navigate FIRST (need to inject scripts into the browsers current context's DOM from TS first)
+    # SERVER side playwright page in TS - navigate FIRST 
+    # Need to inject scripts into the browsers current context's DOM from TS first
     await stagehand.page.navigate("https://news.ycombinator.com/")
     print("Navigation complete server side.")
-    # Wait 5 seconds
-    await asyncio.sleep(5)
-    print("Waited 5 seconds")
-    # Example: navigate to google.com
-    # client side - navigate
+    
+    # Wait 10 seconds
+    await asyncio.sleep(10)
+    print("Waited 10 seconds")
+
+    # CLIENT side Playwright page in Python - navigate
     await stagehand.page.goto("https://www.google.com")
     print("Navigation complete client side.")
 
-    # Example: ACT to do something like 'search for openai'
-    # NOTE: need to inject scripts into the browsers current context's DOM from TS first before we can do this
+    # Hosted Stagehand - ACT to do something like 'search for openai'
     result = await stagehand.page.act("search for openai")
     print("Action result:", result)
+
+    await asyncio.sleep(5)
+
+    # Pure client side Playwright - after searching for OpenAI, click on the News tab
+    await stagehand.page.get_by_role("link", name="News", exact=True).first.click()
+    print("Clicked on News tab")
 
     # You can observe the DOM or environment after that
     observations = await stagehand.page.observe({"timeoutMs": 3000})
