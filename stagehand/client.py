@@ -65,10 +65,10 @@ class Stagehand:
         self.debug_dom = debug_dom
         self.httpx_client = httpx_client
         self.timeout_settings = timeout_settings or httpx.Timeout(
-            connect=10.0,  # connection timeout
-            read=120.0,    # read timeout
-            write=10.0,    # write timeout
-            pool=10.0,     # pool timeout
+            connect=90.0,  # connection timeout
+            read=90.0,    # read timeout
+            write=90.0,    # write timeout
+            pool=90.0,     # pool timeout
         )
 
         self._client: Optional[httpx.AsyncClient] = None
@@ -271,6 +271,7 @@ class Stagehand:
             "browserbase-api-key": self.browserbase_api_key,
             "browserbase-project-id": self.browserbase_project_id,
             "Content-Type": "application/json",
+            "Connection": "keep-alive"
         }
         if self.openai_api_key:
             headers["openai-api-key"] = self.openai_api_key

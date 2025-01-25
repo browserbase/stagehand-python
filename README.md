@@ -2,9 +2,11 @@
 
 A Python SDK for Stagehand, enabling automated browser control and data extraction.
 
-## Installation
+Stagehand is a natural AI extension to Playwright. You can write all of your PLaywright commands as you normally would.
 
-```bash
+Offload the AI-powered `act/extract/observe` to Stagehand.
+
+## Installation```bash
 pip install stagehand-py
 ```
 
@@ -26,7 +28,7 @@ Here is a minimal example to get started:
 ```python
 import asyncio
 import os
-from stagehand import Stagehand
+from stagehand.client import Stagehand
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -66,19 +68,19 @@ async def main():
 
 
     # Initialize - this will create a new session
-    await stagehand.init()
+    await stagehand.page.init()
     print(f"Created new session: {stagehand.session_id}")
 
     # Example: navigate to google.com
-    await stagehand.navigate("https://www.google.com")
+    await stagehand.page.navigate("https://www.google.com")
     print("Navigation complete.")
 
     # Example: ACT to do something like 'search for openai'
-    result = await stagehand.act("search for openai")
+    result = await stagehand.page.act("search for openai")
     print("Action result:", result)
 
     # Close the session (if needed)
-    # await stagehand.close()
+    await stagehand.close()
 if __name__ == "__main__":
     asyncio.run(main())
 ```
@@ -99,6 +101,7 @@ if __name__ == "__main__":
 - Automated browser control with natural language commands
 - Data extraction with schema validation (either pydantic or JSON schema)
 - Async/await support
+- Extension of Playwright - run playwright commands normally, with act/extract/observe offloaded to an API
 
 ## Requirements
 
@@ -111,3 +114,4 @@ if __name__ == "__main__":
 ## License
 
 MIT License (c) Browserbase, Inc.
+

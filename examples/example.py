@@ -73,11 +73,6 @@ async def main():
     result = await stagehand.page.act("click the search button")
     print("Action result:", result)
 
-    # You can observe the DOM or environment after that
-    observations = await stagehand.page.observe(instruction="observe the links below the search bar")
-    print("Observations:", observations)
-    # TODO pick a nice example for observe.
-
     # Pure client side Playwright - after searching for OpenAI, click on the News tab
     await stagehand.page.get_by_role("link", name="News", exact=True).first.click()
     print("Clicked on News tab")
