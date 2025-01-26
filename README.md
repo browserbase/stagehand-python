@@ -1,3 +1,44 @@
+<div id="toc" align="center">
+  <ul style="list-style: none">
+    <a href="https://stagehand.dev">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://stagehand.dev/logo-dark.svg" />
+        <img alt="Stagehand" src="https://stagehand.dev/logo-light.svg" />
+      </picture>
+    </a>
+  </ul>
+</div>
+
+<p align="center">
+  An AI web browsing framework focused on simplicity and extensibility.<br>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/stagehand-py">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/stagehand-py.svg?style=for-the-badge" />
+      <img alt="PyPI version" src="https://img.shields.io/pypi/v/stagehand-py.svg?style=for-the-badge" />
+    </picture>
+  </a>
+  <a href="https://github.com/browserbase/stagehand/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://stagehand.dev/api/assets/license?mode=dark" />
+      <img alt="MIT License" src="https://stagehand.dev/api/assets/license?mode=light" />
+    </picture>
+  </a>
+  <a href="https://join.slack.com/t/stagehand-dev/shared_invite/zt-2tdncfgkk-fF8y5U0uJzR2y2_M9c9OJA">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://stagehand.dev/api/assets/slack?mode=dark" />
+      <img alt="Slack Community" src="https://stagehand.dev/api/assets/slack?mode=light" />
+    </picture>
+  </a>
+</p>
+
+
+  <div class="note" style="background-color: #808096; border-left: 5px solid #ffeb3b; padding: 15px; margin: 10px 0; color: white;">
+    <strong>NOTE:</strong> This is a Python SDK for Stagehand. Original implementation is in TypeScript and is available <a href="https://stagehand.dev" style="color: blue;">here</a>.
+  </div>
+
 # Stagehand Python SDK
 
 A Python SDK for Stagehand, enabling automated browser control and data extraction.
