@@ -36,18 +36,24 @@
 
 
   <div class="note" style="background-color: #808096; border-left: 5px solid #ffeb3b; padding: 15px; margin: 10px 0; color: white;">
-    <strong>NOTE:</strong> This is a Python SDK for Stagehand. Original implementation is in TypeScript and is available <a href="https://stagehand.dev" style="color: blue;">here</a>.
+    <strong>NOTE:</strong> This is a Python SDK for Stagehand. Original implementation is in TypeScript and is available <a href="https://github.com/browserbase/stagehand" style="color: blue;">here</a>.
   </div>
 
-# Stagehand Python SDK
+---
 
-A Python SDK for Stagehand, enabling automated browser control and data extraction.
+A Python SDK for [Stagehand](https://stagehand.dev), enabling automated browser control and data extraction.
 
-Stagehand is a natural AI extension to Playwright. You can write all of your PLaywright commands as you normally would.
+Stagehand is the easiest way to build browser automations. It is fully compatible with Playwright, offering three simple AI APIs (act, extract, and observe) on top of the base Playwright Page class that provide the building blocks for web automation via natural language. 
 
-Offload the AI-powered `act/extract/observe` to Stagehand.
+You can write all of your Playwright commands as you normally would, while offloading the AI-powered `act/extract/observe` operations to Stagehand hosted on our Stagehand API.
 
-## Installation```bash
+
+
+
+
+## Installation
+
+```bash
 pip install stagehand-py
 ```
 
@@ -59,7 +65,7 @@ Before running your script, make sure you have exported the necessary environmen
 export BROWSERBASE_API_KEY="your-api-key"
 export BROWSERBASE_PROJECT_ID="your-project-id"
 export OPENAI_API_KEY="your-openai-api-key"
-export SERVER_URL="url-of-stagehand-server" 
+export STAGEHAND_SERVER_URL="url-of-stagehand-server" 
 ```
 
 ## Usage
@@ -74,61 +80,38 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-async def log_handler(log_data: dict):
-    """
-    Enhanced async log handler that shows more detailed server logs.
-    """
-    # Print the full log data structure
-    if "type" in log_data:
-        log_type = log_data["type"]
-        data = log_data.get("data", {})
-        
-        if log_type == "system":
-            print(f"🔧 SYSTEM: {data}")
-        elif log_type == "log":
-            print(f"📝 LOG: {data}")
-        else:
-            print(f"ℹ️ OTHER [{log_type}]: {data}")
-    else:
-        # Fallback for any other format
-        print(f"🤖 RAW LOG: {log_data}")
-
 async def main():
     # Create a Stagehand client - it will create a new session automatically
     stagehand = Stagehand(
-        server_url=os.getenv("SERVER_URL"),
-        browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
-        browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
-        on_log=log_handler,  # attach the log handler to receive streaming logs
-        verbose=2,
         model_name="gpt-4o",  # optional - defaults to server's default
-        dom_settle_timeout_ms=3000,  # optional - defaults to server's default
-        debug_dom=True,  # optional - defaults to server's default
     )
-
 
     # Initialize - this will create a new session
     await stagehand.page.init()
     print(f"Created new session: {stagehand.session_id}")
 
-    # Example: navigate to google.com
-    await stagehand.page.navigate("https://www.google.com")
+    # Example: navigate to google.com - from Playwright in Python
+    await stagehand.page.goto("https://www.google.com")
     print("Navigation complete.")
 
     # Example: ACT to do something like 'search for openai'
-    result = await stagehand.page.act("search for openai")
-    print("Action result:", result)
+    # executes remote on a Typescript server and logs are streamed back
+    await stagehand.page.act("search for openai")
+
+    # Pure client side Playwright - after searching for OpenAI, click on the News tab
+    await stagehand.page.get_by_role("link", name="News", exact=True).first.click()
+    print("Clicked on News tab")
 
     # Close the session (if needed)
     await stagehand.close()
+
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
 ## Configuration
 
-- `server_url`: The Stagehand server URL (default: http://localhost:3000)
+- `stagehand_server_url`: The Stagehand server URL (default: http://localhost:3000)
 - `browserbase_api_key`: Your BrowserBase API key (can also be set via BROWSERBASE_API_KEY environment variable)
 - `browserbase_project_id`: Your BrowserBase project ID (can also be set via BROWSERBASE_PROJECT_ID environment variable)
 - `openai_api_key`: Your OpenAI API key (can also be set via OPENAI_API_KEY environment variable)
