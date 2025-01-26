@@ -48,7 +48,35 @@ Stagehand is the easiest way to build browser automations. It is fully compatibl
 You can write all of your Playwright commands as you normally would, while offloading the AI-powered `act/extract/observe` operations to Stagehand hosted on our Stagehand API.
 
 
+Here's a sample of what you can do with Stagehand:
 
+```python
+# Keep your existing Playwright code unchanged
+await page.goto("https://docs.stagehand.dev");
+
+# Stagehand AI: Act on the page via Stagehand API
+await page.act("click on the 'Quickstart'");
+
+# Stagehand AI: Extract data from the page
+from pydantic import BaseModel
+
+class DescriptionSchema(BaseModel):
+    description: str
+
+data = await page.extract(
+    instruction="extract the description of the page",
+    schema=DescriptionSchema
+)
+description = data.description
+```
+
+## Why?
+**Stagehand adds determinism to otherwise unpredictable agents.**
+
+While there's no limit to what you could instruct Stagehand to do, our primitives allow you to control how much you want to leave to an AI. It works best when your code is a sequence of atomic actions. Instead of writing a single script for a single website, Stagehand allows you to write durable, self-healing, and repeatable web automation workflows that actually work.
+
+> [!NOTE] 
+> `Stagehand` is currently available as an early release, and we're actively seeking feedback from the community. Please join our [Slack community](https://join.slack.com/t/stagehand-dev/shared_invite/zt-2tdncfgkk-fF8y5U0uJzR2y2_M9c9OJA) to stay updated on the latest developments and provide feedback.
 
 
 ## Installation
