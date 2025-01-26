@@ -4,11 +4,11 @@ import time
 import httpx
 import os
 import logging
-from typing import Optional, Dict, Any, Callable, Awaitable, List, Union
-from pydantic import BaseModel
+from typing import Optional, Dict, Any, Callable, Awaitable
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 from .page import StagehandPage
+from .utils import default_log_handler
 
 load_dotenv()
 
@@ -30,7 +30,7 @@ class Stagehand:
         browserbase_api_key: Optional[str] = None,
         browserbase_project_id: Optional[str] = None,
         openai_api_key: Optional[str] = None,
-        on_log: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
+        on_log: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = default_log_handler,
         verbose: int = 1,
         model_name: Optional[str] = None,
         dom_settle_timeout_ms: Optional[int] = None,
@@ -53,7 +53,7 @@ class Stagehand:
         :param timeout_settings: Optional custom timeout settings for httpx.
         """
 
-        self.server_url = server_url or os.getenv("SERVER_URL", "http://localhost:3000")
+        self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL", "http://localhost:3000")
         self.session_id = session_id
         self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
         self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")

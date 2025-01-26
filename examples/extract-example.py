@@ -10,33 +10,13 @@ class ExtractSchema(BaseModel):
 # Load environment variables from .env file
 load_dotenv()
 
-async def log_handler(log_data: dict):
-    """
-    Enhanced async log handler that shows more detailed server logs.
-    """
-    # Print the full log data structure
-    if "type" in log_data:
-        log_type = log_data["type"]
-        data = log_data.get("data", {})
-        
-        if log_type == "system":
-            print(f"🔧 SYSTEM: {data}")
-        elif log_type == "log":
-            print(f"📝 LOG: {data}")
-        else:
-            print(f"ℹ️ OTHER [{log_type}]: {data}")
-    else:
-        # Fallback for any other format
-        print(f"🤖 RAW LOG: {log_data}")
-
 async def main():
     # Create a Stagehand instance with automatic session creation
     stagehand = Stagehand(
-        server_url=os.getenv("SERVER_URL"),
+        server_url=os.getenv("STAGEHAND_SERVER_URL"),
         browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
         browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        on_log=log_handler,  # attach the log handler to receive streaming logs
         verbose=2,
         model_name="gpt-4o",  # optional - defaults to server's default
         debug_dom=True,  # optional - defaults to server's default

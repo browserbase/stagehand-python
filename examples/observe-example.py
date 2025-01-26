@@ -6,25 +6,6 @@ from stagehand import Stagehand
 # Load environment variables from .env file
 load_dotenv()
 
-async def log_handler(log_data: dict):
-    """
-    Enhanced async log handler that shows more detailed server logs.
-    """
-    # Print the full log data structure
-    if "type" in log_data:
-        log_type = log_data["type"]
-        data = log_data.get("data", {})
-        
-        if log_type == "system":
-            print(f"🔧 SYSTEM: {data}")
-        elif log_type == "log":
-            print(f"📝 LOG: {data}")
-        else:
-            print(f"ℹ️ OTHER [{log_type}]: {data}")
-    else:
-        # Fallback for any other format
-        print(f"🤖 RAW LOG: {log_data}")
-
 async def main():
     # Create a Stagehand instance with automatic session creation
     stagehand = Stagehand(
@@ -32,7 +13,6 @@ async def main():
         browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
         browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        on_log=log_handler,  # attach the log handler to receive streaming logs
         verbose=2,
         model_name="gpt-4o-mini",  # optional - defaults to server's default
         debug_dom=True,  # optional - defaults to server's default
@@ -47,15 +27,9 @@ async def main():
         await stagehand.page.navigate("https://elpasotexas.ionwave.net/Login.aspx")
         print("Navigation complete.")
 
-        # # Make observations about the repository
-        # observations = await stagehand.page.observe(
-        #     use_vision=True  # Enable vision to better understand the page layout
-        # )
-        # print("\nObservations:", observations)
-
-        # Make another observation focusing on recent activity
+        # # Make observations about the site
         activity = await stagehand.page.observe(
-            use_accessibility_tree=True  # Use accessibility tree for better semantic understanding
+            use_accessibility_tree=True  # Use accessibility tree faster DOM parsing
         )
         print("\nObservations:", activity)
 
