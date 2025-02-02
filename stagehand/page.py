@@ -12,7 +12,7 @@ class StagehandPage:
     async def goto(self, url: str, **kwargs):
         """Navigate to URL using Playwright directly"""
         return await self.page.goto(url, **kwargs)
-
+    #TODO - implement a lock for all page actions?
     async def navigate(
         self, 
         url: str, 
@@ -41,8 +41,11 @@ class StagehandPage:
         payload = {"url": url}
         if options:
             payload["options"] = options
-            
-        return await self._stagehand._execute("navigate", payload)
+        
+        self._stagehand.session.lock()
+        result = await self._stagehand._execute("navigate", payload)
+        self._stagehand.session.release()
+        return result
     
     async def act(
         self, 

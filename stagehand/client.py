@@ -23,6 +23,9 @@ class Stagehand:
     which will be sent to the server if a new session is created.
     """
 
+    # Dictionary to store one lock per session_id
+    _session_locks = {}
+
     def __init__(
         self,
         server_url: Optional[str] = None,
@@ -87,6 +90,14 @@ class Stagehand:
                 raise ValueError("browserbase_api_key is required (or set BROWSERBASE_API_KEY in env).")
             if not self.browserbase_project_id:
                 raise ValueError("browserbase_project_id is required (or set BROWSERBASE_PROJECT_ID in env).")
+
+    def _get_lock_for_session(self) -> asyncio.Lock:
+        """
+        Return an asyncio.Lock for this session. If one doesn't exist yet, create it.
+        """
+        if self.session_id not in self._session_locks:
+            self._session_locks[self.session_id] = asyncio.Lock()
+        return self._session_locks[self.session_id]
 
     async def __aenter__(self):
         self._log("Entering Stagehand context manager (__aenter__)...", level=1)
@@ -279,6 +290,9 @@ class Stagehand:
         # We'll collect final_result from the 'finished' system message
         final_result = None
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+
+        # TODO - lock session to prevent any more actions before this call completes
+        # self.session.lock()
         async with client:
             async with client.stream(
                 "POST", 
@@ -327,7 +341,10 @@ class Stagehand:
                     except json.JSONDecodeError:
                         self._log(f"Could not parse line as JSON: {line}", level=2)
                         continue
-
+        
+        # TODO only return from await in this function if received "finished" processing flag from server.
+        # otherwise throw a warning? error? that the processing did not finish.
+        # self.session.lock() 
         return final_result
 
     async def _handle_log(self, msg: Dict[str, Any]):

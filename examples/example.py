@@ -34,6 +34,9 @@ async def main():
     # SERVER side playwright page navigation
     await stagehand.page.navigate("https://news.ycombinator.com/")
     print("Navigation complete server side.")
+
+    # TODO - do not finish action until you get "finished" flag from server, 
+    # # otherwise throw an error.
     
     # wait until serverside DOM operation is complete
     await asyncio.sleep(2)
