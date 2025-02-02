@@ -270,13 +270,11 @@ class Stagehand:
                 raise RuntimeError(f"Missing sessionId in response: {resp.text}")
 
             self.session_id = data["sessionId"]
-    
     async def _execute(self, method: str, payload: Dict[str, Any]) -> Any:
         """
         Internal helper to call /api/execute with the given method and payload.
         Streams line-by-line, returning the 'result' from the final message (if any).
         """
-
         headers = {
             "browserbase-session-id": self.session_id,
             "browserbase-api-key": self.browserbase_api_key,
@@ -287,12 +285,8 @@ class Stagehand:
         if self.openai_api_key:
             headers["openai-api-key"] = self.openai_api_key
 
-        # We'll collect final_result from the 'finished' system message
-        final_result = None
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
 
-        # TODO - lock session to prevent any more actions before this call completes
-        # self.session.lock()
         async with client:
             async with client.stream(
                 "POST", 
@@ -324,8 +318,7 @@ class Stagehand:
                         if msg_type == "system":
                             status = message.get("data", {}).get("status")
                             if status == "finished":
-                                final_result = message.get("data", {}).get("result")
-                                return final_result
+                                return message.get("data", {}).get("result")
                         elif msg_type == "log":
                             # Log message from data.message
                             log_msg = message.get("data", {}).get("message", "")
@@ -341,11 +334,9 @@ class Stagehand:
                     except json.JSONDecodeError:
                         self._log(f"Could not parse line as JSON: {line}", level=2)
                         continue
-        
-        # TODO only return from await in this function if received "finished" processing flag from server.
-        # otherwise throw a warning? error? that the processing did not finish.
-        # self.session.lock() 
-        return final_result
+
+        # If we get here without seeing a "finished" message, something went wrong
+        raise RuntimeError("Server connection closed without sending 'finished' message")
 
     async def _handle_log(self, msg: Dict[str, Any]):
         """
