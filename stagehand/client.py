@@ -202,7 +202,6 @@ class Stagehand:
             self._client = None
 
         self._closed = True
-
     async def _check_server_health(self, timeout: int = 10):
         """
         Ping /api/healthcheck to verify the server is available.
@@ -214,10 +213,13 @@ class Stagehand:
             try:
                 client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
                 async with client:
-                    resp = await client.get(f"{self.server_url}/api/healthcheck")
+                    headers = {
+                        "x-bb-api-key": self.browserbase_api_key,
+                    }
+                    resp = await client.get(f"{self.server_url}/healthcheck", headers=headers)
                     if resp.status_code == 200:
                         data = resp.json()
-                        if data.get("status") == "ok":
+                        if data.get("success") is True:
                             self._log("Healthcheck passed. Server is running.", level=1)
                             return
             except Exception as e:
@@ -232,7 +234,7 @@ class Stagehand:
 
     async def _create_session(self):
         """
-        Create a new session by calling /api/start-session on the server.
+        Create a new session by calling /sessions/start on the server.
         Depends on browserbase_api_key, browserbase_project_id, and openai_api_key.
         """
         if not self.browserbase_api_key:
@@ -250,16 +252,16 @@ class Stagehand:
         }
 
         headers = {
-            "browserbase-api-key": self.browserbase_api_key,
-            "browserbase-project-id": self.browserbase_project_id,
-            "model-api-key": self.openai_api_key,
+            "x-bb-api-key": self.browserbase_api_key,
+            "x-bb-project-id": self.browserbase_project_id,
+            "x-model-api-key": self.openai_api_key,
             "Content-Type": "application/json",
         }
 
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
         async with client:
             resp = await client.post(
-                f"{self.server_url}/api/start-session",
+                f"{self.server_url}/sessions/start",
                 json=payload,
                 headers=headers,
             )
@@ -270,27 +272,27 @@ class Stagehand:
                 raise RuntimeError(f"Missing sessionId in response: {resp.text}")
 
             self.session_id = data["sessionId"]
+
     async def _execute(self, method: str, payload: Dict[str, Any]) -> Any:
         """
-        Internal helper to call /api/execute with the given method and payload.
+        Internal helper to call /sessions/{session_id}/{method} with the given method and payload.
         Streams line-by-line, returning the 'result' from the final message (if any).
         """
         headers = {
-            "browserbase-session-id": self.session_id,
-            "browserbase-api-key": self.browserbase_api_key,
-            "browserbase-project-id": self.browserbase_project_id,
+            "x-bb-api-key": self.browserbase_api_key,
+            "x-bb-project-id": self.browserbase_project_id,
             "Content-Type": "application/json",
             "Connection": "keep-alive"
         }
         if self.openai_api_key:
-            headers["openai-api-key"] = self.openai_api_key
+            headers["x-model-api-key"] = self.openai_api_key
 
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
 
         async with client:
             async with client.stream(
                 "POST", 
-                f"{self.server_url}/api/{method}",
+                f"{self.server_url}/{self.session_id}/{method}",
                 json=payload,
                 headers=headers,
             ) as response:
