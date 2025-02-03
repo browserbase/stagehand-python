@@ -231,7 +231,6 @@ class Stagehand:
             wait_time = min(2 ** attempt * 0.5, 5.0)  # Exponential backoff, capped at 5 seconds
             await asyncio.sleep(wait_time)
             attempt += 1
-
     async def _create_session(self):
         """
         Create a new session by calling /sessions/start on the server.
@@ -268,10 +267,11 @@ class Stagehand:
             if resp.status_code != 200:
                 raise RuntimeError(f"Failed to create session: {resp.text}")
             data = resp.json()
-            if "sessionId" not in data:
-                raise RuntimeError(f"Missing sessionId in response: {resp.text}")
+            self._log(f"Session created: {data}", level=1)
+            if not data.get("success") or "sessionId" not in data.get("data", {}):
+                raise RuntimeError(f"Invalid response format: {resp.text}")
 
-            self.session_id = data["sessionId"]
+            self.session_id = data["data"]["sessionId"]
 
     async def _execute(self, method: str, payload: Dict[str, Any]) -> Any:
         """
@@ -292,7 +292,7 @@ class Stagehand:
         async with client:
             async with client.stream(
                 "POST", 
-                f"{self.server_url}/{self.session_id}/{method}",
+                f"{self.server_url}/sessions/{self.session_id}/{method}",
                 json=payload,
                 headers=headers,
             ) as response:
