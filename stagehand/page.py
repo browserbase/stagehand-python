@@ -11,7 +11,9 @@ class StagehandPage:
         
     async def goto(self, url: str, **kwargs):
         """Navigate to URL using Playwright directly"""
-        return await self.page.goto(url, **kwargs)
+        lock = self._stagehand._get_lock_for_session()
+        async with lock:
+            return await self.page.goto(url, **kwargs)
 
     async def navigate(
         self, 
