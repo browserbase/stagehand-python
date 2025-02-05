@@ -31,23 +31,44 @@ async def main():
         await stagehand.init()
         print(f"Created new session with ID: {stagehand.session_id}")
 
-        await asyncio.sleep(4)
+        await stagehand.page.goto("https://news.ycombinator.com/")
+
+        await asyncio.sleep(5)
+
+        # await stagehand.page.goto("https://news.ycombinator.com/")
+        await stagehand.page.navigate("https://www.google.com")
+        print("Navigation complete client side.")
+
+        await asyncio.sleep(5)
+
+        # await stagehand.page.goto("https://news.ycombinator.com/")
+
+        print("Clicking on About link")
+        # Click on the "About" link using Playwright's get_by_role
+        await stagehand.page.get_by_role("link", name="About", exact=True).click()
+        print("Clicked on About link")
+
+        await asyncio.sleep(5)
 
         # SERVER side playwright page navigation
-        await stagehand.page.navigate("https://news.ycombinator.com/")
+        # await stagehand.page.navigate("https://news.ycombinator.com/")
+        await stagehand.page.navigate("https://www.google.com")
         print("Navigation complete server side.")
-        
-        # wait until serverside DOM operation is complete
-        await asyncio.sleep(2)
 
+        await asyncio.sleep(2)
+        
         # CLIENT side Playwright page in Python - navigate
-        await stagehand.page.goto("https://www.google.com")
-        print("Navigation complete client side.")
+        # await stagehand.page.goto("https://www.google.com")
+        # await stagehand.page.goto("https://news.ycombinator.com/")
+        # print("Navigation complete client side.")
 
         # Hosted Stagehand - ACT to do something like 'search for openai'
         await stagehand.page.act("type 'openai' into the search bar")
 
         await stagehand.page.act("click the search button")
+
+        await asyncio.sleep(5)
+        print("Clicking on search button")
 
         # Pure client side Playwright - after searching for OpenAI, click on the News tab
         await stagehand.page.get_by_role("link", name="News", exact=True).first.click()

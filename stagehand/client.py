@@ -73,6 +73,7 @@ class Stagehand:
             write=90.0,    # write timeout
             pool=90.0,     # pool timeout
         )
+        self.streamed_response = True  # Default to True for streamed responses
 
         self._client: Optional[httpx.AsyncClient] = None
         self._playwright = None
@@ -97,6 +98,7 @@ class Stagehand:
         """
         if self.session_id not in self._session_locks:
             self._session_locks[self.session_id] = asyncio.Lock()
+            print(f"Created lock for session {self.session_id}")
         return self._session_locks[self.session_id]
 
     async def __aenter__(self):
@@ -156,6 +158,7 @@ class Stagehand:
         existing_pages = self._context.pages
         self._log(f"Existing pages: {len(existing_pages)}", level=1)
         if existing_pages:
+            self._log("Using existing page", level=1)
             self._playwright_page = existing_pages[0]
         else:
             self._log("Creating a new page...", level=1)
@@ -202,9 +205,10 @@ class Stagehand:
             self._client = None
 
         self._closed = True
+
     async def _check_server_health(self, timeout: int = 10):
         """
-        Ping /api/healthcheck to verify the server is available.
+        Ping /healthcheck to verify the server is available.
         Uses exponential backoff for retries.
         """
         start = time.time()
@@ -282,7 +286,8 @@ class Stagehand:
             "x-bb-api-key": self.browserbase_api_key,
             "x-bb-project-id": self.browserbase_project_id,
             "Content-Type": "application/json",
-            "Connection": "keep-alive"
+            "Connection": "keep-alive",
+            "x-streamed-response": str(self.streamed_response).lower()
         }
         if self.openai_api_key:
             headers["x-model-api-key"] = self.openai_api_key
