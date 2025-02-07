@@ -31,13 +31,13 @@ async def main():
         await stagehand.init()
         print(f"Created new session with ID: {stagehand.session_id}")
 
-        await stagehand.page.goto("https://news.ycombinator.com/")
-
         await asyncio.sleep(5)
 
+        await stagehand.page.goto("https://news.ycombinator.com/")
+        print("Navigation complete client side.")
         # await stagehand.page.goto("https://news.ycombinator.com/")
         await stagehand.page.navigate("https://www.google.com")
-        print("Navigation complete client side.")
+        print("Navigation complete server side.")
 
         await asyncio.sleep(5)
 
@@ -57,18 +57,16 @@ async def main():
 
         await asyncio.sleep(2)
         
-        # CLIENT side Playwright page in Python - navigate
-        # await stagehand.page.goto("https://www.google.com")
-        # await stagehand.page.goto("https://news.ycombinator.com/")
-        # print("Navigation complete client side.")
-
         # Hosted Stagehand - ACT to do something like 'search for openai'
         await stagehand.page.act("type 'openai' into the search bar")
 
         await stagehand.page.act("click the search button")
 
         await asyncio.sleep(5)
-        print("Clicking on search button")
+        
+
+        xpath = await stagehand.page.observe("find the button with text 'News'")
+        print(xpath)
 
         # Pure client side Playwright - after searching for OpenAI, click on the News tab
         await stagehand.page.get_by_role("link", name="News", exact=True).first.click()
