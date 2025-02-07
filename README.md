@@ -98,7 +98,7 @@ Before running your script, make sure you have exported the necessary environmen
 ```bash
 export BROWSERBASE_API_KEY="your-api-key"
 export BROWSERBASE_PROJECT_ID="your-project-id"
-export OPENAI_API_KEY="your-openai-api-key"
+export OPENAI_API_KEY="your-openai-api-key" # or other model
 export STAGEHAND_SERVER_URL="url-of-stagehand-server" 
 ```
 
@@ -158,7 +158,7 @@ For further examples, you can check out the scripts in the “examples/” direc
 - `stagehand_server_url`: The Stagehand API server URL
 - `browserbase_api_key`: Your BrowserBase API key (can also be set via BROWSERBASE_API_KEY environment variable)
 - `browserbase_project_id`: Your BrowserBase project ID (can also be set via BROWSERBASE_PROJECT_ID environment variable)
-- `openai_api_key`: Your OpenAI API key (can also be set via OPENAI_API_KEY environment variable)
+- `model_api_key`: Your model API key (e.g. OpenAI, Anthropic, etc) (can also be set via MODEL_API_KEY environment variable)
 - `verbose`: Verbosity level (default: 1)
 - `model_name`: (optional) Model name to use for the conversation
 - `dom_settle_timeout_ms`: (optional) Additional time for the DOM to settle
