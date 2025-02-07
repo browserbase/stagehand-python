@@ -32,7 +32,7 @@ class Stagehand:
         session_id: Optional[str] = None,
         browserbase_api_key: Optional[str] = None,
         browserbase_project_id: Optional[str] = None,
-        openai_api_key: Optional[str] = None,
+        model_api_key: Optional[str] = None,
         on_log: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = default_log_handler,
         verbose: int = 1,
         model_name: Optional[str] = None,
@@ -46,7 +46,7 @@ class Stagehand:
         :param session_id: An existing Browserbase session ID (if you already have one).
         :param browserbase_api_key: Your Browserbase API key.
         :param browserbase_project_id: Your Browserbase project ID.
-        :param openai_api_key: Your OpenAI API key (if needed, or used as the modelApiKey).
+        :param model_api_key: Your model API key (e.g. OpenAI, Anthropic, etc).
         :param on_log: Async callback for log messages streamed from the server.
         :param verbose: Verbosity level for console logs from this client.
         :param model_name: Model name to use when creating a new session (e.g., "gpt-4o").
@@ -60,7 +60,7 @@ class Stagehand:
         self.session_id = session_id
         self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
         self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
-        self.openai_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        self.model_api_key = model_api_key or os.getenv("OPENAI_API_KEY")  # Fallback to OPENAI_API_KEY for backwards compatibility
         self.on_log = on_log
         self.verbose = verbose
         self.model_name = model_name
@@ -235,17 +235,18 @@ class Stagehand:
             wait_time = min(2 ** attempt * 0.5, 5.0)  # Exponential backoff, capped at 5 seconds
             await asyncio.sleep(wait_time)
             attempt += 1
+
     async def _create_session(self):
         """
         Create a new session by calling /sessions/start on the server.
-        Depends on browserbase_api_key, browserbase_project_id, and openai_api_key.
+        Depends on browserbase_api_key, browserbase_project_id, and model_api_key.
         """
         if not self.browserbase_api_key:
             raise ValueError("browserbase_api_key is required to create a session.")
         if not self.browserbase_project_id:
             raise ValueError("browserbase_project_id is required to create a session.")
-        if not self.openai_api_key:
-            raise ValueError("openai_api_key is required as model-api-key to create a session.")
+        if not self.model_api_key:
+            raise ValueError("model_api_key is required to create a session.")
 
         payload = {
             "modelName": self.model_name,
@@ -257,7 +258,7 @@ class Stagehand:
         headers = {
             "x-bb-api-key": self.browserbase_api_key,
             "x-bb-project-id": self.browserbase_project_id,
-            "x-model-api-key": self.openai_api_key,
+            "x-model-api-key": self.model_api_key,
             "Content-Type": "application/json",
         }
 
@@ -289,8 +290,8 @@ class Stagehand:
             "Connection": "keep-alive",
             "x-streamed-response": str(self.streamed_response).lower()
         }
-        if self.openai_api_key:
-            headers["x-model-api-key"] = self.openai_api_key
+        if self.model_api_key:
+            headers["x-model-api-key"] = self.model_api_key
 
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
 
