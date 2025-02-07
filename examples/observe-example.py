@@ -12,7 +12,7 @@ async def main():
         server_url=os.getenv("SERVER_URL"),
         browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
         browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        model_api_key=os.getenv("OPENAI_API_KEY"),
         verbose=2,
         model_name="gpt-4o-mini",  # optional - defaults to server's default
         debug_dom=True,  # optional - defaults to server's default

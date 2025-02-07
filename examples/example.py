@@ -3,7 +3,6 @@ import os
 import logging
 from dotenv import load_dotenv
 from stagehand.client import Stagehand
-import json
 
 load_dotenv()
 
@@ -22,7 +21,7 @@ async def main():
             server_url=os.getenv("SERVER_URL"),
             browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
             browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            model_api_key=os.getenv("OPENAI_API_KEY"),
             verbose=2,
             model_name="gpt-4o",  # optional - defaults to server's default
             dom_settle_timeout_ms=3000,  # optional - defaults to server's default
