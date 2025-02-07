@@ -29,7 +29,7 @@ async def main():
 
         # # Make observations about the site
         activity = await stagehand.page.observe(
-            use_accessibility_tree=True  # Use accessibility tree faster DOM parsing
+            only_visible=True  # Use accessibility tree faster DOM parsing
         )
         print("\nObservations:", activity)
 

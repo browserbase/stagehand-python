@@ -3,8 +3,10 @@ import os
 import logging
 from dotenv import load_dotenv
 from stagehand.client import Stagehand
+import json
 
 load_dotenv()
+
 # Configure logging at the start of the script
 logging.basicConfig(
     level=logging.INFO,
@@ -31,46 +33,37 @@ async def main():
         await stagehand.init()
         print(f"Created new session with ID: {stagehand.session_id}")
 
-        await asyncio.sleep(5)
+        print('EXAMPLE: You can navigate to any website using the local or remote Playwright.')
 
         await stagehand.page.goto("https://news.ycombinator.com/")
-        print("Navigation complete client side.")
-        # await stagehand.page.goto("https://news.ycombinator.com/")
+        print("Navigation complete with local Playwright.")
+
         await stagehand.page.navigate("https://www.google.com")
-        print("Navigation complete server side.")
+        print("Navigation complete with remote Playwright.")
 
-        await asyncio.sleep(5)
 
-        # await stagehand.page.goto("https://news.ycombinator.com/")
-
-        print("Clicking on About link")
-        # Click on the "About" link using Playwright's get_by_role
+        print("EXAMPLE: Clicking on About link using local Playwright's get_by_role")
+        # Click on the "About" link using Playwright
         await stagehand.page.get_by_role("link", name="About", exact=True).click()
         print("Clicked on About link")
 
-        await asyncio.sleep(5)
-
-        # SERVER side playwright page navigation
-        # await stagehand.page.navigate("https://news.ycombinator.com/")
-        await stagehand.page.navigate("https://www.google.com")
-        print("Navigation complete server side.")
-
         await asyncio.sleep(2)
+
+        await stagehand.page.navigate("https://www.google.com")
         
-        # Hosted Stagehand - ACT to do something like 'search for openai'
-        await stagehand.page.act("type 'openai' into the search bar")
-
-        await stagehand.page.act("click the search button")
-
-        await asyncio.sleep(5)
+        # Hosted Stagehand API - ACT to do something like 'search for openai'
+        await stagehand.page.act("search for openai")
         
+        print("EXAMPLE: Find the XPATH of the button 'News' using Stagehand API")
+        xpaths = await stagehand.page.observe("find the button 'News'", only_visible=True)
+        if len(xpaths) > 0:
+            element = xpaths[0]
+            print("EXAMPLE: Click on the button 'News' using local Playwright.")
+            await stagehand.page.click(element["selector"])
+        else:
+            print("No element found")
 
-        xpath = await stagehand.page.observe("find the button with text 'News'")
-        print(xpath)
 
-        # Pure client side Playwright - after searching for OpenAI, click on the News tab
-        await stagehand.page.get_by_role("link", name="News", exact=True).first.click()
-        print("Clicked on News tab")
     except Exception as e:
         print(f"An error occurred in the example: {e}")
 

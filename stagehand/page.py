@@ -79,7 +79,7 @@ class StagehandPage:
         self,
         instruction: Optional[str] = None,
         use_vision: Optional[bool] = None,
-        use_accessibility_tree: Optional[bool] = None
+        only_visible: Optional[bool] = None
     ):
         """
         Make AI observation via Stagehand server
@@ -87,15 +87,15 @@ class StagehandPage:
         Args:
             instruction: Optional instruction to guide the observation
             use_vision: Optional boolean to control vision usage
-            use_accessibility_tree: Optional boolean to control accessibility tree usage
+            only_visible: Optional boolean to control visibility filter
         """
         payload = {}
         if instruction is not None:
             payload["instruction"] = instruction
         if use_vision is not None:
             payload["useVision"] = use_vision
-        if use_accessibility_tree is not None:
-            payload["useAccessibilityTree"] = use_accessibility_tree
+        if only_visible is not None:
+            payload["onlyVisible"] = only_visible
             
         lock = self._stagehand._get_lock_for_session()
         async with lock:
@@ -142,6 +142,5 @@ class StagehandPage:
         return result
 
     # Forward other Page methods to underlying Playwright page
-    # TODO - add a lock for all page actions?
     def __getattr__(self, name):
         return getattr(self.page, name)
