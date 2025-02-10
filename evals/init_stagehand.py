@@ -8,7 +8,7 @@ async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3
     Initialize a Stagehand client with the given model name, logger, and DOM settle timeout.
     
     This function creates a configuration from environment variables, initializes the Stagehand client,
-    and returns a tuple of (stagehand, init_response). The init_response contains dummy debug and session URLs.
+    and returns a tuple of (stagehand, init_response). The init_response contains debug and session URLs.
     
     Args:
         model_name (str): The name of the AI model to use.
@@ -17,8 +17,8 @@ async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3
         
     Returns:
         tuple: (stagehand, init_response) where init_response is a dict containing:
-            - "debugUrl": A dummy URL for debugging.
-            - "sessionUrl": A dummy URL for the session.
+            - "debugUrl": A dict with a "value" key for the debug URL.
+            - "sessionUrl": A dict with a "value" key for the session URL.
     """
     # Build a Stagehand configuration object using environment variables
     config = StagehandConfig(
@@ -32,12 +32,15 @@ async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
     )
 
-    # Create a Stagehand client with the configuration; server_url is taken from env
+    # Create a Stagehand client with the configuration; server_url is taken from environment variables.
     stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_SERVER_URL"), verbose=2)
     await stagehand.init()
 
-    # Create dummy debug and session URLs for demonstration purposes.
-    debug_url = f"http://debug.stagehand/{stagehand.session_id}"
-    session_url = f"http://session.stagehand/{stagehand.session_id}"
+    # Construct the URL from the session id using the new format.
+    # For example:
+    # "wss://connect.browserbase.com?apiKey=bb_live_1KG6TTh14CYTJdyNTLpnugz9kgk&sessionId=<session_id>"
+    api_key = os.getenv("BROWSERBASE_API_KEY")
+    url = f"wss://connect.browserbase.com?apiKey={api_key}&sessionId={stagehand.session_id}"
 
-    return stagehand, {"debugUrl": debug_url, "sessionUrl": session_url}
+    # Return both URLs as dictionaries with the "value" key.
+    return stagehand, {"debugUrl": {"value": url}, "sessionUrl": {"value": url}}

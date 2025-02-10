@@ -89,10 +89,10 @@ class Stagehand:
         self.verbose = verbose
         self.httpx_client = httpx_client
         self.timeout_settings = timeout_settings or httpx.Timeout(
-            connect=90.0,
-            read=90.0,
-            write=90.0,
-            pool=90.0,
+            connect=180.0,
+            read=180.0,
+            write=180.0,
+            pool=180.0,
         )
         self.streamed_response = True  # Default to True for streamed responses
 
@@ -315,7 +315,7 @@ class Stagehand:
             headers["x-model-api-key"] = self.model_api_key
 
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
-
+        print(f"Executing {method} with payload: {payload} and headers: {headers}")
         async with client:
             async with client.stream(
                 "POST", 

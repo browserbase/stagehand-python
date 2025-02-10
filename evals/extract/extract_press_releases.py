@@ -44,6 +44,7 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
         await asyncio.sleep(5)
 
         # Extract data using Stagehand's extract method.
+        # TODO - FAILING - extract is likely timing out
         raw_result = await stagehand.page.extract(
             ExtractOptions(
                 instruction="extract the title and corresponding publish date of EACH AND EVERY press releases on this page. DO NOT MISS ANY PRESS RELEASES.",
@@ -145,7 +146,7 @@ if __name__ == "__main__":
 
     async def main():
         logger = SimpleLogger()
-        result = await extract_press_releases("gpt-4o", logger, use_text_extract=True)
+        result = await extract_press_releases("gpt-4o", logger, use_text_extract=False) # TODO - use text extract
         print("Result:", result)
         
     asyncio.run(main()) 
