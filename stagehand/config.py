@@ -28,4 +28,7 @@ class StagehandConfig(BaseModel):
     enable_caching: Optional[bool] = Field(False, alias="enableCaching", description="Enable caching functionality")
     browserbase_session_id: Optional[str] = Field(None, alias="browserbaseSessionID", description="Session ID for resuming Browserbase sessions")
     model_name: Optional[str] = Field(None, alias="modelName", description="Name of the model to use")
-    model_client_options: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="modelClientOptions", description="Options for the model client") 
+    model_client_options: Optional[Dict[str, Any]] = Field(default_factory=dict, alias="modelClientOptions", description="Options for the model client")
+
+    class Config:
+        populate_by_name = True 

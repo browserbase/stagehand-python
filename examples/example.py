@@ -56,7 +56,7 @@ async def main():
         await stagehand.page.act(ActOptions(action="search for openai"))
         
         print("EXAMPLE: Find the XPATH of the button 'News' using Stagehand API")
-        xpaths = await stagehand.page.observe(ObserveOptions(instruction="find the button 'News'", only_visible=True))
+        xpaths = await stagehand.page.observe(ObserveOptions(instruction="find the button labeled 'News'", only_visible=True))
         if len(xpaths) > 0:
             element = xpaths[0]
             print("EXAMPLE: Click on the button 'News' using local Playwright.")

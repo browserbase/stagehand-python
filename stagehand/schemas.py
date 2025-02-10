@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, Type
 
 class ActOptions(BaseModel):
     """
@@ -33,12 +33,18 @@ class ExtractOptions(BaseModel):
 
     Attributes:
         instruction (str): Instruction specifying what data to extract using AI.
-        schemaDefinition (Union[Dict[str, Any], type(BaseModel)]): A JSON schema or Pydantic model that defines the structure of the expected data.
+        schemaDefinition (Union[Dict[str, Any], Type[BaseModel]]): A JSON schema or Pydantic model that defines the structure of the expected data.
+            Note: If passing a Pydantic model, invoke its .model_json_schema() method to ensure the schema is JSON serializable.
         useTextExtract: Optional[bool] = None
     """
     instruction: str = Field(..., description="Instruction specifying what data to extract using AI.")
-    schemaDefinition: Union[Dict[str, Any], type(BaseModel)] = Field(
+    # IMPORTANT: If using a Pydantic model for schemaDefinition, please call its .model_json_schema() method
+    # to convert it to a JSON serializable dictionary before sending it with the extract command.
+    schemaDefinition: Union[Dict[str, Any], Type[BaseModel]] = Field(
         None, 
         description="A JSON schema or Pydantic model that defines the structure of the expected data."
     )
-    useTextExtract: Optional[bool] = None 
+    useTextExtract: Optional[bool] = None
+
+    class Config:
+        arbitrary_types_allowed = True 

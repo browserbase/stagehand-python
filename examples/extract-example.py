@@ -39,7 +39,7 @@ async def main():
         data = await stagehand.page.extract(
             ExtractOptions(
                 instruction="Extract the number of stars for the project",
-                schema_definition=ExtractSchema
+                schemaDefinition=ExtractSchema.model_json_schema()
             )
         )
         print("\nExtracted stars:", data)
