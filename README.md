@@ -34,47 +34,57 @@
   </a>
 </p>
 
-
-  <div class="note" style="background-color: #808096; border-left: 5px solid #ffeb3b; padding: 15px; margin: 10px 0; color: white;">
-    <strong>NOTE:</strong> This is a Python SDK for Stagehand. Original implementation is in TypeScript and is available <a href="https://github.com/browserbase/stagehand" style="color: blue;">here</a>.
-  </div>
+<div class="note" style="background-color: #808096; border-left: 5px solid #ffeb3b; padding: 15px; margin: 10px 0; color: white;">
+  <strong>NOTE:</strong> This is a Python SDK for Stagehand. The original implementation is in TypeScript and is available <a href="https://github.com/browserbase/stagehand" style="color: blue;">here</a>.
+</div>
 
 ---
 
-A Python SDK for [Stagehand](https://stagehand.dev), enabling automated browser control and data extraction.
+Stagehand is the easiest way to build browser automations with AI-powered interactions. It extends the Playwright API with three powerful AI primitives:
 
-Stagehand is the easiest way to build browser automations. It is fully compatible with Playwright, offering three simple AI APIs (act, extract, and observe) on top of the base Playwright Page class that provide the building blocks for web automation via natural language. 
+- **act** — Instruct the AI to perform actions (e.g. click a button or scroll).
+- **extract** — Extract and validate data from a page using a JSON schema (generated either manually or via a Pydantic model).
+- **observe** — Get natural language interpretations to, for example, identify selectors or elements from the DOM.
+## Pydantic Schemas
 
-You can write all of your Playwright commands as you normally would, while offloading the AI-powered `act/extract/observe` operations to Stagehand hosted on our Stagehand API.
+Stagehand uses Pydantic models to define the options for AI commands:
 
+- **ActOptions**  
+  The `ActOptions` model takes an `action` field that tells the AI what to do on the page, plus optional fields such as `useVision` and `variables`:
+  ```python
+  from stagehand.schemas import ActOptions
+  
+  # Example:
+  await page.act(ActOptions(action="click on the 'Quickstart' button"))
+  ```
 
-Here's a sample of what you can do with Stagehand:
+- **ObserveOptions**  
+  The `ObserveOptions` model lets you find elements on the page using natural language. The `onlyVisible` option helps limit the results:
+  ```python
+  from stagehand.schemas import ObserveOptions
+  
+  # Example:
+  await page.observe(ObserveOptions(instruction="find the button labeled 'News'", onlyVisible=True))
+  ```
 
-```python
-import asyncio
-
-async def main():
-    # Keep your existing Playwright code unchanged
-    await page.goto("https://docs.stagehand.dev");
-
-    # Stagehand AI: Act on the page via Stagehand API
-    await page.act("click on the 'Quickstart'");
-
-    # Stagehand AI: Extract data from the page
-    from pydantic import BaseModel
-
-    class DescriptionSchema(BaseModel):
-        description: str
-
-    data = await page.extract(
-        instruction="extract the description of the page",
-        schema=DescriptionSchema
-    )
-    description = data.description
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
+- **ExtractOptions**  
+  The `ExtractOptions` model extracts structured data from the page. Pass your instructions and a schema defining your expected data format. **Note:** If you are using a Pydantic model for the schema, call its `.model_json_schema()` method to ensure JSON serializability.
+  ```python
+  from stagehand.schemas import ExtractOptions
+  from pydantic import BaseModel
+  
+  class DescriptionSchema(BaseModel):
+      description: str
+  
+  # Example:
+  data = await page.extract(
+      ExtractOptions(
+          instruction="extract the description of the page",
+          schemaDefinition=DescriptionSchema.model_json_schema()
+      )
+  )
+  description = data.get("description") if isinstance(data, dict) else data.description
+  ```
 
 ## Why?
 **Stagehand adds determinism to otherwise unpredictable agents.**
@@ -87,89 +97,118 @@ While there's no limit to what you could instruct Stagehand to do, our primitive
 
 ## Installation
 
+Install the Python package via pip:
+
 ```bash
 pip install stagehand-py
 ```
 
-## Quickstart
+## Environment Variables
 
-Before running your script, make sure you have exported the necessary environment variables:
+Before running your script, set the following environment variables:
 
 ```bash
 export BROWSERBASE_API_KEY="your-api-key"
 export BROWSERBASE_PROJECT_ID="your-project-id"
-export OPENAI_API_KEY="your-openai-api-key" # or other model
-export STAGEHAND_SERVER_URL="url-of-stagehand-server" 
+export OPENAI_API_KEY="your-openai-api-key"  # or your preferred model's API key
+export STAGEHAND_SERVER_URL="url-of-stagehand-server"
 ```
 
-## Usage
+## Quickstart
 
-Here is a minimal example to get started:
+Below is a minimal example to get started with Stagehand using the new schema-based options:
 
 ```python
 import asyncio
 import os
 from stagehand.client import Stagehand
+from stagehand.schemas import ActOptions, ExtractOptions
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
+class DescriptionSchema(BaseModel):
+    description: str
+
 async def main():
-    # Create a Stagehand client - it will create a new session automatically
+    # Create a Stagehand client - it will automatically create a new session if needed
     stagehand = Stagehand(
-        model_name="gpt-4o",  # optional - defaults to server's default
+        model_name="gpt-4o",  # Optional: defaults are available from the server
     )
 
-    # Initialize - this will create a new session
-    await stagehand.page.init()
+    # Initialize Stagehand and create a new session
+    await stagehand.init()
     print(f"Created new session: {stagehand.session_id}")
 
-    # Example: navigate to google.com - from Playwright in Python
-    await stagehand.page.goto("https://www.google.com")
+    # Navigate to a webpage using local Playwright controls
+    await stagehand.page.goto("https://www.example.com")
     print("Navigation complete.")
 
-    # Example: ACT to do something like 'search for openai'
-    # executes remote on a Typescript server and logs are streamed back
-    await stagehand.page.act("search for openai")
+    # Perform an action using the AI (e.g. simulate a button click)
+    await stagehand.page.act(ActOptions(action="click on the 'Quickstart' button"))
 
-    # Pure client side Playwright - after searching for OpenAI, click on the News tab
-    await stagehand.page.get_by_role("link", name="News", exact=True).first.click()
-    print("Clicked on News tab")
+    # Extract data from the page with schema validation
+    data = await stagehand.page.extract(
+        ExtractOptions(
+            instruction="extract the description of the page",
+            schemaDefinition=DescriptionSchema.model_json_schema()
+        )
+    )
+    description = data.get("description") if isinstance(data, dict) else data.description
+    print("Extracted description:", description)
 
-    # Close the session (if needed)
     await stagehand.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-
 ## More Examples
 
-For further examples, you can check out the scripts in the “examples/” directory:
+For further examples, check out the scripts in the `examples/` directory:
 
-1. “examples/example.py”: Demonstrates combined server-side/page navigation and AI-based actions.  
-2. “examples/extract-example.py”: Shows how to use the “extract” functionality with JSON schema or a pydantic model.  
-3. “examples/observe-example.py”: Demonstrates the “observe” functionality to get natural-language readings of the page.  
-
+1. **examples/example.py**: Demonstrates combined server-side/page navigation with AI-based actions.
+2. **examples/extract-example.py**: Shows how to use the extract functionality with a JSON schema or a Pydantic model.
+3. **examples/observe-example.py**: Demonstrates the observe functionality to get natural-language readings of the page.
 
 ## Configuration
 
-- `stagehand_server_url`: The Stagehand API server URL
-- `browserbase_api_key`: Your BrowserBase API key (can also be set via BROWSERBASE_API_KEY environment variable)
-- `browserbase_project_id`: Your BrowserBase project ID (can also be set via BROWSERBASE_PROJECT_ID environment variable)
-- `model_api_key`: Your model API key (e.g. OpenAI, Anthropic, etc) (can also be set via MODEL_API_KEY environment variable)
-- `verbose`: Verbosity level (default: 1)
-- `model_name`: (optional) Model name to use for the conversation
-- `dom_settle_timeout_ms`: (optional) Additional time for the DOM to settle
-- `debug_dom`: (optional) Whether or not to enable DOM debug mode
+Stagehand can be configured via environment variables or through a `StagehandConfig` object. Available configuration options include:
+
+- `stagehand_server_url`: URL of the Stagehand API server.
+- `browserbase_api_key`: Your Browserbase API key (`BROWSERBASE_API_KEY`).
+- `browserbase_project_id`: Your Browserbase project ID (`BROWSERBASE_PROJECT_ID`).
+- `model_api_key`: Your model API key (e.g. OpenAI, Anthropic, etc.) (`MODEL_API_KEY`).
+- `verbose`: Verbosity level (default: 1).
+- `model_name`: Optional model name for the AI.
+- `dom_settle_timeout_ms`: Additional time (in ms) to have the DOM settle.
+- `debug_dom`: Enable debug mode for DOM operations.
+
+Example using a unified configuration:
+
+```python
+from stagehand.config import StagehandConfig
+import os
+
+config = StagehandConfig(
+    env="BROWSERBASE" if os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") else "LOCAL",
+    api_key=os.getenv("BROWSERBASE_API_KEY"),
+    project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+    debug_dom=True,
+    headless=False,
+    dom_settle_timeout_ms=3000,
+    model_name="gpt-4o-mini",
+    model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
+)
+```
 
 ## Features
 
-- Automated browser control with natural language commands
-- Data extraction with schema validation (either pydantic or JSON schema)
-- Async/await support
-- Extension of Playwright - run playwright commands normally, with act/extract/observe offloaded to an API
+- **AI-powered Browser Control**: Execute natural language instructions over a running browser.
+- **Validated Data Extraction**: Use JSON schemas (or Pydantic models) to extract and validate information from pages.
+- **Async/Await Support**: Built using Python's asyncio, making it easy to build scalable web automation workflows.
+- **Extensible**: Seamlessly extend Playwright functionality with AI enrichments.
 
 ## Requirements
 
@@ -177,9 +216,8 @@ For further examples, you can check out the scripts in the “examples/” direc
 - httpx
 - asyncio
 - pydantic
-- python-dotenv (optional if using a .env file)
+- python-dotenv (optional, for .env support)
 
 ## License
 
-MIT License (c) Browserbase, Inc.
-
+MIT License (c) 2025 Browserbase, Inc.
