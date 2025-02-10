@@ -25,7 +25,7 @@ async def main():
             debug_dom=True,
             headless=False,
             dom_settle_timeout_ms=3000,
-            model_name="gpt-4o",
+            model_name="gpt-4o-mini",
             model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
         )
 
