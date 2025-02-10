@@ -2,24 +2,28 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from stagehand import Stagehand
+from stagehand.config import StagehandConfig
 from stagehand.schemas import ObserveOptions
 
 # Load environment variables from .env file
 load_dotenv()
 
 async def main():
-    # Create a Stagehand instance with automatic session creation
-    stagehand = Stagehand(
-        server_url=os.getenv("SERVER_URL"),
-        browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
-        browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_api_key=os.getenv("MODEL_API_KEY"),
-        verbose=2,
-        model_name="gpt-4o-mini",  # optional - defaults to server's default
-        debug_dom=True,  # optional - defaults to server's default
+    # Build a unified Stagehand configuration object
+    config = StagehandConfig(
+        env="BROWSERBASE" if os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") else "LOCAL",
+        api_key=os.getenv("BROWSERBASE_API_KEY"),
+        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        debug_dom=True,
+        headless=True,
+        model_name="gpt-4o-mini",
+        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
     )
 
-    # Initialize - this will create a new session
+    # Create a Stagehand client using the configuration object.
+    stagehand = Stagehand(config=config, server_url=os.getenv("SERVER_URL"), verbose=2)
+
+    # Initialize - this creates a new session.
     await stagehand.init()
     print(f"Created new session with ID: {stagehand.session_id}")
 
@@ -31,7 +35,7 @@ async def main():
         # Use ObserveOptions for detailed instructions
         options = ObserveOptions(
             instruction="find all the links on the page regarding the city of el paso",
-            only_visible=True  # Use accessibility tree faster DOM parsing
+            only_visible=True
         )
         activity = await stagehand.page.observe(options)
         print("\nObservations:", activity)

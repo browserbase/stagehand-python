@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 from .page import StagehandPage
 from .utils import default_log_handler
+from .config import StagehandConfig
 
 load_dotenv()
 
@@ -19,8 +20,7 @@ class Stagehand:
     Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
     
     Now supports automatically creating a new session if no session_id is provided.
-    You can also optionally provide modelName, domSettleTimeoutMs, verbose, and debugDom,
-    which will be sent to the server if a new session is created.
+    You can also optionally provide a configuration via the 'config' parameter to centralize all parameters.
     """
 
     # Dictionary to store one lock per session_id
@@ -28,6 +28,7 @@ class Stagehand:
 
     def __init__(
         self,
+        config: Optional[StagehandConfig] = None,
         server_url: Optional[str] = None,
         session_id: Optional[str] = None,
         browserbase_api_key: Optional[str] = None,
@@ -42,36 +43,56 @@ class Stagehand:
         timeout_settings: Optional[httpx.Timeout] = None,
     ):
         """
-        :param server_url: The running Stagehand server URL.
-        :param session_id: An existing Browserbase session ID (if you already have one).
-        :param browserbase_api_key: Your Browserbase API key.
-        :param browserbase_project_id: Your Browserbase project ID.
-        :param model_api_key: Your model API key (e.g. OpenAI, Anthropic, etc).
-        :param on_log: Async callback for log messages streamed from the server.
-        :param verbose: Verbosity level for console logs from this client.
-        :param model_name: Model name to use when creating a new session (e.g., "gpt-4o").
-        :param dom_settle_timeout_ms: Additional time for the DOM to settle.
-        :param debug_dom: Whether or not to enable DOM debug mode.
-        :param httpx_client: Optional custom httpx.AsyncClient instance.
-        :param timeout_settings: Optional custom timeout settings for httpx.
-        """
+        Initialize the Stagehand client.
 
+        Args:
+            config (Optional[StagehandConfig]): Optional configuration object encapsulating common parameters.
+            server_url (Optional[str]): The running Stagehand server URL.
+            session_id (Optional[str]): An existing Browserbase session ID.
+            browserbase_api_key (Optional[str]): Your Browserbase API key.
+            browserbase_project_id (Optional[str]): Your Browserbase project ID.
+            model_api_key (Optional[str]): Your model API key (e.g. OpenAI, Anthropic, etc.).
+            on_log (Optional[Callable[[Dict[str, Any]], Awaitable[None]]]): Async callback for log messages from the server.
+            verbose (int): Verbosity level for logs.
+            model_name (Optional[str]): Model name to use when creating a new session.
+            dom_settle_timeout_ms (Optional[int]): Additional time for the DOM to settle (in ms).
+            debug_dom (Optional[bool]): Whether to enable DOM debugging mode.
+            httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
+            timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
+        """
         self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL")
-        self.session_id = session_id
-        self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
-        self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
-        self.model_api_key = model_api_key or os.getenv("OPENAI_API_KEY")  # Fallback to OPENAI_API_KEY for backwards compatibility
+
+        if config:
+            self.browserbase_api_key = config.api_key or browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
+            self.browserbase_project_id = config.project_id or browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
+            self.model_api_key = model_api_key or (
+                config.model_client_options.get("apiKey") if config.model_client_options else None
+            ) or os.getenv("MODEL_API_KEY")
+            self.session_id = config.browserbase_session_id or session_id
+            self.model_name = config.model_name or model_name
+            self.dom_settle_timeout_ms = config.dom_settle_timeout_ms or dom_settle_timeout_ms
+            self.debug_dom = config.debug_dom if config.debug_dom is not None else debug_dom
+            self._custom_logger = config.logger  # For future integration if needed
+            # Additional config parameters available for future use:
+            self.headless = config.headless
+            self.enable_caching = config.enable_caching
+        else:
+            self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
+            self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
+            self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
+            self.session_id = session_id
+            self.model_name = model_name
+            self.dom_settle_timeout_ms = dom_settle_timeout_ms
+            self.debug_dom = debug_dom
+
         self.on_log = on_log
         self.verbose = verbose
-        self.model_name = model_name
-        self.dom_settle_timeout_ms = dom_settle_timeout_ms
-        self.debug_dom = debug_dom
         self.httpx_client = httpx_client
         self.timeout_settings = timeout_settings or httpx.Timeout(
-            connect=90.0,  # connection timeout
-            read=90.0,    # read timeout
-            write=90.0,    # write timeout
-            pool=90.0,     # pool timeout
+            connect=90.0,
+            read=90.0,
+            write=90.0,
+            pool=90.0,
         )
         self.streamed_response = True  # Default to True for streamed responses
 
@@ -82,16 +103,16 @@ class Stagehand:
         self._playwright_page = None
         self.page: Optional[StagehandPage] = None
 
-        self._initialized = False  # Flag to track if we've already run init()
-        self._closed = False       # Flag to track if we've closed
+        self._initialized = False  # Flag to track if init() has run
+        self._closed = False       # Flag to track if resources have been closed
 
-        # Validate essential fields if session_id was given
+        # Validate essential fields if session_id was provided
         if self.session_id:
             if not self.browserbase_api_key:
                 raise ValueError("browserbase_api_key is required (or set BROWSERBASE_API_KEY in env).")
             if not self.browserbase_project_id:
                 raise ValueError("browserbase_project_id is required (or set BROWSERBASE_PROJECT_ID in env).")
-
+                
     def _get_lock_for_session(self) -> asyncio.Lock:
         """
         Return an asyncio.Lock for this session. If one doesn't exist yet, create it.

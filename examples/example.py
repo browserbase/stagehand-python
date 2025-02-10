@@ -3,6 +3,7 @@ import os
 import logging
 from dotenv import load_dotenv
 from stagehand.client import Stagehand
+from stagehand.config import StagehandConfig
 from stagehand.schemas import ActOptions, ObserveOptions
 
 load_dotenv()
@@ -15,21 +16,23 @@ logging.basicConfig(
 )
 
 async def main():
-
     try:
-        # Create a Stagehand client - it will create a new session automatically
-        stagehand = Stagehand(
-            server_url=os.getenv("SERVER_URL"),
-            browserbase_api_key=os.getenv("BROWSERBASE_API_KEY"),
-            browserbase_project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-            model_api_key=os.getenv("MODEL_API_KEY"),
-            verbose=2,
-            model_name="gpt-4o",  # optional - defaults to server's default
-            dom_settle_timeout_ms=3000,  # optional - defaults to server's default
-            debug_dom=True,  # optional - defaults to server's default
+        # Build a unified configuration object for Stagehand
+        config = StagehandConfig(
+            env="BROWSERBASE" if os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") else "LOCAL",
+            api_key=os.getenv("BROWSERBASE_API_KEY"),
+            project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+            debug_dom=True,
+            headless=False,
+            dom_settle_timeout_ms=3000,
+            model_name="gpt-4o",
+            model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
         )
 
-        # Initialize - this will create a new session since we didn't provide session_id
+        # Create a Stagehand client using the configuration object.
+        stagehand = Stagehand(config=config, server_url=os.getenv("SERVER_URL"), verbose=2)
+
+        # Initialize - this creates a new session automatically.
         await stagehand.init()
         print(f"Created new session with ID: {stagehand.session_id}")
 
@@ -41,14 +44,12 @@ async def main():
         await stagehand.page.navigate("https://www.google.com")
         print("Navigation complete with remote Playwright.")
 
-
         print("EXAMPLE: Clicking on About link using local Playwright's get_by_role")
         # Click on the "About" link using Playwright
         await stagehand.page.get_by_role("link", name="About", exact=True).click()
         print("Clicked on About link")
 
         await asyncio.sleep(2)
-
         await stagehand.page.navigate("https://www.google.com")
         
         # Hosted Stagehand API - ACT to do something like 'search for openai'
@@ -63,10 +64,8 @@ async def main():
         else:
             print("No element found")
 
-
     except Exception as e:
         print(f"An error occurred in the example: {e}")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
