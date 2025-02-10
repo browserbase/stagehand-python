@@ -164,6 +164,19 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+
+## Running Evaluations
+
+To test all evaluations, run the following command in your terminal:
+
+
+```bash
+python evals/run_all_evals.py
+```
+
+This script will dynamically discover and execute every evaluation module within the `evals` directory and print the results for each.
+
+
 ## More Examples
 
 For further examples, check out the scripts in the `examples/` directory:

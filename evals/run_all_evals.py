@@ -20,13 +20,25 @@ async def run_all_evals():
     eval_functions = {}
     # The base path is the directory in which this file resides (i.e. the evals folder)
     base_path = os.path.dirname(__file__)
+    # Only process evals from these sub repositories
+    allowed_dirs = {"act", "extract", "observe"}
+    
     # Recursively walk through the evals directory and its children
     for root, _, files in os.walk(base_path):
+        # Determine the relative path from the base
+        rel_path = os.path.relpath(root, base_path)
+        # Skip the base folder itself
+        if rel_path == ".":
+            continue
+        # Only process directories that start with an allowed subdirectory
+        first_dir = rel_path.split(os.sep)[0]
+        if first_dir not in allowed_dirs:
+            continue
+
         for file in files:
             # Skip __init__.py and the runner itself
-            if file.endswith(".py") and file != "__init__.py" and file != "run_all_evals.py":
+            if file.endswith(".py") and file not in ("__init__.py", "run_all_evals.py"):
                 # Build module import path relative to the package root (assumes folder "evals")
-                rel_path = os.path.relpath(root, base_path)
                 if rel_path == '.':
                     module_path = f"evals.{file[:-3]}"
                 else:
