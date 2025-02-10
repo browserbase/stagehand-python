@@ -3,6 +3,7 @@ import os
 import logging
 from dotenv import load_dotenv
 from stagehand.client import Stagehand
+from stagehand.schemas import ActOptions, ObserveOptions
 
 load_dotenv()
 
@@ -51,10 +52,10 @@ async def main():
         await stagehand.page.navigate("https://www.google.com")
         
         # Hosted Stagehand API - ACT to do something like 'search for openai'
-        await stagehand.page.act("search for openai")
+        await stagehand.page.act(ActOptions(action="search for openai"))
         
         print("EXAMPLE: Find the XPATH of the button 'News' using Stagehand API")
-        xpaths = await stagehand.page.observe("find the button 'News'", only_visible=True)
+        xpaths = await stagehand.page.observe(ObserveOptions(instruction="find the button 'News'", only_visible=True))
         if len(xpaths) > 0:
             element = xpaths[0]
             print("EXAMPLE: Click on the button 'News' using local Playwright.")

@@ -2,6 +2,7 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from stagehand import Stagehand
+from stagehand.schemas import ExtractOptions
 from pydantic import BaseModel
 
 class ExtractSchema(BaseModel):
@@ -27,29 +28,15 @@ async def main():
     print(f"Created new session with ID: {stagehand.session_id}")
 
     try:
-
         await stagehand.page.navigate("https://github.com/facebook/react")
         print("Navigation complete.")
 
-        # Define schema for stars extraction
-        # extract_schema = {
-        #     "type": "object",
-        #     "properties": {
-        #         "stars": {
-        #             "type": "number",
-        #             "description": "the number of stars for the project"
-        #         }
-        #     },
-        #     "required": ["stars"]
-        # }
-
-        # we can either use a pydantic model or a json schema via dict
-        extract_schema = ExtractSchema
-        
-        # Extract data using the schema
+        # use the ExtractOptions Pydantic model to pass instruction and schema definition
         data = await stagehand.page.extract(
-            instruction="Extract the number of stars for the project",
-            schema=extract_schema
+            ExtractOptions(
+                instruction="Extract the number of stars for the project",
+                schema_definition=ExtractSchema
+            )
         )
         print("\nExtracted stars:", data)
 
