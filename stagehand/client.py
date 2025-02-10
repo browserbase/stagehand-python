@@ -288,7 +288,7 @@ class Stagehand:
             "x-bb-project-id": self.browserbase_project_id,
             "Content-Type": "application/json",
             "Connection": "keep-alive",
-            "x-streamed-response": str(self.streamed_response).lower()
+            "x-stream-response": str(self.streamed_response).lower()
         }
         if self.model_api_key:
             headers["x-model-api-key"] = self.model_api_key
