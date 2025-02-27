@@ -68,18 +68,31 @@ class StagehandPage:
         Execute an AI action via the Stagehand server.
 
         Args:
-            options (Union[str, ActOptions]): Either a string with the action command or
-                a Pydantic model encapsulating the action.
-                See `stagehand.schemas.ActOptions` for details on expected fields.
+            options (Union[str, ActOptions, ObserveResult]):
+                - A string with the action command to be executed by the AI
+                - An ActOptions object encapsulating the action command and optional parameters
+                - An ObserveResult with selector and method fields for direct execution without LLM
+                
+                When an ObserveResult with both 'selector' and 'method' fields is provided,
+                the SDK will directly execute the action against the selector using the method 
+                and arguments provided, bypassing the LLM processing.
 
         Returns:
-            Any: The result from the Stagehand server's action execution.
+            ActResult: The result from the Stagehand server's action execution.
         """
+        # Check if options is an ObserveResult with both selector and method
+        if isinstance(options, ObserveResult) and hasattr(options, "selector") and hasattr(options, "method"):
+            # For ObserveResult, we directly pass it to the server which will
+            # execute the method against the selector
+            payload = options.model_dump(exclude_none=True)
         # Convert string to ActOptions if needed
-        if isinstance(options, str):
+        elif isinstance(options, str):
             options = ActOptions(action=options)
+            payload = options.model_dump(exclude_none=True)
+        # Otherwise, it should be an ActOptions object
+        else:
+            payload = options.model_dump(exclude_none=True)
 
-        payload = options.model_dump(exclude_none=True)
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result = await self._stagehand._execute("act", payload)
