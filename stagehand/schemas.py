@@ -25,14 +25,14 @@ class ActOptions(BaseModel):
     Attributes:
         action (str): The action command to be executed by the AI.
         variables: Optional[Dict[str, str]] = None
-        modelName: Optional[AvailableModel] = None
-        slowDomBasedAct: Optional[bool] = None
+        model_name: Optional[AvailableModel] = None
+        slow_dom_based_act: Optional[bool] = None
     """
 
     action: str = Field(..., description="The action command to be executed by the AI.")
     variables: Optional[Dict[str, str]] = None
-    modelName: Optional[AvailableModel] = None
-    slowDomBasedAct: Optional[bool] = None
+    model_name: Optional[AvailableModel] = Field(None, alias="modelName")
+    slow_dom_based_act: Optional[bool] = Field(None, alias="slowDomBasedAct")
 
 
 class ActResult(BaseModel):
@@ -56,25 +56,26 @@ class ExtractOptions(BaseModel):
 
     Attributes:
         instruction (str): Instruction specifying what data to extract using AI.
-        modelName: Optional[AvailableModel] = None
+        model_name: Optional[AvailableModel] = None
         selector: Optional[str] = None
-        schemaDefinition (Union[Dict[str, Any], Type[BaseModel]]): A JSON schema or Pydantic model that defines the structure of the expected data.
+        schema_definition (Union[Dict[str, Any], Type[BaseModel]]): A JSON schema or Pydantic model that defines the structure of the expected data.
             Note: If passing a Pydantic model, invoke its .model_json_schema() method to ensure the schema is JSON serializable.
-        useTextExtract: Optional[bool] = None
+        use_text_extract: Optional[bool] = None
     """
 
     instruction: str = Field(
         ..., description="Instruction specifying what data to extract using AI."
     )
-    modelName: Optional[AvailableModel] = None
+    model_name: Optional[AvailableModel] = Field(None, alias="modelName")
     selector: Optional[str] = None
-    # IMPORTANT: If using a Pydantic model for schemaDefinition, please call its .model_json_schema() method
+    # IMPORTANT: If using a Pydantic model for schema_definition, please call its .model_json_schema() method
     # to convert it to a JSON serializable dictionary before sending it with the extract command.
-    schemaDefinition: Union[Dict[str, Any], Type[BaseModel]] = Field(
+    schema_definition: Union[Dict[str, Any], Type[BaseModel]] = Field(
         default=DEFAULT_EXTRACT_SCHEMA,
         description="A JSON schema or Pydantic model that defines the structure of the expected data.",
+        alias="schemaDefinition",
     )
-    useTextExtract: Optional[bool] = True
+    use_text_extract: Optional[bool] = Field(True, alias="useTextExtract")
 
     class Config:
         arbitrary_types_allowed = True
@@ -108,19 +109,19 @@ class ObserveOptions(BaseModel):
 
     Attributes:
         instruction (str): Instruction detailing what the AI should observe.
-        modelName: Optional[AvailableModel] = None
-        onlyVisible: Optional[bool] = None
-        returnAction: Optional[bool] = None
-        drawOverlay: Optional[bool] = None
+        model_name: Optional[AvailableModel] = None
+        only_visible: Optional[bool] = None
+        return_action: Optional[bool] = None
+        draw_overlay: Optional[bool] = None
     """
 
     instruction: str = Field(
         ..., description="Instruction detailing what the AI should observe."
     )
-    onlyVisible: Optional[bool] = False
-    modelName: Optional[AvailableModel] = None
-    returnAction: Optional[bool] = None
-    drawOverlay: Optional[bool] = None
+    only_visible: Optional[bool] = Field(False, alias="onlyVisible")
+    model_name: Optional[AvailableModel] = Field(None, alias="modelName")
+    return_action: Optional[bool] = Field(None, alias="returnAction")
+    draw_overlay: Optional[bool] = Field(None, alias="drawOverlay")
 
 
 class ObserveResult(BaseModel):
@@ -132,7 +133,7 @@ class ObserveResult(BaseModel):
     description: str = Field(
         ..., description="The description of the observed element."
     )
-    backendNodeId: Optional[int] = None
+    backend_node_id: Optional[int] = Field(None, alias="backendNodeId")
     method: Optional[str] = None
     arguments: Optional[List[str]] = None
 

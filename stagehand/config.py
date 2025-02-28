@@ -20,7 +20,7 @@ class StagehandConfig(BaseModel):
         enable_caching (Optional[bool]): Enable caching functionality.
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.
-        selfHeal (Optional[bool]): Enable self-healing functionality.
+        self_heal (Optional[bool]): Enable self-healing functionality.
     """
 
     env: str = "BROWSERBASE"
@@ -53,8 +53,8 @@ class StagehandConfig(BaseModel):
     model_name: Optional[str] = Field(
         AvailableModel.GPT_4O, alias="modelName", description="Name of the model to use"
     )
-    selfHeal: Optional[bool] = Field(
-        True, description="Enable self-healing functionality"
+    self_heal: Optional[bool] = Field(
+        True, alias="selfHeal", description="Enable self-healing functionality"
     )
 
     class Config:

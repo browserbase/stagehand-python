@@ -47,6 +47,7 @@ class Stagehand:
         debug_dom: Optional[bool] = None,
         httpx_client: Optional[httpx.AsyncClient] = None,
         timeout_settings: Optional[httpx.Timeout] = None,
+        model_client_options: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize the Stagehand client.
@@ -65,6 +66,7 @@ class Stagehand:
             debug_dom (Optional[bool]): Whether to enable DOM debugging mode.
             httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
             timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
+            model_client_options (Optional[Dict[str, Any]]): Optional model client options.
         """
         self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL")
 
@@ -92,6 +94,7 @@ class Stagehand:
             # Additional config parameters available for future use:
             self.headless = config.headless
             self.enable_caching = config.enable_caching
+            self.model_client_options = model_client_options
         else:
             self.browserbase_api_key = browserbase_api_key or os.getenv(
                 "BROWSERBASE_API_KEY"
@@ -104,6 +107,7 @@ class Stagehand:
             self.model_name = model_name
             self.dom_settle_timeout_ms = dom_settle_timeout_ms
             self.debug_dom = debug_dom
+            self.model_client_options = model_client_options
 
         self.on_log = on_log
         self.verbose = verbose
@@ -312,6 +316,9 @@ class Stagehand:
             "verbose": self.verbose,
             "debugDom": self.debug_dom,
         }
+        
+        if hasattr(self, "model_client_options") and self.model_client_options:
+            payload["modelClientOptions"] = self.model_client_options
 
         headers = {
             "x-bb-api-key": self.browserbase_api_key,
@@ -350,21 +357,25 @@ class Stagehand:
         }
         if self.model_api_key:
             headers["x-model-api-key"] = self.model_api_key
-
+        
+        modified_payload = dict(payload)
+        if hasattr(self, "model_client_options") and self.model_client_options and "modelClientOptions" not in modified_payload:
+            modified_payload["modelClientOptions"] = self.model_client_options
+        
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
         self._log(f"\n==== EXECUTING {method.upper()} ====", level=3)
         self._log(
             f"URL: {self.server_url}/sessions/{self.session_id}/{method}", level=3
         )
-        self._log(f"Payload: {payload}", level=3)
+        self._log(f"Payload: {modified_payload}", level=3)
         self._log(f"Headers: {headers}", level=3)
-
+        
         async with client:
             try:
                 async with client.stream(
                     "POST",
                     f"{self.server_url}/sessions/{self.session_id}/{method}",
-                    json=payload,
+                    json=modified_payload,
                     headers=headers,
                 ) as response:
                     if response.status_code != 200:

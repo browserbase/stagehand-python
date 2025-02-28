@@ -52,6 +52,7 @@ class StagehandPage:
         if timeout is not None:
             options["timeout"] = timeout
         if wait_until is not None:
+            options["wait_until"] = wait_until
             options["waitUntil"] = wait_until
 
         payload = {"url": url}
