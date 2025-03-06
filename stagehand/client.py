@@ -85,6 +85,7 @@ class Stagehand(StagehandBase):
             debug_dom=debug_dom,
             timeout_settings=timeout_settings,
             stream_response=stream_response,
+            model_client_options=model_client_options,
         )
         
         self.httpx_client = httpx_client
@@ -94,7 +95,6 @@ class Stagehand(StagehandBase):
             write=180.0,
             pool=180.0,
         )
-        self.model_client_options = model_client_options
 
         self._client: Optional[httpx.AsyncClient] = None
         self._playwright = None
