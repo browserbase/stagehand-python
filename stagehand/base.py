@@ -42,25 +42,26 @@ class StagehandBase(ABC):
         if config:
             self.browserbase_api_key = config.api_key or browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
             self.browserbase_project_id = config.project_id or browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
-            self.model_api_key = model_api_key or (
-                config.model_client_options.get("apiKey") if config.model_client_options else None
-            ) or os.getenv("MODEL_API_KEY")
             self.session_id = config.browserbase_session_id or session_id
             self.model_name = config.model_name or model_name
             self.dom_settle_timeout_ms = config.dom_settle_timeout_ms or dom_settle_timeout_ms
             self.debug_dom = config.debug_dom if config.debug_dom is not None else debug_dom
-            self.streamed_response = config.stream_response if config.stream_response is not None else stream_response
-            self.model_client_options = config.model_client_options or model_client_options
         else:
             self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
             self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
-            self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
             self.session_id = session_id
             self.model_name = model_name
             self.dom_settle_timeout_ms = dom_settle_timeout_ms
             self.debug_dom = debug_dom
-            self.streamed_response = stream_response if stream_response is not None else True
-            self.model_client_options = model_client_options
+
+        # Handle model-related settings directly
+        self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
+        self.model_client_options = model_client_options or {}
+        if self.model_api_key and "apiKey" not in self.model_client_options:
+            self.model_client_options["apiKey"] = self.model_api_key
+
+        # Handle streaming response setting directly
+        self.streamed_response = stream_response if stream_response is not None else True
 
         self.on_log = on_log
         self.verbose = verbose

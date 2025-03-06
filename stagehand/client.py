@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 import time
 from collections.abc import Awaitable
 from typing import Any, Callable, Dict, Optional

@@ -213,21 +213,16 @@ if __name__ == "__main__":
     main()
 ```
 
-### Context Manager Usage
+This script will dynamically discover and execute every evaluation module within the `evals` directory and print the results for each.
 
-Both async and sync clients support context manager usage for automatic resource cleanup:
 
-```python
-# Async context manager
-async with Stagehand() as stagehand:
-    await stagehand.page.goto("https://www.example.com")
-    await stagehand.page.act(ActOptions(action="click the 'Login' button"))
+## More Examples
 
-# Sync context manager
-with Stagehand() as stagehand:
-    stagehand.page.goto("https://www.example.com")
-    stagehand.page.act(ActOptions(action="click the 'Login' button"))
-```
+For further examples, check out the scripts in the `examples/` directory:
+
+1. **examples/example.py**: Demonstrates combined server-side/page navigation with AI-based actions.
+2. **examples/extract-example.py**: Shows how to use the extract functionality with a JSON schema or a Pydantic model.
+3. **examples/observe-example.py**: Demonstrates the observe functionality to get natural-language readings of the page.
 
 ## Configuration
 
@@ -257,17 +252,9 @@ config = StagehandConfig(
     debug_dom=True,
     headless=False,
     dom_settle_timeout_ms=3000,
-    model_name="gpt-4",
+    model_name="gpt-4o-mini",
     model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
 )
-
-# Use with async client
-async with Stagehand(config=config) as stagehand:
-    await stagehand.page.goto("https://www.example.com")
-
-# Use with sync client
-with Stagehand(config=config) as stagehand:
-    stagehand.page.goto("https://www.example.com")
 ```
 
 ## Features
