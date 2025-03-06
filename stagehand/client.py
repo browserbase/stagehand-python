@@ -13,13 +13,14 @@ from playwright.async_api import async_playwright
 from .config import StagehandConfig
 from .page import StagehandPage
 from .utils import default_log_handler, convert_dict_keys_to_camel_case
+from .base import StagehandBase
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 
-class Stagehand:
+class Stagehand(StagehandBase):
     """
     Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
 
@@ -70,51 +71,22 @@ class Stagehand:
             model_client_options (Optional[Dict[str, Any]]): Optional model client options.
             stream_response (Optional[bool]): Whether to stream responses from the server.
         """
-        self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL")
-
-        if config:
-            self.browserbase_api_key = (
-                config.api_key
-                or browserbase_api_key
-                or os.getenv("BROWSERBASE_API_KEY")
-            )
-            self.browserbase_project_id = (
-                config.project_id
-                or browserbase_project_id
-                or os.getenv("BROWSERBASE_PROJECT_ID")
-            )
-            self.model_api_key = os.getenv("MODEL_API_KEY")
-            self.session_id = config.browserbase_session_id or session_id
-            self.model_name = config.model_name or model_name
-            self.dom_settle_timeout_ms = (
-                config.dom_settle_timeout_ms or dom_settle_timeout_ms
-            )
-            self.debug_dom = (
-                config.debug_dom if config.debug_dom is not None else debug_dom
-            )
-            self._custom_logger = config.logger  # For future integration if needed
-            # Additional config parameters available for future use:
-            self.headless = config.headless
-            self.enable_caching = config.enable_caching
-            self.model_client_options = model_client_options
-            self.streamed_response = config.stream_response if config.stream_response is not None else stream_response
-        else:
-            self.browserbase_api_key = browserbase_api_key or os.getenv(
-                "BROWSERBASE_API_KEY"
-            )
-            self.browserbase_project_id = browserbase_project_id or os.getenv(
-                "BROWSERBASE_PROJECT_ID"
-            )
-            self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
-            self.session_id = session_id
-            self.model_name = model_name
-            self.dom_settle_timeout_ms = dom_settle_timeout_ms
-            self.debug_dom = debug_dom
-            self.model_client_options = model_client_options
-            self.streamed_response = stream_response if stream_response is not None else True
-
-        self.on_log = on_log
-        self.verbose = verbose
+        super().__init__(
+            config=config,
+            server_url=server_url,
+            session_id=session_id,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            on_log=on_log,
+            verbose=verbose,
+            model_name=model_name,
+            dom_settle_timeout_ms=dom_settle_timeout_ms,
+            debug_dom=debug_dom,
+            timeout_settings=timeout_settings,
+            stream_response=stream_response,
+        )
+        
         self.httpx_client = httpx_client
         self.timeout_settings = timeout_settings or httpx.Timeout(
             connect=180.0,
@@ -122,6 +94,7 @@ class Stagehand:
             write=180.0,
             pool=180.0,
         )
+        self.model_client_options = model_client_options
 
         self._client: Optional[httpx.AsyncClient] = None
         self._playwright = None
