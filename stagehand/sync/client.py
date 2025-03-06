@@ -1,4 +1,3 @@
-import asyncio
 import os
 import time
 import logging
@@ -8,17 +7,16 @@ from typing import Any, Dict, Optional
 import httpx
 from playwright.sync_api import sync_playwright
 
-from .base import StagehandBase
-from .config import StagehandConfig
+from ..base import StagehandBase
+from ..config import StagehandConfig
 from .sync_page import SyncStagehandPage
-from .utils import default_log_handler
+from ..utils import default_log_handler
 
 logger = logging.getLogger(__name__)
 
-class SyncStagehand(StagehandBase):
+class Stagehand(StagehandBase):
     """
     Synchronous implementation of the Stagehand client.
-    Wraps the async implementation using asyncio.run()
     """
     def __init__(
         self,

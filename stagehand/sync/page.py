@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 from playwright.sync_api import Page
 
-from .schemas import (
+from ..schemas import (
     ActOptions,
     ActResult,
     ExtractOptions,

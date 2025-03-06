@@ -5,6 +5,12 @@ from playwright.async_api import Page
 from .config import StagehandConfig
 from .page import StagehandPage
 from .utils import default_log_handler
+import os
+import time
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class StagehandBase(ABC):
     """
