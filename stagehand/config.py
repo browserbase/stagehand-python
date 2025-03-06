@@ -21,6 +21,7 @@ class StagehandConfig(BaseModel):
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.
         self_heal (Optional[bool]): Enable self-healing functionality.
+        stream_response (Optional[bool]): Whether to stream responses from the server.
     """
 
     env: str = "BROWSERBASE"
@@ -55,6 +56,9 @@ class StagehandConfig(BaseModel):
     )
     self_heal: Optional[bool] = Field(
         True, alias="selfHeal", description="Enable self-healing functionality"
+    )
+    stream_response: Optional[bool] = Field(
+        True, alias="streamResponse", description="Whether to stream responses from the server"
     )
 
     class Config:

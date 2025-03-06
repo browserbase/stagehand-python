@@ -33,6 +33,7 @@ class Stagehand(StagehandBase):
         debug_dom: Optional[bool] = None,
         timeout_settings: Optional[float] = None,
         model_client_options: Optional[Dict[str, Any]] = None,
+        stream_response: Optional[bool] = None,
     ):
         super().__init__(
             config=config,
@@ -47,6 +48,7 @@ class Stagehand(StagehandBase):
             dom_settle_timeout_ms=dom_settle_timeout_ms,
             debug_dom=debug_dom,
             timeout_settings=timeout_settings,
+            stream_response=stream_response,
         )
         self._client: Optional[requests.Session] = None
         self._playwright = None
@@ -245,12 +247,17 @@ class Stagehand(StagehandBase):
         self._log(f"Headers: {headers}", level=3)
         
         try:
-            response = self._client.post(url, json=modified_payload, headers=headers, stream=True)
-            if response.status_code != 200:
-                error_message = response.text
-                self._log(f"Error: {error_message}", level=3)
-                return None
+            if not self.streamed_response:
+                # For non-streaming responses, just return the final result
+                response = self._client.post(url, json=modified_payload, headers=headers)
+                if response.status_code != 200:
+                    error_message = response.text
+                    self._log(f"Error: {error_message}", level=3)
+                    return None
+                
+                return response.json()  # Return the raw response as the result
 
+            # Handle streaming response
             self._log("Starting to process streaming response...", level=3)
             for line in response.iter_lines(decode_unicode=True):
                 if not line.strip():

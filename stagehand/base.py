@@ -31,6 +31,7 @@ class StagehandBase(ABC):
         dom_settle_timeout_ms: Optional[int] = None,
         debug_dom: Optional[bool] = None,
         timeout_settings: Optional[float] = None,
+        stream_response: Optional[bool] = None,
     ):
         """
         Initialize the Stagehand client with common configuration.
@@ -47,6 +48,7 @@ class StagehandBase(ABC):
             self.model_name = config.model_name or model_name
             self.dom_settle_timeout_ms = config.dom_settle_timeout_ms or dom_settle_timeout_ms
             self.debug_dom = config.debug_dom if config.debug_dom is not None else debug_dom
+            self.streamed_response = config.stream_response if config.stream_response is not None else stream_response
         else:
             self.browserbase_api_key = browserbase_api_key or os.getenv("BROWSERBASE_API_KEY")
             self.browserbase_project_id = browserbase_project_id or os.getenv("BROWSERBASE_PROJECT_ID")
@@ -55,12 +57,12 @@ class StagehandBase(ABC):
             self.model_name = model_name
             self.dom_settle_timeout_ms = dom_settle_timeout_ms
             self.debug_dom = debug_dom
+            self.streamed_response = stream_response if stream_response is not None else True
 
         self.on_log = on_log
         self.verbose = verbose
         self.timeout_settings = timeout_settings or 180.0
 
-        self.streamed_response = True
         self._initialized = False
         self._closed = False
         self.page: Optional[StagehandPage] = None

@@ -48,6 +48,7 @@ class Stagehand:
         httpx_client: Optional[httpx.AsyncClient] = None,
         timeout_settings: Optional[httpx.Timeout] = None,
         model_client_options: Optional[Dict[str, Any]] = None,
+        stream_response: Optional[bool] = None,
     ):
         """
         Initialize the Stagehand client.
@@ -67,6 +68,7 @@ class Stagehand:
             httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
             timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
             model_client_options (Optional[Dict[str, Any]]): Optional model client options.
+            stream_response (Optional[bool]): Whether to stream responses from the server.
         """
         self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL")
 
@@ -95,6 +97,7 @@ class Stagehand:
             self.headless = config.headless
             self.enable_caching = config.enable_caching
             self.model_client_options = model_client_options
+            self.streamed_response = config.stream_response if config.stream_response is not None else stream_response
         else:
             self.browserbase_api_key = browserbase_api_key or os.getenv(
                 "BROWSERBASE_API_KEY"
@@ -108,6 +111,7 @@ class Stagehand:
             self.dom_settle_timeout_ms = dom_settle_timeout_ms
             self.debug_dom = debug_dom
             self.model_client_options = model_client_options
+            self.streamed_response = stream_response if stream_response is not None else True
 
         self.on_log = on_log
         self.verbose = verbose
@@ -118,7 +122,6 @@ class Stagehand:
             write=180.0,
             pool=180.0,
         )
-        self.streamed_response = True  # Default to True for streamed responses
 
         self._client: Optional[httpx.AsyncClient] = None
         self._playwright = None
@@ -375,6 +378,26 @@ class Stagehand:
         
         async with client:
             try:
+                if not self.streamed_response:
+                    # For non-streaming responses, just return the final result
+                    response = await client.post(
+                        f"{self.server_url}/sessions/{self.session_id}/{method}",
+                        json=modified_payload,
+                        headers=headers,
+                    )
+                    if response.status_code != 200:
+                        error_text = await response.aread()
+                        error_message = error_text.decode("utf-8")
+                        self._log(f"Error: {error_message}", level=3)
+                        return None
+                    
+                    data = response.json()
+                    if data.get("success"):
+                        return data.get("data", {}).get("result")
+                    else:
+                        raise RuntimeError(f"Request failed: {data.get('error', 'Unknown error')}")
+
+                # Handle streaming response
                 async with client.stream(
                     "POST",
                     f"{self.server_url}/sessions/{self.session_id}/{method}",
