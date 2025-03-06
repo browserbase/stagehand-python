@@ -215,7 +215,6 @@ if __name__ == "__main__":
 
 This script will dynamically discover and execute every evaluation module within the `evals` directory and print the results for each.
 
-
 ## More Examples
 
 For further examples, check out the scripts in the `examples/` directory:
@@ -275,6 +274,27 @@ config = StagehandConfig(
 - pydantic
 - python-dotenv (optional, for .env support)
 - playwright
+
+## Contributing
+
+### Running Tests
+
+The project uses pytest for testing. To run the tests:
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest
+
+# Run specific test categories
+pytest tests/unit/  # Run unit tests only
+pytest tests/functional/  # Run functional tests only
+
+# Run tests with verbose output
+pytest -v
+```
 
 ## License
 

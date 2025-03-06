@@ -259,6 +259,12 @@ class Stagehand(StagehandBase):
 
             # Handle streaming response
             self._log("Starting to process streaming response...", level=3)
+            response = self._client.post(url, json=modified_payload, headers=headers, stream=True)
+            if response.status_code != 200:
+                error_message = response.text
+                self._log(f"Error: {error_message}", level=3)
+                return None
+
             for line in response.iter_lines(decode_unicode=True):
                 if not line.strip():
                     continue
@@ -280,11 +286,12 @@ class Stagehand(StagehandBase):
                         log_msg = message.get("data", {}).get("message", "")
                         self._log(log_msg, level=3)
                         if self.on_log:
-                            self.on_log(message)
+                            # For sync implementation, we just log the message directly
+                            self._log(f"Log message: {log_msg}", level=3)
                     else:
                         self._log(f"Unknown message type: {msg_type}", level=3)
                         if self.on_log:
-                            self.on_log(message)
+                            self._log(f"Unknown message: {message}", level=3)
 
                 except json.JSONDecodeError:
                     self._log(f"Could not parse line as JSON: {line}", level=3)
@@ -294,4 +301,4 @@ class Stagehand(StagehandBase):
             raise
 
         self._log("==== ERROR: No 'finished' message received ====", level=3)
-        raise RuntimeError("Server connection closed without sending 'finished' message") 
+        raise RuntimeError("Server connection closed without sending 'finished' message")
