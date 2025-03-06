@@ -285,15 +285,7 @@ The project uses pytest for testing. To run the tests:
 # Install development dependencies
 pip install -r requirements-dev.txt
 
-# Run all tests
-pytest
-
-# Run specific test categories
-pytest tests/unit/  # Run unit tests only
-pytest tests/functional/  # Run functional tests only
-
-# Run tests with verbose output
-pytest -v
+chmod +x run_tests.sh && ./run_tests.sh
 ```
 
 ## License
