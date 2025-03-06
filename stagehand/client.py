@@ -10,7 +10,6 @@ import httpx
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
-from .base import StagehandBase
 from .config import StagehandConfig
 from .page import StagehandPage
 from .utils import default_log_handler, convert_dict_keys_to_camel_case
@@ -20,7 +19,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-class Stagehand(StagehandBase):
+class Stagehand:
     """
     Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
 
@@ -69,20 +68,49 @@ class Stagehand(StagehandBase):
             timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
             model_client_options (Optional[Dict[str, Any]]): Optional model client options.
         """
-        super().__init__(
-            config=config,
-            server_url=server_url,
-            session_id=session_id,
-            browserbase_api_key=browserbase_api_key,
-            browserbase_project_id=browserbase_project_id,
-            model_api_key=model_api_key,
-            on_log=on_log,
-            verbose=verbose,
-            model_name=model_name,
-            dom_settle_timeout_ms=dom_settle_timeout_ms,
-            debug_dom=debug_dom,
-            timeout_settings=timeout_settings,
-        )
+        self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL")
+
+        if config:
+            self.browserbase_api_key = (
+                config.api_key
+                or browserbase_api_key
+                or os.getenv("BROWSERBASE_API_KEY")
+            )
+            self.browserbase_project_id = (
+                config.project_id
+                or browserbase_project_id
+                or os.getenv("BROWSERBASE_PROJECT_ID")
+            )
+            self.model_api_key = os.getenv("MODEL_API_KEY")
+            self.session_id = config.browserbase_session_id or session_id
+            self.model_name = config.model_name or model_name
+            self.dom_settle_timeout_ms = (
+                config.dom_settle_timeout_ms or dom_settle_timeout_ms
+            )
+            self.debug_dom = (
+                config.debug_dom if config.debug_dom is not None else debug_dom
+            )
+            self._custom_logger = config.logger  # For future integration if needed
+            # Additional config parameters available for future use:
+            self.headless = config.headless
+            self.enable_caching = config.enable_caching
+            self.model_client_options = model_client_options
+        else:
+            self.browserbase_api_key = browserbase_api_key or os.getenv(
+                "BROWSERBASE_API_KEY"
+            )
+            self.browserbase_project_id = browserbase_project_id or os.getenv(
+                "BROWSERBASE_PROJECT_ID"
+            )
+            self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
+            self.session_id = session_id
+            self.model_name = model_name
+            self.dom_settle_timeout_ms = dom_settle_timeout_ms
+            self.debug_dom = debug_dom
+            self.model_client_options = model_client_options
+
+        self.on_log = on_log
+        self.verbose = verbose
         self.httpx_client = httpx_client
         self.timeout_settings = timeout_settings or httpx.Timeout(
             connect=180.0,
@@ -90,7 +118,8 @@ class Stagehand(StagehandBase):
             write=180.0,
             pool=180.0,
         )
-        self.model_client_options = model_client_options
+        self.streamed_response = True  # Default to True for streamed responses
+
         self._client: Optional[httpx.AsyncClient] = None
         self._playwright = None
         self._browser = None
@@ -123,6 +152,7 @@ class Stagehand(StagehandBase):
 
     async def __aenter__(self):
         self._log("Entering Stagehand context manager (__aenter__)...", level=3)
+        # Just call init() if not already done
         await self.init()
         return self
 
@@ -287,7 +317,7 @@ class Stagehand(StagehandBase):
             "debugDom": self.debug_dom,
         }
         
-        if self.model_client_options:
+        if hasattr(self, "model_client_options") and self.model_client_options:
             payload["modelClientOptions"] = self.model_client_options
 
         headers = {
@@ -329,7 +359,7 @@ class Stagehand(StagehandBase):
             headers["x-model-api-key"] = self.model_api_key
         
         modified_payload = dict(payload)
-        if self.model_client_options and "modelClientOptions" not in modified_payload:
+        if hasattr(self, "model_client_options") and self.model_client_options and "modelClientOptions" not in modified_payload:
             modified_payload["modelClientOptions"] = self.model_client_options
         
         # Convert snake_case keys to camelCase for the API
