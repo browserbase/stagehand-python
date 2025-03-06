@@ -3,4 +3,5 @@ asyncio>=3.4.3
 python-dotenv>=1.0.0
 pydantic>=1.10.0
 playwright>=1.42.1
+requests>=2.31.0
 rich
