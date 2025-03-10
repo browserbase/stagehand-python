@@ -116,7 +116,54 @@ export STAGEHAND_SERVER_URL="url-of-stagehand-server"
 
 ## Quickstart
 
-Stagehand supports both asynchronous and synchronous usage. Here are examples for both approaches:
+Stagehand supports both synchronous and asynchronous usage. Here are examples for both approaches:
+
+### Synchronous Usage
+
+```python
+import os
+from stagehand.sync.client import Stagehand
+from stagehand.schemas import ActOptions, ExtractOptions
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class DescriptionSchema(BaseModel):
+    description: str
+
+def main():
+    # Create a Stagehand client - it will automatically create a new session if needed
+    stagehand = Stagehand(
+        model_name="gpt-4",  # Optional: defaults are available from the server
+    )
+
+    # Initialize Stagehand and create a new session
+    stagehand.init()
+    print(f"Created new session: {stagehand.session_id}")
+
+    # Navigate to a webpage using local Playwright controls
+    stagehand.page.goto("https://www.example.com")
+    print("Navigation complete.")
+
+    # Perform an action using the AI (e.g. simulate a button click)
+    stagehand.page.act("click on the 'Quickstart' button")
+
+    # Extract data from the page with schema validation
+    data = stagehand.page.extract(
+        ExtractOptions(
+            instruction="extract the description of the page",
+            schemaDefinition=DescriptionSchema.model_json_schema()
+        )
+    )
+    description = data.get("description") if isinstance(data, dict) else data.description
+    print("Extracted description:", description)
+
+    stagehand.close()
+
+if __name__ == "__main__":
+    main()
+```
 
 ### Asynchronous Usage
 
@@ -148,7 +195,7 @@ async def main():
     print("Navigation complete.")
 
     # Perform an action using the AI (e.g. simulate a button click)
-    await stagehand.page.act(ActOptions(action="click on the 'Quickstart' button"))
+    await stagehand.page.act("click on the 'Quickstart' button")
 
     # Extract data from the page with schema validation
     data = await stagehand.page.extract(
@@ -166,52 +213,11 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Synchronous Usage
+## Evals
 
-```python
-import os
-from stagehand.sync.client import Stagehand
-from stagehand.schemas import ActOptions, ExtractOptions
-from pydantic import BaseModel
-from dotenv import load_dotenv
+To test all evaluations, run the following command in your terminal:
 
-load_dotenv()
-
-class DescriptionSchema(BaseModel):
-    description: str
-
-def main():
-    # Create a Stagehand client - it will automatically create a new session if needed
-    stagehand = Stagehand(
-        model_name="gpt-4",  # Optional: defaults are available from the server
-    )
-
-    # Initialize Stagehand and create a new session
-    stagehand.init()
-    print(f"Created new session: {stagehand.session_id}")
-
-    # Navigate to a webpage using local Playwright controls
-    stagehand.page.goto("https://www.example.com")
-    print("Navigation complete.")
-
-    # Perform an action using the AI (e.g. simulate a button click)
-    stagehand.page.act(ActOptions(action="click on the 'Quickstart' button"))
-
-    # Extract data from the page with schema validation
-    data = stagehand.page.extract(
-        ExtractOptions(
-            instruction="extract the description of the page",
-            schemaDefinition=DescriptionSchema.model_json_schema()
-        )
-    )
-    description = data.get("description") if isinstance(data, dict) else data.description
-    print("Extracted description:", description)
-
-    stagehand.close()
-
-if __name__ == "__main__":
-    main()
-```
+`python evals/run_all_evals.py`
 
 This script will dynamically discover and execute every evaluation module within the `evals` directory and print the results for each.
 
