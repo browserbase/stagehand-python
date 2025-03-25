@@ -57,7 +57,7 @@ class StagehandConfig(BaseModel):
         True, alias="selfHeal", description="Enable self-healing functionality"
     )
     wait_for_captcha_solves: Optional[bool] = Field(
-        False, alias="waitForCaptchaSolves", description="Wait for captcha solves"
+        False , alias="waitForCaptchaSolves", description="Wait for captcha solves"
     )
 
     class Config:
