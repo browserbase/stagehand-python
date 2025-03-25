@@ -162,8 +162,8 @@ class Stagehand(StagehandBase):
             "verbose": self.verbose,
             "debugDom": self.debug_dom,
             "selfHeal": self.self_heal,
+            "waitForCaptchaSolves": self.wait_for_captcha_solves,
         }
-
         if self.model_client_options:
             payload["modelClientOptions"] = self.model_client_options
 

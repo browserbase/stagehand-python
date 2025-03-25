@@ -34,6 +34,7 @@ class StagehandBase(ABC):
         stream_response: Optional[bool] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         self_heal: Optional[bool] = None,
+        wait_for_captcha_solves: Optional[bool] = None,
     ):
         """
         Initialize the Stagehand client with common configuration.
@@ -59,6 +60,14 @@ class StagehandBase(ABC):
             self.debug_dom = (
                 config.debug_dom if config.debug_dom is not None else debug_dom
             )
+            self.self_heal = (
+                config.self_heal if config.self_heal is not None else self_heal
+            )
+            self.wait_for_captcha_solves = (
+                config.wait_for_captcha_solves
+                if config.wait_for_captcha_solves is not None
+                else wait_for_captcha_solves
+            )
         else:
             self.browserbase_api_key = browserbase_api_key or os.getenv(
                 "BROWSERBASE_API_KEY"
@@ -70,7 +79,8 @@ class StagehandBase(ABC):
             self.model_name = model_name
             self.dom_settle_timeout_ms = dom_settle_timeout_ms
             self.debug_dom = debug_dom
-
+            self.self_heal = self_heal
+            self.wait_for_captcha_solves = wait_for_captcha_solves
         # Handle model-related settings directly
         self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
         self.model_client_options = model_client_options or {}
@@ -81,7 +91,6 @@ class StagehandBase(ABC):
         self.streamed_response = (
             stream_response if stream_response is not None else True
         )
-        self.self_heal = self_heal if self_heal is not None else True
         self.on_log = on_log
         self.verbose = verbose
         self.timeout_settings = timeout_settings or 180.0
