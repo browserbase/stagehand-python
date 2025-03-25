@@ -33,6 +33,7 @@ class StagehandBase(ABC):
         timeout_settings: Optional[float] = None,
         stream_response: Optional[bool] = None,
         model_client_options: Optional[dict[str, Any]] = None,
+        self_heal: Optional[bool] = None,
     ):
         """
         Initialize the Stagehand client with common configuration.
@@ -80,7 +81,7 @@ class StagehandBase(ABC):
         self.streamed_response = (
             stream_response if stream_response is not None else True
         )
-
+        self.self_heal = self_heal or True
         self.on_log = on_log
         self.verbose = verbose
         self.timeout_settings = timeout_settings or 180.0
