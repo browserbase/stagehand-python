@@ -81,7 +81,7 @@ class StagehandBase(ABC):
         self.streamed_response = (
             stream_response if stream_response is not None else True
         )
-        self.self_heal = self_heal or True
+        self.self_heal = self_heal if self_heal is not None else True
         self.on_log = on_log
         self.verbose = verbose
         self.timeout_settings = timeout_settings or 180.0

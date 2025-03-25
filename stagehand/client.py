@@ -49,6 +49,7 @@ class Stagehand(StagehandBase):
         timeout_settings: Optional[httpx.Timeout] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         stream_response: Optional[bool] = None,
+        self_heal: Optional[bool] = None,
     ):
         """
         Initialize the Stagehand client.
@@ -69,6 +70,7 @@ class Stagehand(StagehandBase):
             timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
             model_client_options (Optional[dict[str, Any]]): Optional model client options.
             stream_response (Optional[bool]): Whether to stream responses from the server.
+            self_heal (Optional[bool]): Whether to enable self-healing mode.
         """
         super().__init__(
             config=config,
@@ -85,6 +87,7 @@ class Stagehand(StagehandBase):
             timeout_settings=timeout_settings,
             stream_response=stream_response,
             model_client_options=model_client_options,
+            self_heal=self_heal,
         )
 
         self.httpx_client = httpx_client
@@ -246,6 +249,7 @@ class Stagehand(StagehandBase):
             "domSettleTimeoutMs": self.dom_settle_timeout_ms,
             "verbose": self.verbose,
             "debugDom": self.debug_dom,
+            "selfHeal": self.self_heal,
         }
 
         if hasattr(self, "model_client_options") and self.model_client_options:

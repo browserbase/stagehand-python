@@ -34,6 +34,7 @@ class Stagehand(StagehandBase):
         timeout_settings: Optional[float] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         stream_response: Optional[bool] = None,
+        self_heal: Optional[bool] = None,
     ):
         super().__init__(
             config=config,
@@ -49,6 +50,7 @@ class Stagehand(StagehandBase):
             debug_dom=debug_dom,
             timeout_settings=timeout_settings,
             stream_response=stream_response,
+            self_heal=self_heal,
         )
         self._client: Optional[requests.Session] = None
         self._playwright = None
@@ -159,6 +161,7 @@ class Stagehand(StagehandBase):
             "domSettleTimeoutMs": self.dom_settle_timeout_ms,
             "verbose": self.verbose,
             "debugDom": self.debug_dom,
+            "selfHeal": self.self_heal,
         }
 
         if self.model_client_options:
