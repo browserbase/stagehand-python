@@ -152,6 +152,14 @@ class StagehandBase(ABC):
         """
         pass
 
+    @abstractmethod
+    def agentExecute(self, agent_config: dict, execute_options: dict) -> Any:
+        """
+        Create an agent for the Stagehand client.
+        Must be implemented by subclasses.
+        """
+        pass
+
     def _log(self, message: str, level: int = 1):
         """
         Internal logging helper that maps verbosity to logging levels.

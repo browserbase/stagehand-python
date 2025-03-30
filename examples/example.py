@@ -43,7 +43,7 @@ async def main():
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         headless=False,
         dom_settle_timeout_ms=3000,
-        model_name="gpt-4o",
+        model_name="claude-3-5-sonnet-latest",
         self_heal=True,
         wait_for_captcha_solves=True,
         act_timeout_ms=60000,  # 60 seconds timeout for actions
@@ -70,6 +70,21 @@ async def main():
     console.print("\n▶️ [highlight] Navigating[/] to Google")
     await page.goto("https://google.com/")
     console.print("✅ [success]Navigated to Google[/]")
+
+    await stagehand.agentExecute(
+        agent_config={
+            "provider": "anthropic",
+            "model": "claude-3-7-sonnet-20250219",
+            "instructions": "You are a helpful assistant that can use a web browser. You are currently on the following page: {page.url()}. Do not ask follow up questions, the user will trust your judgement.",
+            "options": {
+                "apiKey": os.getenv("MODEL_API_KEY"),
+            },
+        },
+        execute_options={
+            "instruction": "Search a nice trip for 2 people to NYC for the last week of May",
+            "maxSteps": 10,
+        },
+    )
 
     console.print("\n▶️ [highlight] Clicking[/] on About link")
     # Click on the "About" link using Playwright

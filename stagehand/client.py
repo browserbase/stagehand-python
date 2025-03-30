@@ -250,6 +250,26 @@ class Stagehand(StagehandBase):
 
         self._closed = True
 
+
+    async def agentExecute(self, agent_config: dict, execute_options: dict) -> Any:
+        """
+        Execute an agent with the given configuration and options.
+        
+        Args:
+            agent_config (dict): Configuration for the agent.
+            execute_options (dict): Options for execution.
+            
+        Returns:
+            The result from the agent execution.
+        """
+        return await self._execute(
+            "agentExecute",
+            {
+                "agentConfig": agent_config,
+                "executeOptions": execute_options
+            }
+        )
+
     async def _create_session(self):
         """
         Create a new session by calling /sessions/start on the server.
@@ -267,6 +287,15 @@ class Stagehand(StagehandBase):
             "domSettleTimeoutMs": self.dom_settle_timeout_ms,
             "verbose": self.verbose,
             "debugDom": self.debug_dom,
+            "browserbaseSessionCreateParams": {
+                "browserSettings": {
+                    "blockAds": True,
+                    "viewport": {
+                        "width": 1024,
+                        "height": 768,
+                    },
+                }
+            }
         }
 
         # Add the new parameters if they have values
