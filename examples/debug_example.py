@@ -90,7 +90,7 @@ async def main():
     console.print("✅ [success]Clicked on the search bar[/]")
 
     # Check if function exists before
-    exists_before = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'")
+    exists_before = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'") # true
     console.print(f"\n🔍 getScrollableElementsXpath exists before: {exists_before}")
     
     console.print("\n▶️ [highlight] Performing action:[/] type openai")
@@ -98,27 +98,28 @@ async def main():
     console.print("✅ [success]Typed openai[/]")
     
     # Check if function exists after 
-    exists_after = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'")
+    exists_after = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'") # true
     console.print(f"🔍 getScrollableElementsXpath exists after: {exists_after}")
     
 
     console.print("\n▶️ [highlight] Clicking[/] on About link")
     # Click on the "About" link using Playwright
-    await stagehand.page.get_by_role("link", name="About", exact=True).click()
+    await stagehand.page.get_by_role("link", name="About", exact=True).click() # works
     console.print("✅ [success]Clicked on About link[/]")
 
     await asyncio.sleep(2)
     console.print("\n▶️ [highlight] Navigating[/] back to Google")
-    await stagehand.page.goto("https://google.com/")
+    await stagehand.page.goto("https://google.com/") # works
     console.print("✅ [success]Navigated back to Google[/]")
 
     console.print("\n▶️ [highlight] Performing action:[/] search for openai")
-    await stagehand.page.act("search for openai")
-    exists_before = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'")
+    await stagehand.page.act("search for openai") # works
+    exists_before = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'") # true
     console.print(f"\n🔍 getScrollableElementsXpath exists before: {exists_before}")
-    await stagehand.page.keyboard.press("Enter")
-    await asyncio.sleep(5)
-    exists_before = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'")
+    
+    await stagehand.page.keyboard.press("Enter") #error
+    await asyncio.sleep(5) # moved sleep to after the keyboard press
+    exists_before = await stagehand.page.evaluate("typeof window.getScrollableElementXpaths === 'function'") # false
     console.print(f"\n🔍 getScrollableElementsXpath exists before: {exists_before}")
 
     console.print("\n▶️ [highlight] Performing action:[/] click on the search button")
@@ -126,7 +127,7 @@ async def main():
     console.print("✅ [success]Performing Action:[/] Action completed successfully")
 
     console.print("\n▶️ [highlight] Observing page[/] for news button")
-    observed = await page.observe("find the news button on the page")
+    observed = await page.observe("find the news button on the page") # error
     if len(observed) > 0:
         element = observed[0]
         console.print("✅ [success]Found element:[/] News button")
