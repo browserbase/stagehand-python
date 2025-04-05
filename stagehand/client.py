@@ -12,6 +12,7 @@ from .base import StagehandBase
 from .config import StagehandConfig
 from .page import StagehandPage
 from .utils import StagehandLogger, convert_dict_keys_to_camel_case, default_log_handler
+from .context import StagehandContext
 
 load_dotenv()
 
@@ -194,19 +195,20 @@ class Stagehand(StagehandBase):
             self.logger.debug("Creating a new context...")
             self._context = await self._browser.new_context()
 
-        # Access or create a page
+        # Wrap the context with StagehandContext to ensure custom script injection
+        self.stagehand_context = await StagehandContext.init(self._context, self)
+
+        # Access or create a page via StagehandContext
         existing_pages = self._context.pages
         self.logger.debug(f"Existing pages: {len(existing_pages)}")
         if existing_pages:
-            self.logger.debug("Using existing page")
+            self.logger.debug("Using existing page via StagehandContext")
+            self.page = await self.stagehand_context.get_stagehand_page(existing_pages[0])
             self._playwright_page = existing_pages[0]
         else:
-            self.logger.debug("Creating a new page...")
-            self._playwright_page = await self._context.new_page()
-
-        # Wrap with StagehandPage
-        self.logger.debug("Wrapping Playwright page in StagehandPage")
-        self.page = StagehandPage(self._playwright_page, self)
+            self.logger.debug("Creating a new page via StagehandContext")
+            self.page = await self.stagehand_context.new_page()
+            self._playwright_page = self.page.page
 
         # Initialize agent
         self.logger.debug("Initializing Agent")

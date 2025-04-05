@@ -11,6 +11,7 @@ from .schemas import (
     ObserveResult,
 )
 
+_INJECTION_SCRIPT = None
 
 class StagehandPage:
     """Wrapper around Playwright Page that integrates with Stagehand server"""
@@ -25,6 +26,25 @@ class StagehandPage:
         """
         self.page = page
         self._stagehand = stagehand_client
+
+    async def ensure_injection(self):
+        """Ensure custom injection scripts are present on the page using domScripts.js."""
+        exists_before = await self.page.evaluate("typeof window.getScrollableElementXpaths === 'function'")
+        if not exists_before:
+            global _INJECTION_SCRIPT
+            if _INJECTION_SCRIPT is None:
+                import os
+                script_path = os.path.join(os.path.dirname(__file__), "domScripts.js")
+                try:
+                    with open(script_path, "r") as f:
+                        _INJECTION_SCRIPT = f.read()
+                except Exception as e:
+                    self._stagehand.logger.error(f"Error reading domScripts.js: {e}")
+                    _INJECTION_SCRIPT = "/* fallback injection script */"
+            # Inject the script into the current page context
+            await self.page.evaluate(_INJECTION_SCRIPT)
+            # Ensure that the script is injected on future navigations
+            await self.page.add_init_script(_INJECTION_SCRIPT)
 
     async def goto(
         self,
@@ -81,6 +101,7 @@ class StagehandPage:
         Returns:
             ActResult: The result from the Stagehand server's action execution.
         """
+        await self.ensure_injection()
         # Check if options is an ObserveResult with both selector and method
         if (
             isinstance(options, ObserveResult)
@@ -117,6 +138,7 @@ class StagehandPage:
         Returns:
             list[ObserveResult]: A list of observation results from the Stagehand server.
         """
+        await self.ensure_injection()
         # Convert string to ObserveOptions if needed
         if isinstance(options, str):
             options = ObserveOptions(instruction=options)
@@ -149,6 +171,7 @@ class StagehandPage:
         Returns:
             ExtractResult: The result from the Stagehand server's extraction execution.
         """
+        await self.ensure_injection()
         # Allow for no options to extract the entire page
         if options is None:
             payload = {}
@@ -202,4 +225,5 @@ class StagehandPage:
         Returns:
             The attribute from the underlying Playwright page.
         """
+        self._stagehand.logger.debug(f"Getting attribute: {name}")
         return getattr(self.page, name)
