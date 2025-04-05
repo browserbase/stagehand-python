@@ -13,6 +13,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/browserbase/stagehand-python-sdk",
     packages=find_packages(),
+    package_data={
+        "stagehand": ["domScripts.js"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
