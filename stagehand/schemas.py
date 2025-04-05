@@ -223,17 +223,18 @@ class AgentExecuteOptions(StagehandBaseModel):
     wait_between_actions: Optional[int] = None
     context: Optional[str] = None
 
-
 class AgentExecuteResult(StagehandBaseModel):
     """
     Result of agent execution.
 
     Attributes:
         success (bool): Whether the execution was successful.
-        steps (Optional[list[dict[str, Any]]]): Steps taken by the agent.
-        result (Optional[str]): Final result message from the agent.
+        actions (Optional[list[dict[str, Any]]]): Actions taken by the agent.
+        message (Optional[str]): Final result message from the agent.
+        completed (bool): Whether the agent has completed its task.
     """
 
     success: bool = Field(..., description="Whether the execution was successful.")
-    steps: Optional[list[dict[str, Any]]] = None
-    result: Optional[str] = None
+    actions: Optional[list[dict[str, Any]]] = None
+    message: Optional[str] = None
+    completed: bool = Field(False, description="Whether the agent has completed its task.")
