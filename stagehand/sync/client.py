@@ -238,7 +238,7 @@ class Stagehand(StagehandBase):
             # Call user-provided callback with original data if available
             if self.on_log:
                 self.on_log(log_data)
-                return
+                return  # Early return after on_log to prevent double logging
 
             # Extract message, category, and level info
             message = log_data.get("message", "")
@@ -353,6 +353,7 @@ class Stagehand(StagehandBase):
                 )
                 return None
 
+            result = None
             for line in response.iter_lines(decode_unicode=True):
                 if not line.strip():
                     continue
@@ -391,7 +392,5 @@ class Stagehand(StagehandBase):
             self.logger.error(f"[EXCEPTION] {str(e)}")
             raise
 
-        self.logger.error("==== ERROR: No 'finished' message received ====")
-        raise RuntimeError(
-            "Server connection closed without sending 'finished' message"
-        )
+        self.logger.debug("Stream completed without 'finished' message")
+        return result

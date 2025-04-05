@@ -1,0 +1,7 @@
+# Stagehand Python SDK Changelog
+
+## 0.3.3 (2025-04-04)
+- Fixed logs
+
+## 0.3.0
+- Initial public release 

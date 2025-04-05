@@ -434,7 +434,7 @@ class Stagehand(StagehandBase):
             # Call user-provided callback with original data if available
             if self.on_log:
                 await self.on_log(log_data)
-                return
+                return  # Early return after on_log to prevent double logging
 
             # Extract message, category, and level info
             message = log_data.get("message", "")

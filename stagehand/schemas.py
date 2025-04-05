@@ -92,7 +92,7 @@ class ExtractOptions(StagehandBaseModel):
         default=DEFAULT_EXTRACT_SCHEMA,
         description="A JSON schema or Pydantic model that defines the structure of the expected data.",
     )
-    use_text_extract: Optional[bool] = True
+    use_text_extract: Optional[bool] = None
     dom_settle_timeout_ms: Optional[int] = None
 
     @field_serializer("schema_definition")
