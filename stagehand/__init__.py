@@ -17,7 +17,7 @@ from .schemas import (
 )
 from .utils import configure_logging
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 __all__ = [
     "Stagehand",
