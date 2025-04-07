@@ -10,6 +10,7 @@ from ..config import StagehandConfig
 from ..utils import StagehandLogger, convert_dict_keys_to_camel_case, sync_log_handler
 from .agent import SyncAgent
 from .page import SyncStagehandPage
+from .context import SyncStagehandContext
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,7 @@ class Stagehand(StagehandBase):
         self._context = None
         self._playwright_page = None
         self.page: Optional[SyncStagehandPage] = None
+        # self.context: Optional[SyncStagehandContext] = None
         self.agent = None
         self.model_client_options = model_client_options
         self.streamed_response = True  # Default to True for streamed responses
@@ -111,27 +113,28 @@ class Stagehand(StagehandBase):
         else:
             self.logger.debug("Creating a new context...")
             self._context = self._browser.new_context()
+            
+        # Wrap the context with StagehandContext to ensure custom script injection
+        self.stagehand_context = SyncStagehandContext.init(self._context, self)
 
-        # Access or create a page
+        # Use context to get or create a page
         existing_pages = self._context.pages
         self.logger.debug(f"Existing pages: {len(existing_pages)}")
         if existing_pages:
-            self.logger.debug("Using existing page")
+            self.logger.debug("Using existing page via StagehandContext")
             self._playwright_page = existing_pages[0]
+            self.page = self.stagehand_context.get_stagehand_page(self._playwright_page)
         else:
-            self.logger.debug("Creating a new page...")
-            self._playwright_page = self._context.new_page()
-
-        # Wrap with SyncStagehandPage
-        self.logger.debug("Wrapping Playwright page in SyncStagehandPage")
-        self.page = SyncStagehandPage(self._playwright_page, self)
+            self.logger.debug("Creating a new page via StagehandContext")
+            self.page = self.stagehand_context.new_page()
+            self._playwright_page = self.page.page
 
         # Initialize agent
         self.logger.debug("Initializing SyncAgent")
         self.agent = SyncAgent(self)
 
         self._initialized = True
-
+        
     def close(self):
         """
         Clean up resources synchronously.

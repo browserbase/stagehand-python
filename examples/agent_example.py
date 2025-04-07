@@ -113,7 +113,7 @@ async def main():
     console.print_json(f"{agent_result.model_dump_json()}")
 
     # Close the session
-    console.print("\n⏹️ [warning]Closing session...[/]")
+    console.print("\n⏹️  [warning]Closing session...[/]")
     await stagehand.close()
     console.print("✅ [success]Session closed successfully![/]")
     console.rule("[bold]End of Example[/]")
