@@ -10,9 +10,9 @@ from playwright.async_api import async_playwright
 from .agent import Agent
 from .base import StagehandBase
 from .config import StagehandConfig
+from .context import StagehandContext
 from .page import StagehandPage
 from .utils import StagehandLogger, convert_dict_keys_to_camel_case, default_log_handler
-from .context import StagehandContext
 
 load_dotenv()
 
@@ -203,7 +203,9 @@ class Stagehand(StagehandBase):
         self.logger.debug(f"Existing pages: {len(existing_pages)}")
         if existing_pages:
             self.logger.debug("Using existing page via StagehandContext")
-            self.page = await self.stagehand_context.get_stagehand_page(existing_pages[0])
+            self.page = await self.stagehand_context.get_stagehand_page(
+                existing_pages[0]
+            )
             self._playwright_page = existing_pages[0]
         else:
             self.logger.debug("Creating a new page via StagehandContext")

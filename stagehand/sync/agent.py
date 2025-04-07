@@ -83,10 +83,10 @@ class SyncAgent:
             # If not present in result, use defaults from AgentExecuteResult schema
             if "success" not in result:
                 raise ValueError("Response missing required field 'success'")
-            
+
             # Ensure completed is set with default if not present
             if "completed" not in result:
                 result["completed"] = False
-                
+
             return AgentExecuteResult(**result)
         return result

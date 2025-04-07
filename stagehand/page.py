@@ -13,6 +13,7 @@ from .schemas import (
 
 _INJECTION_SCRIPT = None
 
+
 class StagehandPage:
     """Wrapper around Playwright Page that integrates with Stagehand server"""
 
@@ -29,14 +30,17 @@ class StagehandPage:
 
     async def ensure_injection(self):
         """Ensure custom injection scripts are present on the page using domScripts.js."""
-        exists_before = await self.page.evaluate("typeof window.getScrollableElementXpaths === 'function'")
+        exists_before = await self.page.evaluate(
+            "typeof window.getScrollableElementXpaths === 'function'"
+        )
         if not exists_before:
             global _INJECTION_SCRIPT
             if _INJECTION_SCRIPT is None:
                 import os
+
                 script_path = os.path.join(os.path.dirname(__file__), "domScripts.js")
                 try:
-                    with open(script_path, "r") as f:
+                    with open(script_path) as f:
                         _INJECTION_SCRIPT = f.read()
                 except Exception as e:
                     self._stagehand.logger.error(f"Error reading domScripts.js: {e}")

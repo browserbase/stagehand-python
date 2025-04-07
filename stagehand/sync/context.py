@@ -1,6 +1,8 @@
-import weakref
 import os
+import weakref
+
 from playwright.sync_api import BrowserContext, Page
+
 from .page import SyncStagehandPage
 
 
@@ -28,7 +30,7 @@ class SyncStagehandContext:
     def inject_custom_scripts(self, pw_page: Page):
         script_path = os.path.join(os.path.dirname(__file__), "..", "domScripts.js")
         try:
-            with open(script_path, "r") as f:
+            with open(script_path) as f:
                 script = f.read()
         except Exception as e:
             self.stagehand.logger.error(f"Error reading domScripts.js: {e}")
@@ -52,7 +54,7 @@ class SyncStagehandContext:
     def set_active_page(self, stagehand_page: SyncStagehandPage):
         self.active_stagehand_page = stagehand_page
         # Optionally update the active page in the stagehand client if needed
-        if hasattr(self.stagehand, '_set_active_page'):
+        if hasattr(self.stagehand, "_set_active_page"):
             self.stagehand._set_active_page(stagehand_page)
 
     def get_active_page(self) -> SyncStagehandPage:
@@ -72,4 +74,4 @@ class SyncStagehandContext:
 
     def __getattr__(self, name):
         # Forward attribute lookups to the underlying BrowserContext
-        return getattr(self._context, name) 
+        return getattr(self._context, name)

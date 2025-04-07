@@ -1,6 +1,6 @@
 from .agent import SyncAgent
 from .client import Stagehand
-from .page import SyncStagehandPage
 from .context import SyncStagehandContext
+from .page import SyncStagehandPage
 
 __all__ = ["Stagehand", "SyncStagehandPage", "SyncAgent", "SyncStagehandContext"]

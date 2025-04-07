@@ -9,8 +9,8 @@ from ..base import StagehandBase
 from ..config import StagehandConfig
 from ..utils import StagehandLogger, convert_dict_keys_to_camel_case, sync_log_handler
 from .agent import SyncAgent
-from .page import SyncStagehandPage
 from .context import SyncStagehandContext
+from .page import SyncStagehandPage
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ class Stagehand(StagehandBase):
         else:
             self.logger.debug("Creating a new context...")
             self._context = self._browser.new_context()
-            
+
         # Wrap the context with StagehandContext to ensure custom script injection
         self.stagehand_context = SyncStagehandContext.init(self._context, self)
 
@@ -134,7 +134,7 @@ class Stagehand(StagehandBase):
         self.agent = SyncAgent(self)
 
         self._initialized = True
-        
+
     def close(self):
         """
         Clean up resources synchronously.
