@@ -83,7 +83,7 @@ You can simply run:
 pip install -r requirements.txt
 ```
 
-requirements.txt
+**requirements.txt**
 ```txt
 httpx>=0.24.0
 asyncio>=3.4.3 
@@ -345,7 +345,7 @@ Stagehand can be configured via environment variables or through a `StagehandCon
 Example using a unified configuration:
 
 ```python
-from stagehand.config import StagehandConfig
+from stagehand import StagehandConfig
 import os
 
 config = StagehandConfig(
