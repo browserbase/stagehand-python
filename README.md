@@ -83,6 +83,18 @@ You can simply run:
 pip install -r requirements.txt
 ```
 
+requirements.txt
+```txt
+httpx>=0.24.0
+asyncio>=3.4.3 
+python-dotenv>=1.0.0
+pydantic>=1.10.0
+playwright>=1.42.1
+requests>=2.31.0
+rich
+browserbase
+```
+
 
 ## Environment Variables
 
@@ -105,7 +117,8 @@ Stagehand supports both synchronous and asynchronous usage. Here are examples fo
 
 ```python
 import os
-from stagehand.sync import Stagehand, StagehandConfig
+from stagehand.sync import Stagehand
+from stagehand import StagehandConfig
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -207,7 +220,8 @@ if __name__ == "__main__":
 
 ```python
 import os
-from stagehand.sync import Stagehand, StagehandConfig
+from stagehand.sync import Stagehand
+from stagehand import StagehandConfig
 from stagehand.schemas import AgentConfig, AgentExecuteOptions, AgentProvider
 from dotenv import load_dotenv
 
