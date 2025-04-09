@@ -68,7 +68,7 @@ pip install stagehand-py
 ```
 ## Requirements
 
-- Python 3.7+
+- Python 3.9+
 - httpx (for async client)
 - requests (for sync client)
 - asyncio (for async client)
