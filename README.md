@@ -314,6 +314,115 @@ if __name__ == "__main__":
   description = data.get("description") if isinstance(data, dict) else data.description
   ```
 
+## Actions caching
+
+You can cache actions in Stagehand to avoid redundant LLM calls. This is particularly useful for actions that are expensive to run or when the underlying DOM structure is not expected to change.
+
+### Using `observe` to preview an action
+
+`observe` lets you preview an action before taking it. If you are satisfied with the action preview, you can run it in `page.act` with no further LLM calls.
+
+```python
+# Get the action preview
+action_preview = await page.observe("Click the quickstart link")
+
+# action_preview is a JSON-ified version of a Playwright action:
+# {
+#     "description": "The quickstart link",
+#     "action": "click",
+#     "selector": "/html/body/div[1]/div[1]/a",
+#     "arguments": []
+# }
+
+# NO LLM INFERENCE when calling act on the preview
+await page.act(action_preview[0])
+```
+
+### Simple caching
+
+Here's an example of implementing a simple file-based cache:
+
+```python
+import json
+from pathlib import Path
+from typing import Optional, Dict, Any
+
+# Get the cached value (None if it doesn't exist)
+async def get_cache(key: str) -> Optional[Dict[str, Any]]:
+    try:
+        cache_path = Path("cache.json")
+        if not cache_path.exists():
+            return None
+        with open(cache_path) as f:
+            cache = json.load(f)
+            return cache.get(key)
+    except Exception:
+        return None
+
+# Set the cache value
+async def set_cache(key: str, value: Dict[str, Any]) -> None:
+    cache_path = Path("cache.json")
+    cache = {}
+    if cache_path.exists():
+        with open(cache_path) as f:
+            cache = json.load(f)
+    cache[key] = value
+    with open(cache_path, "w") as f:
+        json.dump(cache, f)
+```
+
+### Act with cache
+
+Here's a function that checks the cache, gets the action, and runs it. If the action fails, it can attempt to "self-heal" by retrying with `page.act` directly.
+
+```python
+async def act_with_cache(page, key: str, prompt: str, self_heal: bool = False):
+    try:
+        # Check if we have a cached action
+        cached_action = await get_cache(key)
+        
+        if cached_action:
+            # Use the cached action
+            action = cached_action
+        else:
+            # Get the observe result (the action)
+            action = await page.observe(prompt)
+            # Cache the action
+            await set_cache(key, action[0])
+        
+        # Run the action (no LLM inference)
+        await page.act(action[0])
+    except Exception as e:
+        print(f"Error: {e}")
+        # In self_heal mode, retry the action
+        if self_heal:
+            print("Attempting to self-heal...")
+            await page.act(prompt)
+        else:
+            raise e
+```
+
+You can now use `act_with_cache` to run an action with caching:
+
+```python
+prompt = "Click the quickstart link"
+key = prompt  # Simple cache key
+# Attempt cached action or self-heal
+await act_with_cache(page, key, prompt, self_heal=True)
+```
+
+### Advanced caching
+
+For more sophisticated caching strategies, you can use the page content or accessibility tree to create more unique cache keys. Here's how to access the page content:
+
+```python
+# Get the page content
+page_content = await page.content()
+
+# You can also use the accessibility tree, DOM, or other information
+# to create more unique cache keys based on your specific needs
+```
+
 ## Why?
 **Stagehand adds determinism to otherwise unpredictable agents.**
 

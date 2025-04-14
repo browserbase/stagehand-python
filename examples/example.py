@@ -69,6 +69,7 @@ async def main():
     )
 
     # Initialize - this creates a new session automatically.
+    console.print("Launch on server: ", os.getenv("STAGEHAND_SERVER_URL"))
     console.print("\n🚀 [info]Initializing Stagehand...[/]")
     await stagehand.init()
     page = stagehand.page
@@ -101,11 +102,13 @@ async def main():
     await asyncio.sleep(2)
 
     console.print("\n▶️ [highlight] Observing page[/] for news button")
-    observed = await page.observe("find the news button on the page")
+    observed = await page.observe("find all articles")
+    
     if len(observed) > 0:
         element = observed[0]
         console.print("✅ [success]Found element:[/] News button")
-        console.print("\n▶️ [highlight] Performing action on observed element")
+        console.print("\n▶️ [highlight] Performing action on observed element:")
+        console.print(element)
         await page.act(element)
         console.print("✅ [success]Performing Action:[/] Action completed successfully")
 
