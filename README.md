@@ -373,33 +373,24 @@ async def set_cache(key: str, value: Dict[str, Any]) -> None:
 
 ### Act with cache
 
-Here's a function that checks the cache, gets the action, and runs it. If the action fails, it can attempt to "self-heal" by retrying with `page.act` directly.
+Here's a function that checks the cache, gets the action, and runs it:
 
 ```python
-async def act_with_cache(page, key: str, prompt: str, self_heal: bool = False):
-    try:
-        # Check if we have a cached action
-        cached_action = await get_cache(key)
-        
-        if cached_action:
-            # Use the cached action
-            action = cached_action
-        else:
-            # Get the observe result (the action)
-            action = await page.observe(prompt)
-            # Cache the action
-            await set_cache(key, action[0])
-        
-        # Run the action (no LLM inference)
-        await page.act(action[0])
-    except Exception as e:
-        print(f"Error: {e}")
-        # In self_heal mode, retry the action
-        if self_heal:
-            print("Attempting to self-heal...")
-            await page.act(prompt)
-        else:
-            raise e
+async def act_with_cache(page, key: str, prompt: str):
+    # Check if we have a cached action
+    cached_action = await get_cache(key)
+    
+    if cached_action:
+        # Use the cached action
+        action = cached_action
+    else:
+        # Get the observe result (the action)
+        action = await page.observe(prompt)
+        # Cache the action
+        await set_cache(key, action[0])
+    
+    # Run the action (no LLM inference)
+    await page.act(action[0])
 ```
 
 You can now use `act_with_cache` to run an action with caching:
@@ -407,21 +398,9 @@ You can now use `act_with_cache` to run an action with caching:
 ```python
 prompt = "Click the quickstart link"
 key = prompt  # Simple cache key
-# Attempt cached action or self-heal
-await act_with_cache(page, key, prompt, self_heal=True)
+await act_with_cache(page, key, prompt)
 ```
 
-### Advanced caching
-
-For more sophisticated caching strategies, you can use the page content or accessibility tree to create more unique cache keys. Here's how to access the page content:
-
-```python
-# Get the page content
-page_content = await page.content()
-
-# You can also use the accessibility tree, DOM, or other information
-# to create more unique cache keys based on your specific needs
-```
 
 ## Why?
 **Stagehand adds determinism to otherwise unpredictable agents.**
