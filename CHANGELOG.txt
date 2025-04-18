@@ -1,5 +1,8 @@
 # Stagehand Python SDK Changelog
 
+## 0.3.6 (2024-04-26)
+- Updated readme and fixes to the agent
+
 ## 0.3.4 (2025-04-05)
 - Fixed AgentExecuteResult schema
 
