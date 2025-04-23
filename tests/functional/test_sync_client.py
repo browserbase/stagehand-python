@@ -28,7 +28,7 @@ def stagehand_client():
     )
 
     client = Stagehand(
-        config=config, server_url=os.getenv("STAGEHAND_SERVER_URL"), verbose=2
+        config=config, server_url=os.getenv("STAGEHAND_API_URL"), verbose=2
     )
 
     # Initialize the client

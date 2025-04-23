@@ -54,7 +54,7 @@ async def main():
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         headless=False,
         dom_settle_timeout_ms=3000,
-        model_name="gpt-4o",
+        model_name="gpt-4o-mini",
         self_heal=True,
         wait_for_captcha_solves=True,
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
@@ -65,11 +65,10 @@ async def main():
 
     stagehand = Stagehand(
         config=config, 
-        server_url=os.getenv("STAGEHAND_SERVER_URL"),
+        server_url=os.getenv("STAGEHAND_API_URL"),
     )
 
     # Initialize - this creates a new session automatically.
-    console.print("Launch on server: ", os.getenv("STAGEHAND_SERVER_URL"))
     console.print("\n🚀 [info]Initializing Stagehand...[/]")
     await stagehand.init()
     page = stagehand.page

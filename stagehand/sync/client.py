@@ -25,39 +25,23 @@ class Stagehand(StagehandBase):
         self,
         config: Optional[StagehandConfig] = None,
         server_url: Optional[str] = None,
-        session_id: Optional[str] = None,
-        browserbase_api_key: Optional[str] = None,
-        browserbase_project_id: Optional[str] = None,
         model_api_key: Optional[str] = None,
         on_log: Optional[Callable[[dict[str, Any]], Any]] = sync_log_handler,
-        verbose: int = 1,
-        model_name: Optional[str] = None,
-        dom_settle_timeout_ms: Optional[int] = None,
         timeout_settings: Optional[float] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         stream_response: Optional[bool] = None,
-        self_heal: Optional[bool] = None,
-        wait_for_captcha_solves: Optional[bool] = None,
-        system_prompt: Optional[str] = None,
         use_rich_logging: bool = True,
+        **kwargs: Any,
     ):
         super().__init__(
             config=config,
             server_url=server_url,
-            session_id=session_id,
-            browserbase_api_key=browserbase_api_key,
-            browserbase_project_id=browserbase_project_id,
             model_api_key=model_api_key,
             on_log=on_log,
-            verbose=verbose,
-            model_name=model_name,
-            dom_settle_timeout_ms=dom_settle_timeout_ms,
             timeout_settings=timeout_settings,
             stream_response=stream_response,
             model_client_options=model_client_options,
-            self_heal=self_heal,
-            wait_for_captcha_solves=wait_for_captcha_solves,
-            system_prompt=system_prompt,
+            **kwargs,
         )
 
         # Initialize the centralized logger with the specified verbosity
@@ -71,7 +55,6 @@ class Stagehand(StagehandBase):
         self._context = None
         self._playwright_page = None
         self.page: Optional[SyncStagehandPage] = None
-        # self.context: Optional[SyncStagehandContext] = None
         self.agent = None
         self.model_client_options = model_client_options
         self.streamed_response = True  # Default to True for streamed responses

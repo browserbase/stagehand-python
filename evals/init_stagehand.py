@@ -42,7 +42,7 @@ async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3
     # Create a Stagehand client with the configuration; server_url is taken from
     # environment variables.
     stagehand = Stagehand(
-        config=config, server_url=os.getenv("STAGEHAND_SERVER_URL"), verbose=2
+        config=config, server_url=os.getenv("STAGEHAND_API_URL"), verbose=2
     )
     await stagehand.init()
 
