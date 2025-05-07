@@ -70,7 +70,7 @@ class ExtractHandler:
         target_xpath = selector.replace("xpath=", "") if selector and selector.startswith("xpath=") else ""
         
         # Get accessibility tree data
-        tree = await get_accessibility_tree(self.stagehand_page, self.logger, target_xpath)
+        tree = await get_accessibility_tree(self.stagehand_page, self.logger)
         self.logger.info("Getting accessibility tree data")
         output_string = tree["simplified"]
         id_to_url_mapping = tree.get("idToUrl", {})
