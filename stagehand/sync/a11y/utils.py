@@ -254,8 +254,8 @@ def get_accessibility_tree(
         hierarchical_tree = build_hierarchical_tree(nodes, page, logger)
 
         end_time = time.time()
-        # Use logger.info (level 1)
-        logger.info(
+        # Use logger.debug
+        logger.debug(
             message=(
                 f"got accessibility tree in {int((end_time - start_time) * 1000)}ms "
                 f"(processing: {int((end_time - processing_start_time) * 1000)}ms)"

@@ -17,8 +17,12 @@ from .llm import (
     ChatMessage,
 )
 from .page import (
+    ActOptions,
+    ActResult,
     ObserveElementSchema,
     ObserveInferenceSchema,
+    ObserveOptions,
+    ObserveResult,
 )
 
 __all__ = [
@@ -34,4 +38,8 @@ __all__ = [
     "ChatMessage",
     "ObserveElementSchema",
     "ObserveInferenceSchema",
+    "ActOptions",
+    "ActResult",
+    "ObserveOptions",
+    "ObserveResult",
 ]

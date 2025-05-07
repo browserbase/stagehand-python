@@ -1,6 +1,7 @@
 import json
 from typing import Any, Optional
 
+from stagehand.handlers.act_handler_utils import method_handler_map
 from stagehand.types.llm import ChatMessage
 
 
@@ -185,7 +186,8 @@ You will be given:
 1. an instruction of elements to observe
 2. {tree_type_desc}
 
-Return an array of elements that match the instruction if they exist, otherwise return an empty array."""
+Return an array of elements that match the instruction if they exist, otherwise return an empty array. Whenever suggesting actions, use supported playwright locator methods or preferably one of the following supported actions:
+{', '.join(method_handler_map.keys())}"""
 
     content = " ".join(observe_system_prompt_base.split())
     user_instructions_str = build_user_instructions_string(user_provided_instructions)

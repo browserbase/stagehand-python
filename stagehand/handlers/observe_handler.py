@@ -31,7 +31,8 @@ class ObserveHandler:
     async def observe(
         self,
         options: ObserveOptions,
-        request_id: str,
+        *request_id: str,
+        from_act: bool = False,
     ) -> list[ObserveResult]:
         """
         Execute an observation operation locally.
@@ -52,11 +53,11 @@ class ObserveHandler:
                 "multiple elements that may be relevant for future actions, return all of them."
             )
 
-        self.logger.info(
-            "Starting observation",
-            category="observe",
-            auxiliary={"instruction": instruction},
-        )
+        if not from_act:
+            self.logger.info(
+                f"Starting observation for task: '{instruction}'",
+                category="observe",
+            )
 
         # Get DOM representation
         output_string = ""
@@ -64,8 +65,8 @@ class ObserveHandler:
 
         await self.stagehand_page._wait_for_settled_dom()
         # Get accessibility tree data using our utility function
-        tree = await get_accessibility_tree(self.stagehand_page, self.logger)
         self.logger.info("Getting accessibility tree data")
+        tree = await get_accessibility_tree(self.stagehand_page, self.logger)
         output_string = tree["simplified"]
         iframes = tree.get("iframes", [])
 
@@ -77,7 +78,6 @@ class ObserveHandler:
             request_id=request_id,
             user_provided_instructions=self.user_provided_instructions,
             logger=self.logger,
-            return_action=options.return_action,
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
             from_act=False,
         )
@@ -102,7 +102,7 @@ class ObserveHandler:
         # Generate selectors for all elements
         elements_with_selectors = await self._add_selectors_to_elements(elements)
 
-        self.logger.info(
+        self.logger.debug(
             "Found elements", auxiliary={"elements": elements_with_selectors}
         )
 
@@ -127,7 +127,6 @@ class ObserveHandler:
         """
         result = []
 
-        print(elements)
         for element in elements:
             element_id = element.get("element_id")
             rest = {k: v for k, v in element.items() if k != "element_id"}
@@ -139,7 +138,6 @@ class ObserveHandler:
             )
 
             args = {"backendNodeId": element_id}
-            print(args)
             response = await self.stagehand_page.send_cdp("DOM.resolveNode", args)
             object_id = response.get("object", {}).get("objectId")
 

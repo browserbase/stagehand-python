@@ -26,29 +26,25 @@ def observe(
     request_id: str,
     user_provided_instructions: Optional[str] = None,
     logger: Optional[Callable] = None,
-    return_action: bool = False,
     log_inference_to_file: bool = False,
     from_act: bool = False,
 ) -> dict[str, Any]:
     """
-    Call LLM to find elements in the DOM based on an instruction.
+    Call LLM to find elements in the DOM/accessibility tree based on an instruction.
 
     Args:
         instruction: The instruction to follow when finding elements
-        dom_elements: String representation of DOM elements
+        tree_elements: String representation of DOM/accessibility tree elements
         llm_client: Client for calling LLM
         request_id: Unique ID for this request
         user_provided_instructions: Optional custom system instructions
         logger: Optional logger function
-        return_action: Whether to include action suggestions in response
         log_inference_to_file: Whether to log inference to file
         from_act: Whether this observe call is part of an act operation
 
     Returns:
         dict containing elements found and token usage information
     """
-    if logger:
-        logger.info(f"Preparing observe inference for instruction: {instruction}")
 
     # Build the prompts
     system_prompt = build_observe_system_prompt(
@@ -69,6 +65,7 @@ def observe(
 
     try:
         # Call the LLM
+        logger.info("Calling LLM")
         response = llm_client.create_response(
             model=llm_client.default_model,
             messages=messages,
@@ -84,7 +81,7 @@ def observe(
 
         # Parse the response
         content = response.choices[0].message.content
-        logger.info(f"LLM Response: {content}", category="observe")
+        logger.info(f"LLM Response: {content}")
         if isinstance(content, str):
             try:
                 parsed_response = json.loads(content)
