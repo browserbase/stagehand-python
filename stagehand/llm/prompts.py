@@ -22,82 +22,79 @@ User Instructions:
 
 # extract
 def build_extract_system_prompt(
-    is_using_print_extracted_data_tool: bool = False,
-    use_text_extract: bool = False,
-    user_provided_instructions: Optional[str] = None,
-) -> ChatMessage:
-    base_content = """You are extracting content on behalf of a user.
-If a user asks you to extract a 'list' of information, or 'all' information,
-YOU MUST EXTRACT ALL OF THE INFORMATION THAT THE USER REQUESTS.
+    is_anthropic: bool = False, 
+    is_using_text_extract: bool = False,
+    user_provided_instructions: str = None
+) -> str:
+    """
+    Build the system prompt for extraction.
 
-You will be given:
-1. An instruction
-2. """
+    Args:
+        is_anthropic: Whether we're using an Anthropic model
+        is_using_text_extract: Whether we're using text extraction
+        user_provided_instructions: Optional custom system instructions
 
-    content_detail = (
-        "A text representation of a webpage to extract information from."
-        if use_text_extract
-        else "A list of DOM elements to extract from."
-    )
+    Returns:
+        System prompt for extract
+    """
+    if user_provided_instructions:
+        return user_provided_instructions
 
-    instructions = (
-        f"Print the exact text from the {'text-rendered webpage' if use_text_extract else 'DOM elements'} "
-        f"with all symbols, characters, and endlines as is.\n"
-        f"Print null or an empty string if no new information is found."
-    ).strip()
+    human_prefix = "<human>: " if is_anthropic else ""
+    assistant_prefix = "<assistant>: " if is_anthropic else ""
+    
+    extract_instructions = f"""You are an AI assistant capable of extracting structured information from web pages.
 
-    tool_instructions = (
-        ("ONLY print the content using the print_extracted_data tool provided.").strip()
-        if is_using_print_extracted_data_tool
-        else ""
-    )
+Your job is to extract specific information as requested by the user from the web page content that is provided.
 
-    additional_instructions = (
-        """Once you are given the text-rendered webpage,
-you must thoroughly and meticulously analyze it. Be very careful to ensure that you
-do not miss any important information."""
-        if use_text_extract
-        else (
-            "If a user is attempting to extract links or URLs, you MUST respond with ONLY the IDs of the link elements.\n"
-            "Do not attempt to extract links directly from the text unless absolutely necessary. "
-        )
-    )
+The user will provide:
+1. An instruction about what information to extract
+2. A representation of the web page content
 
-    user_instructions = build_user_instructions_string(
-        user_provided_instructions,
-    )
+You should:
+1. Carefully analyze the page content
+2. Extract the information according to the user's instructions
+3. Return the results in a structured format, following the required schema
 
-    content_parts = [
-        f"{base_content}{content_detail}",
-        instructions,
-        tool_instructions,
-    ]
-    if additional_instructions:
-        content_parts.append(additional_instructions)
-    if user_instructions:
-        content_parts.append(user_instructions)
+Follow these guidelines:
+- Extract exactly what was asked for, no more and no less
+- If a piece of information is not in the page content, leave the corresponding field empty or null
+- Do not make up information or hallucinate data not present in the content
+- Be precise and accurate in your extraction
+"""
 
-    # Join parts with newlines, filter empty strings, then replace multiple spaces
-    full_content = "\n\n".join(filter(None, content_parts))
-    content = " ".join(full_content.split())
+    if is_using_text_extract:
+        extract_instructions += """
+Note: The page content provided includes positional information about where text appears on the page. This is represented as lines of text with annotations about their positions. Focus on extracting the relevant information while disregarding the positional details.
+"""
 
-    return ChatMessage(role="system", content=content)
+    return extract_instructions
 
 
 def build_extract_user_prompt(
-    instruction: str,
-    dom_elements: str,
-    is_using_print_extracted_data_tool: bool = False,
-) -> ChatMessage:
-    content = f"""Instruction: {instruction}
-DOM: {dom_elements}"""
+    instruction: str, dom_elements: str, is_anthropic: bool = False
+) -> str:
+    """
+    Build the user prompt for extraction.
 
-    if is_using_print_extracted_data_tool:
-        content += (
-            "\n\nONLY print the content using the print_extracted_data tool provided."
-        )
+    Args:
+        instruction: The instruction for what to extract
+        dom_elements: The DOM representation or text content
+        is_anthropic: Whether we're using an Anthropic model
 
-    return ChatMessage(role="user", content=content)
+    Returns:
+        User prompt for extract
+    """
+    human_prefix = "<human>: " if is_anthropic else ""
+    
+    if not instruction:
+        instruction = "Extract all the relevant information from this page."
+    
+    return f"""Instruction: {instruction}
+
+Page content:
+{dom_elements}
+"""
 
 
 refine_system_prompt = """You are tasked with refining and filtering information for the final output based on newly extracted and previously extracted content. Your responsibilities are:
@@ -127,33 +124,52 @@ Refined content:""",
     )
 
 
-metadata_system_prompt = """You are an AI assistant tasked with evaluating the progress and completion status of an extraction task.
-Analyze the extraction response and determine if the task is completed or if more information is needed.
-Strictly abide by the following criteria:
-1. Once the instruction has been satisfied by the current extraction response, ALWAYS set completion status to true and stop processing, regardless of remaining chunks.
-2. Only set completion status to false if BOTH of these conditions are true:
-   - The instruction has not been satisfied yet
-   - There are still chunks left to process (chunksTotal > chunksSeen)"""
+def build_metadata_system_prompt() -> str:
+    """
+    Build the system prompt for metadata extraction.
 
+    Returns:
+        System prompt for metadata
+    """
+    return """You are an AI assistant that evaluates the completeness of information extraction.
 
-# TODO: remove these as no longer used
-def build_metadata_system_prompt() -> ChatMessage:
-    return ChatMessage(role="system", content=metadata_system_prompt)
+Given:
+1. An extraction instruction
+2. The extracted data
+
+Your task is to:
+1. Determine if the extraction is complete based on the instruction
+2. Provide a brief progress summary
+
+Please respond with:
+- "completed": A boolean indicating if the extraction is complete (true) or not (false)
+- "progress": A brief summary of the extraction progress
+"""
 
 
 def build_metadata_prompt(
-    instruction: str,
-    extraction_response: dict[str, Any],
-    chunks_seen: int,
-    chunks_total: int,
-) -> ChatMessage:
-    return ChatMessage(
-        role="user",
-        content=f"""Instruction: {instruction}
-Extracted content: {json.dumps(extraction_response, indent=2)}
-chunksSeen: {chunks_seen}
-chunksTotal: {chunks_total}""",
-    )
+    instruction: str, extracted_data: dict, chunks_seen: int, chunks_total: int
+) -> str:
+    """
+    Build the user prompt for metadata extraction.
+
+    Args:
+        instruction: The original extraction instruction
+        extracted_data: The data that was extracted
+        chunks_seen: Number of chunks processed
+        chunks_total: Total number of chunks
+
+    Returns:
+        User prompt for metadata
+    """
+    return f"""Extraction instruction: {instruction}
+
+Extracted data: {extracted_data}
+
+Chunks processed: {chunks_seen} of {chunks_total}
+
+Evaluate if this extraction is complete according to the instruction.
+"""
 
 
 # observe

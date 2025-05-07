@@ -1,3 +1,5 @@
+"""LLM client for model interactions."""
+
 import logging
 from typing import Any, Optional
 
@@ -108,3 +110,4 @@ class LLMClient:
             logger.error(f"Error calling litellm.completion: {e}", exc_info=True)
             # Consider more specific exception handling based on litellm errors
             raise
+

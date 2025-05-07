@@ -815,3 +815,63 @@ async def draw_observe_overlay(page, elements):
 
     # Execute the script in the page context
     await page.evaluate(script, elements)
+
+
+# Add utility functions for extraction URL handling
+
+def transform_url_strings_to_ids(schema):
+    """
+    Transforms a Pydantic schema by replacing URL fields with numeric fields.
+    This is used to handle URL extraction from accessibility trees where URLs are represented by IDs.
+    
+    Args:
+        schema: A Pydantic model class
+        
+    Returns:
+        Tuple of (transformed_schema, url_paths) where url_paths is a list of paths to URL fields
+    """
+    url_paths = []
+    #TODO: Implement this
+    # This is a simplified version - the actual implementation would need to analyze
+    # the schema and identify URL fields by inspecting field types
+    
+    # For now, we'll just return the original schema since URL field detection
+    # is complex in Pydantic and would require reflection
+    
+    return schema, url_paths
+
+
+def inject_urls(result, url_paths, id_to_url_mapping):
+    """
+    Injects URLs back into the result data structure based on paths and ID-to-URL mapping.
+    
+    Args:
+        result: The result data structure
+        url_paths: List of paths to URL fields in the structure
+        id_to_url_mapping: Dictionary mapping numeric IDs to URLs
+        
+    Returns:
+        None (modifies result in-place)
+    """
+    for path in url_paths:
+        segments = path.get("segments", [])
+        if not segments:
+            continue
+            
+        # Navigate to the nested structure
+        current = result
+        for i, segment in enumerate(segments[:-1]):
+            if isinstance(current, dict) and segment in current:
+                current = current[segment]
+            else:
+                # Path doesn't exist in result, skip
+                break
+                
+        # Get the last segment and check if it exists
+        last_segment = segments[-1]
+        if isinstance(current, dict) and last_segment in current:
+            # Get the ID value
+            id_value = current[last_segment]
+            if id_value and isinstance(id_value, (int, str)) and str(id_value) in id_to_url_mapping:
+                # Replace ID with URL
+                current[last_segment] = id_to_url_mapping[str(id_value)]
