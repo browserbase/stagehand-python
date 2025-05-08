@@ -143,7 +143,9 @@ class StagehandPage:
                 # TODO: revisit handlers initialization on page creation
                 self._observe_handler = ObserveHandler(self, self._stagehand, "")
             if not hasattr(self, "_act_handler"):
-                self._act_handler = ActHandler(self, self._stagehand, "")
+                self._act_handler = ActHandler(
+                    self, self._stagehand, "", self._stagehand.self_heal
+                )
             self._stagehand.logger.debug("act", category="act", auxiliary=payload)
             result = await self._act_handler.act(payload)
             return result

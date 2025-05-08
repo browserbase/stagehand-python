@@ -34,7 +34,8 @@ class ObserveHandler:
     def observe(
         self,
         options: ObserveOptions,
-        request_id: str,
+        *request_id: str,
+        from_act: bool = False,
     ) -> list[ObserveResult]:
         """
         Execute an observation operation locally.
@@ -55,11 +56,12 @@ class ObserveHandler:
                 "multiple elements that may be relevant for future actions, return all of them."
             )
 
-        self.logger.info(
-            "Starting observation",
-            category="observe",
-            auxiliary={"instruction": instruction},
-        )
+        if not from_act:
+            self.logger.info(
+                "Starting observation",
+                category="observe",
+                auxiliary={"instruction": instruction},
+            )
 
         # Get DOM representation
         output_string = ""
@@ -69,8 +71,8 @@ class ObserveHandler:
         # TODO: temporary while we define the sync version of _wait_for_settled_dom
         # self.stagehand_page.wait_for_load_state("domcontentloaded")
         # Get accessibility tree data using our utility function
-        tree = get_accessibility_tree(self.stagehand_page, self.logger)
         self.logger.info("Getting accessibility tree data")
+        tree = get_accessibility_tree(self.stagehand_page, self.logger)
         output_string = tree["simplified"]
         iframes = tree.get("iframes", [])
 
@@ -82,7 +84,6 @@ class ObserveHandler:
             request_id=request_id,
             user_provided_instructions=self.user_provided_instructions,
             logger=self.logger,
-            return_action=options.return_action,
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
             from_act=False,
         )

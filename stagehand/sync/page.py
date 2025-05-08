@@ -3,6 +3,7 @@ from typing import Optional, Union
 from playwright.sync_api import CDPSession, Page
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
+from stagehand.sync.handlers.act_handler import ActHandler
 from stagehand.sync.handlers.observe_handler import ObserveHandler
 
 from ..schemas import (
@@ -117,9 +118,6 @@ class SyncStagehandPage:
                     ActResult: The result from the Stagehand server's action execution.
         """
         self.ensure_injection()
-        if self._stagehand.env == "LOCAL":
-            self._stagehand.logger.warning("Local execution of act is not implemented")
-            return None
         # Check if options is an ObserveResult with both selector and method
         if (
             isinstance(options, ObserveResult)
@@ -136,6 +134,19 @@ class SyncStagehandPage:
         # Otherwise, it should be an ActOptions object
         else:
             payload = options.model_dump(exclude_none=True, by_alias=True)
+
+        if self._stagehand.env == "LOCAL":
+            # TODO: revisit passing user_provided_instructions
+            if not hasattr(self, "_observe_handler"):
+                # TODO: revisit handlers initialization on page creation
+                self._observe_handler = ObserveHandler(self, self._stagehand, "")
+            if not hasattr(self, "_act_handler"):
+                self._act_handler = ActHandler(
+                    self, self._stagehand, "", self._stagehand.self_heal
+                )
+            self._stagehand.logger.debug("act", category="act", auxiliary=payload)
+            result = self._act_handler.act(payload)
+            return result
 
         result = self._stagehand._execute("act", payload)
         if isinstance(result, dict):

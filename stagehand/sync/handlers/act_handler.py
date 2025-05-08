@@ -1,12 +1,12 @@
 import traceback
 from typing import Any, Optional, Union
 
-from stagehand.handlers.act_handler_utils import (
+from stagehand.llm.prompts import build_act_observe_prompt
+from stagehand.sync.handlers.act_handler_utils import (
     MethodHandlerContext,
     fallback_locator_method,
     method_handler_map,
 )
-from stagehand.llm.prompts import build_act_observe_prompt
 from stagehand.types import ActOptions, ActResult, ObserveOptions, ObserveResult
 
 
@@ -35,14 +35,14 @@ class ActHandler:
         self.user_provided_instructions = user_provided_instructions
         self.self_heal = self_heal
 
-    async def act(self, options: Union[ActOptions, ObserveResult]) -> ActResult:
+    def act(self, options: Union[ActOptions, ObserveResult]) -> ActResult:
         """
         Perform an act based on an instruction.
         This method will observe the page and then perform the act on the first element returned.
         """
         if "selector" in options and "method" in options:
             options = ObserveResult(**options)
-            return await self._act_from_observe_result(
+            return self._act_from_observe_result(
                 options, self.stagehand.dom_settle_timeout_ms
             )
 
@@ -69,9 +69,7 @@ class ActHandler:
         observe_options = ObserveOptions(**observe_options_dict)
 
         observe_results: list[ObserveResult] = (
-            await self.stagehand_page._observe_handler.observe(
-                observe_options, from_act=True
-            )
+            self.stagehand_page._observe_handler.observe(observe_options, from_act=True)
         )
 
         if not observe_results:
@@ -96,7 +94,7 @@ class ActHandler:
         dom_settle_timeout_ms = options.get("dom_settle_timeout_ms")
 
         try:
-            await self._perform_playwright_method(
+            self._perform_playwright_method(
                 method=element_to_act_on.method,
                 args=element_to_act_on.arguments or [],
                 xpath=element_to_act_on.selector.replace("xpath=", ""),
@@ -118,7 +116,7 @@ class ActHandler:
                 action=action_task,
             )
 
-    async def _act_from_observe_result(
+    def _act_from_observe_result(
         self, observe_result: ObserveResult, dom_settle_timeout_ms: Optional[int] = None
     ) -> ActResult:
 
@@ -170,7 +168,7 @@ class ActHandler:
             category="act",
         )
         try:
-            await self._perform_playwright_method(
+            self._perform_playwright_method(
                 method=observe_result.method,
                 args=observe_result.arguments or [],
                 xpath=observe_result.selector.replace("xpath=", ""),
@@ -232,7 +230,7 @@ class ActHandler:
                     category="act",
                 )
                 # This will go through the full act flow, including a new observe if necessary
-                return await self.stagehand_page.act(act_command)
+                return self.stagehand_page.act(act_command)
             except Exception as fallback_e:
                 self.logger.error(
                     message=f"Error performing act on fallback self-heal attempt: {str(fallback_e)}",
@@ -248,7 +246,7 @@ class ActHandler:
                     action=action_description,  # Original action description
                 )
 
-    async def _perform_playwright_method(
+    def _perform_playwright_method(
         self,
         method: str,
         args: list[Any],
@@ -282,10 +280,10 @@ class ActHandler:
             method_fn = method_handler_map.get(method)
 
             if method_fn:
-                await method_fn(context)
+                method_fn(context)
             # Check if the method exists on the locator object and is callable
             elif hasattr(locator, method) and callable(getattr(locator, method)):
-                await fallback_locator_method(context)
+                fallback_locator_method(context)
             else:
                 self.logger.warning(
                     message="chosen method is invalid",
@@ -293,7 +291,7 @@ class ActHandler:
                     auxiliary={"method": {"value": method, "type": "string"}},
                 )
 
-            await self.stagehand_page._wait_for_settled_dom(dom_settle_timeout_ms)
+            self.stagehand_page._wait_for_settled_dom(dom_settle_timeout_ms)
         except Exception as e:
             self.logger.error(
                 message=f"{str(e)}",
