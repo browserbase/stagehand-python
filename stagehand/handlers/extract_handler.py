@@ -5,6 +5,7 @@ from typing import Optional, TypeVar
 from pydantic import BaseModel
 
 from stagehand.a11y.utils import get_accessibility_tree
+from stagehand.client import StagehandFunctionName  # Import the function name enum
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.types import ExtractOptions, ExtractResult
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
@@ -67,6 +68,10 @@ class ExtractHandler:
             f"Starting extraction with instruction: '{instruction}'", category="extract"
         )
 
+        # Start inference timer if available
+        if hasattr(self.stagehand, "start_inference_timer"):
+            self.stagehand.start_inference_timer()
+
         # Wait for DOM to settle
         await self.stagehand_page._wait_for_settled_dom()
 
@@ -105,10 +110,19 @@ class ExtractHandler:
         # Process extraction response
         raw_data_dict = extraction_response.get("data", {})
         metadata = extraction_response.get("metadata", {})
-        # TODO update metrics for token usage
-        # prompt_tokens = extraction_response.get("prompt_tokens", 0)
-        # completion_tokens = extraction_response.get("completion_tokens", 0)
-        # inference_time_ms = extraction_response.get("inference_time_ms", 0)
+        
+        # Update metrics if available
+        if hasattr(self.stagehand, "update_metrics"):
+            prompt_tokens = extraction_response.get("prompt_tokens", 0)
+            completion_tokens = extraction_response.get("completion_tokens", 0)
+            inference_time_ms = extraction_response.get("inference_time_ms", 0)
+            
+            self.stagehand.update_metrics(
+                StagehandFunctionName.EXTRACT,
+                prompt_tokens,
+                completion_tokens,
+                inference_time_ms
+            )
 
         # Inject URLs back into result if necessary
         if url_paths:
@@ -141,9 +155,14 @@ class ExtractHandler:
                 )
 
         # Create ExtractResult object
-        return ExtractResult(
+        result = ExtractResult(
             data=processed_data_payload,
         )
+        
+        # Store the raw response for potential use elsewhere
+        result._llm_response = extraction_response
+        
+        return result
 
     async def _extract_page_text(self) -> ExtractResult:
         """Extract just the text content from the page."""

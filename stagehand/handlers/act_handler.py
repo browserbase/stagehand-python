@@ -6,6 +6,7 @@ from stagehand.handlers.act_handler_utils import (
     fallback_locator_method,
     method_handler_map,
 )
+from stagehand.client import StagehandFunctionName  # Import the function name enum
 from stagehand.llm.prompts import build_act_observe_prompt
 from stagehand.types import ActOptions, ActResult, ObserveOptions, ObserveResult
 
@@ -46,6 +47,10 @@ class ActHandler:
                 options, self.stagehand.dom_settle_timeout_ms
             )
 
+        # Start inference timer if available
+        if hasattr(self.stagehand, "start_inference_timer"):
+            self.stagehand.start_inference_timer()
+
         action_task = options.get("action")
         self.logger.info(
             f"Starting action for task: '{action_task}'",
@@ -68,49 +73,68 @@ class ActHandler:
 
         observe_options = ObserveOptions(**observe_options_dict)
 
-        observe_results: list[ObserveResult] = (
-            await self.stagehand_page._observe_handler.observe(
-                observe_options, from_act=True
-            )
-        )
-
-        if not observe_results:
-            return ActResult(
-                success=False,
-                message="No observe results found for action",
-                action=action_task,
-            )
-
-        element_to_act_on = observe_results[0]
-
-        # Substitute variables in arguments
-        if options.get("variables"):
-            variables = options.get("variables", {})
-            element_to_act_on.arguments = [
-                str(arg).replace(f"%{key}%", str(value))
-                for arg in (element_to_act_on.arguments or [])
-                for key, value in variables.items()
-            ]
-
-        # domSettleTimeoutMs might come from options if specified for act
-        dom_settle_timeout_ms = options.get("dom_settle_timeout_ms")
-
         try:
-            await self._perform_playwright_method(
-                method=element_to_act_on.method,
-                args=element_to_act_on.arguments or [],
-                xpath=element_to_act_on.selector.replace("xpath=", ""),
-                dom_settle_timeout_ms=dom_settle_timeout_ms,
+            observe_results: list[ObserveResult] = (
+                await self.stagehand_page._observe_handler.observe(
+                    observe_options, from_act=True
+                )
             )
-            return ActResult(
-                success=True,
-                message=f"Action [{element_to_act_on.method}] performed successfully on selector: {element_to_act_on.selector}",
-                action=element_to_act_on.description
-                or f"ObserveResult action ({element_to_act_on.method})",
-            )
+            
+            # Update metrics if available with LLM response from observe
+            if hasattr(self.stagehand, "update_metrics_from_response") and hasattr(observe_results, "_llm_response"):
+                self.stagehand.update_metrics_from_response(
+                    StagehandFunctionName.ACT,
+                    observe_results._llm_response
+                )
+
+            if not observe_results:
+                return ActResult(
+                    success=False,
+                    message="No observe results found for action",
+                    action=action_task,
+                )
+
+            element_to_act_on = observe_results[0]
+
+            # Substitute variables in arguments
+            if options.get("variables"):
+                variables = options.get("variables", {})
+                element_to_act_on.arguments = [
+                    str(arg).replace(f"%{key}%", str(value))
+                    for arg in (element_to_act_on.arguments or [])
+                    for key, value in variables.items()
+                ]
+
+            # domSettleTimeoutMs might come from options if specified for act
+            dom_settle_timeout_ms = options.get("dom_settle_timeout_ms")
+
+            try:
+                await self._perform_playwright_method(
+                    method=element_to_act_on.method,
+                    args=element_to_act_on.arguments or [],
+                    xpath=element_to_act_on.selector.replace("xpath=", ""),
+                    dom_settle_timeout_ms=dom_settle_timeout_ms,
+                )
+                return ActResult(
+                    success=True,
+                    message=f"Action [{element_to_act_on.method}] performed successfully on selector: {element_to_act_on.selector}",
+                    action=element_to_act_on.description
+                    or f"ObserveResult action ({element_to_act_on.method})",
+                )
+            except Exception as e:
+                self.logger.error(
+                    message=f"{str(e)}",
+                )
+                return ActResult(
+                    success=False,
+                    message=f"Failed to perform act: {str(e)}",
+                    action=action_task,
+                )
         except Exception as e:
             self.logger.error(
-                message=f"{str(e)}",
+                message=f"Error in act: {str(e)}",
+                category="act",
+                auxiliary={"exception": str(e), "stack_trace": traceback.format_exc()},
             )
             return ActResult(
                 success=False,

@@ -3,6 +3,7 @@
 from typing import Any
 
 from stagehand.a11y.utils import get_accessibility_tree, get_xpath_by_resolved_object_id
+from stagehand.client import StagehandFunctionName  # Import the function name enum
 from stagehand.llm.inference import observe as observe_inference
 from stagehand.schemas import ObserveOptions, ObserveResult
 from stagehand.utils import draw_observe_overlay
@@ -59,6 +60,10 @@ class ObserveHandler:
                 category="observe",
             )
 
+        # Start inference timer if available
+        if hasattr(self.stagehand, "start_inference_timer"):
+            self.stagehand.start_inference_timer()
+
         # Get DOM representation
         output_string = ""
         iframes = []
@@ -82,10 +87,18 @@ class ObserveHandler:
             from_act=False,
         )
 
-        # TODO: Update metrics for token usage
-        # prompt_tokens = observation_response.get("prompt_tokens", 0)
-        # completion_tokens = observation_response.get("completion_tokens", 0)
-        # inference_time_ms = observation_response.get("inference_time_ms", 0)
+        # Update metrics if available
+        if hasattr(self.stagehand, "update_metrics"):
+            prompt_tokens = observation_response.get("prompt_tokens", 0)
+            completion_tokens = observation_response.get("completion_tokens", 0)
+            inference_time_ms = observation_response.get("inference_time_ms", 0)
+            
+            self.stagehand.update_metrics(
+                StagehandFunctionName.OBSERVE,
+                prompt_tokens,
+                completion_tokens,
+                inference_time_ms
+            )
 
         # Add iframes to the response if any
         elements = observation_response.get("elements", [])
@@ -110,7 +123,11 @@ class ObserveHandler:
         if options.draw_overlay:
             await draw_observe_overlay(self.stagehand_page, elements_with_selectors)
 
-        return elements_with_selectors
+        # Store the raw response for metrics tracking in act_handler
+        result = elements_with_selectors
+        result._llm_response = observation_response
+        
+        return result
 
     async def _add_selectors_to_elements(
         self,

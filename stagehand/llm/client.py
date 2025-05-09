@@ -1,7 +1,8 @@
 """LLM client for model interactions."""
 
 import logging
-from typing import Any, Optional
+import time
+from typing import Any, Optional, Callable
 
 import litellm
 
@@ -19,6 +20,7 @@ class LLMClient:
         self,
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
+        metrics_callback: Optional[Callable[[Any, int], None]] = None,
         **kwargs: Any,  # To catch other potential litellm global settings
     ):
         """
@@ -32,10 +34,13 @@ class LLMClient:
                      not be desired if using multiple providers.
             default_model: The default model to use if none is specified in chat_completion
                            (e.g., "gpt-4o", "claude-3-opus-20240229").
+            metrics_callback: Optional callback to track metrics from responses
             **kwargs: Additional global settings for litellm (e.g., api_base).
                       See litellm documentation for available settings.
         """
         self.default_model = default_model
+        self.metrics_callback = metrics_callback
+        self._inference_start_time = 0
 
         # Warning:Prefer environment variables for specific providers.
         if api_key:
@@ -53,6 +58,16 @@ class LLMClient:
             elif key == "api_base":  # Example: map api_base if needed
                 litellm.api_base = value
                 logger.debug(f"Set global litellm.api_base to {value}")
+
+    def _start_inference_timer(self):
+        """Start timing inference latency."""
+        self._inference_start_time = time.time()
+        
+    def _get_inference_time_ms(self) -> int:
+        """Get elapsed inference time in milliseconds."""
+        if self._inference_start_time == 0:
+            return 0
+        return int((time.time() - self._inference_start_time) * 1000)
 
     def create_response(
         self,
@@ -102,8 +117,19 @@ class LLMClient:
             f"Calling litellm.completion with model={completion_model} and params: {filtered_params}"
         )
         try:
+            # Start tracking inference time
+            self._start_inference_timer()
+            
             # Use litellm's completion function
             response = litellm.completion(**filtered_params)
+            
+            # Calculate inference time
+            inference_time_ms = self._get_inference_time_ms()
+            
+            # Update metrics if callback is provided
+            if self.metrics_callback:
+                self.metrics_callback(response, inference_time_ms)
+                
             return response
 
         except Exception as e:
