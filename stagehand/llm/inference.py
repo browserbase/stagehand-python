@@ -74,6 +74,7 @@ def observe(
             response_format=ObserveInferenceSchema,
             temperature=0.1,
             request_id=request_id,
+            function_name="ACT" if from_act else "OBSERVE",
         )
         inference_time_ms = int((time.time() - start_time) * 1000)
 
@@ -187,6 +188,7 @@ def extract(
             response_format=response_format,
             temperature=0.1,
             request_id=request_id,
+            function_name="EXTRACT",  # Always set to EXTRACT
             **kwargs,
         )
         extract_time_ms = int((time.time() - start_time) * 1000)
@@ -237,6 +239,7 @@ def extract(
             response_format=metadata_schema,
             temperature=0.1,
             request_id=request_id,
+            function_name="EXTRACT",  # Metadata for extraction should also be tracked as EXTRACT
         )
         metadata_end_time = time.time()
         metadata_time_ms = int((metadata_end_time - metadata_start_time) * 1000)

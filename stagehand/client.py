@@ -934,17 +934,31 @@ class Stagehand(StagehandBase):
         except Exception as e:
             self.logger.error(f"Failed to add stealth init script: {str(e)}")
 
-    def _handle_llm_metrics(self, response: Any, inference_time_ms: int, function_name: StagehandFunctionName = StagehandFunctionName.AGENT):
+    def _handle_llm_metrics(self, response: Any, inference_time_ms: int, function_name=None):
         """
         Callback to handle metrics from LLM responses.
         
         Args:
             response: The litellm response object
             inference_time_ms: Time taken for inference in milliseconds
-            function_name: The function that generated the metrics (defaults to AGENT)
+            function_name: The function that generated the metrics (name or enum value)
         """
+        # Default to AGENT only if no function_name is provided
+        if function_name is None:
+            function_enum = StagehandFunctionName.AGENT
+        # Convert string function_name to enum if needed
+        elif isinstance(function_name, str):
+            try:
+                function_enum = getattr(StagehandFunctionName, function_name.upper())
+            except (AttributeError, KeyError):
+                # If conversion fails, default to AGENT
+                function_enum = StagehandFunctionName.AGENT
+        else:
+            # Use the provided enum value
+            function_enum = function_name
+            
         self.update_metrics_from_response(
-            function_name, 
+            function_enum, 
             response,
             inference_time_ms
         )

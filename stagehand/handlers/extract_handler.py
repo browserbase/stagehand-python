@@ -112,19 +112,6 @@ class ExtractHandler:
         raw_data_dict = extraction_response.get("data", {})
         metadata = extraction_response.get("metadata", {})
         
-        # Update metrics if available
-        if hasattr(self.stagehand, "update_metrics"):
-            prompt_tokens = extraction_response.get("prompt_tokens", 0)
-            completion_tokens = extraction_response.get("completion_tokens", 0)
-            inference_time_ms = extraction_response.get("inference_time_ms", 0)
-            
-            self.stagehand.update_metrics(
-                StagehandFunctionName.EXTRACT,
-                prompt_tokens,
-                completion_tokens,
-                inference_time_ms
-            )
-
         # Inject URLs back into result if necessary
         if url_paths:
             inject_urls(

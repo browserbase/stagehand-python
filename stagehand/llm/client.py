@@ -20,7 +20,7 @@ class LLMClient:
         self,
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
-        metrics_callback: Optional[Callable[[Any, int], None]] = None,
+        metrics_callback: Optional[Callable[[Any, int, Optional[str]], None]] = None,
         **kwargs: Any,  # To catch other potential litellm global settings
     ):
         """
@@ -74,6 +74,7 @@ class LLMClient:
         *,
         messages: list[dict[str, str]],
         model: Optional[str] = None,
+        function_name: Optional[str] = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -83,6 +84,8 @@ class LLMClient:
             messages: A list of message dictionaries, e.g., [{"role": "user", "content": "Hello"}].
             model: The specific model to use (e.g., "gpt-4o", "claude-3-opus-20240229").
                    Overrides the default_model if provided.
+            function_name: The name of the Stagehand function calling this method (ACT, OBSERVE, etc.)
+                   Used for metrics tracking.
             **kwargs: Additional parameters to pass directly to litellm.completion
                       (e.g., temperature, max_tokens, stream=True, specific provider arguments).
 
@@ -128,7 +131,7 @@ class LLMClient:
             
             # Update metrics if callback is provided
             if self.metrics_callback:
-                self.metrics_callback(response, inference_time_ms)
+                self.metrics_callback(response, inference_time_ms, function_name)
                 
             return response
 

@@ -84,21 +84,8 @@ class ObserveHandler:
             user_provided_instructions=self.user_provided_instructions,
             logger=self.logger,
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
-            from_act=False,
+            from_act=from_act,
         )
-
-        # Update metrics if available
-        if hasattr(self.stagehand, "update_metrics"):
-            prompt_tokens = observation_response.get("prompt_tokens", 0)
-            completion_tokens = observation_response.get("completion_tokens", 0)
-            inference_time_ms = observation_response.get("inference_time_ms", 0)
-            
-            self.stagehand.update_metrics(
-                StagehandFunctionName.OBSERVE,
-                prompt_tokens,
-                completion_tokens,
-                inference_time_ms
-            )
 
         # Add iframes to the response if any
         elements = observation_response.get("elements", [])
