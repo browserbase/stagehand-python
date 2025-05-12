@@ -14,10 +14,10 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/stagehand-py">
+  <a href="https://pypi.org/project/stagehand">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/stagehand-py.svg?style=for-the-badge" />
-      <img alt="PyPI version" src="https://img.shields.io/pypi/v/stagehand-py.svg?style=for-the-badge" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/pypi/v/stagehand.svg?style=for-the-badge" />
+      <img alt="PyPI version" src="https://img.shields.io/pypi/v/stagehand.svg?style=for-the-badge" />
     </picture>
   </a>
   <a href="https://github.com/browserbase/stagehand/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file">
@@ -64,7 +64,7 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 Install the Python package via pip:
 
 ```bash
-pip install stagehand-py
+pip install stagehand
 ```
 ## Requirements
 

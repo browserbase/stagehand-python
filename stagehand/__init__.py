@@ -19,7 +19,7 @@ from .schemas import (
 )
 from .utils import configure_logging
 
-__version__ = "0.3.6"
+__version__ = "0.1.0"
 
 __all__ = [
     "Stagehand",
