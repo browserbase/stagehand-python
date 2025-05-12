@@ -5,11 +5,10 @@ from typing import Optional, TypeVar
 from pydantic import BaseModel
 
 from stagehand.a11y.utils import get_accessibility_tree
-from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.llm.inference import extract as extract_inference
+from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.types import ExtractOptions, ExtractResult
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
-from stagehand.llm.prompts import build_extract_user_prompt
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -112,19 +111,19 @@ class ExtractHandler:
         prompt_tokens = extraction_response.get("prompt_tokens", 0)
         completion_tokens = extraction_response.get("completion_tokens", 0)
         inference_time_ms = extraction_response.get("inference_time_ms", 0)
-        
+
         # Update metrics directly using the Stagehand client
         self.stagehand.update_metrics(
             StagehandFunctionName.EXTRACT,
             prompt_tokens,
             completion_tokens,
-            inference_time_ms
+            inference_time_ms,
         )
 
         # Process extraction response
         raw_data_dict = extraction_response.get("data", {})
         metadata = extraction_response.get("metadata", {})
-        
+
         # Inject URLs back into result if necessary
         if url_paths:
             inject_urls(
@@ -159,7 +158,7 @@ class ExtractHandler:
         result = ExtractResult(
             data=processed_data_payload,
         )
-        
+
         return result
 
     async def _extract_page_text(self) -> ExtractResult:

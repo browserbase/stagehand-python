@@ -5,10 +5,8 @@ import shutil
 import tempfile
 import time
 from collections.abc import Awaitable
-from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Literal, Optional
+from typing import Any, Callable, Literal, Optional
 
 import httpx
 from browserbase import Browserbase
@@ -193,23 +191,23 @@ class Stagehand(StagehandBase):
     def start_inference_timer(self):
         """Start timer for tracking inference time."""
         self._inference_start_time = time.time()
-        
+
     def get_inference_time_ms(self) -> int:
         """Get elapsed inference time in milliseconds."""
         if self._inference_start_time == 0:
             return 0
         return int((time.time() - self._inference_start_time) * 1000)
-        
+
     def update_metrics(
-        self, 
+        self,
         function_name: StagehandFunctionName,
         prompt_tokens: int,
         completion_tokens: int,
-        inference_time_ms: int
+        inference_time_ms: int,
     ):
         """
         Update metrics based on function name and token usage.
-        
+
         Args:
             function_name: The function that generated the metrics
             prompt_tokens: Number of prompt tokens used
@@ -232,21 +230,21 @@ class Stagehand(StagehandBase):
             self.metrics.agent_prompt_tokens += prompt_tokens
             self.metrics.agent_completion_tokens += completion_tokens
             self.metrics.agent_inference_time_ms += inference_time_ms
-            
+
         # Always update totals
         self.metrics.total_prompt_tokens += prompt_tokens
         self.metrics.total_completion_tokens += completion_tokens
         self.metrics.total_inference_time_ms += inference_time_ms
-    
+
     def update_metrics_from_response(
-        self, 
-        function_name: StagehandFunctionName, 
+        self,
+        function_name: StagehandFunctionName,
         response: Any,
-        inference_time_ms: Optional[int] = None
+        inference_time_ms: Optional[int] = None,
     ):
         """
         Extract and update metrics from a litellm response.
-        
+
         Args:
             function_name: The function that generated the response
             response: litellm response object
@@ -257,17 +255,14 @@ class Stagehand(StagehandBase):
             if hasattr(response, "usage") and response.usage:
                 prompt_tokens = getattr(response.usage, "prompt_tokens", 0)
                 completion_tokens = getattr(response.usage, "completion_tokens", 0)
-                
+
                 # Use provided inference time or calculate from timer
                 time_ms = inference_time_ms or self.get_inference_time_ms()
-                
+
                 self.update_metrics(
-                    function_name,
-                    prompt_tokens,
-                    completion_tokens,
-                    time_ms
+                    function_name, prompt_tokens, completion_tokens, time_ms
                 )
-                
+
                 # Log the usage at debug level
                 self.logger.debug(
                     f"Updated metrics for {function_name}: {prompt_tokens} prompt tokens, "
@@ -285,17 +280,14 @@ class Stagehand(StagehandBase):
                     usage = hidden_params["usage"]
                     prompt_tokens = usage.get("prompt_tokens", 0)
                     completion_tokens = usage.get("completion_tokens", 0)
-                    
+
                     # Use provided inference time or calculate from timer
                     time_ms = inference_time_ms or self.get_inference_time_ms()
-                    
+
                     self.update_metrics(
-                        function_name,
-                        prompt_tokens,
-                        completion_tokens,
-                        time_ms
+                        function_name, prompt_tokens, completion_tokens, time_ms
                     )
-                    
+
                     # Log the usage at debug level
                     self.logger.debug(
                         f"Updated metrics from hidden_params for {function_name}: {prompt_tokens} prompt tokens, "
@@ -303,7 +295,7 @@ class Stagehand(StagehandBase):
                     )
         except Exception as e:
             self.logger.debug(f"Failed to update metrics from response: {str(e)}")
-            
+
     def _get_lock_for_session(self) -> asyncio.Lock:
         """
         Return an asyncio.Lock for this session. If one doesn't exist yet, create it.
@@ -939,10 +931,12 @@ class Stagehand(StagehandBase):
         except Exception as e:
             self.logger.error(f"Failed to add stealth init script: {str(e)}")
 
-    def _handle_llm_metrics(self, response: Any, inference_time_ms: int, function_name=None):
+    def _handle_llm_metrics(
+        self, response: Any, inference_time_ms: int, function_name=None
+    ):
         """
         Callback to handle metrics from LLM responses.
-        
+
         Args:
             response: The litellm response object
             inference_time_ms: Time taken for inference in milliseconds
@@ -961,9 +955,5 @@ class Stagehand(StagehandBase):
         else:
             # Use the provided enum value
             function_enum = function_name
-            
-        self.update_metrics_from_response(
-            function_enum, 
-            response,
-            inference_time_ms
-        )
+
+        self.update_metrics_from_response(function_enum, response, inference_time_ms)

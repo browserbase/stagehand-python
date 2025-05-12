@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Any, Optional, Callable
+from typing import Any, Callable, Optional
 
 import litellm
 
@@ -62,7 +62,7 @@ class LLMClient:
     def _start_inference_timer(self):
         """Start timing inference latency."""
         self._inference_start_time = time.time()
-        
+
     def _get_inference_time_ms(self) -> int:
         """Get elapsed inference time in milliseconds."""
         if self._inference_start_time == 0:
@@ -122,17 +122,17 @@ class LLMClient:
         try:
             # Start tracking inference time
             self._start_inference_timer()
-            
+
             # Use litellm's completion function
             response = litellm.completion(**filtered_params)
-            
+
             # Calculate inference time
             inference_time_ms = self._get_inference_time_ms()
-            
+
             # Update metrics if callback is provided
             if self.metrics_callback:
                 self.metrics_callback(response, inference_time_ms, function_name)
-                
+
             return response
 
         except Exception as e:

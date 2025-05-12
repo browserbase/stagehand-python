@@ -6,7 +6,6 @@ from stagehand.handlers.act_handler_utils import (
     fallback_locator_method,
     method_handler_map,
 )
-from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.llm.prompts import build_act_observe_prompt
 from stagehand.types import ActOptions, ActResult, ObserveOptions, ObserveResult
 
@@ -79,15 +78,15 @@ class ActHandler:
                     observe_options, from_act=True
                 )
             )
-            
+
             # Get inference time for metrics
             inference_time_ms = 0
             if hasattr(self.stagehand, "get_inference_time_ms"):
                 inference_time_ms = self.stagehand.get_inference_time_ms()
-                
-                # Note: The metrics are now updated in ObserveHandler directly, 
+
+                # Note: The metrics are now updated in ObserveHandler directly,
                 # so we don't need to update them again here
-            
+
             if not observe_results:
                 return ActResult(
                     success=False,

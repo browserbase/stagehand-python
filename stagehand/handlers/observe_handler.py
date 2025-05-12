@@ -3,8 +3,8 @@
 from typing import Any
 
 from stagehand.a11y.utils import get_accessibility_tree, get_xpath_by_resolved_object_id
-from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.llm.inference import observe as observe_inference
+from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.schemas import ObserveOptions, ObserveResult
 from stagehand.utils import draw_observe_overlay
 
@@ -91,14 +91,13 @@ class ObserveHandler:
         prompt_tokens = observation_response.get("prompt_tokens", 0)
         completion_tokens = observation_response.get("completion_tokens", 0)
         inference_time_ms = observation_response.get("inference_time_ms", 0)
-        
+
         # Update metrics directly using the Stagehand client
-        function_name = StagehandFunctionName.ACT if from_act else StagehandFunctionName.OBSERVE
+        function_name = (
+            StagehandFunctionName.ACT if from_act else StagehandFunctionName.OBSERVE
+        )
         self.stagehand.update_metrics(
-            function_name,
-            prompt_tokens,
-            completion_tokens,
-            inference_time_ms
+            function_name, prompt_tokens, completion_tokens, inference_time_ms
         )
 
         # Add iframes to the response if any
