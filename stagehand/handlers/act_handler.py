@@ -79,13 +79,9 @@ class ActHandler:
                 )
             )
 
-            # Get inference time for metrics
-            inference_time_ms = 0
+            # The metrics are now updated in ObserveHandler directly
             if hasattr(self.stagehand, "get_inference_time_ms"):
-                inference_time_ms = self.stagehand.get_inference_time_ms()
-
-                # Note: The metrics are now updated in ObserveHandler directly,
-                # so we don't need to update them again here
+                self.stagehand.get_inference_time_ms()  # Just call the method without assigning
 
             if not observe_results:
                 return ActResult(
