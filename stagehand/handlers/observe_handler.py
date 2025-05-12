@@ -87,6 +87,20 @@ class ObserveHandler:
             from_act=from_act,
         )
 
+        # Extract metrics from response
+        prompt_tokens = observation_response.get("prompt_tokens", 0)
+        completion_tokens = observation_response.get("completion_tokens", 0)
+        inference_time_ms = observation_response.get("inference_time_ms", 0)
+        
+        # Update metrics directly using the Stagehand client
+        function_name = StagehandFunctionName.ACT if from_act else StagehandFunctionName.OBSERVE
+        self.stagehand.update_metrics(
+            function_name,
+            prompt_tokens,
+            completion_tokens,
+            inference_time_ms
+        )
+
         # Add iframes to the response if any
         elements = observation_response.get("elements", [])
         for iframe in iframes:
@@ -110,15 +124,8 @@ class ObserveHandler:
         if options.draw_overlay:
             await draw_observe_overlay(self.stagehand_page, elements_with_selectors)
 
-        # Store the raw response for metrics tracking in act_handler
-        result = elements_with_selectors
-        
-        # Fix: Ensure result is a list with _llm_response attribute
-        if isinstance(result, list):
-            # Create a class attribute on the list object for storing LLM response
-            setattr(result, '_llm_response', observation_response)
-        
-        return result
+        # Return the list of results without trying to attach _llm_response
+        return elements_with_selectors
 
     async def _add_selectors_to_elements(
         self,

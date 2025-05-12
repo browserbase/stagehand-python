@@ -108,6 +108,19 @@ class ExtractHandler:
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
         )
 
+        # Extract metrics from response and update them directly
+        prompt_tokens = extraction_response.get("prompt_tokens", 0)
+        completion_tokens = extraction_response.get("completion_tokens", 0)
+        inference_time_ms = extraction_response.get("inference_time_ms", 0)
+        
+        # Update metrics directly using the Stagehand client
+        self.stagehand.update_metrics(
+            StagehandFunctionName.EXTRACT,
+            prompt_tokens,
+            completion_tokens,
+            inference_time_ms
+        )
+
         # Process extraction response
         raw_data_dict = extraction_response.get("data", {})
         metadata = extraction_response.get("metadata", {})
@@ -146,9 +159,6 @@ class ExtractHandler:
         result = ExtractResult(
             data=processed_data_payload,
         )
-        
-        # Store the raw response for potential use elsewhere
-        result._llm_response = extraction_response
         
         return result
 
