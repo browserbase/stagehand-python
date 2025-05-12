@@ -9,7 +9,7 @@ from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.types import ExtractOptions, ExtractResult
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
-from stagehand.llm.prompts import build_extract_prompt
+from stagehand.llm.prompts import build_extract_user_prompt
 
 T = TypeVar("T", bound=BaseModel)
 

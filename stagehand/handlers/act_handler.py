@@ -81,11 +81,12 @@ class ActHandler:
             )
             
             # Update metrics if available with LLM response from observe
-            if hasattr(self.stagehand, "update_metrics_from_response") and hasattr(observe_results, "_llm_response"):
-                self.stagehand.update_metrics_from_response(
-                    StagehandFunctionName.ACT,
-                    observe_results._llm_response
-                )
+            if hasattr(self.stagehand, "update_metrics_from_response"):
+                if hasattr(observe_results, "_llm_response"):
+                    self.stagehand.update_metrics_from_response(
+                        StagehandFunctionName.ACT,
+                        observe_results._llm_response
+                    )
 
             if not observe_results:
                 return ActResult(

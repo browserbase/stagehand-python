@@ -125,7 +125,11 @@ class ObserveHandler:
 
         # Store the raw response for metrics tracking in act_handler
         result = elements_with_selectors
-        result._llm_response = observation_response
+        
+        # Fix: Ensure result is a list with _llm_response attribute
+        if isinstance(result, list):
+            # Create a class attribute on the list object for storing LLM response
+            setattr(result, '_llm_response', observation_response)
         
         return result
 
