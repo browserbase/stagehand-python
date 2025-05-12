@@ -273,6 +273,11 @@ class Stagehand(StagehandBase):
                     f"Updated metrics for {function_name}: {prompt_tokens} prompt tokens, "
                     f"{completion_tokens} completion tokens, {time_ms}ms"
                 )
+                self.logger.debug(
+                    f"Total metrics: {self.metrics.total_prompt_tokens} prompt tokens, "
+                    f"{self.metrics.total_completion_tokens} completion tokens, "
+                    f"{self.metrics.total_inference_time_ms}ms"
+                )
             else:
                 # Try to extract from _hidden_params or other locations
                 hidden_params = getattr(response, "_hidden_params", {})
