@@ -24,42 +24,11 @@ from .base import StagehandBase
 from .config import StagehandConfig
 from .context import StagehandContext
 from .llm import LLMClient
+from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .utils import StagehandLogger, convert_dict_keys_to_camel_case
 
 load_dotenv()
-
-
-class StagehandFunctionName(str, Enum):
-    """Function names for tracking metrics."""
-    ACT = "act"
-    EXTRACT = "extract"
-    OBSERVE = "observe"
-    AGENT = "agent"
-
-
-@dataclass
-class StagehandMetrics:
-    """Metrics for token usage and inference time across different functions."""
-    act_prompt_tokens: int = 0
-    act_completion_tokens: int = 0
-    act_inference_time_ms: int = 0
-    
-    extract_prompt_tokens: int = 0
-    extract_completion_tokens: int = 0
-    extract_inference_time_ms: int = 0
-    
-    observe_prompt_tokens: int = 0
-    observe_completion_tokens: int = 0
-    observe_inference_time_ms: int = 0
-    
-    agent_prompt_tokens: int = 0
-    agent_completion_tokens: int = 0
-    agent_inference_time_ms: int = 0
-    
-    total_prompt_tokens: int = 0
-    total_completion_tokens: int = 0
-    total_inference_time_ms: int = 0
 
 
 class Stagehand(StagehandBase):

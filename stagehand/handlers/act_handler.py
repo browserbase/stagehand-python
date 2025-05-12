@@ -6,7 +6,7 @@ from stagehand.handlers.act_handler_utils import (
     fallback_locator_method,
     method_handler_map,
 )
-from stagehand.client import StagehandFunctionName  # Import the function name enum
+from stagehand.metrics import StagehandFunctionName  # Changed import location
 from stagehand.llm.prompts import build_act_observe_prompt
 from stagehand.types import ActOptions, ActResult, ObserveOptions, ObserveResult
 
