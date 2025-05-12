@@ -934,17 +934,17 @@ class Stagehand(StagehandBase):
         except Exception as e:
             self.logger.error(f"Failed to add stealth init script: {str(e)}")
 
-    def _handle_llm_metrics(self, response: Any, inference_time_ms: int):
+    def _handle_llm_metrics(self, response: Any, inference_time_ms: int, function_name: StagehandFunctionName = StagehandFunctionName.AGENT):
         """
         Callback to handle metrics from LLM responses.
         
         Args:
             response: The litellm response object
             inference_time_ms: Time taken for inference in milliseconds
+            function_name: The function that generated the metrics (defaults to AGENT)
         """
-        # Default to AGENT function for direct LLM calls through client
         self.update_metrics_from_response(
-            StagehandFunctionName.AGENT, 
+            function_name, 
             response,
             inference_time_ms
         )
