@@ -89,34 +89,19 @@ class ObserveHandler:
             from_act=from_act,
         )
 
-        # Update metrics for token usage
+        # Extract metrics from response
         prompt_tokens = observation_response.get("prompt_tokens", 0)
         completion_tokens = observation_response.get("completion_tokens", 0)
         inference_time_ms = observation_response.get("inference_time_ms", 0)
         
-        # Update metrics in Stagehand client
-        if hasattr(self.stagehand, "update_metrics") and callable(getattr(self.stagehand, "update_metrics")):
-            function_name = StagehandFunctionName.ACT if from_act else StagehandFunctionName.OBSERVE
-            self.stagehand.update_metrics(
-                function_name,
-                prompt_tokens,
-                completion_tokens,
-                inference_time_ms
-            )
-            
-            # Log the metrics updates
-            self.logger.debug(
-                f"Updated metrics for {function_name}: {prompt_tokens} prompt tokens, "
-                f"{completion_tokens} completion tokens, {inference_time_ms}ms"
-            )
-            
-            # Log total metrics if available
-            if hasattr(self.stagehand, "metrics"):
-                self.logger.debug(
-                    f"Total metrics: {self.stagehand.metrics.total_prompt_tokens} prompt tokens, "
-                    f"{self.stagehand.metrics.total_completion_tokens} completion tokens, "
-                    f"{self.stagehand.metrics.total_inference_time_ms}ms"
-                )
+        # Update metrics directly using the Stagehand client
+        function_name = StagehandFunctionName.ACT if from_act else StagehandFunctionName.OBSERVE
+        self.stagehand.update_metrics(
+            function_name,
+            prompt_tokens,
+            completion_tokens,
+            inference_time_ms
+        )
 
         # Add iframes to the response if any
         elements = observation_response.get("elements", [])

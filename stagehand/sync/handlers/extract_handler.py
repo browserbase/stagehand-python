@@ -107,37 +107,22 @@ class ExtractHandler:
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
         )
 
-        # Process extraction response
-        raw_data_dict = extraction_response.get("data", {})
-        metadata = extraction_response.get("metadata", {})
-        
-        # Update metrics for token usage
+        # Extract metrics from response and update them directly
         prompt_tokens = extraction_response.get("prompt_tokens", 0)
         completion_tokens = extraction_response.get("completion_tokens", 0)
         inference_time_ms = extraction_response.get("inference_time_ms", 0)
-        
-        # Update metrics in Stagehand client
-        if hasattr(self.stagehand, "update_metrics") and callable(getattr(self.stagehand, "update_metrics")):
-            self.stagehand.update_metrics(
-                StagehandFunctionName.EXTRACT,
-                prompt_tokens,
-                completion_tokens,
-                inference_time_ms
-            )
-            
-            # Log the metrics updates
-            self.logger.debug(
-                f"Updated metrics for {StagehandFunctionName.EXTRACT}: {prompt_tokens} prompt tokens, "
-                f"{completion_tokens} completion tokens, {inference_time_ms}ms"
-            )
-            
-            # Log total metrics if available
-            if hasattr(self.stagehand, "metrics"):
-                self.logger.debug(
-                    f"Total metrics: {self.stagehand.metrics.total_prompt_tokens} prompt tokens, "
-                    f"{self.stagehand.metrics.total_completion_tokens} completion tokens, "
-                    f"{self.stagehand.metrics.total_inference_time_ms}ms"
-                )
+
+        # Update metrics directly using the Stagehand client
+        self.stagehand.update_metrics(
+            StagehandFunctionName.EXTRACT,
+            prompt_tokens,
+            completion_tokens,
+            inference_time_ms,
+        )
+
+        # Process extraction response
+        raw_data_dict = extraction_response.get("data", {})
+        metadata = extraction_response.get("metadata", {})
 
         # Inject URLs back into result if necessary
         if url_paths:
