@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Callable, Literal, Optional
 
@@ -18,6 +19,7 @@ from playwright.sync_api import Page as PlaywrightPage
 from ..base import StagehandBase
 from ..config import StagehandConfig
 from ..llm.client import LLMClient
+from ..metrics import StagehandFunctionName, start_inference_timer, get_inference_time_ms
 from ..utils import StagehandLogger, convert_dict_keys_to_camel_case
 from .agent import SyncAgent
 from .context import SyncStagehandContext
@@ -52,6 +54,7 @@ class Stagehand(StagehandBase):
         use_rich_logging: bool = True,
         env: Literal["BROWSERBASE", "LOCAL"] = None,
         local_browser_launch_options: Optional[dict[str, Any]] = None,
+        metrics_callback: Optional[Callable[[StagehandFunctionName, int, int, int], None]] = None,
     ):
         super().__init__(
             config=config,
@@ -78,6 +81,9 @@ class Stagehand(StagehandBase):
             None  # To store path if created temporarily
         )
         self.timeout_settings = timeout_settings or 180.0  # requests timeout in seconds
+
+        # Initialize metrics tracking callback
+        self.metrics_callback = metrics_callback
 
         # Validate env
         if self.env not in ["BROWSERBASE", "LOCAL"]:
@@ -129,6 +135,7 @@ class Stagehand(StagehandBase):
         self.llm = LLMClient(
             api_key=self.model_api_key,
             default_model=self.model_name,
+            metrics_callback=self._handle_llm_metrics,
             **self.model_client_options,
         )
 
@@ -708,3 +715,59 @@ class Stagehand(StagehandBase):
             self.logger.debug("Stealth init script added successfully (sync).")
         except Exception as e:
             self.logger.error(f"Failed to add stealth init script (sync): {str(e)}")
+
+    def _handle_llm_metrics(
+        self, response: Any, inference_time_ms: int, function_name=None
+    ):
+        """
+        Callback to handle metrics from LLM responses.
+
+        Args:
+            response: The litellm response object
+            inference_time_ms: Time taken for inference in milliseconds
+            function_name: The function that generated the metrics (name or enum value)
+        """
+        if not self.metrics_callback:
+            return
+
+        # Default to AGENT only if no function_name is provided
+        if function_name is None:
+            function_enum = StagehandFunctionName.AGENT
+        # Convert string function_name to enum if needed
+        elif isinstance(function_name, str):
+            try:
+                function_enum = getattr(StagehandFunctionName, function_name.upper())
+            except (AttributeError, KeyError):
+                # If conversion fails, default to AGENT
+                function_enum = StagehandFunctionName.AGENT
+        else:
+            # Use the provided enum value
+            function_enum = function_name
+
+        try:
+            # Extract metrics from response
+            prompt_tokens = 0
+            completion_tokens = 0
+            
+            # Check if response has usage information
+            if hasattr(response, "usage") and response.usage:
+                prompt_tokens = getattr(response.usage, "prompt_tokens", 0)
+                completion_tokens = getattr(response.usage, "completion_tokens", 0)
+            else:
+                # Try to extract from _hidden_params or other locations
+                hidden_params = getattr(response, "_hidden_params", {})
+                if hidden_params and "usage" in hidden_params:
+                    usage = hidden_params["usage"]
+                    prompt_tokens = usage.get("prompt_tokens", 0)
+                    completion_tokens = usage.get("completion_tokens", 0)
+            
+            # Call the callback with extracted metrics
+            self.metrics_callback(function_enum, prompt_tokens, completion_tokens, inference_time_ms)
+            
+            # Log the usage at debug level
+            self.logger.debug(
+                f"Metrics for {function_enum}: {prompt_tokens} prompt tokens, "
+                f"{completion_tokens} completion tokens, {inference_time_ms}ms"
+            )
+        except Exception as e:
+            self.logger.debug(f"Failed to process metrics from response: {str(e)}")
