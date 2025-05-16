@@ -2,6 +2,7 @@ import traceback
 from typing import Any, Optional, Union
 
 from stagehand.llm.prompts import build_act_observe_prompt
+from stagehand.metrics import StagehandFunctionName, start_inference_timer, get_inference_time_ms
 from stagehand.sync.handlers.act_handler_utils import (
     MethodHandlerContext,
     fallback_locator_method,
@@ -46,6 +47,10 @@ class ActHandler:
                 options, self.stagehand.dom_settle_timeout_ms
             )
 
+        # Start inference timer if available in client
+        if hasattr(self.stagehand, "start_inference_timer"):
+            self.stagehand.start_inference_timer()
+        
         action_task = options.get("action")
         self.logger.info(
             f"Starting action for task: '{action_task}'",
@@ -71,6 +76,10 @@ class ActHandler:
         observe_results: list[ObserveResult] = (
             self.stagehand_page._observe_handler.observe(observe_options, from_act=True)
         )
+
+        # Get inference time if available
+        if hasattr(self.stagehand, "get_inference_time_ms"):
+            self.stagehand.get_inference_time_ms()
 
         if not observe_results:
             return ActResult(

@@ -5,6 +5,7 @@ from typing import Optional, TypeVar
 from pydantic import BaseModel
 
 from stagehand.llm.inference import extract as extract_inference
+from stagehand.metrics import StagehandFunctionName
 from stagehand.sync.a11y.utils import get_accessibility_tree
 from stagehand.types import ExtractOptions, ExtractResult
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
@@ -67,6 +68,10 @@ class ExtractHandler:
             f"Starting extraction with instruction: '{instruction}'", category="extract"
         )
 
+        # Start inference timer if available in client
+        if hasattr(self.stagehand, "start_inference_timer"):
+            self.stagehand.start_inference_timer()
+
         # Wait for DOM to settle
         self.stagehand_page._wait_for_settled_dom()
 
@@ -105,10 +110,34 @@ class ExtractHandler:
         # Process extraction response
         raw_data_dict = extraction_response.get("data", {})
         metadata = extraction_response.get("metadata", {})
-        # TODO update metrics for token usage
-        # prompt_tokens = extraction_response.get("prompt_tokens", 0)
-        # completion_tokens = extraction_response.get("completion_tokens", 0)
-        # inference_time_ms = extraction_response.get("inference_time_ms", 0)
+        
+        # Update metrics for token usage
+        prompt_tokens = extraction_response.get("prompt_tokens", 0)
+        completion_tokens = extraction_response.get("completion_tokens", 0)
+        inference_time_ms = extraction_response.get("inference_time_ms", 0)
+        
+        # Update metrics in Stagehand client
+        if hasattr(self.stagehand, "update_metrics") and callable(getattr(self.stagehand, "update_metrics")):
+            self.stagehand.update_metrics(
+                StagehandFunctionName.EXTRACT,
+                prompt_tokens,
+                completion_tokens,
+                inference_time_ms
+            )
+            
+            # Log the metrics updates
+            self.logger.debug(
+                f"Updated metrics for {StagehandFunctionName.EXTRACT}: {prompt_tokens} prompt tokens, "
+                f"{completion_tokens} completion tokens, {inference_time_ms}ms"
+            )
+            
+            # Log total metrics if available
+            if hasattr(self.stagehand, "metrics"):
+                self.logger.debug(
+                    f"Total metrics: {self.stagehand.metrics.total_prompt_tokens} prompt tokens, "
+                    f"{self.stagehand.metrics.total_completion_tokens} completion tokens, "
+                    f"{self.stagehand.metrics.total_inference_time_ms}ms"
+                )
 
         # Inject URLs back into result if necessary
         if url_paths:
