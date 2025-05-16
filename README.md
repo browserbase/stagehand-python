@@ -449,6 +449,69 @@ config = StagehandConfig(
 )
 ```
 
+## Evaluations
+
+The Stagehand Python SDK includes a set of evaluations to test its core functionality. These evaluations are organized by the primary methods they test: `act`, `extract`, and `observe`.
+
+### Running Evaluations
+
+The evaluations can be run using either the synchronous or asynchronous runner script:
+
+#### Synchronous Runner
+
+```bash
+# Run all evaluations
+python run_evals.py
+
+# Run specific category
+python run_evals.py --category act
+
+# Run specific evaluation
+python run_evals.py --eval simple_google_search
+
+# Use text extract instead of semantic extract
+python run_evals.py --text-extract
+
+# Change the verbosity level
+python run_evals.py --verbose 3
+
+# Specify a different model
+python run_evals.py --model "gemini/gemini-2.5-flash-preview-04-17"
+```
+
+#### Asynchronous Runner
+
+```bash
+# Run all evaluations
+python run_evals_async.py
+
+# Run specific category
+python run_evals_async.py --category extract
+
+# Run specific evaluation
+python run_evals_async.py --eval observe_github
+```
+
+### Evaluation Types
+
+The evaluations test the following capabilities:
+
+- **act**: Tests for browser actions (clicking, typing)
+  - `simple_google_search`: Google search functionality
+  - `checkboxes`: Form checkbox interaction
+
+- **extract**: Tests for data extraction capabilities
+  - `extract_aigrant_companies`: Structured data extraction
+  - `extract_recipe`: Recipe details extraction
+
+- **observe**: Tests for element observation and identification
+  - `observe_github`: GitHub element observation
+  - `observe_taxes`: Tax form elements observation
+
+Results are saved in JSON format to:
+- `eval-results.json` for the synchronous runner
+- `eval-results-async.json` for the asynchronous runner
+
 ## License
 
 MIT License (c) 2025 Browserbase, Inc.

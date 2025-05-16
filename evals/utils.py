@@ -3,6 +3,8 @@ import os
 import sys
 from typing import Any, Optional
 
+from .env_loader import load_evals_env
+
 # Try to import LiteLLM, which is used for model inference
 try:
     import litellm
@@ -89,6 +91,9 @@ class SimpleModelClient:
 
 def setup_environment():
     """Set up the environment for running evaluations."""
+    # First, load environment variables from .env files
+    load_evals_env()
+    
     # If OPENAI_API_KEY is set but MODEL_API_KEY is not, copy it over
     if os.getenv("OPENAI_API_KEY") and not os.getenv("MODEL_API_KEY"):
         os.environ["MODEL_API_KEY"] = os.getenv("OPENAI_API_KEY")

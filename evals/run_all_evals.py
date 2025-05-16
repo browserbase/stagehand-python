@@ -3,6 +3,10 @@ import importlib
 import inspect
 import os
 
+from .env_loader import load_evals_env
+
+# Load environment variables at module import time
+load_evals_env()
 
 # A simple logger to collect logs for the evals
 class SimpleLogger:

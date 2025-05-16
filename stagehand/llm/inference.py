@@ -25,7 +25,7 @@ def observe(
     instruction: str,
     tree_elements: str,
     llm_client: Any,
-    request_id: str,
+    request_id: Optional[str] = None,
     user_provided_instructions: Optional[str] = None,
     logger: Optional[Callable] = None,
     log_inference_to_file: bool = False,
@@ -38,7 +38,7 @@ def observe(
         instruction: The instruction to follow when finding elements
         tree_elements: String representation of DOM/accessibility tree elements
         llm_client: Client for calling LLM
-        request_id: Unique ID for this request
+        request_id: Unique ID for this request, set to None to avoid issues with OpenAI
         user_provided_instructions: Optional custom system instructions
         logger: Optional logger function
         log_inference_to_file: Whether to log inference to file
@@ -73,7 +73,7 @@ def observe(
             messages=messages,
             response_format=ObserveInferenceSchema,
             temperature=0.1,
-            request_id=request_id,
+            request_id=None,  # Always set to None to avoid issues with OpenAI
             function_name="ACT" if from_act else "OBSERVE",
         )
         inference_time_ms = int((time.time() - start_time) * 1000)
@@ -131,7 +131,7 @@ def extract(
     tree_elements: str,
     schema: Optional[Union[type[BaseModel], dict]] = None,
     llm_client: Any = None,
-    request_id: str = "",
+    request_id: Optional[str] = None,
     user_provided_instructions: Optional[str] = None,
     logger: Optional[Callable] = None,
     log_inference_to_file: bool = False,
@@ -146,7 +146,7 @@ def extract(
         tree_elements: The DOM or accessibility tree representation
         schema: Pydantic model defining the structure of the data to extract
         llm_client: The LLM client to use for the request
-        request_id: Unique identifier for the request
+        request_id: Unique identifier for the request, set to None to avoid issues with OpenAI
         user_provided_instructions: Optional custom system instructions
         logger: Logger instance for logging
         log_inference_to_file: Whether to log inference to file
@@ -187,7 +187,7 @@ def extract(
             messages=extract_messages,
             response_format=response_format,
             temperature=0.1,
-            request_id=request_id,
+            request_id=None,  # Always set to None to avoid issues with OpenAI
             function_name="EXTRACT",  # Always set to EXTRACT
             **kwargs,
         )
@@ -238,7 +238,7 @@ def extract(
             messages=metadata_messages,
             response_format=metadata_schema,
             temperature=0.1,
-            request_id=request_id,
+            request_id=None,  # Always set to None to avoid issues with OpenAI
             function_name="EXTRACT",  # Metadata for extraction should also be tracked as EXTRACT
         )
         metadata_end_time = time.time()
