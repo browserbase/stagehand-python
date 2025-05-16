@@ -6,6 +6,8 @@ from typing import Any, Callable, Optional
 
 import litellm
 
+from stagehand.metrics import start_inference_timer, get_inference_time_ms
+
 # Configure logger for the module
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,6 @@ class LLMClient:
         """
         self.default_model = default_model
         self.metrics_callback = metrics_callback
-        self._inference_start_time = 0
 
         # Warning:Prefer environment variables for specific providers.
         if api_key:
@@ -58,16 +59,6 @@ class LLMClient:
             elif key == "api_base":  # Example: map api_base if needed
                 litellm.api_base = value
                 logger.debug(f"Set global litellm.api_base to {value}")
-
-    def _start_inference_timer(self):
-        """Start timing inference latency."""
-        self._inference_start_time = time.time()
-
-    def _get_inference_time_ms(self) -> int:
-        """Get elapsed inference time in milliseconds."""
-        if self._inference_start_time == 0:
-            return 0
-        return int((time.time() - self._inference_start_time) * 1000)
 
     def create_response(
         self,
@@ -121,13 +112,13 @@ class LLMClient:
         )
         try:
             # Start tracking inference time
-            self._start_inference_timer()
+            start_time = start_inference_timer()
 
             # Use litellm's completion function
             response = litellm.completion(**filtered_params)
 
             # Calculate inference time
-            inference_time_ms = self._get_inference_time_ms()
+            inference_time_ms = get_inference_time_ms(start_time)
 
             # Update metrics if callback is provided
             if self.metrics_callback:

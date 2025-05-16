@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
+import time
+from typing import Any, Callable, Optional
 
 
 class StagehandFunctionName(str, Enum):
@@ -34,3 +36,26 @@ class StagehandMetrics:
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
     total_inference_time_ms: int = 0
+
+
+def start_inference_timer() -> float:
+    """Start timing inference latency.
+    
+    Returns:
+        The start time as a float timestamp.
+    """
+    return time.time()
+
+
+def get_inference_time_ms(start_time: float) -> int:
+    """Get elapsed inference time in milliseconds.
+    
+    Args:
+        start_time: The timestamp when timing started.
+        
+    Returns:
+        The elapsed time in milliseconds.
+    """
+    if start_time == 0:
+        return 0
+    return int((time.time() - start_time) * 1000)
