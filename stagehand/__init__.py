@@ -1,5 +1,6 @@
 from .agent import Agent
-from .client import Stagehand
+from .async_client import Stagehand
+from .sync_client import Stagehand as SyncStagehand
 from .config import StagehandConfig
 from .handlers.observe_handler import ObserveHandler
 from .metrics import StagehandFunctionName, StagehandMetrics
@@ -22,7 +23,8 @@ from .utils import configure_logging
 __version__ = "0.1.0"
 
 __all__ = [
-    "Stagehand",
+    "Stagehand",         # Async client (default)
+    "SyncStagehand",     # Sync client
     "StagehandConfig",
     "StagehandPage",
     "Agent",
@@ -39,7 +41,6 @@ __all__ = [
     "AgentExecuteResult",
     "AgentProvider",
     "ObserveHandler",
-    "observe",
     "StagehandFunctionName",
     "StagehandMetrics",
 ]
