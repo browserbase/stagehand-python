@@ -6,9 +6,7 @@ from rich.theme import Theme
 import json
 from dotenv import load_dotenv
 
-from stagehand.sync import Stagehand
-from stagehand import StagehandConfig
-from stagehand import configure_logging
+from stagehand import SyncStagehand, StagehandConfig, configure_logging
 
 # Create a custom theme for consistent styling
 custom_theme = Theme(
@@ -63,7 +61,7 @@ def main():
     )
 
     # Create a Stagehand client using the configuration object.
-    stagehand = Stagehand(
+    stagehand = SyncStagehand(
         config=config, 
         server_url=os.getenv("STAGEHAND_SERVER_URL"),
     )

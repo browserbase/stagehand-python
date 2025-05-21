@@ -6,8 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
 
-from stagehand.sync import Stagehand
-from stagehand import StagehandConfig, Agent, AgentConfig, configure_logging
+from stagehand import SyncStagehand, StagehandConfig, Agent, AgentConfig, configure_logging
 from stagehand.schemas import AgentExecuteOptions, AgentProvider
 
 # Create a custom theme for consistent styling
@@ -62,7 +61,7 @@ def main():
     )
 
     # Create a Stagehand client using the configuration object.
-    stagehand = Stagehand(
+    stagehand = SyncStagehand(
         config=config, 
         server_url=os.getenv("STAGEHAND_SERVER_URL"),
     )

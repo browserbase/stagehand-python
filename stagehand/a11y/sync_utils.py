@@ -4,21 +4,20 @@ import time
 from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
-    from stagehand.sync.page import SyncStagehandPage
+    from playwright.sync_api import Page
 
-from stagehand.types.a11y import (
+from ..types.a11y import (
     AccessibilityNode,
     AXNode,
     CDPSession,
     TreeResult,
 )
-
-from ...utils import StagehandLogger, format_simplified_tree
+from ..utils import StagehandLogger, format_simplified_tree
 
 
 def _clean_structural_nodes(
     node: AccessibilityNode,
-    page: Optional["SyncStagehandPage"],
+    page: Optional[object],
     logger: Optional[StagehandLogger],
 ) -> Optional[AccessibilityNode]:
     """Helper function to remove or collapse unnecessary structural nodes."""
@@ -59,9 +58,8 @@ def _clean_structural_nodes(
         and node_role in ("generic", "none")
     ):
         try:
-            resolved_node = page.send_cdp(
-                "DOM.resolveNode", {"backendNodeId": backend_node_id}
-            )
+            # SyncWrapper should handle async methods now
+            resolved_node = page.send_cdp("DOM.resolveNode", {"backendNodeId": backend_node_id})
             object_info = resolved_node.get("object")
             if object_info and object_info.get("objectId"):
                 object_id = object_info["objectId"]
@@ -124,7 +122,7 @@ def _extract_url_from_ax_node(
 
 def build_hierarchical_tree(
     nodes: list[AXNode],
-    page: Optional["SyncStagehandPage"],
+    page: Optional[object],
     logger: Optional[StagehandLogger],
 ) -> TreeResult:
     """Builds a hierarchical tree structure from a flat array of accessibility nodes."""
@@ -221,13 +219,15 @@ def build_hierarchical_tree(
 
 
 def get_accessibility_tree(
-    page: "SyncStagehandPage",
+    page: object,
     logger: StagehandLogger,
 ) -> TreeResult:
     """Retrieves the full accessibility tree via CDP and transforms it."""
     try:
         start_time = time.time()
         scrollable_backend_ids = find_scrollable_element_ids(page)
+        
+        # SyncWrapper should handle async methods now
         cdp_result = page.send_cdp("Accessibility.getFullAXTree")
         nodes: list[AXNode] = cdp_result.get("nodes", [])
         processing_start_time = time.time()
@@ -271,7 +271,11 @@ def get_accessibility_tree(
         )
         raise error
     finally:
-        page.disable_cdp_domain("Accessibility")
+        # SyncWrapper should handle async methods now
+        try:
+            page.disable_cdp_domain("Accessibility")
+        except Exception:
+            pass
 
 
 # JavaScript function to get XPath (remains JavaScript)
@@ -333,6 +337,7 @@ def get_xpath_by_resolved_object_id(
 ) -> str:
     """Gets the XPath of an element given its resolved CDP object ID."""
     try:
+        # SyncWrapper should handle async methods now
         result = cdp_client.send(
             "Runtime.callFunctionOn",
             {
@@ -349,84 +354,93 @@ def get_xpath_by_resolved_object_id(
         return ""
 
 
-def find_scrollable_element_ids(stagehand_page: "SyncStagehandPage") -> set[int]:
+def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
     """Identifies backendNodeIds of scrollable elements in the DOM."""
-    # Ensure getScrollableElementXpaths is defined in the page context
-    try:
-        stagehand_page.ensure_injection()
-        xpaths = stagehand_page.evaluate("() => window.getScrollableElementXpaths()")
-        if not isinstance(xpaths, list):
-            print("Warning: window.getScrollableElementXpaths() did not return a list.")
-            xpaths = []
-    except Exception as e:
-        print(f"Error calling window.getScrollableElementXpaths: {e}")
-        xpaths = []
-
     scrollable_backend_ids: set[int] = set()
-    cdp_session = None
+    
     try:
-        # Create a single CDP session for efficiency
-        cdp_session = stagehand_page.context.new_cdp_session(stagehand_page._page)
+        # Ensure getScrollableElementXpaths is defined in the page context
+        try:
+            # SyncWrapper should handle async methods now
+            stagehand_page.ensure_injection()
+            xpaths = stagehand_page.evaluate("() => window.getScrollableElementXpaths()")
+            if not isinstance(xpaths, list):
+                print("Warning: window.getScrollableElementXpaths() did not return a list.")
+                xpaths = []
+        except Exception as e:
+            print(f"Error calling window.getScrollableElementXpaths: {e}")
+            xpaths = []
 
-        for xpath in xpaths:
-            if not xpath or not isinstance(xpath, str):
-                continue
+        cdp_session = None
+        try:
+            # Create a single CDP session for efficiency
+            # SyncWrapper should handle async methods now
+            cdp_session = stagehand_page.context.new_cdp_session(stagehand_page._page)
 
-            try:
-                # Evaluate XPath to get objectId
-                eval_result = cdp_session.send(
-                    "Runtime.evaluate",
-                    {
-                        "expression": (
-                            f"""
-                        (function() {{
-                          try {{
-                            const res = document.evaluate({json.dumps(xpath)}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                            return res.singleNodeValue;
-                          }} catch (e) {{
-                             console.error('Error evaluating XPath:', {json.dumps(xpath)}, e);
-                             return null;
-                          }}
-                        }})();
-                    """
-                        ),
-                        "returnByValue": False,  # Get objectId
-                        "awaitPromise": False,  # It's not a promise
-                    },
-                )
+            for xpath in xpaths:
+                if not xpath or not isinstance(xpath, str):
+                    continue
 
-                object_id = eval_result.get("result", {}).get("objectId")
-                if object_id:
-                    try:
-                        # Describe node to get backendNodeId
-                        node_info = cdp_session.send(
-                            "DOM.describeNode",
-                            {
-                                "objectId": object_id,
-                            },
-                        )
-                        backend_node_id = node_info.get("node", {}).get("backendNodeId")
-                        if backend_node_id:
-                            scrollable_backend_ids.add(backend_node_id)
-                    except Exception:
-                        # Log error describing node if needed
-                        # print(f"Error describing node for xpath {xpath}: {desc_err}")
-                        pass  # Continue to next xpath
-            except Exception:
-                # Log error evaluating xpath if needed
-                # print(f"Error evaluating xpath {xpath}: {eval_err}")
-                pass  # Continue to next xpath
+                try:
+                    # Evaluate XPath to get objectId
+                    # SyncWrapper should handle async methods now
+                    eval_result = cdp_session.send(
+                        "Runtime.evaluate",
+                        {
+                            "expression": (
+                                f"""
+                            (function() {{
+                              try {{
+                                const res = document.evaluate({json.dumps(xpath)}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                                return res.singleNodeValue;
+                              }} catch (e) {{
+                                 console.error('Error evaluating XPath:', {json.dumps(xpath)}, e);
+                                 return null;
+                              }}
+                            }})();
+                        """
+                            ),
+                            "returnByValue": False,  # Get objectId
+                            "awaitPromise": False,  # It's not a promise
+                        },
+                    )
 
-    except Exception as session_err:
-        print(f"Error creating or using CDP session: {session_err}")
-        # Handle session creation error if necessary
-    finally:
-        if cdp_session:
-            try:
-                cdp_session.detach()
-            except Exception:
-                pass  # Ignore detach error
+                    object_id = eval_result.get("result", {}).get("objectId")
+                    if object_id:
+                        try:
+                            # Describe node to get backendNodeId
+                            # SyncWrapper should handle async methods now
+                            node_info = cdp_session.send(
+                                "DOM.describeNode",
+                                {
+                                    "objectId": object_id,
+                                },
+                            )
+                            backend_node_id = node_info.get("node", {}).get("backendNodeId")
+                            if backend_node_id:
+                                scrollable_backend_ids.add(backend_node_id)
+                        except Exception:
+                            # Log error describing node if needed
+                            # print(f"Error describing node for xpath {xpath}: {desc_err}")
+                            pass  # Continue to next xpath
+                except Exception:
+                    # Log error evaluating xpath if needed
+                    # print(f"Error evaluating xpath {xpath}: {eval_err}")
+                    pass  # Continue to next xpath
 
+        except Exception as session_err:
+            print(f"Error creating or using CDP session: {session_err}")
+            # Handle session creation error if necessary
+        finally:
+            if cdp_session:
+                try:
+                    # SyncWrapper should handle async methods now
+                    cdp_session.detach()
+                except Exception:
+                    pass  # Ignore detach error
+    except Exception as e:
+        print(f"Error finding scrollable elements: {e}")
+    
     return scrollable_backend_ids
 
 
@@ -464,4 +478,4 @@ def _remove_redundant_static_text_children(
             if child.get("role") != "StaticText" or not child.get("name")
         ]  # Keep StaticText without name if any
 
-    return children
+    return children 
