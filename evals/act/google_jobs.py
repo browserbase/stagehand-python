@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import Any, Optional, Dict
+from typing import Any, Optional, dict
 
 from pydantic import BaseModel
 
@@ -19,43 +19,23 @@ class JobDetails(BaseModel):
     preferred_qualifications: Qualifications
 
 
-def is_job_details_valid(details: Dict[str, Any] | JobDetails) -> bool:
+def is_job_details_valid(details: dict[str, Any]) -> bool:
     """
-    Validates that the extracted job details are in the correct format.
-    application_deadline is allowed to be None.
-    For qualifications, degree and years_of_experience are allowed to be None.
+    Validates that each top-level field in the extracted job details is not None.
+    For nested dictionary values, each sub-value must be non-null and a string
+    or a number.
     """
     if not details:
         return False
-    
-    # Convert Pydantic model to dict if needed
-    if hasattr(details, "model_dump"):
-        details_dict = details.model_dump()
-    else:
-        details_dict = details
-    
-    # application_deadline is allowed to be None
-    # minimum_qualifications and preferred_qualifications must exist
-    required_fields = ["minimum_qualifications", "preferred_qualifications"]
-    for field in required_fields:
-        if field not in details_dict or details_dict[field] is None:
+    for _key, value in details.items():
+        if value is None:
             return False
-    
-    # For qualifications, check that they're dictionaries but allow None values
-    for field in ["minimum_qualifications", "preferred_qualifications"]:
-        if not isinstance(details_dict[field], dict):
+        if isinstance(value, dict):
+            for v in value.values():
+                if v is None or not isinstance(v, (str, int, float)):
+                    return False
+        elif not isinstance(value, (str, int, float)):
             return False
-        
-        # Each qualification should have the expected structure
-        quals = details_dict[field]
-        if "degree" not in quals or "years_of_experience" not in quals:
-            return False
-            
-        # Values can be None or proper types
-        for k, v in quals.items():
-            if v is not None and not isinstance(v, (str, int, float)):
-                return False
-    
     return True
 
 
@@ -99,7 +79,7 @@ async def google_jobs(model_name: str, logger, use_text_extract: bool) -> dict:
     )
 
     try:
-        await stagehand.page.goto("https://www.google.com/")
+        await stagehand.page.navigate("https://www.google.com/")
         await asyncio.sleep(3)
         await stagehand.page.act(ActOptions(action="click on the about page"))
         await stagehand.page.act(ActOptions(action="click on the careers page"))
@@ -116,13 +96,11 @@ async def google_jobs(model_name: str, logger, use_text_extract: bool) -> dict:
                     "(degree and years of experience), and preferred qualifications "
                     "(degree and years of experience)"
                 ),
-                schemaDefinition=JobDetails,
+                schemaDefinition=JobDetails.model_json_schema(),
                 useTextExtract=use_text_extract,
             )
         )
 
-        print("Extracted job details:", job_details)
-        
         valid = is_job_details_valid(job_details)
 
         await stagehand.close()

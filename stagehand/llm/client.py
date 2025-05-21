@@ -1,11 +1,12 @@
 """LLM client for model interactions."""
 
 import logging
+import time
 from typing import Any, Callable, Optional
 
 import litellm
 
-from stagehand.metrics import get_inference_time_ms, start_inference_timer
+from stagehand.metrics import start_inference_timer, get_inference_time_ms
 
 # Configure logger for the module
 logger = logging.getLogger(__name__)

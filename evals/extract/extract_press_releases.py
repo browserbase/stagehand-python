@@ -1,5 +1,4 @@
 import asyncio
-import os
 
 from pydantic import BaseModel
 
@@ -48,8 +47,8 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
         session_url = init_response["sessionUrl"]
 
         # Navigate to the dummy press releases page # TODO - choose a different page
-        await stagehand.page.goto(
-            "https://dummy-press-releases.surge.sh/news"
+        await stagehand.page.navigate(
+            "https://dummy-press-releases.surge.sh/news", wait_until="networkidle"
         )
         # Wait for 5 seconds to ensure content has loaded
         await asyncio.sleep(5)
@@ -62,21 +61,14 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
                     "extract the title and corresponding publish date of EACH AND EVERY "
                     "press releases on this page. DO NOT MISS ANY PRESS RELEASES."
                 ),
-                schemaDefinition=PressReleases,
+                schemaDefinition=PressReleases.model_json_schema(),
                 useTextExtract=use_text_extract,
             )
         )
         print("Raw result:", raw_result)
-        
-        # Get the items list from the raw_result, which could be a dict or a PressReleases object
-        if isinstance(raw_result, PressReleases):
-            items = raw_result.items
-        elif isinstance(raw_result, dict) and "items" in raw_result:
-            # Parse the raw result using the defined schema if it's a dictionary
-            parsed = PressReleases.model_validate(raw_result)
-            items = parsed.items
-        else:
-            error_message = "Extraction did not return valid press releases data."
+        # Check that the extraction returned a valid dictionary
+        if not raw_result or not isinstance(raw_result, dict):
+            error_message = "Extraction did not return a valid dictionary."
             logger.error({"message": error_message, "raw_result": raw_result})
             return {
                 "_success": False,
@@ -85,6 +77,10 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
                 "debugUrl": debug_url,
                 "sessionUrl": session_url,
             }
+
+        # Parse the raw result using the defined schema.
+        parsed = PressReleases.parse_obj(raw_result)
+        items = parsed.items
 
         # Expected results (from the TS eval)
         expected_length = 28
