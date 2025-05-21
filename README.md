@@ -449,43 +449,6 @@ config = StagehandConfig(
 )
 ```
 
-## Evaluations
-
-The Stagehand Python SDK includes a set of evaluations to test its core functionality. These evaluations are organized by the primary methods they test: `act`, `extract`, and `observe`.
-
-### Running Evaluations
-
-You can run evaluations using the `run_all_evals.py` script in the `evals/` directory:
-
-```bash
-# Run only observe evaluations (default behavior)
-python -m evals.run_all_evals
-
-# Run all evaluations (act, extract, and observe)
-python -m evals.run_all_evals --all
-
-# Run a specific evaluation
-python -m evals.run_all_evals --all --eval observe_taxes
-python -m evals.run_all_evals --all --eval google_jobs
-
-# Specify a different model
-python -m evals.run_all_evals --model gpt-4o-mini
-```
-
-### Evaluation Types
-
-The evaluations test the following capabilities:
-
-- **act**: Tests for browser actions (clicking, typing)
-  - `google_jobs`: Google jobs search and extraction 
-
-- **extract**: Tests for data extraction capabilities
-  - `extract_press_releases`: Extracting press releases from a dummy site
-
-- **observe**: Tests for element observation and identification
-  - `observe_taxes`: Tax form elements observation
-
-Results are printed to the console with a summary showing success/failure for each evaluation.
 
 ## License
 
