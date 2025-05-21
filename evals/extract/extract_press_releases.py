@@ -67,7 +67,6 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
                 ),
                 schemaDefinition=PressReleases.model_json_schema(),
                 useTextExtract=use_text_extract,
-                request_id=None
             )
         )
         print("Raw result:", raw_result)

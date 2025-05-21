@@ -32,7 +32,6 @@ class ObserveHandler:
     async def observe(
         self,
         options: ObserveOptions,
-        *request_id: str,
         from_act: bool = False,
     ) -> list[ObserveResult]:
         """
@@ -40,7 +39,6 @@ class ObserveHandler:
 
         Args:
             options: ObserveOptions containing the instruction and other parameters
-            request_id: Unique identifier for the request
 
         Returns:
             list of ObserveResult instances
@@ -80,7 +78,6 @@ class ObserveHandler:
             instruction=instruction,
             tree_elements=output_string,
             llm_client=self.stagehand.llm,
-            request_id=request_id,
             user_provided_instructions=self.user_provided_instructions,
             logger=self.logger,
             log_inference_to_file=False,  # TODO: Implement logging to file if needed

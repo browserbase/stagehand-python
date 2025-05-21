@@ -66,8 +66,7 @@ async def observe_taxes(model_name: str, logger) -> dict:
         observations = await stagehand.page.observe(
             ObserveOptions(
                 instruction="Find all the form input elements under the 'Income' section"
-            ),
-            request_id=None
+            )
         )
 
         # If no observations were returned or too few were returned, mark eval as unsuccessful and return early

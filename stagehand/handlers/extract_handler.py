@@ -35,7 +35,6 @@ class ExtractHandler:
     async def extract(
         self,
         options: Optional[ExtractOptions] = None,
-        request_id: str = "",
         schema: Optional[type[BaseModel]] = None,
     ) -> ExtractResult:
         """
@@ -43,7 +42,6 @@ class ExtractHandler:
 
         Args:
             options: ExtractOptions containing the instruction and other parameters
-            request_id: Unique identifier for the request
             schema: Optional Pydantic model for structured output
 
         Returns:
@@ -101,7 +99,6 @@ class ExtractHandler:
             tree_elements=output_string,
             schema=transformed_schema,
             llm_client=self.stagehand.llm,
-            request_id=request_id,
             user_provided_instructions=self.user_provided_instructions,
             logger=self.logger,
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
