@@ -1,0 +1,135 @@
+from typing import Optional, Union
+
+from ..handlers.cua_handler import CUAHandler
+from ..types.agent import (
+    AgentConfig,
+    AgentExecuteOptions,
+    AgentResult,
+    AgentUsage,
+)
+from .anthropic_cua import AnthropicCUAClient
+from .client import AgentClient
+from .openai_cua import OpenAICUAClient
+
+MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
+    "computer-use-preview": OpenAICUAClient,
+    "claude-3-5-sonnet-20240620": AnthropicCUAClient,
+    "claude-3-7-sonnet-20250219": AnthropicCUAClient,
+}
+
+AGENT_METRIC_FUNCTION_NAME = "AGENT_EXECUTE_TASK"
+
+
+class Agent:
+
+    def __init__(self, stagehand_client, **kwargs):
+        self.stagehand = stagehand_client
+        self.config = AgentConfig(**kwargs) if kwargs else AgentConfig()
+        self.logger = self.stagehand.logger
+
+        if not hasattr(self.stagehand, "page") or not hasattr(
+            self.stagehand.page, "_page"
+        ):
+            self.logger.error(
+                "Stagehand page object not available for CUAHandler initialization."
+            )
+            raise ValueError("Stagehand page not initialized. Cannot create Agent.")
+
+        self.cua_handler = CUAHandler(
+            stagehand=self.stagehand, page=self.stagehand.page._page, logger=self.logger
+        )
+
+        self.client: AgentClient = self._get_client()
+
+    def _get_client(self) -> AgentClient:
+        ClientClass = MODEL_TO_CLIENT_CLASS_MAP.get(self.config.model)  # noqa: N806
+        if not ClientClass:
+            self.logger.error(
+                f"Unsupported model or client not mapped: {self.config.model}"
+            )
+            raise ValueError(
+                f"Unsupported model or client not mapped: {self.config.model}"
+            )
+
+        return ClientClass(
+            model=self.config.model,
+            instructions=(
+                self.config.instructions
+                if self.config.instructions
+                else "Your browser is in full screen mode. There is no search bar, or navigation bar, or shortcut to control it. You can use the goto tool to navigate to different urls. Do not try to access a top navigation bar or other browser features."
+            ),
+            config=self.config,
+            logger=self.logger,
+            handler=self.cua_handler,
+        )
+
+    async def execute(
+        self, options_or_instruction: Union[AgentExecuteOptions, str]
+    ) -> AgentResult:
+
+        options: Optional[AgentExecuteOptions] = None
+        instruction: str
+
+        if isinstance(options_or_instruction, str):
+            instruction = options_or_instruction
+            options = AgentExecuteOptions(instruction=instruction)
+        elif isinstance(options_or_instruction, dict):
+            options = AgentExecuteOptions(**options_or_instruction)
+            instruction = options.instruction
+        else:
+            options = options_or_instruction
+            instruction = options.instruction
+
+        if not instruction:
+            self.logger.error("No instruction provided for agent execution.")
+            return AgentResult(
+                message="No instruction provided.", completed=True, actions=[], usage={}
+            )
+
+        self.logger.info(
+            f"Agent starting execution for instruction: '{instruction}'",
+            category="agent",
+        )
+
+        try:
+            agent_result = await self.client.run_task(
+                instruction=instruction,
+                max_steps=self.config.max_steps,
+                options=options,
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Exception during client.run_task: {e}", category="agent"
+            )
+            empty_usage = AgentUsage(
+                input_tokens=0, output_tokens=0, inference_time_ms=0
+            )
+            return AgentResult(
+                message=f"Error: {str(e)}",
+                completed=True,
+                actions=[],
+                usage=empty_usage,
+            )
+
+        # Update metrics if usage data is available in the result
+        if agent_result.usage:
+            # self.stagehand.update_metrics(
+            #     AGENT_METRIC_FUNCTION_NAME,
+            #     agent_result.usage.get("input_tokens", 0),
+            #     agent_result.usage.get("output_tokens", 0),
+            #     agent_result.usage.get("inference_time_ms", 0),
+            # )
+            pass  # Placeholder if metrics are to be handled differently or not at all
+
+        self.logger.info(
+            f"Agent execution finished. Success: {agent_result.completed}. Message: {agent_result.message}",
+            category="agent",
+        )
+        # To clean up pydantic model output
+        actions_repr = [action.root for action in agent_result.actions]
+        self.logger.debug(
+            f"Agent actions: {actions_repr}",
+            category="agent",
+        )
+        agent_result.actions = actions_repr
+        return agent_result

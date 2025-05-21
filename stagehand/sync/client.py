@@ -19,8 +19,10 @@ from playwright.sync_api import Page as PlaywrightPage
 from ..base import StagehandBase
 from ..config import StagehandConfig
 from ..llm.client import LLMClient
-from ..metrics import StagehandFunctionName, start_inference_timer, get_inference_time_ms
-from ..metrics import StagehandMetrics
+from ..metrics import (
+    StagehandFunctionName,
+    StagehandMetrics,
+)
 from ..utils import StagehandLogger, convert_dict_keys_to_camel_case
 from .agent import SyncAgent
 from .context import SyncStagehandContext
@@ -55,7 +57,9 @@ class Stagehand(StagehandBase):
         use_rich_logging: bool = True,
         env: Literal["BROWSERBASE", "LOCAL"] = None,
         local_browser_launch_options: Optional[dict[str, Any]] = None,
-        metrics_callback: Optional[Callable[[StagehandFunctionName, int, int, int], None]] = None,
+        metrics_callback: Optional[
+            Callable[[StagehandFunctionName, int, int, int], None]
+        ] = None,
     ):
         super().__init__(
             config=config,
@@ -85,7 +89,7 @@ class Stagehand(StagehandBase):
 
         # Initialize metrics tracking callback
         self.metrics_callback = metrics_callback
-        
+
         # Initialize metrics tracking
         self.metrics = StagehandMetrics()
         self._inference_start_time = 0
@@ -723,16 +727,16 @@ class Stagehand(StagehandBase):
 
     def start_inference_timer(self) -> float:
         """Start timing inference latency.
-        
+
         Returns:
             The start time as a float timestamp.
         """
         self._inference_start_time = time.time()
         return self._inference_start_time
-    
+
     def get_inference_time_ms(self) -> int:
         """Get elapsed inference time in milliseconds.
-        
+
         Returns:
             The elapsed time in milliseconds.
         """
@@ -779,10 +783,12 @@ class Stagehand(StagehandBase):
         self.metrics.total_prompt_tokens += prompt_tokens
         self.metrics.total_completion_tokens += completion_tokens
         self.metrics.total_inference_time_ms += inference_time_ms
-        
+
         # Call metrics callback if provided
         if self.metrics_callback:
-            self.metrics_callback(function_name, prompt_tokens, completion_tokens, inference_time_ms)
+            self.metrics_callback(
+                function_name, prompt_tokens, completion_tokens, inference_time_ms
+            )
 
     def update_metrics_from_response(
         self,

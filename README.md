@@ -449,6 +449,7 @@ config = StagehandConfig(
 )
 ```
 
+
 ## License
 
 MIT License (c) 2025 Browserbase, Inc.

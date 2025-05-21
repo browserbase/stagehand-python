@@ -195,7 +195,7 @@ class StagehandPage:
             # Call local observe implementation
             result = await self._observe_handler.observe(
                 options,
-                "request_id",
+                from_act=False,
             )
 
             return result
@@ -255,7 +255,6 @@ class StagehandPage:
                 # Call local extract implementation with no options
                 result = await self._extract_handler.extract(
                     None,
-                    "request_id",
                     None,  # Explicitly pass None for schema if no options
                 )
                 return result
@@ -284,7 +283,6 @@ class StagehandPage:
             # Call local extract implementation
             result = await self._extract_handler.extract(
                 options,
-                "request_id",
                 schema_to_pass_to_handler,
             )
             return result.data

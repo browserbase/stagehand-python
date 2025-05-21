@@ -13,6 +13,9 @@ from .a11y import (
     PlaywrightMethodNotSupportedError,
     TreeResult,
 )
+from .agent import (
+    AgentConfig,
+)
 from .llm import (
     ChatMessage,
 )
@@ -50,4 +53,7 @@ __all__ = [
     "DEFAULT_EXTRACT_SCHEMA",
     "ExtractOptions",
     "ExtractResult",
+    "AgentConfig",
+    "AgentExecuteOptions",
+    "AgentResult",
 ]

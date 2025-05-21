@@ -175,11 +175,6 @@ class SyncStagehandPage:
             options = ObserveOptions(instruction=options)
 
         if self._stagehand.env == "LOCAL":
-            # Create request ID
-            import uuid
-
-            request_id = str(uuid.uuid4())
-
             # If we don't have an observe handler yet, create one
             # TODO: revisit passing user_provided_instructions
             if not hasattr(self, "_observe_handler"):
@@ -188,7 +183,7 @@ class SyncStagehandPage:
             # Call local observe implementation
             result = self._observe_handler.observe(
                 options,
-                request_id,
+                from_act=False,
             )
             return result
 
@@ -245,7 +240,6 @@ class SyncStagehandPage:
                 # Call local extract implementation with no options
                 result = self._extract_handler.extract(
                     None,
-                    "request_id",
                     None,  # Explicitly pass None for schema if no options
                 )
                 return result
@@ -274,7 +268,6 @@ class SyncStagehandPage:
             # Call local extract implementation
             result = self._extract_handler.extract(
                 options,
-                "request_id",
                 schema_to_pass_to_handler,
             )
             return result.data

@@ -1,7 +1,6 @@
+import time
 from dataclasses import dataclass
 from enum import Enum
-import time
-from typing import Any, Callable, Optional
 
 
 class StagehandFunctionName(str, Enum):
@@ -40,7 +39,7 @@ class StagehandMetrics:
 
 def start_inference_timer() -> float:
     """Start timing inference latency.
-    
+
     Returns:
         The start time as a float timestamp.
     """
@@ -49,10 +48,10 @@ def start_inference_timer() -> float:
 
 def get_inference_time_ms(start_time: float) -> int:
     """Get elapsed inference time in milliseconds.
-    
+
     Args:
         start_time: The timestamp when timing started.
-        
+
     Returns:
         The elapsed time in milliseconds.
     """

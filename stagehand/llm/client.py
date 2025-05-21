@@ -1,12 +1,11 @@
 """LLM client for model interactions."""
 
 import logging
-import time
 from typing import Any, Callable, Optional
 
 import litellm
 
-from stagehand.metrics import start_inference_timer, get_inference_time_ms
+from stagehand.metrics import get_inference_time_ms, start_inference_timer
 
 # Configure logger for the module
 logger = logging.getLogger(__name__)
@@ -127,6 +126,6 @@ class LLMClient:
             return response
 
         except Exception as e:
-            logger.error(f"Error calling litellm.completion: {e}", exc_info=True)
+            logger.error(f"Error calling litellm.completion: {e}")
             # Consider more specific exception handling based on litellm errors
             raise
