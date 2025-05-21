@@ -47,9 +47,6 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
         debug_url = init_response["debugUrl"]
         session_url = init_response["sessionUrl"]
 
-        #print all env variables
-        print("All env variables:", os.environ)
-
         # Navigate to the dummy press releases page # TODO - choose a different page
         await stagehand.page.goto(
             "https://dummy-press-releases.surge.sh/news"

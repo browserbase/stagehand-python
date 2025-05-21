@@ -455,62 +455,40 @@ The Stagehand Python SDK includes a set of evaluations to test its core function
 
 ### Running Evaluations
 
-The evaluations can be run using either the synchronous or asynchronous runner script:
-
-#### Synchronous Runner
+You can run evaluations from the `evals/` directory using the `run_all_evals.py` script:
 
 ```bash
-# Run all evaluations
-python run_evals.py
+# Run only observe evaluations (default behavior)
+python -m evals.run_all_evals
 
-# Run specific category
-python run_evals.py --category act
+# Run all evaluations (act, extract, and observe)
+python -m evals.run_all_evals --all
 
-# Run specific evaluation
-python run_evals.py --eval simple_google_search
-
-# Use text extract instead of semantic extract
-python run_evals.py --text-extract
-
-# Change the verbosity level
-python run_evals.py --verbose 3
+# Run a specific evaluation
+python -m evals.run_all_evals --eval extract_press_releases
+python -m evals.run_all_evals --all --eval google_jobs
 
 # Specify a different model
-python run_evals.py --model "gemini/gemini-2.5-flash-preview-04-17"
+python -m evals.run_all_evals --all --model "gpt-4o-mini"
 ```
 
-#### Asynchronous Runner
+For running only the "act" evaluations, you can use the dedicated script:
 
-```bash
-# Run all evaluations
-python run_evals_async.py
-
-# Run specific category
-python run_evals_async.py --category extract
-
-# Run specific evaluation
-python run_evals_async.py --eval observe_github
-```
 
 ### Evaluation Types
 
 The evaluations test the following capabilities:
 
 - **act**: Tests for browser actions (clicking, typing)
-  - `simple_google_search`: Google search functionality
-  - `checkboxes`: Form checkbox interaction
+  - `google_jobs`: Google jobs search and extraction 
 
 - **extract**: Tests for data extraction capabilities
-  - `extract_aigrant_companies`: Structured data extraction
-  - `extract_recipe`: Recipe details extraction
+  - `extract_press_releases`: Extracting press releases from a dummy site
 
 - **observe**: Tests for element observation and identification
-  - `observe_github`: GitHub element observation
   - `observe_taxes`: Tax form elements observation
 
-Results are saved in JSON format to:
-- `eval-results.json` for the synchronous runner
-- `eval-results-async.json` for the asynchronous runner
+Results are printed to the console with a summary showing success/failure for each evaluation.
 
 ## License
 
