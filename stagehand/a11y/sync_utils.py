@@ -14,6 +14,32 @@ from ..types.a11y import (
 )
 from ..utils import StagehandLogger, format_simplified_tree
 
+def _get_unwrapped_page(page_obj):
+    """Extract the underlying Playwright Page object from various wrapper types."""
+    try:
+        # For StagehandPage objects
+        return page_obj._page
+    except AttributeError:
+        try:
+            # For SyncWrapper objects wrapping StagehandPage
+            return page_obj._async_obj._page
+        except AttributeError:
+            # If we can't get _page, assume it's already a Playwright Page
+            return page_obj
+
+# Function to check if an object is a coroutine
+def _is_coroutine(obj):
+    """Check if an object is a coroutine."""
+    return hasattr(obj, '__await__')
+
+# Helper to run a coroutine if needed
+def _resolve_coroutine(result):
+    """Resolves the result if it's a coroutine."""
+    if _is_coroutine(result):
+        # In synchronous context, this should never happen as all async methods
+        # should be wrapped already. This is a fallback in case a wrapper failed.
+        raise TypeError("Coroutine detected in sync context. This is a bug.")
+    return result
 
 def _clean_structural_nodes(
     node: AccessibilityNode,
@@ -58,21 +84,21 @@ def _clean_structural_nodes(
         and node_role in ("generic", "none")
     ):
         try:
-            # SyncWrapper should handle async methods now
-            resolved_node = page.send_cdp("DOM.resolveNode", {"backendNodeId": backend_node_id})
+            # Ensure we get a properly resolved result
+            resolved_node = _resolve_coroutine(page.send_cdp("DOM.resolveNode", {"backendNodeId": backend_node_id}))
             object_info = resolved_node.get("object")
             if object_info and object_info.get("objectId"):
                 object_id = object_info["objectId"]
                 try:
                     function_declaration = 'function() { return this.tagName ? this.tagName.toLowerCase() : ""; }'
-                    tag_name_result = page.send_cdp(
+                    tag_name_result = _resolve_coroutine(page.send_cdp(
                         "Runtime.callFunctionOn",
                         {
                             "objectId": object_id,
                             "functionDeclaration": function_declaration,
                             "returnByValue": True,
                         },
-                    )
+                    ))
                     result_value = tag_name_result.get("result", {}).get("value")
                     if result_value:
                         node["role"] = result_value
@@ -225,10 +251,11 @@ def get_accessibility_tree(
     """Retrieves the full accessibility tree via CDP and transforms it."""
     try:
         start_time = time.time()
+        # Make sure we're using the correct page object for CDP operations
         scrollable_backend_ids = find_scrollable_element_ids(page)
         
-        # SyncWrapper should handle async methods now
-        cdp_result = page.send_cdp("Accessibility.getFullAXTree")
+        # Ensure we get a properly resolved result
+        cdp_result = _resolve_coroutine(page.send_cdp("Accessibility.getFullAXTree"))
         nodes: list[AXNode] = cdp_result.get("nodes", [])
         processing_start_time = time.time()
 
@@ -271,9 +298,10 @@ def get_accessibility_tree(
         )
         raise error
     finally:
-        # SyncWrapper should handle async methods now
+        # Ensure we safely handle coroutines
         try:
-            page.disable_cdp_domain("Accessibility")
+            result = page.disable_cdp_domain("Accessibility")
+            _resolve_coroutine(result)
         except Exception:
             pass
 
@@ -337,8 +365,8 @@ def get_xpath_by_resolved_object_id(
 ) -> str:
     """Gets the XPath of an element given its resolved CDP object ID."""
     try:
-        # SyncWrapper should handle async methods now
-        result = cdp_client.send(
+        # Ensure we get a properly resolved result
+        result = _resolve_coroutine(cdp_client.send(
             "Runtime.callFunctionOn",
             {
                 "objectId": resolved_object_id,
@@ -347,7 +375,7 @@ def get_xpath_by_resolved_object_id(
                 ),
                 "returnByValue": True,
             },
-        )
+        ))
         return result.get("result", {}).get("value") or ""
     except Exception:
         # Log or handle error appropriately
@@ -361,9 +389,9 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
     try:
         # Ensure getScrollableElementXpaths is defined in the page context
         try:
-            # SyncWrapper should handle async methods now
-            stagehand_page.ensure_injection()
-            xpaths = stagehand_page.evaluate("() => window.getScrollableElementXpaths()")
+            # Ensure we get properly resolved results
+            _resolve_coroutine(stagehand_page.ensure_injection())
+            xpaths = _resolve_coroutine(stagehand_page.evaluate("() => window.getScrollableElementXpaths()"))
             if not isinstance(xpaths, list):
                 print("Warning: window.getScrollableElementXpaths() did not return a list.")
                 xpaths = []
@@ -374,8 +402,11 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
         cdp_session = None
         try:
             # Create a single CDP session for efficiency
-            # SyncWrapper should handle async methods now
-            cdp_session = stagehand_page.context.new_cdp_session(stagehand_page._page)
+            # Get the unwrapped playwright Page object
+            page_obj = _get_unwrapped_page(stagehand_page)
+            
+            # Create CDP session with the appropriate page object
+            cdp_session = _resolve_coroutine(stagehand_page.context.new_cdp_session(page_obj))
 
             for xpath in xpaths:
                 if not xpath or not isinstance(xpath, str):
@@ -383,8 +414,8 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
 
                 try:
                     # Evaluate XPath to get objectId
-                    # SyncWrapper should handle async methods now
-                    eval_result = cdp_session.send(
+                    # Ensure we get a properly resolved result
+                    eval_result = _resolve_coroutine(cdp_session.send(
                         "Runtime.evaluate",
                         {
                             "expression": (
@@ -403,19 +434,19 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
                             "returnByValue": False,  # Get objectId
                             "awaitPromise": False,  # It's not a promise
                         },
-                    )
+                    ))
 
                     object_id = eval_result.get("result", {}).get("objectId")
                     if object_id:
                         try:
                             # Describe node to get backendNodeId
-                            # SyncWrapper should handle async methods now
-                            node_info = cdp_session.send(
+                            # Ensure we get a properly resolved result
+                            node_info = _resolve_coroutine(cdp_session.send(
                                 "DOM.describeNode",
                                 {
                                     "objectId": object_id,
                                 },
-                            )
+                            ))
                             backend_node_id = node_info.get("node", {}).get("backendNodeId")
                             if backend_node_id:
                                 scrollable_backend_ids.add(backend_node_id)
@@ -434,8 +465,8 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
         finally:
             if cdp_session:
                 try:
-                    # SyncWrapper should handle async methods now
-                    cdp_session.detach()
+                    # Ensure we safely handle coroutines
+                    _resolve_coroutine(cdp_session.detach())
                 except Exception:
                     pass  # Ignore detach error
     except Exception as e:

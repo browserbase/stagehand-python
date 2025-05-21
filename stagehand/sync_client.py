@@ -17,13 +17,53 @@ class SyncWrapper:
     def __getattr__(self, name):
         attr = getattr(self._async_obj, name)
         
+        # Helper to wrap results recursively
+        def _wrap_result(result):
+            """Wrap result objects that contain coroutine functions for sync usage."""
+            # Primitive types and None should be returned as-is
+            if result is None or isinstance(result, (int, float, str, bool, bytes, bytearray)):
+                return result
+
+            # Avoid double-wrapping
+            if isinstance(result, SyncWrapper):
+                return result
+
+            # Check if the object has any coroutine functions; if so, wrap it
+            try:
+                for attr_name in dir(result):
+                    try:
+                        value = getattr(result, attr_name)
+                        if inspect.iscoroutinefunction(value):
+                            return SyncWrapper(result, self._loop)
+                    except Exception:
+                        # Ignore attribute errors or forbidden attributes
+                        continue
+            except Exception:
+                pass
+
+            # If we didn't find coroutine functions, just return the original result
+            return result
+
+        # If it's a coroutine function, wrap to run synchronously and wrap the result
         if inspect.iscoroutinefunction(attr):
             @functools.wraps(attr)
             def wrapper(*args, **kwargs):
-                return self._loop.run_until_complete(attr(*args, **kwargs))
+                result = self._loop.run_until_complete(attr(*args, **kwargs))
+                return _wrap_result(result)
+
             return wrapper
-            
-        return attr
+
+        # If it's a regular callable (e.g., page.locator), wrap its result as well
+        if callable(attr):
+            @functools.wraps(attr)
+            def callable_wrapper(*args, **kwargs):
+                result = attr(*args, **kwargs)
+                return _wrap_result(result)
+
+            return callable_wrapper
+
+        # For non-callable attributes, attempt to wrap if necessary
+        return _wrap_result(attr)
 
 
 class Stagehand:
@@ -130,7 +170,8 @@ class Stagehand:
             if hasattr(self._async_client, 'agent') and self._async_client.agent:
                 self.agent = SyncWrapper(self._async_client.agent, self._loop)
             if hasattr(self._async_client, 'context') and self._async_client.context:
-                self.context = SyncWrapper(self._async_client.context, self._loop)
+                # Create a special wrapper for context that handles new_page method
+                self.context = self._create_context_wrapper(self._async_client.context)
             if hasattr(self._async_client, 'llm') and self._async_client.llm:
                 self.llm = SyncWrapper(self._async_client.llm, self._loop)
                 
@@ -140,6 +181,21 @@ class Stagehand:
                     setattr(self, attr_name, getattr(self._async_client, attr_name))
                 
             return result
+    
+    def _create_context_wrapper(self, async_context):
+        """Create a special wrapper for context that properly handles new_page method."""
+        context_wrapper = SyncWrapper(async_context, self._loop)
+        
+        # Override new_page to wrap the returned page
+        original_new_page = context_wrapper.new_page
+        
+        @functools.wraps(original_new_page)
+        def wrapped_new_page(*args, **kwargs):
+            async_page = original_new_page(*args, **kwargs)
+            return SyncWrapper(async_page, self._loop)
+            
+        context_wrapper.new_page = wrapped_new_page
+        return context_wrapper
             
     def close(self):
         """Close the client and event loop synchronously."""
