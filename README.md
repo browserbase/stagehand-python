@@ -455,7 +455,7 @@ The Stagehand Python SDK includes a set of evaluations to test its core function
 
 ### Running Evaluations
 
-You can run evaluations from the `evals/` directory using the `run_all_evals.py` script:
+You can run evaluations using the `run_all_evals.py` script in the `evals/` directory:
 
 ```bash
 # Run only observe evaluations (default behavior)
@@ -465,15 +465,12 @@ python -m evals.run_all_evals
 python -m evals.run_all_evals --all
 
 # Run a specific evaluation
-python -m evals.run_all_evals --eval extract_press_releases
+python -m evals.run_all_evals --all --eval observe_taxes
 python -m evals.run_all_evals --all --eval google_jobs
 
 # Specify a different model
-python -m evals.run_all_evals --all --model "gpt-4o-mini"
+python -m evals.run_all_evals --model gpt-4o-mini
 ```
-
-For running only the "act" evaluations, you can use the dedicated script:
-
 
 ### Evaluation Types
 
