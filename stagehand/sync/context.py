@@ -74,4 +74,24 @@ class SyncStagehandContext:
 
     def __getattr__(self, name):
         # Forward attribute lookups to the underlying BrowserContext
-        return getattr(self._context, name)
+        attr = getattr(self._context, name)
+
+        # Special handling for methods that return pages
+        if name == "new_page":
+            # Replace with our own implementation that wraps the page
+            def wrapped_new_page(*args, **kwargs):
+                pw_page = self._context.new_page(*args, **kwargs)
+                stagehand_page = self.create_stagehand_page(pw_page)
+                self.set_active_page(stagehand_page)
+                return stagehand_page
+
+            return wrapped_new_page
+        elif name == "pages":
+            # Wrap the pages method to return StagehandPage objects
+            def wrapped_pages(*args, **kwargs):
+                pw_pages = self._context.pages(*args, **kwargs)
+                # We'll return the unwrapped pages and let the caller handle wrapping if needed
+                return pw_pages
+
+            return wrapped_pages
+        return attr

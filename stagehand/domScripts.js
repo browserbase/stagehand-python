@@ -1082,5 +1082,81 @@
         chunksArray
       };
     }
-  })();
+
+    // --- STAGEHAND CURSOR AND CLICK ANIMATION ---
+    const STAGEHAND_CURSOR_ID = 'stagehand-cursor';
+    const STAGEHAND_HIGHLIGHT_ID = 'stagehand-highlight';
+
+    function __stagehandInjectCursorInternal() {
+        if (document.getElementById(STAGEHAND_CURSOR_ID)) {
+            // console.log('Stagehand cursor already exists.'); // Optional: for debugging in browser console
+            return;
+        }
+
+        const cursor = document.createElement('div');
+        cursor.id = STAGEHAND_CURSOR_ID;
+        cursor.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 28 28" width="28" height="28">
+            <polygon fill="#000000" points="9.2,7.3 9.2,18.5 12.2,15.6 12.6,15.5 17.4,15.5"/>
+            <rect x="12.5" y="13.6" transform="matrix(0.9221 -0.3871 0.3871 0.9221 -5.7605 6.5909)" width="2" height="8" fill="#000000"/>
+          </svg>
+        `;
+        cursor.style.position = 'absolute';
+        cursor.style.top = '0';
+        cursor.style.left = '0';
+        cursor.style.width = '28px';
+        cursor.style.height = '28px';
+        cursor.style.pointerEvents = 'none';
+        cursor.style.zIndex = '9999999';
+        cursor.style.transform = 'translate(-4px, -4px)';
+
+        const highlight = document.createElement('div');
+        highlight.id = STAGEHAND_HIGHLIGHT_ID;
+        highlight.style.position = 'absolute';
+        highlight.style.width = '20px';
+        highlight.style.height = '20px';
+        highlight.style.borderRadius = '50%';
+        highlight.style.backgroundColor = 'rgba(66, 134, 244, 0)';
+        highlight.style.transform = 'translate(-50%, -50%) scale(0)';
+        highlight.style.pointerEvents = 'none';
+        highlight.style.zIndex = '9999998';
+        highlight.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+        highlight.style.opacity = '0';
+
+        if (document.body) {
+            document.body.appendChild(cursor);
+            document.body.appendChild(highlight);
+            // console.log('Stagehand cursor injected successfully.'); // Optional: for debugging
+        } else {
+            // console.error('Stagehand cursor: document.body not found.'); // Optional: for debugging
+        }
+    }
+
+    function __stagehandUpdateCursorPositionInternal(x, y) {
+        const cursor = document.getElementById(STAGEHAND_CURSOR_ID);
+        if (cursor) {
+            cursor.style.transform = `translate(${x - 4}px, ${y - 4}px)`;
+        }
+    }
+
+    function __stagehandAnimateClickInternal(x, y) {
+        const highlight = document.getElementById(STAGEHAND_HIGHLIGHT_ID);
+        if (highlight) {
+            highlight.style.left = `${x}px`;
+            highlight.style.top = `${y}px`;
+            highlight.style.transform = 'translate(-50%, -50%) scale(1)';
+            highlight.style.opacity = '1';
+            
+            setTimeout(() => {
+                highlight.style.transform = 'translate(-50%, -50%) scale(0)';
+                highlight.style.opacity = '0';
+            }, 300);
+        }
+    }
+
+    // Expose new functions to the window object, appending to existing assignments
+    window.__stagehandInjectCursor = __stagehandInjectCursorInternal;
+    window.__stagehandUpdateCursorPosition = __stagehandUpdateCursorPositionInternal;
+    window.__stagehandAnimateClick = __stagehandAnimateClickInternal;
+})();
   

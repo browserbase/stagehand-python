@@ -4,8 +4,8 @@ with open("README.md", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="stagehand-py",
-    version="0.3.5",
+    name="stagehand",
+    version="0.1.0",
     author="Browserbase, Inc.",
     author_email="support@browserbase.io",
     description="Python SDK for Stagehand",

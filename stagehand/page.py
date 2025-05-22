@@ -1,8 +1,14 @@
 from typing import Optional, Union
 
-from playwright.async_api import Page
+from playwright.async_api import CDPSession, Page
+from pydantic import BaseModel
+
+from stagehand.handlers.act_handler import ActHandler
+from stagehand.handlers.extract_handler import ExtractHandler
+from stagehand.handlers.observe_handler import ObserveHandler
 
 from .schemas import (
+    DEFAULT_EXTRACT_SCHEMA,
     ActOptions,
     ActResult,
     ExtractOptions,
@@ -17,6 +23,8 @@ _INJECTION_SCRIPT = None
 class StagehandPage:
     """Wrapper around Playwright Page that integrates with Stagehand server"""
 
+    _cdp_client: Optional[CDPSession] = None
+
     def __init__(self, page: Page, stagehand_client):
         """
         Initialize a StagehandPage instance.
@@ -25,12 +33,12 @@ class StagehandPage:
             page (Page): The underlying Playwright page.
             stagehand_client: The client used to interface with the Stagehand server.
         """
-        self.page = page
+        self._page = page
         self._stagehand = stagehand_client
 
     async def ensure_injection(self):
         """Ensure custom injection scripts are present on the page using domScripts.js."""
-        exists_before = await self.page.evaluate(
+        exists_before = await self._page.evaluate(
             "typeof window.getScrollableElementXpaths === 'function'"
         )
         if not exists_before:
@@ -46,9 +54,9 @@ class StagehandPage:
                     self._stagehand.logger.error(f"Error reading domScripts.js: {e}")
                     _INJECTION_SCRIPT = "/* fallback injection script */"
             # Inject the script into the current page context
-            await self.page.evaluate(_INJECTION_SCRIPT)
+            await self._page.evaluate(_INJECTION_SCRIPT)
             # Ensure that the script is injected on future navigations
-            await self.page.add_init_script(_INJECTION_SCRIPT)
+            await self._page.add_init_script(_INJECTION_SCRIPT)
 
     async def goto(
         self,
@@ -70,6 +78,11 @@ class StagehandPage:
         Returns:
             The result from the Stagehand server's navigation execution.
         """
+        if self._stagehand.env == "LOCAL":
+            await self._page.goto(
+                url, referer=referer, timeout=timeout, wait_until=wait_until
+            )
+            return
         options = {}
         if referer is not None:
             options["referer"] = referer
@@ -107,35 +120,60 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
-        payload: dict
-        # Check if it's an ObserveResult for direct execution
-        if isinstance(action_or_result, ObserveResult):
-            if kwargs:
-                self._stagehand.logger.warning(
-                    "Additional keyword arguments provided to 'act' when using an ObserveResult are ignored."
-                )
-            payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
-        # If it's a string, construct ActOptions using the string and kwargs
-        elif isinstance(action_or_result, str):
-            options = ActOptions(action=action_or_result, **kwargs)
+          # Check if options is an ObserveResult with both selector and method
+        if (
+            isinstance(options, ObserveResult)
+            and hasattr(options, "selector")
+            and hasattr(options, "method")
+        ):
+            # For ObserveResult, we directly pass it to the server which will
+            # execute the method against the selector
             payload = options.model_dump(exclude_none=True, by_alias=True)
+        # Convert string to ActOptions if needed
+        elif isinstance(options, str):
+            options = ActOptions(action=options)
+            payload = options.model_dump(exclude_none=True, by_alias=True)
+        # Otherwise, it should be an ActOptions object
         else:
-            raise TypeError(
-                "First argument to 'act' must be a string (action) or an ObserveResult."
-            )
+            payload = options.model_dump(exclude_none=True, by_alias=True)
+
+
+        # TODO: Temporary until we move api based logic to client
+        if self._stagehand.env == "LOCAL":
+            # TODO: revisit passing user_provided_instructions
+            if not hasattr(self, "_observe_handler"):
+                # TODO: revisit handlers initialization on page creation
+                self._observe_handler = ObserveHandler(self, self._stagehand, "")
+            if not hasattr(self, "_act_handler"):
+                self._act_handler = ActHandler(
+                    self, self._stagehand, "", self._stagehand.self_heal
+                )
+            self._stagehand.logger.debug("act", category="act", auxiliary=payload)
+            result = await self._act_handler.act(payload)
+            return result
+
+        # TODO: Temporary until we move api based logic to client
+        if self._stagehand.env == "LOCAL":
+            # TODO: revisit passing user_provided_instructions
+            if not hasattr(self, "_observe_handler"):
+                # TODO: revisit handlers initialization on page creation
+                self._observe_handler = ObserveHandler(self, self._stagehand, "")
+            if not hasattr(self, "_act_handler"):
+                self._act_handler = ActHandler(
+                    self, self._stagehand, "", self._stagehand.self_heal
+                )
+            self._stagehand.logger.debug("act", category="act", auxiliary=payload)
+            result = await self._act_handler.act(payload)
+            return result
 
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result = await self._stagehand._execute("act", payload)
         if isinstance(result, dict):
             return ActResult(**result)
-        # Ensure we always return an ActResult or raise an error before
-        # This line might be reached if _execute returns something unexpected
-        # Depending on error handling within _execute, consider raising here
-        # For now, returning the raw result if it's not a dict
-        return result  # Or potentially raise an error if result is not a dict
+        return result
 
-    async def observe(self, instruction: str, **kwargs) -> list[ObserveResult]:
+    async def observe(self, options: Union[str, ObserveOptions]) -> list[ObserveResult]:
         """
         Make an AI observation via the Stagehand server.
 
@@ -149,9 +187,29 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
-        # Construct ObserveOptions using the instruction and kwargs
-        options = ObserveOptions(instruction=instruction, **kwargs)
+        # Convert string to ObserveOptions if needed
+        if isinstance(options, str):
+            options = ObserveOptions(instruction=options)
+
+        # Otherwise use API implementation
         payload = options.model_dump(exclude_none=True, by_alias=True)
+        # If in LOCAL mode, use local implementation
+        if self._stagehand.env == "LOCAL":
+            self._stagehand.logger.debug(
+                "observe", category="observe", auxiliary=payload
+            )
+            # If we don't have an observe handler yet, create one
+            # TODO: revisit passing user_provided_instructions
+            if not hasattr(self, "_observe_handler"):
+                self._observe_handler = ObserveHandler(self, self._stagehand, "")
+
+            # Call local observe implementation
+            result = await self._observe_handler.observe(
+                options,
+                from_act=False,
+            )
+
+            return result
 
         lock = self._stagehand._get_lock_for_session()
         async with lock:
@@ -170,8 +228,9 @@ class StagehandPage:
         return []
 
     async def extract(
-        self, instruction: Optional[str] = None, **kwargs
+        self, options: Union[str, ExtractOptions, None] = None
     ) -> ExtractResult:
+        # TODO update args
         """
         Extract data using AI via the Stagehand server.
 
@@ -183,19 +242,69 @@ class StagehandPage:
                       (e.g., schema_definition, model_name, use_text_extract).
 
         Returns:
-            ExtractResult: The result from the Stagehand server's extraction execution.
-                          The structure depends on the provided schema_definition.
+            ExtractResult: Depending on the type of the schema provided, the result will be a Pydantic model or JSON representation of the extracted data.
         """
         await self.ensure_injection()
 
-        # Construct ExtractOptions using the instruction (if provided) and kwargs
-        if instruction is not None:
-            options = ExtractOptions(instruction=instruction, **kwargs)
+        # Otherwise use API implementation
+        # Allow for no options to extract the entire page
+        if options is None:
+            payload = {}
+        # Convert string to ExtractOptions if needed
+        elif isinstance(options, str):
+            options = ExtractOptions(instruction=options)
+            payload = options.model_dump(exclude_none=True, by_alias=True)
+        # Otherwise, it should be an ExtractOptions object
         else:
             # Allow extraction without instruction if other options (like schema) are provided
             options = ExtractOptions(**kwargs)  # schema_definition might be in kwargs
 
         payload = options.model_dump(exclude_none=True, by_alias=True)
+
+        # If in LOCAL mode, use local implementation
+        if self._stagehand.env == "LOCAL":
+            # If we don't have an extract handler yet, create one
+            if not hasattr(self, "_extract_handler"):
+                self._extract_handler = ExtractHandler(
+                    self, self._stagehand, self._stagehand.system_prompt
+                )
+
+            # Allow for no options to extract the entire page
+            if options is None:
+                # Call local extract implementation with no options
+                result = await self._extract_handler.extract(
+                    None,
+                    None,  # Explicitly pass None for schema if no options
+                )
+                return result
+
+            # Convert string to ExtractOptions if needed
+            if isinstance(options, str):
+                options = ExtractOptions(instruction=options)
+
+            # Determine the schema to pass to the handler
+            schema_to_pass_to_handler = None
+            if (
+                hasattr(options, "schema_definition")
+                and options.schema_definition != DEFAULT_EXTRACT_SCHEMA
+            ):
+                if isinstance(options.schema_definition, type) and issubclass(
+                    options.schema_definition, BaseModel
+                ):
+                    # Case 1: Pydantic model class
+                    schema_to_pass_to_handler = options.schema_definition
+                elif isinstance(options.schema_definition, dict):
+                    # TODO: revisit this case to pass the json_schema since litellm has a bug when passing it directly
+                    # Case 2: Dictionary
+                    # Assume it's a direct JSON schema dictionary
+                    schema_to_pass_to_handler = options.schema_definition
+
+            # Call local extract implementation
+            result = await self._extract_handler.extract(
+                options,
+                schema_to_pass_to_handler,
+            )
+            return result.data
 
         lock = self._stagehand._get_lock_for_session()
         async with lock:
@@ -237,6 +346,11 @@ class StagehandPage:
         Returns:
             str: Base64-encoded screenshot data.
         """
+        if self._stagehand.env == "LOCAL":
+            self._stagehand.logger.warning(
+                "Local execution of screenshot is not implemented"
+            )
+            return None
         payload = options or {}
 
         lock = self._stagehand._get_lock_for_session()
@@ -244,6 +358,137 @@ class StagehandPage:
             result = await self._stagehand._execute("screenshot", payload)
 
         return result
+
+    # Method to get or initialize the persistent CDP client
+    async def get_cdp_client(self) -> CDPSession:
+        """Gets the persistent CDP client, initializing it if necessary."""
+        # Check only if the client is None, rely on send_cdp's exception handling for disconnections
+        if self._cdp_client is None:
+            try:
+                self._stagehand.logger.debug("Creating new persistent CDP session.")
+                self._cdp_client = await self._page.context.new_cdp_session(self._page)
+            except Exception as e:
+                self._stagehand.logger.error(f"Failed to create CDP session: {e}")
+                raise  # Re-raise the exception
+        return self._cdp_client
+
+    # Modified send_cdp to use the persistent client
+    async def send_cdp(self, method: str, params: Optional[dict] = None) -> dict:
+        """Sends a CDP command using the persistent session."""
+        client = await self.get_cdp_client()
+        try:
+            # Type assertion might be needed depending on playwright version/typing
+            result = await client.send(method, params or {})
+        except Exception as e:
+            self._stagehand.logger.error(f"CDP command '{method}' failed: {e}")
+            # Handle specific errors if needed (e.g., session closed)
+            if "Target closed" in str(e) or "Session closed" in str(e):
+                # Attempt to reset the client if the session closed unexpectedly
+                self._cdp_client = None
+                client = await self.get_cdp_client()  # Try creating a new one
+                result = await client.send(method, params or {})
+            else:
+                raise  # Re-raise other errors
+        return result
+
+    # Method to enable a specific CDP domain
+    async def enable_cdp_domain(self, domain: str):
+        """Enables a specific CDP domain."""
+        try:
+            await self.send_cdp(f"{domain}.enable")
+        except Exception as e:
+            self._stagehand.logger.warning(
+                f"Failed to enable CDP domain '{domain}': {e}"
+            )
+
+    # Method to disable a specific CDP domain
+    async def disable_cdp_domain(self, domain: str):
+        """Disables a specific CDP domain."""
+        try:
+            await self.send_cdp(f"{domain}.disable")
+        except Exception:
+            # Ignore errors during disable, often happens during cleanup
+            pass
+
+    # Method to detach the persistent CDP client
+    async def detach_cdp_client(self):
+        """Detaches the persistent CDP client if it exists."""
+        if self._cdp_client and self._cdp_client.is_connected():
+            try:
+                await self._cdp_client.detach()
+                self._cdp_client = None
+            except Exception as e:
+                self._stagehand.logger.warning(f"Error detaching CDP client: {e}")
+        self._cdp_client = None
+
+    async def _wait_for_settled_dom(self, timeout_ms: int = None):
+        """
+        Wait for the DOM to settle (stop changing) before proceeding.
+
+        Args:
+            timeout_ms (int, optional): Maximum time to wait in milliseconds.
+                If None, uses the stagehand client's dom_settle_timeout_ms.
+        """
+        try:
+            timeout = timeout_ms or getattr(
+                self._stagehand, "dom_settle_timeout_ms", 30000
+            )
+            import asyncio
+
+            # Wait for domcontentloaded first
+            await self._page.wait_for_load_state("domcontentloaded")
+
+            # Create a timeout promise that resolves after the specified time
+            timeout_task = asyncio.create_task(asyncio.sleep(timeout / 1000))
+
+            # Try to check if the DOM has settled
+            try:
+                # Create a task for evaluating the DOM settling
+                eval_task = asyncio.create_task(
+                    self._page.evaluate(
+                        """
+                        () => {
+                            return new Promise((resolve) => {
+                                if (typeof window.waitForDomSettle === 'function') {
+                                    window.waitForDomSettle().then(resolve);
+                                } else {
+                                    console.warn('waitForDomSettle is not defined, considering DOM as settled');
+                                    resolve();
+                                }
+                            });
+                        }
+                    """
+                    )
+                )
+
+                # Create tasks for other ways to determine page readiness
+                dom_task = asyncio.create_task(
+                    self._page.wait_for_load_state("domcontentloaded")
+                )
+                body_task = asyncio.create_task(self._page.wait_for_selector("body"))
+
+                # Wait for the first task to complete
+                done, pending = await asyncio.wait(
+                    [eval_task, dom_task, body_task, timeout_task],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+
+                # Cancel any pending tasks
+                for task in pending:
+                    task.cancel()
+
+                # If the timeout was hit, log a warning
+                if timeout_task in done:
+                    self._stagehand.logger.warning(
+                        "DOM settle timeout exceeded, continuing anyway",
+                        extra={"timeout_ms": timeout},
+                    )
+
+            except Exception as e:
+                self._stagehand.logger.warning(f"Error waiting for DOM to settle: {e}")
+
+        except Exception as e:
+            self._stagehand.logger.error(f"Error in _wait_for_settled_dom: {e}")
 
     # Forward other Page methods to underlying Playwright page
     def __getattr__(self, name):
@@ -256,5 +501,5 @@ class StagehandPage:
         Returns:
             The attribute from the underlying Playwright page.
         """
-        self._stagehand.logger.debug(f"Getting attribute: {name}")
-        return getattr(self.page, name)
+        # self._stagehand.logger.debug(f"Getting attribute: {name}")
+        return getattr(self._page, name)
