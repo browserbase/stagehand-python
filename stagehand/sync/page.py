@@ -105,20 +105,20 @@ class SyncStagehandPage:
         result = self._stagehand._execute("navigate", payload)
         return result
 
-    def act(self, options: Union[str, ActOptions, ObserveResult]) -> ActResult:
+    def act(self, action_or_result: Union[str, ObserveResult], **kwargs) -> ActResult:
         """
-                Execute an AI action via the Stagehand server synchronously.
+        Execute an AI action or a pre-observed action via the Stagehand server synchronously.
 
-                Args:
-                    options (Union[str, ActOptions, ObserveResult]):
-                        - A string with the action command to be executed by the AI
-                        - An ActOptions object encapsulating the action command and optional
-        parameters
-                        - An ObserveResult with selector and method fields for direct execution
-        without LLM
+        Args:
+            action_or_result (Union[str, ObserveResult]):
+                - A string with the action command to be executed by the AI.
+                - An ObserveResult containing selector and method for direct execution.
+            **kwargs: Additional options corresponding to fields in ActOptions
+                      (e.g., model_name, timeout_ms). These are ignored if
+                      action_or_result is an ObserveResult.
 
-                Returns:
-                    ActResult: The result from the Stagehand server's action execution.
+        Returns:
+            ActResult: The result from the Stagehand server's action execution.
         """
         self.ensure_injection()
         # Check if options is an ObserveResult with both selector and method
@@ -134,9 +134,10 @@ class SyncStagehandPage:
         elif isinstance(options, str):
             options = ActOptions(action=options)
             payload = options.model_dump(exclude_none=True, by_alias=True)
-        # Otherwise, it should be an ActOptions object
         else:
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            raise TypeError(
+                "First argument to 'act' must be a string (action) or an ObserveResult."
+            )
 
         if self._stagehand.env == "LOCAL":
             # TODO: revisit passing user_provided_instructions
@@ -151,23 +152,24 @@ class SyncStagehandPage:
             result = self._act_handler.act(payload)
             return result
 
+
         result = self._stagehand._execute("act", payload)
         if isinstance(result, dict):
             return ActResult(**result)
+        # Consider raising error if result is not dict
         return result
 
-    def observe(self, options: Union[str, ObserveOptions]) -> list[ObserveResult]:
+    def observe(self, instruction: str, **kwargs) -> list[ObserveResult]:
         """
-                Make an AI observation via the Stagehand server synchronously.
+        Make an AI observation via the Stagehand server synchronously.
 
-                Args:
-                    options (Union[str, ObserveOptions]): Either a string with the observation
-        instruction
-                        or a Pydantic model encapsulating the observation instruction.
+        Args:
+            instruction (str): The observation instruction for the AI.
+            **kwargs: Additional options corresponding to fields in ObserveOptions
+                      (e.g., model_name, only_visible, return_action).
 
-                Returns:
-                    list[ObserveResult]: A list of observation results from the Stagehand
-        server.
+        Returns:
+            list[ObserveResult]: A list of observation results from the Stagehand server.
         """
         self.ensure_injection()
         # Convert string to ObserveOptions if needed
@@ -188,14 +190,17 @@ class SyncStagehandPage:
             return result
 
         payload = options.model_dump(exclude_none=True, by_alias=True)
+
         result = self._stagehand._execute("observe", payload)
 
         # Convert raw result to list of ObserveResult models
         if isinstance(result, list):
             return [ObserveResult(**item) for item in result]
         elif isinstance(result, dict):
-            # If single dict, wrap in list
+            # If single dict, wrap in list (should ideally be list from server)
             return [ObserveResult(**result)]
+        # Handle unexpected return types
+        self._stagehand.logger.warning(f"Unexpected result type from observe: {type(result)}")
         return []
 
     def extract(
@@ -207,9 +212,11 @@ class SyncStagehandPage:
         Extract data using AI via the Stagehand server synchronously.
 
         Args:
-            options (Union[str, ExtractOptions], optional): The extraction options describing
-                what to extract and how. This can be either a string with an instruction or
-                an ExtractOptions object. If None, extracts the entire page content.
+            instruction (Optional[str]): Instruction specifying what data to extract.
+                                         If None, attempts to extract the entire page content
+                                         based on other kwargs (e.g., schema_definition).
+            **kwargs: Additional options corresponding to fields in ExtractOptions
+                      (e.g., schema_definition, model_name, use_text_extract).
 
         Returns:
             ExtractResult: Depending on the type of the schema provided, the result will be a Pydantic model or JSON representation of the extracted data.
@@ -225,7 +232,10 @@ class SyncStagehandPage:
             payload = options.model_dump(exclude_none=True, by_alias=True)
         # Otherwise, it should be an ExtractOptions object
         else:
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            # Allow extraction without instruction if other options (like schema) are provided
+            options = ExtractOptions(**kwargs)
+
+        payload = options.model_dump(exclude_none=True, by_alias=True)
 
             # If in LOCAL mode, use local implementation
         if self._stagehand.env == "LOCAL":
@@ -273,9 +283,17 @@ class SyncStagehandPage:
             return result.data
 
         result = self._stagehand._execute("extract", payload)
+
+        # Attempt to parse the result using the base ExtractResult
         if isinstance(result, dict):
-            return ExtractResult(**result)
-        return result
+            try:
+                return ExtractResult(**result)
+            except Exception as e:
+                self._stagehand.logger.error(f"Failed to parse extract result: {e}")
+                return result # type: ignore
+        # Handle unexpected return types
+        self._stagehand.logger.warning(f"Unexpected result type from extract: {type(result)}")
+        return result # type: ignore
 
     def screenshot(self, options: Optional[dict] = None) -> str:
         """

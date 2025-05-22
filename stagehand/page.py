@@ -101,40 +101,39 @@ class StagehandPage:
             result = await self._stagehand._execute("navigate", payload)
         return result
 
-    async def act(self, options: Union[str, ActOptions, ObserveResult]) -> ActResult:
+    async def act(self, action_or_result: Union[str, ObserveResult], **kwargs) -> ActResult:
         """
-        Execute an AI action via the Stagehand server.
+        Execute an AI action or a pre-observed action via the Stagehand server.
 
         Args:
-            options (Union[str, ActOptions, ObserveResult]):
-                - A string with the action command to be executed by the AI
-                - An ActOptions object encapsulating the action command and optional parameters
-                - An ObserveResult with selector and method fields for direct execution without LLM
-
-                When an ObserveResult with both 'selector' and 'method' fields is provided,
-                the SDK will directly execute the action against the selector using the method
-                and arguments provided, bypassing the LLM processing.
+            action_or_result (Union[str, ObserveResult]):
+                - A string with the action command to be executed by the AI.
+                - An ObserveResult containing selector and method for direct execution.
+            **kwargs: Additional options corresponding to fields in ActOptions
+                      (e.g., model_name, timeout_ms). These are ignored if
+                      action_or_result is an ObserveResult.
 
         Returns:
             ActResult: The result from the Stagehand server's action execution.
         """
         await self.ensure_injection()
-        # Check if options is an ObserveResult with both selector and method
-        if (
-            isinstance(options, ObserveResult)
-            and hasattr(options, "selector")
-            and hasattr(options, "method")
-        ):
-            # For ObserveResult, we directly pass it to the server which will
-            # execute the method against the selector
+
+        payload: dict
+        # Check if it's an ObserveResult for direct execution
+        if isinstance(action_or_result, ObserveResult):
+            if kwargs:
+                self._stagehand.logger.warning(
+                    "Additional keyword arguments provided to 'act' when using an ObserveResult are ignored."
+                )
+            payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
+        # If it's a string, construct ActOptions using the string and kwargs
+        elif isinstance(action_or_result, str):
+            options = ActOptions(action=action_or_result, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
-        # Convert string to ActOptions if needed
-        elif isinstance(options, str):
-            options = ActOptions(action=options)
-            payload = options.model_dump(exclude_none=True, by_alias=True)
-        # Otherwise, it should be an ActOptions object
         else:
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            raise TypeError(
+                "First argument to 'act' must be a string (action) or an ObserveResult."
+            )
 
         # TODO: Temporary until we move api based logic to client
         if self._stagehand.env == "LOCAL":
@@ -164,9 +163,9 @@ class StagehandPage:
         Make an AI observation via the Stagehand server.
 
         Args:
-            options (Union[str, ObserveOptions]): Either a string with the observation instruction
-                or a Pydantic model encapsulating the observation instruction.
-                See `stagehand.schemas.ObserveOptions` for details on expected fields.
+            instruction (str): The observation instruction for the AI.
+            **kwargs: Additional options corresponding to fields in ObserveOptions
+                      (e.g., model_name, only_visible, return_action).
 
         Returns:
             list[ObserveResult]: A list of observation results from the Stagehand server.
@@ -208,8 +207,10 @@ class StagehandPage:
         if isinstance(result, list):
             return [ObserveResult(**item) for item in result]
         elif isinstance(result, dict):
-            # If single dict, wrap in list
+            # If single dict, wrap in list (should ideally be list from server)
             return [ObserveResult(**result)]
+        # Handle unexpected return types
+        self._stagehand.logger.warning(f"Unexpected result type from observe: {type(result)}")
         return []
 
     async def extract(
@@ -220,10 +221,11 @@ class StagehandPage:
         Extract data using AI via the Stagehand server.
 
         Args:
-            options (Union[str, ExtractOptions], optional): The extraction options describing what to extract and how.
-                This can be either a string with an instruction or an ExtractOptions object.
-                If None, extracts the entire page content.
-                See `stagehand.schemas.ExtractOptions` for details on expected fields.
+            instruction (Optional[str]): Instruction specifying what data to extract.
+                                         If None, attempts to extract the entire page content
+                                         based on other kwargs (e.g., schema_definition).
+            **kwargs: Additional options corresponding to fields in ExtractOptions
+                      (e.g., schema_definition, model_name, use_text_extract).
 
         Returns:
             ExtractResult: Depending on the type of the schema provided, the result will be a Pydantic model or JSON representation of the extracted data.
@@ -240,7 +242,10 @@ class StagehandPage:
             payload = options.model_dump(exclude_none=True, by_alias=True)
         # Otherwise, it should be an ExtractOptions object
         else:
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            # Allow extraction without instruction if other options (like schema) are provided
+            options = ExtractOptions(**kwargs) # schema_definition might be in kwargs
+
+        payload = options.model_dump(exclude_none=True, by_alias=True)
 
         # If in LOCAL mode, use local implementation
         if self._stagehand.env == "LOCAL":
@@ -290,9 +295,24 @@ class StagehandPage:
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result = await self._stagehand._execute("extract", payload)
+
+        # Attempt to parse the result using the base ExtractResult,
+        # which allows extra fields based on the dynamic schema.
         if isinstance(result, dict):
-            return ExtractResult(**result)
-        return result
+            # Pydantic will validate against known fields + allow extras if configured
+            try:
+                # Note: We don't know the exact return structure here,
+                # ExtractResult allows extra fields.
+                # The user needs to access data based on their schema.
+                return ExtractResult(**result)
+            except Exception as e:
+                self._stagehand.logger.error(f"Failed to parse extract result: {e}")
+                # Return raw dict if parsing fails, or raise? Returning dict for now.
+                return result # type: ignore
+        # Handle unexpected return types
+        self._stagehand.logger.warning(f"Unexpected result type from extract: {type(result)}")
+        # Return raw result if not dict or raise error
+        return result # type: ignore
 
     async def screenshot(self, options: Optional[dict] = None) -> str:
         """

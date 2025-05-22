@@ -64,7 +64,7 @@ async def main():
     # Create a Stagehand client using the configuration object.
     stagehand = Stagehand(
         config=config, 
-        server_url=os.getenv("STAGEHAND_SERVER_URL"),
+        server_url=os.getenv("STAGEHAND_API_URL"),
     )
 
     # Initialize - this creates a new session automatically.

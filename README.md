@@ -104,7 +104,7 @@ Before running your script, set the following environment variables:
 export BROWSERBASE_API_KEY="your-api-key"
 export BROWSERBASE_PROJECT_ID="your-project-id"
 export MODEL_API_KEY="your-openai-api-key"  # or your preferred model's API key
-export STAGEHAND_SERVER_URL="url-of-stagehand-server"
+export STAGEHAND_API_URL="url-of-stagehand-server"
 ```
 
 You can also make a copy of `.env.example` and add these to your `.env` file. 
@@ -134,7 +134,7 @@ def main():
     )
 
     # Initialize Stagehand
-    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_SERVER_URL"))
+    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_API_URL"))
     stagehand.init()
     print(f"Session created: {stagehand.session_id}")
 
@@ -184,7 +184,7 @@ async def main():
     )
 
     # Initialize Stagehand
-    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_SERVER_URL"))
+    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_API_URL"))
     await stagehand.init()
     print(f"Session created: {stagehand.session_id}")
     
@@ -238,7 +238,7 @@ def main():
     )
 
     # Initialize Stagehand
-    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_SERVER_URL"))
+    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_API_URL"))
     stagehand.init()
     print(f"Session created: {stagehand.session_id}")
     
@@ -415,7 +415,7 @@ While there's no limit to what you could instruct Stagehand to do, our primitive
 
 Stagehand can be configured via environment variables or through a `StagehandConfig` object. Available configuration options include:
 
-- `stagehand_server_url`: URL of the Stagehand API server.
+- `STAGEHAND_API_URL`: URL of the Stagehand API server.
 - `browserbase_api_key`: Your Browserbase API key (`BROWSERBASE_API_KEY`).
 - `browserbase_project_id`: Your Browserbase project ID (`BROWSERBASE_PROJECT_ID`).
 - `model_api_key`: Your model API key (e.g. OpenAI, Anthropic, etc.) (`MODEL_API_KEY`).
