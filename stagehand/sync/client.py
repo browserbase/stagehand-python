@@ -23,6 +23,7 @@ from ..metrics import (
     StagehandFunctionName,
     StagehandMetrics,
 )
+from ..schemas import AgentConfig
 from ..utils import StagehandLogger, convert_dict_keys_to_camel_case
 from .agent import SyncAgent
 from .context import SyncStagehandContext
@@ -66,7 +67,6 @@ class Stagehand(StagehandBase):
             timeout_settings=timeout_settings,
             stream_response=stream_response,
             model_client_options=model_client_options,
-            **kwargs,
         )
 
         self.env = env.upper() if env else "BROWSERBASE"
@@ -389,10 +389,6 @@ class Stagehand(StagehandBase):
 
         else:
             raise RuntimeError(f"Invalid env value: {self.env}")
-
-        # Initialize agent (Sync)
-        self.logger.debug("Initializing SyncAgent")
-        self.agent = SyncAgent(self)
 
         self._initialized = True
 

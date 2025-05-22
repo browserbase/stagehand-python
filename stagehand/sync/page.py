@@ -122,6 +122,11 @@ class SyncStagehandPage:
         """
         payload: dict
         self.ensure_injection()
+        
+        # If model_name is not provided in kwargs, use the one from stagehand config
+        if 'model_name' not in kwargs and hasattr(self._stagehand, 'model_name'):
+            kwargs['model_name'] = self._stagehand.model_name
+            
         # Check if it's an ObserveResult for direct execution
         if isinstance(action_or_result, ObserveResult):
             if kwargs:
@@ -170,9 +175,12 @@ class SyncStagehandPage:
         """
         self.ensure_injection()
 
-        # Convert string to ObserveOptions if needed
-        if isinstance(options, str):
-            options = ObserveOptions(instruction=options)
+        # If model_name is not provided in kwargs, use the one from stagehand config
+        if 'model_name' not in kwargs and hasattr(self._stagehand, 'model_name'):
+            kwargs['model_name'] = self._stagehand.model_name
+
+        # Create ObserveOptions from instruction and kwargs
+        options = ObserveOptions(instruction=instruction, **kwargs)
 
         if self._stagehand.env == "LOCAL":
             # If we don't have an observe handler yet, create one
@@ -206,15 +214,17 @@ class SyncStagehandPage:
     def extract(
         self,
         options: Union[str, ExtractOptions, None] = None,
+        **kwargs
     ) -> ExtractResult:
         # TODO update args
         """
         Extract data using AI via the Stagehand server synchronously.
 
         Args:
-            instruction (Optional[str]): Instruction specifying what data to extract.
-                                         If None, attempts to extract the entire page content
-                                         based on other kwargs (e.g., schema_definition).
+            options (Union[str, ExtractOptions, None]): Options for extraction.
+                - If str: The instruction specifying what data to extract.
+                - If ExtractOptions: Full extraction options.
+                - If None: Attempts to extract the entire page content.
             **kwargs: Additional options corresponding to fields in ExtractOptions
                       (e.g., schema_definition, model_name, use_text_extract).
 
@@ -223,21 +233,27 @@ class SyncStagehandPage:
         """
         self.ensure_injection()
 
+        # If model_name is not provided in kwargs, use the one from stagehand config
+        if 'model_name' not in kwargs and hasattr(self._stagehand, 'model_name'):
+            kwargs['model_name'] = self._stagehand.model_name
+
         # Allow for no options to extract the entire page
         if options is None:
             payload = {}
         # Convert string to ExtractOptions if needed
         elif isinstance(options, str):
-            options = ExtractOptions(instruction=options)
+            options = ExtractOptions(instruction=options, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
-        # Otherwise, it should be an ExtractOptions object
+        # Use the provided ExtractOptions object directly
+        elif isinstance(options, ExtractOptions):
+            payload = options.model_dump(exclude_none=True, by_alias=True)
+        # Otherwise, create a new ExtractOptions from kwargs
         else:
             # Allow extraction without instruction if other options (like schema) are provided
             options = ExtractOptions(**kwargs)
+            payload = options.model_dump(exclude_none=True, by_alias=True)
 
-        payload = options.model_dump(exclude_none=True, by_alias=True)
-
-            # If in LOCAL mode, use local implementation
+        # If in LOCAL mode, use local implementation
         if self._stagehand.env == "LOCAL":
             # If we don't have an extract handler yet, create one
             if not hasattr(self, "_extract_handler"):
@@ -253,10 +269,6 @@ class SyncStagehandPage:
                     None,  # Explicitly pass None for schema if no options
                 )
                 return result
-
-            # Convert string to ExtractOptions if needed
-            if isinstance(options, str):
-                options = ExtractOptions(instruction=options)
 
             # Determine the schema to pass to the handler
             schema_to_pass_to_handler = None
