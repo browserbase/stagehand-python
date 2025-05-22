@@ -120,37 +120,23 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
-          # Check if options is an ObserveResult with both selector and method
+        # Check if action_or_result is an ObserveResult with both selector and method
         if (
-            isinstance(options, ObserveResult)
-            and hasattr(options, "selector")
-            and hasattr(options, "method")
+            isinstance(action_or_result, ObserveResult)
+            and hasattr(action_or_result, "selector")
+            and hasattr(action_or_result, "method")
         ):
             # For ObserveResult, we directly pass it to the server which will
             # execute the method against the selector
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
         # Convert string to ActOptions if needed
-        elif isinstance(options, str):
-            options = ActOptions(action=options)
+        elif isinstance(action_or_result, str):
+            options = ActOptions(action=action_or_result, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
         # Otherwise, it should be an ActOptions object
         else:
+            options = ActOptions(**action_or_result, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
-
-
-        # TODO: Temporary until we move api based logic to client
-        if self._stagehand.env == "LOCAL":
-            # TODO: revisit passing user_provided_instructions
-            if not hasattr(self, "_observe_handler"):
-                # TODO: revisit handlers initialization on page creation
-                self._observe_handler = ObserveHandler(self, self._stagehand, "")
-            if not hasattr(self, "_act_handler"):
-                self._act_handler = ActHandler(
-                    self, self._stagehand, "", self._stagehand.self_heal
-                )
-            self._stagehand.logger.debug("act", category="act", auxiliary=payload)
-            result = await self._act_handler.act(payload)
-            return result
 
         # TODO: Temporary until we move api based logic to client
         if self._stagehand.env == "LOCAL":
@@ -257,9 +243,7 @@ class StagehandPage:
         # Otherwise, it should be an ExtractOptions object
         else:
             # Allow extraction without instruction if other options (like schema) are provided
-            options = ExtractOptions(**kwargs)  # schema_definition might be in kwargs
-
-        payload = options.model_dump(exclude_none=True, by_alias=True)
+            payload = options.model_dump(exclude_none=True, by_alias=True)
 
         # If in LOCAL mode, use local implementation
         if self._stagehand.env == "LOCAL":

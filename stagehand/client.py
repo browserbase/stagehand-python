@@ -18,6 +18,7 @@ from playwright.async_api import (
 )
 from playwright.async_api import Page as PlaywrightPage
 
+from .agent import Agent
 from .base import StagehandBase
 from .config import StagehandConfig
 from .context import StagehandContext
@@ -54,7 +55,6 @@ class Stagehand(StagehandBase):
         timeout_settings: Optional[httpx.Timeout] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         stream_response: Optional[bool] = None,
-        httpx_client: Optional[httpx.AsyncClient] = None,
         use_rich_logging: bool = True,
         env: Literal["BROWSERBASE", "LOCAL"] = None,
         local_browser_launch_options: Optional[dict[str, Any]] = None,
@@ -85,7 +85,6 @@ class Stagehand(StagehandBase):
             timeout_settings=timeout_settings,
             stream_response=stream_response,
             model_client_options=model_client_options,
-            **kwargs,
         )
 
         self.env = env.upper() if env else "BROWSERBASE"
