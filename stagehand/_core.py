@@ -15,6 +15,7 @@ class _StagehandCore:
     """
 
     # Common JavaScript for browser stealth mode
+    # TODO: remove this? 
     STEALTH_JS = """
     (() => {
         // Override navigator.webdriver
