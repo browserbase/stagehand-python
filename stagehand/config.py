@@ -14,17 +14,17 @@ class StagehandConfig(BaseModel):
         env (str): Environment type. 'BROWSERBASE' for remote usage
         api_key (Optional[str]): API key for authentication.
         project_id (Optional[str]): Project identifier.
-        headless (bool): Run browser in headless mode.
+        headless (bool): Run browser in headless mode TODO: figure out this piece, part of local browser launch options?
+        verbose (int): Verbosity level for logs (0=errors, 1=info, 2=warning, 3=debug)
         logger (Optional[Callable[[Any], None]]): Custom logging function.
         dom_settle_timeout_ms (Optional[int]): Timeout for DOM to settle (in milliseconds).
         enable_caching (Optional[bool]): Enable caching functionality.
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.
         self_heal (Optional[bool]): Enable self-healing functionality.
+        browserbase_session_create_params (Optional[BrowserbaseSessionCreateParams]): Browserbase session create params.
         wait_for_captcha_solves (Optional[bool]): Whether to wait for CAPTCHA to be solved.
-        act_timeout_ms (Optional[int]): Timeout for act commands (in milliseconds).
         system_prompt (Optional[str]): System prompt to use for LLM interactions.
-        verbose (Optional[int]): Verbosity level for logs (1=minimal, 2=medium, 3=detailed).
         local_browser_launch_options (Optional[dict[str, Any]]): Local browser launch options.
     """
 
@@ -83,3 +83,10 @@ class StagehandConfig(BaseModel):
     )
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+# Default configuration with all default values
+DEFAULT_STAGEHAND_CONFIG = StagehandConfig()
+
+# Export the default configuration for easy access
+__all__ = ["StagehandConfig", "DEFAULT_STAGEHAND_CONFIG"]

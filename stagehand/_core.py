@@ -1,11 +1,10 @@
-import json
 import os
 import time
 from typing import Any, Callable, Literal, Optional
 
-from .metrics import StagehandFunctionName, StagehandMetrics
 from .config import StagehandConfig
-from .utils import StagehandLogger, convert_dict_keys_to_camel_case
+from .metrics import StagehandFunctionName, StagehandMetrics
+from .utils import StagehandLogger
 
 
 class _StagehandCore:
@@ -15,7 +14,7 @@ class _StagehandCore:
     """
 
     # Common JavaScript for browser stealth mode
-    # TODO: remove this? 
+    # TODO: remove this?
     STEALTH_JS = """
     (() => {
         // Override navigator.webdriver
@@ -85,7 +84,7 @@ class _StagehandCore:
     ):
         """Common initialization for Stagehand clients."""
         self.server_url = server_url or os.getenv("STAGEHAND_SERVER_URL")
-        
+
         # Process configuration parameters - from config object or individual args
         if config:
             self.browserbase_api_key = (
@@ -135,11 +134,13 @@ class _StagehandCore:
         # Set up common state
         self.on_log = on_log
         self.timeout_settings = timeout_settings
-        self.streamed_response = stream_response if stream_response is not None else True
+        self.streamed_response = (
+            stream_response if stream_response is not None else True
+        )
         self.verbose = verbose
         self.env = env.upper() if env else "BROWSERBASE"
         self.local_browser_launch_options = local_browser_launch_options or {}
-        
+
         # Initialize metrics tracking
         self.metrics = StagehandMetrics()
         self._inference_start_time = 0
@@ -322,10 +323,10 @@ class _StagehandCore:
     def _build_headers(self, include_model_key: bool = True) -> dict:
         """
         Build HTTP headers for API requests.
-        
+
         Args:
             include_model_key: Whether to include the model API key in headers
-            
+
         Returns:
             Dictionary of HTTP headers
         """
@@ -336,16 +337,16 @@ class _StagehandCore:
             "Connection": "keep-alive",
             "x-stream-response": str(self.streamed_response).lower(),
         }
-        
+
         if include_model_key and self.model_api_key:
             headers["x-model-api-key"] = self.model_api_key
-            
+
         return headers
 
     def _build_session_payload(self) -> dict:
         """
         Build the payload for creating a new session.
-        
+
         Returns:
             Dictionary payload for session creation
         """
@@ -456,4 +457,4 @@ class _StagehandCore:
             )
 
         except Exception as e:
-            self.logger.error(f"Error processing log message: {str(e)}") 
+            self.logger.error(f"Error processing log message: {str(e)}")

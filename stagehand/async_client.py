@@ -15,14 +15,16 @@ from playwright.async_api import (
 )
 from playwright.async_api import Page as PlaywrightPage
 
+from ._core import _StagehandCore
 from .agent import Agent
 from .base import StagehandBase
 from .config import StagehandConfig
 from .context import StagehandContext
 from .llm import LLMClient
-from ._core import _StagehandCore
 from .page import StagehandPage
 from .schemas import AgentConfig
+from .utils import convert_dict_keys_to_camel_case
+
 
 class Stagehand(_StagehandCore, StagehandBase):
     """
@@ -215,9 +217,7 @@ class Stagehand(_StagehandCore, StagehandBase):
                 self.logger.warning(
                     "No existing context found in remote browser, creating a new one."
                 )
-                self._context = (
-                    await self._browser.new_context()
-                )
+                self._context = await self._browser.new_context()
 
             self.context = await StagehandContext.init(self._context, self)
 
@@ -495,10 +495,10 @@ class Stagehand(_StagehandCore, StagehandBase):
             raise ValueError("browserbase_api_key is required to create a session.")
         if not self.browserbase_project_id:
             raise ValueError("browserbase_project_id is required to create a session.")
-        
+
         # Build the payload using core helper
         payload = self._build_session_payload()
-        
+
         # Build headers using core helper
         headers = self._build_headers()
 
@@ -607,4 +607,4 @@ class Stagehand(_StagehandCore, StagehandBase):
             await context.add_init_script(self.STEALTH_JS)
             self.logger.debug("Stealth init script added successfully.")
         except Exception as e:
-            self.logger.error(f"Failed to add stealth init script: {str(e)}") 
+            self.logger.error(f"Failed to add stealth init script: {str(e)}")

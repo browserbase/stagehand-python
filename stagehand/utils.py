@@ -3,7 +3,7 @@ import inspect
 import json
 import logging
 from datetime import datetime
-from typing import Any, Callable, List, Optional, Union, get_args, get_origin
+from typing import Any, Callable, Optional, Union, get_args, get_origin
 
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl, create_model
 from pydantic.fields import FieldInfo
@@ -701,7 +701,7 @@ async def draw_observe_overlay(page, elements):
 
     Args:
         page: Playwright page object
-        elements: List of observation results with selectors
+        elements: list of observation results with selectors
     """
     if not elements:
         return
@@ -840,6 +840,7 @@ def transform_url_strings_to_ids(schema):
     return transform_model(schema)
 
 
+# TODO remove unused argument
 def transform_model(model_cls, path=[]):
     """
     Recursively transforms a Pydantic model by replacing URL fields with numeric fields.
@@ -961,15 +962,15 @@ def transform_type(annotation, path):
     if annotation is None:
         return annotation, []
 
-    # Get the origin type for generic types (List, Optional, etc.)
+    # Get the origin type for generic types (list, Optional, etc.)
     origin = get_origin(annotation)
 
     # Case 1: It's a URL type (AnyUrl, HttpUrl)
     if is_url_type(annotation):
         return int, [{"segments": []}]
 
-    # Case 2: It's a List or other generic container
-    if origin in (list, List):
+    # Case 2: It's a list or other generic container
+    if origin in (list, list):
         args = get_args(annotation)
         if not args:
             return annotation, []
@@ -980,11 +981,11 @@ def transform_type(annotation, path):
 
         if new_elem_type != elem_type:
             # Transform the list type to use the new element type
-            if len(args) > 1:  # Handle List with multiple type args
+            if len(args) > 1:  # Handle list with multiple type args
                 new_args = (new_elem_type,) + args[1:]
                 new_type = origin[new_args]
             else:
-                new_type = List[new_elem_type]
+                new_type = list[new_elem_type]
 
             # Update paths to include the array wildcard
             url_paths = []
@@ -1059,8 +1060,8 @@ def is_url_type(annotation):
     # Check for URL in generic containers
     origin = get_origin(annotation)
 
-    # Handle List[URL]
-    if origin in (list, List):
+    # Handle list[URL]
+    if origin in (list, list):
         args = get_args(annotation)
         if args:
             return is_url_type(args[0])
@@ -1079,7 +1080,7 @@ def inject_urls(result, url_paths, id_to_url_mapping):
 
     Args:
         result: The result data structure
-        url_paths: List of paths to URL fields in the structure
+        url_paths: list of paths to URL fields in the structure
         id_to_url_mapping: Dictionary mapping numeric IDs to URLs
 
     Returns:

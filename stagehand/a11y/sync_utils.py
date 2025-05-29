@@ -4,7 +4,7 @@ import time
 from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
-    from playwright.sync_api import Page
+    pass
 
 from ..types.a11y import (
     AccessibilityNode,
@@ -13,6 +13,7 @@ from ..types.a11y import (
     TreeResult,
 )
 from ..utils import StagehandLogger, format_simplified_tree
+
 
 def _get_unwrapped_page(page_obj):
     """Extract the underlying Playwright Page object from various wrapper types."""
@@ -27,10 +28,12 @@ def _get_unwrapped_page(page_obj):
             # If we can't get _page, assume it's already a Playwright Page
             return page_obj
 
+
 # Function to check if an object is a coroutine
 def _is_coroutine(obj):
     """Check if an object is a coroutine."""
-    return hasattr(obj, '__await__')
+    return hasattr(obj, "__await__")
+
 
 # Helper to run a coroutine if needed
 def _resolve_coroutine(result):
@@ -40,6 +43,7 @@ def _resolve_coroutine(result):
         # should be wrapped already. This is a fallback in case a wrapper failed.
         raise TypeError("Coroutine detected in sync context. This is a bug.")
     return result
+
 
 def _clean_structural_nodes(
     node: AccessibilityNode,
@@ -85,20 +89,24 @@ def _clean_structural_nodes(
     ):
         try:
             # Ensure we get a properly resolved result
-            resolved_node = _resolve_coroutine(page.send_cdp("DOM.resolveNode", {"backendNodeId": backend_node_id}))
+            resolved_node = _resolve_coroutine(
+                page.send_cdp("DOM.resolveNode", {"backendNodeId": backend_node_id})
+            )
             object_info = resolved_node.get("object")
             if object_info and object_info.get("objectId"):
                 object_id = object_info["objectId"]
                 try:
                     function_declaration = 'function() { return this.tagName ? this.tagName.toLowerCase() : ""; }'
-                    tag_name_result = _resolve_coroutine(page.send_cdp(
-                        "Runtime.callFunctionOn",
-                        {
-                            "objectId": object_id,
-                            "functionDeclaration": function_declaration,
-                            "returnByValue": True,
-                        },
-                    ))
+                    tag_name_result = _resolve_coroutine(
+                        page.send_cdp(
+                            "Runtime.callFunctionOn",
+                            {
+                                "objectId": object_id,
+                                "functionDeclaration": function_declaration,
+                                "returnByValue": True,
+                            },
+                        )
+                    )
                     result_value = tag_name_result.get("result", {}).get("value")
                     if result_value:
                         node["role"] = result_value
@@ -253,7 +261,7 @@ def get_accessibility_tree(
         start_time = time.time()
         # Make sure we're using the correct page object for CDP operations
         scrollable_backend_ids = find_scrollable_element_ids(page)
-        
+
         # Ensure we get a properly resolved result
         cdp_result = _resolve_coroutine(page.send_cdp("Accessibility.getFullAXTree"))
         nodes: list[AXNode] = cdp_result.get("nodes", [])
@@ -366,16 +374,18 @@ def get_xpath_by_resolved_object_id(
     """Gets the XPath of an element given its resolved CDP object ID."""
     try:
         # Ensure we get a properly resolved result
-        result = _resolve_coroutine(cdp_client.send(
-            "Runtime.callFunctionOn",
-            {
-                "objectId": resolved_object_id,
-                "functionDeclaration": (
-                    f"function() {{ {_GET_NODE_PATH_FUNCTION_STRING} return getNodePath(this); }}"
-                ),
-                "returnByValue": True,
-            },
-        ))
+        result = _resolve_coroutine(
+            cdp_client.send(
+                "Runtime.callFunctionOn",
+                {
+                    "objectId": resolved_object_id,
+                    "functionDeclaration": (
+                        f"function() {{ {_GET_NODE_PATH_FUNCTION_STRING} return getNodePath(this); }}"
+                    ),
+                    "returnByValue": True,
+                },
+            )
+        )
         return result.get("result", {}).get("value") or ""
     except Exception:
         # Log or handle error appropriately
@@ -385,15 +395,19 @@ def get_xpath_by_resolved_object_id(
 def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
     """Identifies backendNodeIds of scrollable elements in the DOM."""
     scrollable_backend_ids: set[int] = set()
-    
+
     try:
         # Ensure getScrollableElementXpaths is defined in the page context
         try:
             # Ensure we get properly resolved results
             _resolve_coroutine(stagehand_page.ensure_injection())
-            xpaths = _resolve_coroutine(stagehand_page.evaluate("() => window.getScrollableElementXpaths()"))
+            xpaths = _resolve_coroutine(
+                stagehand_page.evaluate("() => window.getScrollableElementXpaths()")
+            )
             if not isinstance(xpaths, list):
-                print("Warning: window.getScrollableElementXpaths() did not return a list.")
+                print(
+                    "Warning: window.getScrollableElementXpaths() did not return a list."
+                )
                 xpaths = []
         except Exception as e:
             print(f"Error calling window.getScrollableElementXpaths: {e}")
@@ -404,9 +418,11 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
             # Create a single CDP session for efficiency
             # Get the unwrapped playwright Page object
             page_obj = _get_unwrapped_page(stagehand_page)
-            
+
             # Create CDP session with the appropriate page object
-            cdp_session = _resolve_coroutine(stagehand_page.context.new_cdp_session(page_obj))
+            cdp_session = _resolve_coroutine(
+                stagehand_page.context.new_cdp_session(page_obj)
+            )
 
             for xpath in xpaths:
                 if not xpath or not isinstance(xpath, str):
@@ -415,11 +431,12 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
                 try:
                     # Evaluate XPath to get objectId
                     # Ensure we get a properly resolved result
-                    eval_result = _resolve_coroutine(cdp_session.send(
-                        "Runtime.evaluate",
-                        {
-                            "expression": (
-                                f"""
+                    eval_result = _resolve_coroutine(
+                        cdp_session.send(
+                            "Runtime.evaluate",
+                            {
+                                "expression": (
+                                    f"""
                             (function() {{
                               try {{
                                 const res = document.evaluate({json.dumps(xpath)}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
@@ -430,24 +447,29 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
                               }}
                             }})();
                         """
-                            ),
-                            "returnByValue": False,  # Get objectId
-                            "awaitPromise": False,  # It's not a promise
-                        },
-                    ))
+                                ),
+                                "returnByValue": False,  # Get objectId
+                                "awaitPromise": False,  # It's not a promise
+                            },
+                        )
+                    )
 
                     object_id = eval_result.get("result", {}).get("objectId")
                     if object_id:
                         try:
                             # Describe node to get backendNodeId
                             # Ensure we get a properly resolved result
-                            node_info = _resolve_coroutine(cdp_session.send(
-                                "DOM.describeNode",
-                                {
-                                    "objectId": object_id,
-                                },
-                            ))
-                            backend_node_id = node_info.get("node", {}).get("backendNodeId")
+                            node_info = _resolve_coroutine(
+                                cdp_session.send(
+                                    "DOM.describeNode",
+                                    {
+                                        "objectId": object_id,
+                                    },
+                                )
+                            )
+                            backend_node_id = node_info.get("node", {}).get(
+                                "backendNodeId"
+                            )
                             if backend_node_id:
                                 scrollable_backend_ids.add(backend_node_id)
                         except Exception:
@@ -471,7 +493,7 @@ def find_scrollable_element_ids(stagehand_page: object) -> set[int]:
                     pass  # Ignore detach error
     except Exception as e:
         print(f"Error finding scrollable elements: {e}")
-    
+
     return scrollable_backend_ids
 
 
@@ -509,4 +531,4 @@ def _remove_redundant_static_text_children(
             if child.get("role") != "StaticText" or not child.get("name")
         ]  # Keep StaticText without name if any
 
-    return children 
+    return children
