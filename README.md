@@ -113,107 +113,57 @@ You can also make a copy of `.env.example` and add these to your `.env` file.
 
 Stagehand supports both synchronous and asynchronous usage. Here are examples for both approaches:
 
-### Sync Client
+### Synchronous API Usage
 
 ```python
-import os
-from stagehand.sync import Stagehand
-from stagehand import StagehandConfig
-from dotenv import load_dotenv
+from stagehand import SyncStagehand, StagehandConfig
 
-load_dotenv()
+stagehand = SyncStagehand(
+    browserbase_api_key="your_api_key", 
+    browserbase_project_id="your_project_id",
+    model_api_key="your_model_api_key"  # Optional - used for agent, extract, and act
+)
 
-def main():
-    # Configure Stagehand
-    config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
-    )
+# Initialize the client
+stagehand.init()
 
-    # Initialize Stagehand
-    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_API_URL"))
-    stagehand.init()
-    print(f"Session created: {stagehand.session_id}")
+# Use your Stagehand client
+page = stagehand.page
+page.goto("https://www.example.com")
 
-    # Navigate to a page
-    stagehand.page.goto("https://google.com/")
+# Use the standard page methods
+page.observe("the page header")
+page.act("click the login button")
 
-    # Use Stagehand AI primitives
-    stagehand.page.act("search for openai")
-
-    # Combine with Playwright
-    stagehand.page.keyboard.press("Enter")
-
-    # Observe elements on the page
-    observed = stagehand.page.observe("find the news button")
-    if observed:
-        stagehand.page.act(observed[0])  # Act on the first observed element
-
-    # Extract data from the page
-    data = stagehand.page.extract("extract the first result from the search")
-    print(f"Extracted data: {data}")
-
-    # Close the session
-    stagehand.close()
-
-if __name__ == "__main__":
-    main()
+# Close the client
+stagehand.close()
 ```
 
-### Async Client
+### Sync Usage
 
 ```python
-import os
-import asyncio
-from stagehand import Stagehand, StagehandConfig
-from dotenv import load_dotenv
+from stagehand import SyncStagehand, StagehandConfig
 
-load_dotenv()
+# Create a config object to centralize configuration
+config = StagehandConfig(
+    api_key="your_browserbase_api_key",
+    project_id="your_browserbase_project_id",
+    model_name="openai/gpt-4o",  # Specify model to use
+    verbose=2  # 0=error only, 1=minimal, 2=medium, 3=debug
+)
 
-async def main():
-    # Configure Stagehand
-    config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
-    )
+# Create a client with the config
+stagehand = SyncStagehand(config=config)
 
-    # Initialize Stagehand
-    stagehand = Stagehand(config=config, server_url=os.getenv("STAGEHAND_API_URL"))
-    await stagehand.init()
-    print(f"Session created: {stagehand.session_id}")
-    
-    # Get page reference
+# Use context manager to handle initialization and cleanup
+with stagehand:
+    # Now we can use the client like before
     page = stagehand.page
-
-    # Navigate to a page
-    await page.goto("https://google.com/")
-
-    # Use Stagehand AI primitives
-    await page.act("search for openai")
-
-    # Combine with Playwright
-    await page.keyboard.press("Enter")
-
-    # Observe elements on the page
-    observed = await page.observe("find the news button")
-    if observed:
-        await page.act(observed[0])  # Act on the first observed element
-
-    # Extract data from the page
-    data = await page.extract("extract the first result from the search")
-    print(f"Extracted data: {data}")
-
-    # Close the session
-    await stagehand.close()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    page.goto("https://www.example.com")
+    
+    # Use page features
+    page.observe("the main content area")
+    page.act("click the signup button")
 ```
 
 ## Agent Example
@@ -453,3 +403,51 @@ config = StagehandConfig(
 ## License
 
 MIT License (c) 2025 Browserbase, Inc.
+
+## Architecture
+
+Stagehand provides two client interfaces - asynchronous and synchronous. The design is as follows:
+
+### Client Structure
+
+- `Stagehand` (from async_client.py): The primary asynchronous implementation 
+- `SyncStagehand` (from sync_client.py): A synchronous wrapper around the async implementation
+
+### How it Works
+
+The `SyncStagehand` client is a facade that wraps the async implementation and transparently converts between synchronous and asynchronous code:
+
+1. When you create a `SyncStagehand` instance, it internally creates an `AsyncStagehand` instance
+2. All method calls to the sync client are automatically run in an event loop
+3. The sync client manages an internal event loop to handle all async operations
+
+### When to Use Each Client
+
+- **Async Client**: Use `Stagehand` when working in asynchronous code or frameworks like FastAPI, asyncio, etc.
+- **Sync Client**: Use `SyncStagehand` when working in synchronous code or frameworks like Flask, Django, etc.
+
+### Example of Choosing the Right Client
+
+```python
+# For synchronous code:
+from stagehand import SyncStagehand, StagehandConfig
+
+sync_client = SyncStagehand(config=StagehandConfig(...))
+sync_client.init()  # Synchronous call
+sync_client.page.goto("https://example.com")  # Synchronous call
+sync_client.close()  # Synchronous call
+```
+
+```python
+# For asynchronous code:
+import asyncio
+from stagehand import Stagehand, StagehandConfig
+
+async def main():
+    async_client = Stagehand(config=StagehandConfig(...))
+    await async_client.init()  # Async call
+    await async_client.page.goto("https://example.com")  # Async call
+    await async_client.close()  # Async call
+
+asyncio.run(main())
+```

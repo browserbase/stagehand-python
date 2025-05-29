@@ -1,15 +1,20 @@
 from .utils import (
-    build_hierarchical_tree,
-    find_scrollable_element_ids,
-    format_simplified_tree,
+    get_accessibility_tree as get_accessibility_tree_async,
+    get_xpath_by_resolved_object_id as get_xpath_by_resolved_object_id_async,
+    find_scrollable_element_ids as find_scrollable_element_ids_async,
+)
+
+from .sync_utils import (
     get_accessibility_tree,
     get_xpath_by_resolved_object_id,
+    find_scrollable_element_ids,
 )
 
 __all__ = [
-    "format_simplified_tree",
-    "build_hierarchical_tree",
     "get_accessibility_tree",
     "get_xpath_by_resolved_object_id",
     "find_scrollable_element_ids",
+    "get_accessibility_tree_async",
+    "get_xpath_by_resolved_object_id_async",
+    "find_scrollable_element_ids_async",
 ]

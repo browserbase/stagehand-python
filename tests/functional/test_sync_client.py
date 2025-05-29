@@ -1,8 +1,7 @@
 import os
 import pytest
 from dotenv import load_dotenv
-from stagehand.sync.client import Stagehand
-from stagehand.config import StagehandConfig
+from stagehand import SyncStagehand, StagehandConfig
 from stagehand.schemas import ActOptions, ObserveOptions, ExtractOptions
 
 # Load environment variables
@@ -27,7 +26,7 @@ def stagehand_client():
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
     )
 
-    client = Stagehand(
+    client = SyncStagehand(
         config=config, server_url=os.getenv("STAGEHAND_API_URL"), verbose=2
     )
 
