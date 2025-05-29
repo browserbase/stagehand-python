@@ -22,6 +22,7 @@ from .context import StagehandContext
 from .llm import LLMClient
 from ._core import _StagehandCore
 from .page import StagehandPage
+from .schemas import AgentConfig
 
 class Stagehand(_StagehandCore, StagehandBase):
     """
@@ -45,6 +46,9 @@ class Stagehand(_StagehandCore, StagehandBase):
         timeout_settings: Optional[httpx.Timeout] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         stream_response: Optional[bool] = None,
+        self_heal: Optional[bool] = None,
+        wait_for_captcha_solves: Optional[bool] = None,
+        system_prompt: Optional[str] = None,
         use_rich_logging: bool = True,
         env: Literal["BROWSERBASE", "LOCAL"] = None,
         local_browser_launch_options: Optional[dict[str, Any]] = None,
@@ -64,7 +68,9 @@ class Stagehand(_StagehandCore, StagehandBase):
             timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
             model_client_options (Optional[dict[str, Any]]): Optional model client options.
             stream_response (Optional[bool]): Whether to stream responses from the server.
-            httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
+            self_heal (Optional[bool]): Enable self-healing functionality.
+            wait_for_captcha_solves (Optional[bool]): Whether to wait for CAPTCHA to be solved.
+            system_prompt (Optional[str]): System prompt to use for LLM interactions.
             use_rich_logging (bool): Whether to use Rich for colorized logging.
             env (str): Environment to run in ("BROWSERBASE" or "LOCAL"). Defaults to "BROWSERBASE".
             local_browser_launch_options (Optional[dict[str, Any]]): Options for launching the local browser context
