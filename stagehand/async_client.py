@@ -16,7 +16,6 @@ from playwright.async_api import (
 from playwright.async_api import Page as PlaywrightPage
 
 from .agent import Agent
-from .base import StagehandBase
 from .config import StagehandConfig
 from .context import StagehandContext
 from .llm import LLMClient
@@ -24,7 +23,7 @@ from ._core import _StagehandCore
 from .page import StagehandPage
 from .schemas import AgentConfig
 
-class Stagehand(_StagehandCore, StagehandBase):
+class Stagehand(_StagehandCore):
     """
     Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
     Async implementation with support for both BROWSERBASE and LOCAL environments.
