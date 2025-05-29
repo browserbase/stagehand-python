@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 
 from .config import StagehandConfig
 from .page import StagehandPage
-from .utils import default_log_handler
+from .utils import default_log_handler, make_serializable
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class StagehandBase(ABC):
         self.self_heal = self.config.self_heal
         self.wait_for_captcha_solves = self.config.wait_for_captcha_solves
         self.system_prompt = self.config.system_prompt
-        self.browserbase_session_create_params = (
+        self.browserbase_session_create_params = make_serializable(
             self.config.browserbase_session_create_params
         )
         self.enable_caching = self.config.enable_caching

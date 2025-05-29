@@ -17,6 +17,7 @@ class StagehandConfig(BaseModel):
         headless (bool): Run browser in headless mode.
         logger (Optional[Callable[[Any], None]]): Custom logging function.
         dom_settle_timeout_ms (Optional[int]): Timeout for DOM to settle (in milliseconds).
+        browserbase_session_create_params (Optional[BrowserbaseSessionCreateParams]): Browserbase session create params.
         enable_caching (Optional[bool]): Enable caching functionality.
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.

@@ -5,7 +5,7 @@ from typing import Any, Callable, Literal, Optional
 
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .config import StagehandConfig
-from .utils import StagehandLogger, convert_dict_keys_to_camel_case
+from .utils import StagehandLogger, convert_dict_keys_to_camel_case, make_serializable
 
 
 class _StagehandCore:
@@ -112,6 +112,9 @@ class _StagehandCore:
                 else wait_for_captcha_solves
             )
             self.system_prompt = config.system_prompt or system_prompt
+            self.browserbase_session_create_params = make_serializable(
+                config.browserbase_session_create_params
+            )
         else:
             self.browserbase_api_key = browserbase_api_key or os.getenv(
                 "BROWSERBASE_API_KEY"
@@ -125,6 +128,7 @@ class _StagehandCore:
             self.self_heal = self_heal
             self.wait_for_captcha_solves = wait_for_captcha_solves
             self.system_prompt = system_prompt
+            self.browserbase_session_create_params = None
 
         # Handle model-related settings directly
         self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
@@ -349,20 +353,30 @@ class _StagehandCore:
         Returns:
             Dictionary payload for session creation
         """
+        browserbase_session_create_params = (
+            convert_dict_keys_to_camel_case(self.browserbase_session_create_params)
+            if self.browserbase_session_create_params
+            else None
+        )
+
         payload = {
             "modelName": self.model_name,
+            "verbose": 2 if self.verbose == 3 else self.verbose,
             "domSettleTimeoutMs": self.dom_settle_timeout_ms,
-            "verbose": self.verbose,
-            "browserbaseSessionCreateParams": {
-                "browserSettings": {
-                    "blockAds": True,
-                    "viewport": {
-                        "width": 1024,
-                        "height": 768,
+            "browserbaseSessionCreateParams": (
+                browserbase_session_create_params
+                if browserbase_session_create_params
+                else {
+                    "browserSettings": {
+                        "blockAds": True,
+                        "viewport": {
+                            "width": 1024,
+                            "height": 768,
+                        },
                     },
-                },
-                "proxies": True,
-            },
+                    "proxies": True,
+                }
+            ),
         }
 
         # Add optional parameters if they have values
