@@ -66,8 +66,22 @@ def observe(
     try:
         # Call the LLM
         logger.info("Calling LLM")
+        model = llm_client.default_model
+        if not model and hasattr(llm_client, "model_name"):
+            model = llm_client.model_name
+            
+        # Make sure we have a model
+        if not model:
+            logger.error("No model specified for chat completion (neither default_model nor model argument)")
+            return {
+                "elements": [],
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "inference_time_ms": int((time.time() - start_time) * 1000),
+            }
+            
         response = llm_client.create_response(
-            model=llm_client.default_model,
+            model=model,
             messages=messages,
             response_format=ObserveInferenceSchema,
             temperature=0.1,

@@ -7,3 +7,4 @@ requests>=2.31.0
 rich
 browserbase
 litellm==1.67.1
+./temp/google_genai-1.14.0-py3-none-any.whl

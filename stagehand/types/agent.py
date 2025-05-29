@@ -35,6 +35,9 @@ class DoubleClickAction(BaseModel):
 class TypeAction(BaseModel):
     type: Literal["type"]
     text: str
+    x: Optional[int] = None
+    y: Optional[int] = None
+    press_enter_after: Optional[bool] = False
 
 
 class KeyPressAction(BaseModel):
@@ -166,3 +169,9 @@ class AgentExecuteOptions(BaseModel):
     instruction: str
     max_steps: Optional[int] = 15
     auto_screenshot: Optional[bool] = False
+
+
+class EnvState(BaseModel):
+    # The screenshot in PNG format.
+    screenshot: bytes
+    url: str

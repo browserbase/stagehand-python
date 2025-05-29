@@ -1,4 +1,4 @@
-from .schemas import (
+from ..schemas import (
     AgentConfig,
     AgentExecuteOptions,
     AgentExecuteResult,
@@ -14,22 +14,22 @@ MODEL_TO_PROVIDER_MAP: dict[str, AgentProvider] = {
 }
 
 
-class Agent:
+class SyncAgent:
     """
-    Class to handle agent functionality in Stagehand
+    Synchronous class to handle agent functionality in Stagehand
     """
 
     def __init__(self, stagehand_client, agent_config: AgentConfig):
         """
-        Initialize an Agent instance.
+        Initialize a synchronous Agent instance.
 
         Args:
-            stagehand_client: The client used to interface with the Stagehand server.
+            stagehand_client: The synchronous client used to interface with the Stagehand server.
             agent_config (AgentConfig): Configuration for the agent,
                                           including provider, model, options, instructions.
         """
         self._stagehand = stagehand_client
-        self._config = agent_config  # Store the required config
+        self._config = agent_config
 
         # Perform provider inference and validation
         if self._config.model and not self._config.provider:
@@ -53,9 +53,9 @@ class Agent:
                 "Agent provider is required and could not be determined from the provided config."
             )
 
-    async def execute(self, execute_options: AgentExecuteOptions) -> AgentExecuteResult:
+    def execute(self, execute_options: AgentExecuteOptions) -> AgentExecuteResult:
         """
-        Execute a task using the configured autonomous agent via the Stagehand server.
+        Execute a task using the configured autonomous agent via the Stagehand server (synchronously).
 
         Args:
             execute_options (AgentExecuteOptions): Options for execution, including the instruction.
@@ -63,40 +63,29 @@ class Agent:
         Returns:
             AgentExecuteResult: The result of the agent execution.
         """
-
         payload = {
-            # Use the stored config
             "agentConfig": self._config.model_dump(exclude_none=True, by_alias=True),
             "executeOptions": execute_options.model_dump(
                 exclude_none=True, by_alias=True
             ),
         }
 
-        lock = self._stagehand._get_lock_for_session()
-        async with lock:
-            result = await self._stagehand._execute("agentExecute", payload)
+        # Use the synchronous _execute method
+        result = self._stagehand._execute("agentExecute", payload)
 
         if isinstance(result, dict):
-            # Ensure all expected fields are present
-            # If not present in result, use defaults from AgentExecuteResult schema
             if "success" not in result:
                 raise ValueError("Response missing required field 'success'")
-
-            # Ensure completed is set with default if not present
             if "completed" not in result:
                 result["completed"] = False
-
-            # Add default for message if missing
             if "message" not in result:
                 result["message"] = None
-
             return AgentExecuteResult(**result)
         elif result is None:
-            # Handle cases where the server might return None or an empty response
-            # Return a default failure result or raise an error
             return AgentExecuteResult(
-                success=False, completed=False, message="No result received from server"
+                success=False,
+                completed=False,
+                message="No result received from server",
             )
         else:
-            # If the result is not a dict and not None, it's unexpected
             raise TypeError(f"Unexpected result type from server: {type(result)}")

@@ -9,12 +9,14 @@ from ..types.agent import (
 )
 from .anthropic_cua import AnthropicCUAClient
 from .client import AgentClient
+from .google_cua import GoogleCUAClient
 from .openai_cua import OpenAICUAClient
 
 MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
     "computer-use-preview": OpenAICUAClient,
-    "claude-3-5-sonnet-20240620": AnthropicCUAClient,
-    "claude-3-7-sonnet-20250219": AnthropicCUAClient,
+    "claude-3-5-sonnet-latest": AnthropicCUAClient,
+    "claude-3-7-sonnet-latest": AnthropicCUAClient,
+    "models/computer-use-exp": GoogleCUAClient,
 }
 
 AGENT_METRIC_FUNCTION_NAME = "AGENT_EXECUTE_TASK"
@@ -39,6 +41,8 @@ class Agent:
             stagehand=self.stagehand, page=self.stagehand.page._page, logger=self.logger
         )
 
+        self.viewport = self.stagehand.page._page.viewport_size
+        # self.viewport = {"width": 1024, "height": 768}
         self.client: AgentClient = self._get_client()
 
     def _get_client(self) -> AgentClient:
@@ -61,6 +65,7 @@ class Agent:
             config=self.config,
             logger=self.logger,
             handler=self.cua_handler,
+            viewport=self.viewport,
         )
 
     async def execute(

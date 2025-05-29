@@ -15,6 +15,7 @@ from playwright.async_api import (
 )
 from playwright.async_api import Page as PlaywrightPage
 
+from .agent import Agent
 from .base import StagehandBase
 from .config import StagehandConfig
 from .context import StagehandContext
@@ -35,9 +36,6 @@ class Stagehand(_StagehandCore, StagehandBase):
         self,
         config: Optional[StagehandConfig] = None,
         server_url: Optional[str] = None,
-        session_id: Optional[str] = None,
-        browserbase_api_key: Optional[str] = None,
-        browserbase_project_id: Optional[str] = None,
         model_api_key: Optional[str] = None,
         on_log: Optional[Callable[[dict[str, Any]], Any]] = None,
         verbose: int = 1,
@@ -47,9 +45,6 @@ class Stagehand(_StagehandCore, StagehandBase):
         timeout_settings: Optional[httpx.Timeout] = None,
         model_client_options: Optional[dict[str, Any]] = None,
         stream_response: Optional[bool] = None,
-        self_heal: Optional[bool] = None,
-        wait_for_captcha_solves: Optional[bool] = None,
-        system_prompt: Optional[str] = None,
         use_rich_logging: bool = True,
         env: Literal["BROWSERBASE", "LOCAL"] = None,
         local_browser_launch_options: Optional[dict[str, Any]] = None,
@@ -60,9 +55,6 @@ class Stagehand(_StagehandCore, StagehandBase):
         Args:
             config (Optional[StagehandConfig]): Optional configuration object encapsulating common parameters.
             server_url (Optional[str]): The running Stagehand server URL.
-            session_id (Optional[str]): An existing Browserbase session ID.
-            browserbase_api_key (Optional[str]): Your Browserbase API key.
-            browserbase_project_id (Optional[str]): Your Browserbase project ID.
             model_api_key (Optional[str]): Your model API key (e.g. OpenAI, Anthropic, etc.).
             on_log (Optional[Callable[[dict[str, Any]], Any]]): Callback for log messages from the server.
             verbose (int): Verbosity level for logs.
@@ -72,9 +64,7 @@ class Stagehand(_StagehandCore, StagehandBase):
             timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
             model_client_options (Optional[dict[str, Any]]): Optional model client options.
             stream_response (Optional[bool]): Whether to stream responses from the server.
-            self_heal (Optional[bool]): Whether to enable self-healing functionality.
-            wait_for_captcha_solves (Optional[bool]): Whether to wait for CAPTCHA solves.
-            system_prompt (Optional[str]): System prompt for LLM interactions.
+            httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
             use_rich_logging (bool): Whether to use Rich for colorized logging.
             env (str): Environment to run in ("BROWSERBASE" or "LOCAL"). Defaults to "BROWSERBASE".
             local_browser_launch_options (Optional[dict[str, Any]]): Options for launching the local browser context
@@ -84,14 +74,8 @@ class Stagehand(_StagehandCore, StagehandBase):
         super().__init__(
             config=config,
             server_url=server_url,
-            session_id=session_id,
-            browserbase_api_key=browserbase_api_key,
-            browserbase_project_id=browserbase_project_id,
             model_api_key=model_api_key,
             on_log=on_log,
-            verbose=verbose,
-            model_name=model_name,
-            dom_settle_timeout_ms=dom_settle_timeout_ms,
             timeout_settings=timeout_settings,
             model_client_options=model_client_options,
             stream_response=stream_response,
@@ -106,7 +90,8 @@ class Stagehand(_StagehandCore, StagehandBase):
         # Async-specific setup
         self._local_user_data_dir_temp: Optional[Path] = None
         self.httpx_client = httpx_client
-        self.timeout_settings = timeout_settings or httpx.Timeout(
+        # Use timeout_settings passed to base or default if None
+        self.timeout_settings = self.timeout_settings or httpx.Timeout(
             connect=180.0,
             read=180.0,
             write=180.0,
@@ -324,11 +309,11 @@ class Stagehand(_StagehandCore, StagehandBase):
                         "args",
                         [
                             # Common args from TS version
-                            "--enable-webgl",
-                            "--use-gl=swiftshader",
-                            "--enable-accelerated-2d-canvas",
+                            # "--enable-webgl",
+                            # "--use-gl=swiftshader",
+                            # "--enable-accelerated-2d-canvas",
                             "--disable-blink-features=AutomationControlled",
-                            "--disable-web-security",  # Use with caution
+                            # "--disable-web-security",  # Use with caution
                         ],
                     ),
                     # Add more translations as needed based on local_browser_launch_options structure
@@ -397,6 +382,26 @@ class Stagehand(_StagehandCore, StagehandBase):
             raise RuntimeError(f"Invalid env value: {self.env}")
 
         self._initialized = True
+
+    def agent(self, agent_config: AgentConfig) -> Agent:
+        """
+        Create an agent instance configured with the provided options.
+
+        Args:
+            agent_config (AgentConfig): Configuration for the agent instance.
+                                          Provider must be specified or inferrable from the model.
+
+        Returns:
+            Agent: A configured Agent instance ready to execute tasks.
+        """
+        if not self._initialized:
+            raise RuntimeError(
+                "Stagehand must be initialized with await init() before creating an agent."
+            )
+
+        self.logger.debug(f"Creating Agent instance with config: {agent_config}")
+        # Pass the required config directly to the Agent constructor
+        return Agent(self, agent_config=agent_config)
 
     async def close(self):
         """

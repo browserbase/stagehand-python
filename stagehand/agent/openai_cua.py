@@ -32,19 +32,22 @@ class OpenAICUAClient(AgentClient):
         config: Optional[AgentConfig] = None,
         logger: Optional[Any] = None,
         handler: Optional[CUAHandler] = None,
+        viewport: Optional[dict[str, int]] = None,
         **kwargs,  # Allow for other OpenAI specific options if any
     ):
         super().__init__(model, instructions, config, logger, handler)
         # TODO pass api key
         self.openai_sdk_client = OpenAISDK(api_key=os.getenv("OPENAI_API_KEY"))
 
-        dimensions = [1024, 768]  # Default or from self.config if specified
+        dimensions = (
+            (viewport["width"], viewport["height"]) if viewport else (1024, 768)
+        )  # Default or from self.config if specified
         if (
             self.config
             and hasattr(self.config, "display_width")
             and hasattr(self.config, "display_height")
         ):
-            dimensions = [self.config.display_width, self.config.display_height]  # type: ignore
+            dimensions = [self.config.display_width, self.config.display_height]
 
         self.tools = [
             {

@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
 
-from stagehand import SyncStagehand, StagehandConfig, Agent, AgentConfig, configure_logging
+from stagehand import SyncStagehand, StagehandConfig, AgentConfig, configure_logging
 from stagehand.schemas import AgentExecuteOptions, AgentProvider
 
 # Create a custom theme for consistent styling
@@ -63,7 +63,7 @@ def main():
     # Create a Stagehand client using the configuration object.
     stagehand = SyncStagehand(
         config=config, 
-        server_url=os.getenv("STAGEHAND_SERVER_URL"),
+        server_url=os.getenv("STAGEHAND_API_URL"),
     )
 
     # Initialize - this creates a new session automatically.
@@ -95,8 +95,8 @@ def main():
     console.print("✅ [success]Navigated to Google[/]")
     
     console.print("\n▶️ [highlight] Using Agent to perform a task[/]: playing a game of 2048")
-    # Execute the agent task using the new agent interface
-    agent_result = stagehand.agent.execute(agent_config, execute_options)
+    agent = stagehand.agent(agent_config)
+    agent_result = agent.execute(execute_options)
     
     console.print("📊 [info]Agent execution result:[/]")
     console.print(f"✅ Success: [bold]{'Yes' if agent_result.success else 'No'}[/]")

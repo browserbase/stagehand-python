@@ -1,5 +1,6 @@
 import asyncio
 import base64
+from typing import Any, Optional
 
 from ..types.agent import (
     ActionExecutionResult,
@@ -90,7 +91,30 @@ class CUAHandler:  # Computer Use Agent Handler
 
             elif action_type == "type":
                 # specific_action_model is TypeAction
+                if (
+                    hasattr(specific_action_model, "x")
+                    and hasattr(specific_action_model, "y")
+                    and specific_action_model.x is not None
+                    and specific_action_model.y is not None
+                ):
+                    await self._update_cursor_position(
+                        specific_action_model.x, specific_action_model.y
+                    )
+                    # Consider if _animate_click is desired before typing at a coordinate
+                    await self.page.mouse.click(
+                        specific_action_model.x, specific_action_model.y
+                    )
+                    # await asyncio.sleep(0.1) # Brief pause after click before typing
+
                 await self.page.keyboard.type(specific_action_model.text)
+
+                if (
+                    hasattr(specific_action_model, "press_enter_after")
+                    and specific_action_model.press_enter_after
+                ):
+                    await self.page.keyboard.press("Enter")
+                    await self.handle_page_navigation("type", initial_url)
+
                 return {"success": True}
 
             elif action_type == "keypress":
@@ -167,6 +191,7 @@ class CUAHandler:  # Computer Use Agent Handler
 
             elif action_type == "goto":
                 await self.page.goto(specific_action_model.url)
+                await self.handle_page_navigation("goto", initial_url)
                 return {"success": True}
 
             else:
@@ -226,6 +251,256 @@ class CUAHandler:  # Computer Use Agent Handler
                 category=StagehandFunctionName.AGENT,
             )
 
+    async def _wait_for_settled_dom(self, timeout_ms: Optional[int] = None) -> None:
+        timeout = (
+            timeout_ms if timeout_ms is not None else 10000
+        )  # Default to 10s, can be configured via stagehand options
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
+        cdp_session = None
+
+        try:
+            cdp_session = await self.page.context.new_cdp_session(self.page)
+
+            # Check if document exists, similar to TypeScript version's hasDoc
+            try:
+                await self.page.title()
+            except Exception:
+                await self.page.wait_for_load_state("domcontentloaded", timeout=timeout)
+
+            await cdp_session.send("Network.enable")
+            await cdp_session.send("Page.enable")
+            await cdp_session.send(
+                "Target.setAutoAttach",
+                {
+                    "autoAttach": True,
+                    "waitForDebuggerOnStart": False,
+                    "flatten": True,
+                },
+            )
+
+            inflight_requests: set[str] = set()
+            request_meta: dict[str, dict[str, Any]] = (
+                {}
+            )  # {requestId: {url: string, start: float}}
+            doc_by_frame: dict[str, str] = {}  # {frameId: requestId}
+
+            quiet_timer_handle: Optional[asyncio.TimerHandle] = None
+            stalled_request_sweep_task: Optional[asyncio.Task] = None
+
+            # Helper to clear quiet timer
+            def clear_quiet_timer():
+                nonlocal quiet_timer_handle
+                if quiet_timer_handle:
+                    quiet_timer_handle.cancel()
+                    quiet_timer_handle = None
+
+            # Forward declaration for resolve_done
+            resolve_done_callbacks = []  # To store cleanup actions
+
+            def resolve_done_action():
+                nonlocal quiet_timer_handle, stalled_request_sweep_task
+
+                for callback in resolve_done_callbacks:
+                    try:
+                        callback()
+                    except Exception as e:
+                        self.logger.debug(
+                            f"Error during resolve_done callback: {e}", category="dom"
+                        )
+
+                clear_quiet_timer()
+                if stalled_request_sweep_task and not stalled_request_sweep_task.done():
+                    stalled_request_sweep_task.cancel()
+
+                if not future.done():
+                    future.set_result(None)
+
+            # Helper to potentially resolve if network is quiet
+            def maybe_quiet():
+                nonlocal quiet_timer_handle
+                if (
+                    not inflight_requests
+                    and not quiet_timer_handle
+                    and not future.done()
+                ):
+                    quiet_timer_handle = loop.call_later(
+                        1.0, resolve_done_action
+                    )  # Increased to 1000ms (from 0.5)
+
+            # Finishes a request
+            def finish_request(request_id: str):
+                if request_id not in inflight_requests:
+                    return
+                inflight_requests.remove(request_id)
+                request_meta.pop(request_id, None)
+
+                frames_to_remove = [
+                    fid for fid, rid in doc_by_frame.items() if rid == request_id
+                ]
+                for fid in frames_to_remove:
+                    doc_by_frame.pop(fid, None)
+
+                clear_quiet_timer()
+                maybe_quiet()
+
+            # Event handlers
+            def on_request_will_be_sent(params: dict):
+                request_type = params.get("type")
+                if request_type == "WebSocket" or request_type == "EventSource":
+                    return
+
+                request_id = params["requestId"]
+                inflight_requests.add(request_id)
+                request_meta[request_id] = {
+                    "url": params["request"]["url"],
+                    "start": loop.time(),
+                }
+
+                if params.get("type") == "Document" and params.get("frameId"):
+                    doc_by_frame[params["frameId"]] = request_id
+
+                clear_quiet_timer()
+
+            def on_loading_finished(params: dict):
+                finish_request(params["requestId"])
+
+            def on_loading_failed(params: dict):
+                finish_request(params["requestId"])
+
+            def on_request_served_from_cache(params: dict):
+                finish_request(params["requestId"])
+
+            def on_response_received(params: dict):  # For data URLs
+                response_url = params.get("response", {}).get("url", "")
+                if response_url.startswith("data:"):
+                    finish_request(params["requestId"])
+
+            def on_frame_stopped_loading(params: dict):
+                frame_id = params["frameId"]
+                request_id = doc_by_frame.get(frame_id)
+                if request_id:
+                    finish_request(request_id)
+
+            # Attach CDP event listeners
+            cdp_session.on("Network.requestWillBeSent", on_request_will_be_sent)
+            cdp_session.on("Network.loadingFinished", on_loading_finished)
+            cdp_session.on("Network.loadingFailed", on_loading_failed)
+            cdp_session.on(
+                "Network.requestServedFromCache", on_request_served_from_cache
+            )
+            cdp_session.on(
+                "Network.responseReceived", on_response_received
+            )  # For data URLs
+            cdp_session.on("Page.frameStoppedLoading", on_frame_stopped_loading)
+
+            resolve_done_callbacks.append(
+                lambda: cdp_session.remove_listener(
+                    "Network.requestWillBeSent", on_request_will_be_sent
+                )
+            )
+            resolve_done_callbacks.append(
+                lambda: cdp_session.remove_listener(
+                    "Network.loadingFinished", on_loading_finished
+                )
+            )
+            resolve_done_callbacks.append(
+                lambda: cdp_session.remove_listener(
+                    "Network.loadingFailed", on_loading_failed
+                )
+            )
+            resolve_done_callbacks.append(
+                lambda: cdp_session.remove_listener(
+                    "Network.requestServedFromCache", on_request_served_from_cache
+                )
+            )
+            resolve_done_callbacks.append(
+                lambda: cdp_session.remove_listener(
+                    "Network.responseReceived", on_response_received
+                )
+            )
+            resolve_done_callbacks.append(
+                lambda: cdp_session.remove_listener(
+                    "Page.frameStoppedLoading", on_frame_stopped_loading
+                )
+            )
+
+            # Stalled request sweeper
+            async def sweep_stalled_requests():
+                while not future.done():
+                    await asyncio.sleep(0.5)  # 500ms interval
+                    now = loop.time()
+                    stalled_ids_to_remove = []
+                    for req_id, meta in list(
+                        request_meta.items()
+                    ):  # Iterate over a copy for safe modification
+                        if (
+                            now - meta["start"] > 4.0
+                        ):  # Increased to 4 seconds (from 2.0)
+                            stalled_ids_to_remove.append(req_id)
+                            self.logger.debug(
+                                f"DOM Settle: Forcing completion of stalled request {req_id}, URL: {meta['url'][:120]}",
+                                category="dom",  # Using "dom" as a category for these logs
+                            )
+
+                    if stalled_ids_to_remove:
+                        for req_id in stalled_ids_to_remove:
+                            if (
+                                req_id in inflight_requests
+                            ):  # Ensure it's still considered inflight
+                                inflight_requests.remove(req_id)
+                            request_meta.pop(req_id, None)
+                        clear_quiet_timer()  # State changed
+                        maybe_quiet()  # Re-evaluate if network is quiet
+
+            stalled_request_sweep_task = loop.create_task(sweep_stalled_requests())
+
+            # Overall timeout guard
+            guard_handle = loop.call_later(
+                timeout / 1000.0, lambda: {resolve_done_action()}
+            )
+            resolve_done_callbacks.append(lambda: guard_handle.cancel())
+
+            maybe_quiet()  # Initial check if already quiet
+
+            await future  # Wait for the future to be resolved
+
+        except Exception as e:
+            self.logger.error(f"Error in _wait_for_settled_dom: {e}", category="dom")
+            if not future.done():
+                future.set_exception(e)  # Propagate error if future not done
+        finally:
+            if (
+                "resolve_done_action" in locals()
+                and callable(resolve_done_action)
+                and not future.done()
+            ):
+                # If future isn't done but we are exiting, ensure cleanup happens.
+                # This might happen on an unexpected early exit from the try block.
+                # However, guard_handle or quiet_timer should eventually call resolve_done_action.
+                # If an unhandled exception caused early exit before guard/quiet timers, this is a fallback.
+                self.logger.debug(
+                    "Ensuring resolve_done_action is called in finally due to early exit",
+                    category="dom",
+                )
+                # resolve_done_action() # Be cautious calling it directly here, might lead to double calls or race conditions
+                # Rely on the guard and quiet timers mostly.
+
+            if stalled_request_sweep_task and not stalled_request_sweep_task.done():
+                stalled_request_sweep_task.cancel()
+                try:
+                    await stalled_request_sweep_task  # Allow cleanup
+                except asyncio.CancelledError:
+                    pass  # Expected
+
+            if cdp_session:
+                try:
+                    await cdp_session.detach()
+                except Exception as e_detach:
+                    self.logger.debug(
+                        f"Error detaching CDP session: {e_detach}", category="dom"
+                    )
+
     def _convert_key_name(self, key: str) -> str:
         """Convert CUA key names to Playwright key names."""
         key_map = {
@@ -266,67 +541,51 @@ class CUAHandler:  # Computer Use Agent Handler
         # default to original key if not found.
         return key_map.get(key.upper(), key)
 
-    async def _handle_page_navigation(self) -> None:
-        """Handle page navigation actions."""
-        pass
-
     async def handle_page_navigation(
         self,
         action_description: str,
         initial_url: str,
-        dom_settle_timeout_ms: int = 1000,
+        dom_settle_timeout_ms: int = 5000,  # Increased default for the new method
     ) -> None:
         """Handle possible page navigation after an action."""
-        self.logger.debug(
+        self.logger.info(
             f"{action_description} - checking for page navigation",
             category=StagehandFunctionName.AGENT,
         )
-
-        # Check for new tab/window
-        new_opened_tab = None
+        newly_opened_page = None
         try:
-            async with self.page.context.expect_page(timeout=1500) as new_page_info:
-                # Just checking if a page was opened by the action
-                pass
-            new_opened_tab = await new_page_info.value
+            # Using a short timeout for immediate new tab detection
+            async with self.page.context.expect_page(timeout=1000) as new_page_info:
+                pass  # The action that might open a page has already run. We check if one was caught.
+            newly_opened_page = await new_page_info.value
+
+            new_page_url = newly_opened_page.url
+            await newly_opened_page.close()
+            await self.page.goto(new_page_url, timeout=dom_settle_timeout_ms)
+            # After navigating, the DOM needs to settle on the new URL.
+            await self._wait_for_settled_dom(timeout_ms=dom_settle_timeout_ms)
+
+        except asyncio.TimeoutError:
+            newly_opened_page = None
         except Exception:
-            new_opened_tab = None
+            newly_opened_page = None
 
-        # Handle new tab if one was opened
-        if new_opened_tab:
-            self.logger.info(
-                f"New tab detected with URL: {new_opened_tab.url}",
-                category=StagehandFunctionName.AGENT,
-            )
-            new_tab_url = new_opened_tab.url
-            await new_opened_tab.close()
-            await self.page.goto(new_tab_url)
-            await self.page.wait_for_load_state("domcontentloaded")
+        # If no new tab was opened and handled by navigating, or if we are on the original page after handling a new tab,
+        # then proceed to wait for DOM settlement on the current page.
+        if not newly_opened_page:
+            await self._wait_for_settled_dom(timeout_ms=dom_settle_timeout_ms)
 
-        # Wait for DOM to settle
-        try:
-            await self.page.wait_for_load_state(
-                "domcontentloaded", timeout=dom_settle_timeout_ms
-            )
-            # Additional optional wait for network idle
-            await self.page.wait_for_load_state(
-                "networkidle", timeout=dom_settle_timeout_ms
-            )
-        except Exception as e:
-            self.logger.warning(
-                f"Wait for DOM settle timed out: {str(e)}",
-                category=StagehandFunctionName.AGENT,
-            )
-
-        # Check if URL changed
-        current_url = self.page.url
-        if current_url != initial_url:
+        final_url = self.page.url
+        if final_url != initial_url:
             self.logger.debug(
-                f"Page navigation detected: {initial_url} -> {current_url}",
+                f"Page navigation handled. Initial URL: {initial_url}, Final URL: {final_url}",
+                category=StagehandFunctionName.AGENT,
+            )
+        else:
+            self.logger.debug(
+                f"Finished checking for page navigation. URL remains {initial_url}.",
                 category=StagehandFunctionName.AGENT,
             )
 
-        self.logger.debug(
-            "Finished checking for page navigation",
-            category=StagehandFunctionName.AGENT,
-        )
+        # Ensure cursor is injected after any potential navigation or page reload
+        await self.inject_cursor()

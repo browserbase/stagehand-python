@@ -50,21 +50,33 @@ class AnthropicCUAClient(AgentClient):
         config: Optional[AgentConfig] = None,
         logger: Optional[Any] = None,
         handler: Optional[CUAHandler] = None,
+        viewport: Optional[dict[str, int]] = None,
         **kwargs,
     ):
         super().__init__(model, instructions, config, logger, handler)
         self.anthropic_sdk_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-        dimensions = [1024, 768]  # Default dimensions
+        dimensions = (
+            (viewport["width"], viewport["height"]) if viewport else (1024, 768)
+        )  # Default dimensions
         if self.config:
             if hasattr(self.config, "display_width") and self.config.display_width is not None:  # type: ignore
                 dimensions[0] = self.config.display_width  # type: ignore
             if hasattr(self.config, "display_height") and self.config.display_height is not None:  # type: ignore
                 dimensions[1] = self.config.display_height  # type: ignore
-
+        computer_tool_type = (
+            "computer_20250124"
+            if model == "claude-3-7-sonnet-latest"
+            else "computer_20241022"
+        )
+        self.beta_flag = (
+            ["computer-use-2025-01-24"]
+            if model == "claude-3-7-sonnet-latest"
+            else ["computer-use-2024-10-22"]
+        )
         self.tools = [
             {
-                "type": "computer_20250124",
+                "type": computer_tool_type,
                 "name": "computer",
                 "display_width_px": dimensions[0],
                 "display_height_px": dimensions[1],
@@ -155,7 +167,7 @@ class AnthropicCUAClient(AgentClient):
                     + "Remember to call the computer tools, and only goto or navigate_back if you need to. Screenshots, clicks, etc, will be parsed from computer tool calls",  # System prompt
                     messages=current_messages,
                     tools=self.tools,
-                    betas=["computer-use-2025-01-24"],
+                    betas=self.beta_flag,
                 )
                 end_time = asyncio.get_event_loop().time()
                 total_inference_time_ms += int((end_time - start_time) * 1000)

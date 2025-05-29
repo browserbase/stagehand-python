@@ -64,7 +64,7 @@ async def main():
     # Create a Stagehand client using the configuration object.
     stagehand = Stagehand(
         config=config, 
-        server_url=os.getenv("STAGEHAND_SERVER_URL"),
+        server_url=os.getenv("STAGEHAND_API_URL"),
     )
 
     # Initialize - this creates a new session automatically.
@@ -95,7 +95,8 @@ async def main():
     console.print("✅ [success]Navigated to Google[/]")
     
     console.print("\n▶️ [highlight] Using Agent to perform a task[/]: playing a game of 2048")
-    agent_result = await stagehand.agent.execute(agent_config, execute_options)
+    agent = stagehand.agent(agent_config)
+    agent_result = await agent.execute(execute_options)
     
     console.print("📊 [info]Agent execution result:[/]")
     console.print(f"✅ Success: [bold]{'Yes' if agent_result.success else 'No'}[/]")
