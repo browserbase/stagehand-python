@@ -37,6 +37,9 @@ class Stagehand(_StagehandCore, StagehandBase):
         self,
         config: Optional[StagehandConfig] = None,
         server_url: Optional[str] = None,
+        session_id: Optional[str] = None,
+        browserbase_api_key: Optional[str] = None,
+        browserbase_project_id: Optional[str] = None,
         model_api_key: Optional[str] = None,
         on_log: Optional[Callable[[dict[str, Any]], Any]] = None,
         verbose: int = 1,
@@ -59,6 +62,9 @@ class Stagehand(_StagehandCore, StagehandBase):
         Args:
             config (Optional[StagehandConfig]): Optional configuration object encapsulating common parameters.
             server_url (Optional[str]): The running Stagehand server URL.
+            session_id (Optional[str]): Existing session ID to resume.
+            browserbase_api_key (Optional[str]): Browserbase API key for authentication.
+            browserbase_project_id (Optional[str]): Browserbase project ID.
             model_api_key (Optional[str]): Your model API key (e.g. OpenAI, Anthropic, etc.).
             on_log (Optional[Callable[[dict[str, Any]], Any]]): Callback for log messages from the server.
             verbose (int): Verbosity level for logs.
@@ -80,6 +86,9 @@ class Stagehand(_StagehandCore, StagehandBase):
         super().__init__(
             config=config,
             server_url=server_url,
+            session_id=session_id,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
             model_api_key=model_api_key,
             on_log=on_log,
             timeout_settings=timeout_settings,
