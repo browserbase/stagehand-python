@@ -63,7 +63,9 @@ async def main():
         verbose=2,
     )
 
-    stagehand = Stagehand(config)
+    stagehand = Stagehand(config, 
+                          api_url=os.getenv("STAGEHAND_SERVER_URL"),
+                          env=os.getenv("STAGEHAND_ENV"))
 
     # Initialize - this creates a new session automatically.
     console.print("\n🚀 [info]Initializing Stagehand...[/]")
@@ -114,7 +116,7 @@ async def main():
     console.print("\n▶️ [highlight] Extracting[/] first search result")
     data = await page.extract("extract the first result from the search")
     console.print("📊 [info]Extracted data:[/]")
-    console.print_json(f"{data.model_dump_json()}")
+    console.print_json(json.dumps(data))
 
     # Close the session
     console.print("\n⏹️  [warning]Closing session...[/]")

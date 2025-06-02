@@ -140,60 +140,6 @@ You can also make a copy of `.env.example` and add these to your `.env` file.
 
 ## Quickstart
 
-Stagehand supports both synchronous and asynchronous usage. Here are examples for both approaches:
-
-### Sync Client
-
-```python
-import os
-from stagehand.sync import Stagehand
-from stagehand import StagehandConfig
-from dotenv import load_dotenv
-
-load_dotenv()
-
-def main():
-    # Configure Stagehand
-    config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
-    )
-
-    # Initialize Stagehand
-    stagehand = Stagehand(config=config, api_url=os.getenv("STAGEHAND_API_URL"))
-    stagehand.init()
-    print(f"Session created: {stagehand.session_id}")
-
-    # Navigate to a page
-    stagehand.page.goto("https://google.com/")
-
-    # Use Stagehand AI primitives
-    stagehand.page.act("search for openai")
-
-    # Combine with Playwright
-    stagehand.page.keyboard.press("Enter")
-
-    # Observe elements on the page
-    observed = stagehand.page.observe("find the news button")
-    if observed:
-        stagehand.page.act(observed[0])  # Act on the first observed element
-
-    # Extract data from the page
-    data = stagehand.page.extract("extract the first result from the search")
-    print(f"Extracted data: {data}")
-
-    # Close the session
-    stagehand.close()
-
-if __name__ == "__main__":
-    main()
-```
-
-### Async Client
-
 ```python
 import os
 import asyncio
