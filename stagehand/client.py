@@ -1,5 +1,9 @@
 import asyncio
 import os
+import shutil
+import tempfile
+import signal
+import sys
 import time
 from pathlib import Path
 from typing import Any, Literal, Optional
@@ -46,6 +50,9 @@ class Stagehand:
 
     # Dictionary to store one lock per session_id
     _session_locks = {}
+    
+    # Flag to track if cleanup has been called
+    _cleanup_called = False
 
     def __init__(
         self,
@@ -189,6 +196,9 @@ class Stagehand:
                     raise ValueError(
                         "browserbase_project_id is required for BROWSERBASE env with existing session_id (or set BROWSERBASE_PROJECT_ID in env)."
                     )
+            
+        # Register signal handlers for graceful shutdown
+        self._register_signal_handlers()
 
         self._client: Optional[httpx.AsyncClient] = (
             None  # Used for server communication in BROWSERBASE
@@ -214,6 +224,61 @@ class Stagehand:
                 metrics_callback=self._handle_llm_metrics,
                 **self.model_client_options,
             )
+
+    def _register_signal_handlers(self):
+        """Register signal handlers for SIGINT and SIGTERM to ensure proper cleanup."""
+        def cleanup_handler(sig, frame):
+            # Prevent multiple cleanup calls
+            if self.__class__._cleanup_called:
+                return
+
+            self.__class__._cleanup_called = True
+            print(f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session...")
+
+            try:
+                # Try to get the current event loop
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    # No event loop running - create one to run cleanup
+                    print("No event loop running, creating one for cleanup...")
+                    try:
+                        asyncio.run(self._async_cleanup())
+                    except Exception as e:
+                        print(f"Error during cleanup: {str(e)}")
+                    finally:
+                        sys.exit(0)
+                    return
+
+                # Schedule cleanup in the existing event loop
+                # Use call_soon_threadsafe since signal handlers run in a different thread context
+                def schedule_cleanup():
+                    task = asyncio.create_task(self._async_cleanup())
+                    # Shield the task to prevent it from being cancelled
+                    shielded = asyncio.shield(task)
+                    # We don't need to await here since we're in call_soon_threadsafe
+                
+                loop.call_soon_threadsafe(schedule_cleanup)
+                
+            except Exception as e:
+                print(f"Error during signal cleanup: {str(e)}")
+                sys.exit(1)
+
+        # Register signal handlers
+        signal.signal(signal.SIGINT, cleanup_handler)
+        signal.signal(signal.SIGTERM, cleanup_handler)
+
+    async def _async_cleanup(self):
+        """Async cleanup method called from signal handler."""
+        try:
+            await self.close()
+            print(f"Session {self.session_id} ended successfully")
+        except Exception as e:
+            print(f"Error ending Browserbase session: {str(e)}")
+        finally:
+            # Force exit after cleanup completes (or fails)
+            # Use os._exit to avoid any further Python cleanup that might hang
+            os._exit(0)
 
     def start_inference_timer(self):
         """Start timer for tracking inference time."""
@@ -458,15 +523,12 @@ class Stagehand:
                     self.logger.debug(
                         f"Attempting to end server session {self.session_id}..."
                     )
-                    # Use internal client if httpx_client wasn't provided externally
-                    client_to_use = (
-                        self._client if not self.httpx_client else self.httpx_client
+                    # Don't use async with here as it might close the client prematurely
+                    # The _execute method will handle the request properly
+                    result = await self._execute("end", {"sessionId": self.session_id})
+                    self.logger.debug(
+                        f"Server session {self.session_id} ended successfully with result: {result}"
                     )
-                    async with client_to_use:  # Ensure client context is managed
-                        await self._execute("end", {"sessionId": self.session_id})
-                        self.logger.debug(
-                            f"Server session {self.session_id} ended successfully"
-                        )
                 except Exception as e:
                     # Log error but continue cleanup
                     self.logger.error(
