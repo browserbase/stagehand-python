@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from stagehand.a11y.utils import get_accessibility_tree
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.metrics import StagehandFunctionName  # Changed import location
-from stagehand.types import ExtractOptions, ExtractResult
+from stagehand.types import DefaultExtractSchema, ExtractOptions, ExtractResult
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
 
 T = TypeVar("T", bound=BaseModel)
@@ -85,6 +85,7 @@ class ExtractHandler:
         self.logger.info("Getting accessibility tree data")
         output_string = tree["simplified"]
         id_to_url_mapping = tree.get("idToUrl", {})
+        self.logger.info(f"schema: {schema}")
 
         # Transform schema URL fields to numeric IDs if necessary
         transformed_schema = schema
@@ -92,6 +93,10 @@ class ExtractHandler:
         if schema:
             # TODO: Remove this once we have a better way to handle URLs
             transformed_schema, url_paths = transform_url_strings_to_ids(schema)
+        else:
+            transformed_schema = DefaultExtractSchema
+
+        self.logger.info(f"Transformed schema: {transformed_schema}")
 
         # Use inference to call the LLM
         extraction_response = extract_inference(

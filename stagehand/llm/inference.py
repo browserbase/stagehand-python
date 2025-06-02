@@ -195,6 +195,9 @@ def extract(
         extract_content = extract_response.choices[0].message.content
         if isinstance(extract_content, str):
             try:
+                logger.info(
+                    f"Extraction response: {extract_content} for schema: {schema}"
+                )
                 extracted_data = json.loads(extract_content)
             except json.JSONDecodeError:
                 logger.error(

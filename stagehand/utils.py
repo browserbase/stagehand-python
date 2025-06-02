@@ -117,6 +117,10 @@ def configure_logging(
         logging.getLogger("httpx").setLevel(logging.WARNING)
         logging.getLogger("httpcore").setLevel(logging.WARNING)
         logging.getLogger("asyncio").setLevel(logging.WARNING)
+        logging.getLogger("litellm").setLevel(logging.WARNING)
+        logging.getLogger("LiteLLM").setLevel(
+            logging.WARNING
+        )  # Cover both possible logger names
 
 
 ################################################################################

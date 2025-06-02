@@ -11,6 +11,9 @@ from stagehand.metrics import get_inference_time_ms, start_inference_timer
 logger = logging.getLogger(__name__)
 
 
+litellm.enable_json_schema_validation = True
+
+
 class LLMClient:
     """
     Client for making LLM calls using the litellm library.
