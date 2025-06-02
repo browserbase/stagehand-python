@@ -40,7 +40,6 @@ async def connect_browserbase_browser(
     # Connect to remote browser via Browserbase SDK and CDP
     bb = Browserbase(api_key=browserbase_api_key)
     try:
-        logger.debug(f"Retrieving Browserbase session details for {session_id}...")
         session = bb.sessions.retrieve(session_id)
         if session.status != "RUNNING":
             raise RuntimeError(
@@ -54,7 +53,6 @@ async def connect_browserbase_browser(
     logger.debug(f"Connecting to remote browser at: {connect_url}")
     try:
         browser = await playwright.chromium.connect_over_cdp(connect_url)
-        logger.debug(f"Connected to remote browser: {browser}")
     except Exception as e:
         logger.error(f"Failed to connect Playwright via CDP: {str(e)}")
         raise
@@ -233,7 +231,7 @@ async def connect_local_browser(
 
 async def apply_stealth_scripts(context: BrowserContext, logger: StagehandLogger):
     """Applies JavaScript init scripts to make the browser less detectable."""
-    logger.debug("Applying stealth init scripts to the context...")
+    logger.debug("Applying stealth scripts to the context...")
     stealth_script = """
     (() => {
         // Override navigator.webdriver
@@ -280,7 +278,6 @@ async def apply_stealth_scripts(context: BrowserContext, logger: StagehandLogger
     """
     try:
         await context.add_init_script(stealth_script)
-        logger.debug("Stealth init script added successfully.")
     except Exception as e:
         logger.error(f"Failed to add stealth init script: {str(e)}")
 
@@ -308,6 +305,12 @@ async def cleanup_browser_resources(
             await context.close()
         except Exception as e:
             logger.error(f"Error closing context: {str(e)}")
+    if browser:
+        try:
+            logger.debug("Closing browser...")
+            await browser.close()
+        except Exception as e:
+            logger.error(f"Error closing browser: {str(e)}")
 
     # Clean up temporary user data directory if created
     if temp_user_data_dir:

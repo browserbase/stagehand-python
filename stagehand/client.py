@@ -395,7 +395,6 @@ class Stagehand:
         """
         if self.session_id not in self._session_locks:
             self._session_locks[self.session_id] = asyncio.Lock()
-            self.logger.debug(f"Created lock for session {self.session_id}")
         return self._session_locks[self.session_id]
 
     async def __aenter__(self):

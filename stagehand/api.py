@@ -110,10 +110,6 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
     modified_payload = convert_dict_keys_to_camel_case(payload)
 
     client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
-    self.logger.debug(f"\n==== EXECUTING {method.upper()} ====")
-    self.logger.debug(f"URL: {self.api_url}/sessions/{self.session_id}/{method}")
-    self.logger.debug(f"Payload: {modified_payload}")
-    self.logger.debug(f"Headers: {headers}")
 
     async with client:
         try:
@@ -133,8 +129,6 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
                     raise RuntimeError(
                         f"Request failed with status {response.status_code}: {error_message}"
                     )
-
-                self.logger.debug("[STREAM] Processing server response")
                 result = None
 
                 async for line in response.aiter_lines():
@@ -163,9 +157,6 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
                                 )
                             elif status == "finished":
                                 result = message.get("data", {}).get("result")
-                                self.logger.debug(
-                                    "[SYSTEM] Operation completed successfully"
-                                )
                         elif msg_type == "log":
                             # Process log message using _handle_log
                             await self._handle_log(message)
