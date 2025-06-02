@@ -203,7 +203,7 @@ async def connect_local_browser(
             if temp_user_data_dir:
                 try:
                     shutil.rmtree(temp_user_data_dir)
-                except:
+                except Exception:
                     pass
             raise
 
