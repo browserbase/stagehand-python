@@ -1,7 +1,5 @@
 import asyncio
 import os
-import shutil
-import tempfile
 import signal
 import sys
 import time
