@@ -96,8 +96,6 @@ class ExtractHandler:
         else:
             transformed_schema = DefaultExtractSchema
 
-        self.logger.info(f"Transformed schema: {transformed_schema}")
-
         # Use inference to call the LLM
         extraction_response = extract_inference(
             instruction=instruction,
