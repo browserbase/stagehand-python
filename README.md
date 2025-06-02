@@ -62,40 +62,67 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 
 ## Installation
 
-Install the Python package via pip:
+**Recommended:** Install using `uv` (fast Python package manager):
+
+```bash
+uv add stagehand
+```
+
+Alternatively, install via pip:
 
 ```bash
 pip install stagehand
 ```
+
+### Installing with uv
+
+[uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver. If you don't have uv installed, you can install it with:
+
+```bash
+# On macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or via pip
+pip install uv
+```
+
+For new projects, you can create a new project with uv:
+
+```bash
+uv init stagehand-project
+cd stagehand-project
+uv add stagehand
+```
+
 ## Requirements
 
 - Python 3.9+
-- httpx (for async client)
-- requests (for sync client)
-- asyncio (for async client)
-- pydantic
-- python-dotenv (optional, for .env support)
-- playwright
-- rich (for `examples/` terminal support)
+- All dependencies are automatically handled when installing via `uv` or `pip`
 
-You can simply run:
+The main dependencies include:
+- httpx (for async HTTP client)
+- requests (for sync HTTP client)
+- pydantic (for data validation)
+- playwright (for browser automation)
+- python-dotenv (for environment variable support)
+- browserbase (for Browserbase integration)
+
+### Development Dependencies
+
+For development, install with dev dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv add stagehand --dev
 ```
 
-**requirements.txt**
-```txt
-httpx>=0.24.0
-asyncio>=3.4.3 
-python-dotenv>=1.0.0
-pydantic>=1.10.0
-playwright>=1.42.1
-requests>=2.31.0
-rich
-browserbase
-```
+Or install dev dependencies separately:
 
+```bash
+uv add --dev pytest pytest-asyncio pytest-mock pytest-cov black isort mypy ruff rich
+```
 
 ## Environment Variables
 
@@ -106,6 +133,7 @@ export BROWSERBASE_API_KEY="your-api-key"
 export BROWSERBASE_PROJECT_ID="your-project-id"
 export MODEL_API_KEY="your-openai-api-key"  # or your preferred model's API key
 export STAGEHAND_API_URL="url-of-stagehand-server"
+export STAGEHAND_ENV="BROWSERBASE" # or "LOCAL" to run Stagehand locally
 ```
 
 You can also make a copy of `.env.example` and add these to your `.env` file. 
