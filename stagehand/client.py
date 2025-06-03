@@ -23,7 +23,7 @@ from .agent import Agent
 from .config import StagehandConfig, default_config
 from .context import StagehandContext
 from .llm import LLMClient
-from .logging import StagehandLogger, default_log_handler
+from .logging import LogConfig, StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import AgentConfig
@@ -159,11 +159,18 @@ class Stagehand:
         if self.env not in ["BROWSERBASE", "LOCAL"]:
             raise ValueError("env must be either 'BROWSERBASE' or 'LOCAL'")
 
-        # Initialize the centralized logger with the specified verbosity
-        self.on_log = self.config.logger or default_log_handler
-        self.logger = StagehandLogger(
-            verbose=self.verbose, external_logger=self.on_log, use_rich=use_rich_logging
+        # Create centralized log configuration
+        self.log_config = LogConfig(
+            verbose=self.verbose,
+            use_rich=use_rich_logging,
+            env=self.env,
+            external_logger=self.config.logger or default_log_handler,
+            quiet_dependencies=True,
         )
+
+        # Initialize the centralized logger with the LogConfig
+        self.on_log = self.log_config.external_logger
+        self.logger = StagehandLogger(config=self.log_config)
 
         # If using BROWSERBASE, session_id or creation params are needed
         if self.env == "BROWSERBASE":
@@ -393,17 +400,14 @@ class Stagehand:
         """
         if self.session_id not in self._session_locks:
             self._session_locks[self.session_id] = asyncio.Lock()
-            self.logger.debug(f"Created lock for session {self.session_id}")
         return self._session_locks[self.session_id]
 
     async def __aenter__(self):
-        self.logger.debug("Entering Stagehand context manager (__aenter__)...")
         # Just call init() if not already done
         await self.init()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        self.logger.debug("Exiting Stagehand context manager (__aexit__)...")
         await self.close()
 
     async def init(self):
@@ -463,7 +467,6 @@ class Stagehand:
                 self._browser = await self._playwright.chromium.connect_over_cdp(
                     connect_url
                 )
-                self.logger.debug(f"Connected to remote browser: {self._browser}")
             except Exception as e:
                 self.logger.error(f"Failed to connect Playwright via CDP: {str(e)}")
                 await self.close()
@@ -769,7 +772,7 @@ class Stagehand:
 
         payload = {
             "modelName": self.model_name,
-            "verbose": self.verbose,
+            "verbose": self.log_config.get_remote_verbose(),
             "domSettleTimeoutMs": self.dom_settle_timeout_ms,
             "browserbaseSessionCreateParams": (
                 browserbase_session_create_params
@@ -850,10 +853,6 @@ class Stagehand:
         modified_payload = convert_dict_keys_to_camel_case(payload)
 
         client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
-        self.logger.debug(f"\n==== EXECUTING {method.upper()} ====")
-        self.logger.debug(f"URL: {self.api_url}/sessions/{self.session_id}/{method}")
-        self.logger.debug(f"Payload: {modified_payload}")
-        self.logger.debug(f"Headers: {headers}")
 
         async with client:
             try:
@@ -874,7 +873,6 @@ class Stagehand:
                             f"Request failed with status {response.status_code}: {error_message}"
                         )
 
-                    self.logger.debug("[STREAM] Processing server response")
                     result = None
 
                     async for line in response.aiter_lines():
@@ -903,9 +901,7 @@ class Stagehand:
                                     )
                                 elif status == "finished":
                                     result = message.get("data", {}).get("result")
-                                    self.logger.debug(
-                                        "[SYSTEM] Operation completed successfully"
-                                    )
+
                             elif msg_type == "log":
                                 # Process log message using _handle_log
                                 await self._handle_log(message)

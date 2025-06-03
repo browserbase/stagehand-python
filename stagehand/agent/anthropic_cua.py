@@ -243,7 +243,7 @@ class AnthropicCUAClient(AgentClient):
                 break
 
             if not agent_action and not task_completed:
-                self.logger.debug(
+                self.logger.info(
                     "Model did not request an action and task not marked complete. Ending task to prevent loop.",
                     category=StagehandFunctionName.AGENT,
                 )
@@ -290,7 +290,7 @@ class AnthropicCUAClient(AgentClient):
                     block.model_dump() for block in response.content
                 ]
             except Exception as e:
-                self.logger.debug(
+                self.logger.error(
                     f"Could not model_dump response.content blocks: {e}",
                     category=StagehandFunctionName.AGENT,
                 )
@@ -337,7 +337,7 @@ class AnthropicCUAClient(AgentClient):
             and tool_name != "goto"
             and tool_name != "navigate_back"
         ):
-            self.logger.debug(
+            self.logger.error(
                 f"Unsupported tool name from Anthropic: {tool_name}",
                 category=StagehandFunctionName.AGENT,
             )
@@ -501,7 +501,7 @@ class AnthropicCUAClient(AgentClient):
                     )
                     action_type_str = "drag"  # Normalize
                 else:
-                    self.logger.debug(
+                    self.logger.error(
                         "Drag action missing valid start or end coordinates.",
                         category=StagehandFunctionName.AGENT,
                     )
@@ -559,7 +559,7 @@ class AnthropicCUAClient(AgentClient):
                         )
                         action_type_str = "function"
                     else:
-                        self.logger.debug(
+                        self.logger.error(
                             "Goto action from Anthropic missing URL",
                             category=StagehandFunctionName.AGENT,
                         )
@@ -572,7 +572,7 @@ class AnthropicCUAClient(AgentClient):
                     )
                     action_type_str = "function"
             else:
-                self.logger.debug(
+                self.logger.error(
                     f"Unsupported action type '{action_type_str}' from Anthropic computer tool.",
                     category=StagehandFunctionName.AGENT,
                 )
@@ -613,7 +613,7 @@ class AnthropicCUAClient(AgentClient):
                     self.format_screenshot(new_screenshot_base64)
                 )
             else:
-                self.logger.debug(
+                self.logger.error(
                     "Missing screenshot for computer tool feedback (empty string passed).",
                     category=StagehandFunctionName.AGENT,
                 )

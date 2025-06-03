@@ -11,6 +11,62 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.theme import Theme
 
+
+class LogConfig:
+    """
+    Centralized configuration for logging across Stagehand.
+    Manages log levels, formatting, and environment-specific settings.
+    """
+
+    def __init__(
+        self,
+        verbose: int = 1,
+        use_rich: bool = True,
+        env: str = "LOCAL",
+        external_logger: Optional[Callable] = None,
+        quiet_dependencies: bool = True,
+    ):
+        """
+        Initialize logging configuration.
+
+        Args:
+            verbose: Verbosity level (0=error, 1=info, 2=debug)
+            use_rich: Whether to use Rich for formatted output
+            env: Environment ("LOCAL" or "BROWSERBASE")
+            external_logger: Optional external logging callback
+            quiet_dependencies: Whether to quiet noisy dependencies
+        """
+        self.verbose = verbose
+        self.use_rich = use_rich
+        self.env = env
+        self.external_logger = external_logger
+        self.quiet_dependencies = quiet_dependencies
+
+    def get_remote_verbose(self) -> int:
+        """
+        Map local verbose levels to remote levels.
+        Since we now use the same 3-level system, this is a direct mapping.
+        """
+        return self.verbose
+
+    def get_python_log_level(self) -> int:
+        """Get the Python logging level based on verbose setting."""
+        level_map = {
+            0: logging.ERROR,
+            1: logging.INFO,
+            2: logging.DEBUG,
+        }
+        return level_map.get(self.verbose, logging.INFO)
+
+    def should_log(self, level: int) -> bool:
+        """Check if a message at the given level should be logged."""
+        # Always log errors (level 0)
+        if level == 0:
+            return True
+        # Otherwise check against verbose setting
+        return level <= self.verbose
+
+
 # Custom theme for Rich
 stagehand_theme = Theme(
     {
@@ -27,8 +83,25 @@ stagehand_theme = Theme(
     }
 )
 
-# Create console instance with theme
-console = Console(theme=stagehand_theme)
+
+def get_console(use_rich: bool = True) -> Console:
+    """
+    Get a console instance based on whether Rich formatting is enabled.
+
+    Args:
+        use_rich: If True, returns a console with theme. If False, returns a plain console.
+
+    Returns:
+        Console instance configured appropriately
+    """
+    if use_rich:
+        return Console(theme=stagehand_theme)
+    else:
+        return Console(theme=None)
+
+
+# Create default console instance with theme (for backward compatibility)
+console = get_console(use_rich=True)
 
 # Setup logging with Rich handler
 logger = logging.getLogger(__name__)
@@ -77,6 +150,8 @@ def configure_logging(
 
     # Configure root logger with custom format
     if use_rich:
+        # Get a console with theme for Rich handler
+        rich_console = get_console(use_rich=True)
         # Use Rich handler for root logger
         logging.basicConfig(
             level=level,
@@ -86,7 +161,7 @@ def configure_logging(
                 RichHandler(
                     rich_tracebacks=True,
                     markup=True,
-                    console=console,
+                    console=rich_console,
                     show_time=False,
                     show_level=False,
                 )
@@ -127,6 +202,7 @@ class StagehandLogger:
         verbose: int = 1,
         external_logger: Optional[Callable] = None,
         use_rich: bool = True,
+        config: Optional[LogConfig] = None,
     ):
         """
         Initialize the logger with specified verbosity and optional external logger.
@@ -135,13 +211,27 @@ class StagehandLogger:
             verbose: Verbosity level (0=error only, 1=info, 2=debug)
             external_logger: Optional callback function for log events
             use_rich: Whether to use Rich for pretty output (default: True)
+            config: Optional LogConfig instance. If provided, overrides other parameters.
         """
-        self.verbose = verbose
-        self.external_logger = external_logger
-        self.use_rich = use_rich
-        self.console = console
+        if config:
+            self.verbose = config.verbose
+            self.external_logger = config.external_logger
+            self.use_rich = config.use_rich
+            self.config = config
+        else:
+            self.verbose = verbose
+            self.external_logger = external_logger
+            self.use_rich = use_rich
+            self.config = LogConfig(
+                verbose=verbose,
+                use_rich=use_rich,
+                external_logger=external_logger,
+            )
+
+        self.console = get_console(self.use_rich)
 
         # Map our verbosity levels to Python's logging levels
+        # Now using only 3 levels to match the remote Fastify server
         self.level_map = {
             0: logging.ERROR,  # Critical errors only
             1: logging.INFO,  # Standard information
@@ -152,7 +242,7 @@ class StagehandLogger:
         self.level_style = {0: "error", 1: "info", 2: "debug"}
 
         # Update logger level based on verbosity
-        self._set_verbosity(verbose)
+        self._set_verbosity(self.verbose)
 
     def _set_verbosity(self, level: int):
         """Set the logger verbosity level"""
@@ -558,6 +648,20 @@ class StagehandLogger:
     ):
         """Log a debug message (level 2)"""
         self.log(message, level=2, category=category, auxiliary=auxiliary)
+
+
+def get_logger(name: str, config: LogConfig) -> StagehandLogger:
+    """
+    Factory function to get a configured logger instance for a module.
+
+    Args:
+        name: The name of the module requesting the logger
+        config: LogConfig instance with logging configuration
+
+    Returns:
+        StagehandLogger: Configured logger instance
+    """
+    return StagehandLogger(config=config)
 
 
 # Create a synchronous wrapper for the async default_log_handler
