@@ -840,7 +840,7 @@ def transform_url_strings_to_ids(schema):
     return transform_model(schema)
 
 
-def transform_model(model_cls, path=[]):
+def transform_model(model_cls, path=None):
     """
     Recursively transforms a Pydantic model by replacing URL fields with numeric fields.
 
@@ -851,6 +851,9 @@ def transform_model(model_cls, path=[]):
     Returns:
         Tuple of (transformed_model_cls, url_paths)
     """
+    if path is None:
+        path = []
+
     # Get model fields based on Pydantic version
     try:
         # Pydantic V2 approach

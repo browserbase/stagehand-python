@@ -280,7 +280,7 @@ class Stagehand:
                 def schedule_cleanup():
                     task = asyncio.create_task(self._async_cleanup())
                     # Shield the task to prevent it from being cancelled
-                    shielded = asyncio.shield(task)
+                    asyncio.shield(task)
                     # We don't need to await here since we're in call_soon_threadsafe
 
                 loop.call_soon_threadsafe(schedule_cleanup)
