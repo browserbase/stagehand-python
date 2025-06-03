@@ -20,9 +20,9 @@ from .llm import (
     ChatMessage,
 )
 from .page import (
-    DEFAULT_EXTRACT_SCHEMA,
     ActOptions,
     ActResult,
+    DefaultExtractSchema,
     ExtractOptions,
     ExtractResult,
     MetadataSchema,
@@ -50,7 +50,7 @@ __all__ = [
     "ObserveOptions",
     "ObserveResult",
     "MetadataSchema",
-    "DEFAULT_EXTRACT_SCHEMA",
+    "DefaultExtractSchema",
     "ExtractOptions",
     "ExtractResult",
     "AgentConfig",

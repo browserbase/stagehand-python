@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 # Ignore linting error for this class name since it's used as a constant
 # ruff: noqa: N801
-class DEFAULT_EXTRACT_SCHEMA(BaseModel):
+class DefaultExtractSchema(BaseModel):
     extraction: str
 
 
@@ -132,7 +132,7 @@ class ExtractOptions(BaseModel):
     # IMPORTANT: If using a Pydantic model for schema_definition, please call its .model_json_schema() method
     # to convert it to a JSON serializable dictionary before sending it with the extract command.
     schema_definition: Union[dict[str, Any], type[BaseModel]] = Field(
-        default=DEFAULT_EXTRACT_SCHEMA,
+        default=DefaultExtractSchema,
         description="A JSON schema or Pydantic model that defines the structure of the expected data.",
     )
     use_text_extract: Optional[bool] = None

@@ -36,6 +36,7 @@ class StagehandPage:
         self._page = page
         self._stagehand = stagehand_client
 
+    # TODO try catch here
     async def ensure_injection(self):
         """Ensure custom injection scripts are present on the page using domScripts.js."""
         exists_before = await self._page.evaluate(

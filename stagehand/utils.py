@@ -213,7 +213,8 @@ def transform_url_strings_to_ids(schema):
     return transform_model(schema)
 
 
-def transform_model(model_cls, path=[]):
+# TODO: remove path?
+def transform_model(model_cls, path=[]):  # noqa: F841 B006
     """
     Recursively transforms a Pydantic model by replacing URL fields with numeric fields.
 
