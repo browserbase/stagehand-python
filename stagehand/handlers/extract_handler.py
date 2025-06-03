@@ -85,7 +85,6 @@ class ExtractHandler:
         self.logger.info("Getting accessibility tree data")
         output_string = tree["simplified"]
         id_to_url_mapping = tree.get("idToUrl", {})
-        self.logger.info(f"schema: {schema}")
 
         # Transform schema URL fields to numeric IDs if necessary
         transformed_schema = schema
