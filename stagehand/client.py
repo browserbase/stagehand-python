@@ -122,7 +122,25 @@ class Stagehand:
         self.wait_for_captcha_solves = self.config.wait_for_captcha_solves
         self.system_prompt = self.config.system_prompt
         self.verbose = self.config.verbose
-        self.env = self.config.env.upper() if self.config.env else "BROWSERBASE"
+        
+        # Smart environment detection
+        if self.config.env:
+            self.env = self.config.env.upper()
+        else:
+            # Auto-detect environment based on available configuration
+            has_browserbase_config = bool(self.browserbase_api_key and self.browserbase_project_id)
+            has_local_config = bool(self.config.local_browser_launch_options)
+            
+            if has_local_config and not has_browserbase_config:
+                # Local browser options specified but no Browserbase config
+                self.env = "LOCAL"
+            elif not has_browserbase_config and not has_local_config:
+                # No configuration specified, default to LOCAL for easier local development
+                self.env = "LOCAL"
+            else:
+                # Default to BROWSERBASE if Browserbase config is available
+                self.env = "BROWSERBASE"
+        
         self.local_browser_launch_options = (
             self.config.local_browser_launch_options or {}
         )
@@ -230,7 +248,10 @@ class Stagehand:
                 return
 
             self.__class__._cleanup_called = True
-            print(f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session...")
+            if self.env == "BROWSERBASE":
+                print(f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session...")
+            else:
+                print(f"\n[{signal.Signals(sig).name}] received. Cleaning up Stagehand resources...")
 
             try:
                 # Try to get the current event loop
@@ -269,9 +290,15 @@ class Stagehand:
         """Async cleanup method called from signal handler."""
         try:
             await self.close()
-            print(f"Session {self.session_id} ended successfully")
+            if self.env == "BROWSERBASE" and self.session_id:
+                print(f"Session {self.session_id} ended successfully")
+            else:
+                print("Stagehand resources cleaned up successfully")
         except Exception as e:
-            print(f"Error ending Browserbase session: {str(e)}")
+            if self.env == "BROWSERBASE":
+                print(f"Error ending Browserbase session: {str(e)}")
+            else:
+                print(f"Error cleaning up Stagehand resources: {str(e)}")
         finally:
             # Force exit after cleanup completes (or fails)
             # Use os._exit to avoid any further Python cleanup that might hang
