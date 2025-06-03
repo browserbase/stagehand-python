@@ -7,6 +7,12 @@ on:
       - '**.py'
       - 'stagehand/**'
       - 'pyproject.toml'
+  push:
+    branches: [ main, master ]
+    paths:
+      - '**.py'
+      - 'stagehand/**'
+      - 'pyproject.toml'
 
 jobs:
   format-check:
