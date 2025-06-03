@@ -62,45 +62,44 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 
 ## Installation
 
-**Recommended:** Install using `uv` (fast Python package manager):
+### Creating a Virtual Environment (Recommended)
+
+First, create and activate a virtual environment to keep your project dependencies isolated:
 
 ```bash
-uv add stagehand
+# Create a virtual environment
+python -m venv stagehand-env
+
+# Activate the environment
+# On macOS/Linux:
+source stagehand-env/bin/activate
+# On Windows:
+stagehand-env\Scripts\activate
 ```
 
-Alternatively, install via pip:
+### Install Stagehand
 
+**Normal Installation:**
 ```bash
 pip install stagehand
 ```
 
-### Installing with uv
-
-[uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver. If you don't have uv installed, you can install it with:
-
-```bash
-# On macOS and Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# On Windows
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Or via pip
-pip install uv
-```
-
-For new projects, you can create a new project with uv:
+**Local Development Installation:**
+If you're contributing to Stagehand or want to modify the source code:
 
 ```bash
-uv init stagehand-project
-cd stagehand-project
-uv add stagehand
+# Clone the repository
+git clone https://github.com/browserbase/stagehand-python.git
+cd stagehand-python
+
+# Install in editable mode with development dependencies
+pip install -e .[dev]
 ```
 
 ## Requirements
 
 - Python 3.9+
-- All dependencies are automatically handled when installing via `uv` or `pip`
+- All dependencies are automatically handled when installing via `pip`
 
 The main dependencies include:
 - httpx (for async HTTP client)
@@ -112,17 +111,11 @@ The main dependencies include:
 
 ### Development Dependencies
 
-For development, install with dev dependencies:
-
-```bash
-uv add stagehand --dev
-```
-
-Or install dev dependencies separately:
-
-```bash
-uv add --dev pytest pytest-asyncio pytest-mock pytest-cov black isort mypy ruff rich
-```
+The development dependencies are automatically installed when using `pip install -e .[dev]` and include:
+- pytest, pytest-asyncio, pytest-mock, pytest-cov (testing)
+- black, isort, ruff (code formatting and linting)
+- mypy (type checking)
+- rich (enhanced terminal output)
 
 ## Environment Variables
 
