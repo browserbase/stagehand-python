@@ -45,9 +45,6 @@ class LLMClient:
         # Warning:Prefer environment variables for specific providers.
         if api_key:
             litellm.api_key = api_key
-            logger.warning(
-                "Set global litellm.api_key. Prefer provider-specific environment variables."
-            )
 
         # Apply other global settings if provided
         for key, value in kwargs.items():

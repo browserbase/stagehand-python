@@ -25,7 +25,7 @@ class StagehandConfig(BaseModel):
         wait_for_captcha_solves (Optional[bool]): Whether to wait for CAPTCHA to be solved.
         act_timeout_ms (Optional[int]): Timeout for act commands (in milliseconds).
         system_prompt (Optional[str]): System prompt to use for LLM interactions.
-        verbose (Optional[int]): Verbosity level for logs (1=minimal, 2=medium, 3=detailed).
+        verbose (Optional[int]): Verbosity level for logs (0=errors, 1=info, 2=debug).
         local_browser_launch_options (Optional[dict[str, Any]]): Local browser launch options.
     """
 
@@ -38,7 +38,7 @@ class StagehandConfig(BaseModel):
     )
     verbose: Optional[int] = Field(
         1,
-        description="Verbosity level for logs: 1=minimal (INFO), 2=medium (WARNING), 3=detailed (DEBUG)",
+        description="Verbosity level for logs: 0=errors only, 1=info, 2=debug",
     )
     logger: Optional[Callable[[Any], None]] = Field(
         None, description="Custom logging function"

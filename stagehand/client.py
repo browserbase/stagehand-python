@@ -179,7 +179,7 @@ class Stagehand:
                     )
                 if not self.model_api_key:
                     # Model API key needed if Stagehand server creates the session
-                    self.logger.warning(
+                    self.logger.info(
                         "model_api_key is recommended when creating a new BROWSERBASE session to configure the Stagehand server's LLM."
                     )
             elif self.session_id:
@@ -477,7 +477,7 @@ class Stagehand:
                 self._context = existing_contexts[0]
             else:
                 # This case might be less common with Browserbase but handle it
-                self.logger.warning(
+                self.logger.debug(
                     "No existing context found in remote browser, creating a new one."
                 )
                 self._context = (
@@ -705,7 +705,7 @@ class Stagehand:
                         f"Error ending server session {self.session_id}: {str(e)}"
                     )
             elif self.session_id:
-                self.logger.warning(
+                self.logger.debug(
                     "Cannot end server session: HTTP client not available."
                 )
 
@@ -769,7 +769,7 @@ class Stagehand:
 
         payload = {
             "modelName": self.model_name,
-            "verbose": 2 if self.verbose == 3 else self.verbose,
+            "verbose": self.verbose,
             "domSettleTimeoutMs": self.dom_settle_timeout_ms,
             "browserbaseSessionCreateParams": (
                 browserbase_session_create_params
@@ -913,7 +913,7 @@ class Stagehand:
                                 # Log any other message types
                                 self.logger.debug(f"[UNKNOWN] Message type: {msg_type}")
                         except json.JSONDecodeError:
-                            self.logger.warning(f"Could not parse line as JSON: {line}")
+                            self.logger.debug(f"Could not parse line as JSON: {line}")
 
                     # Return the final result
                     return result
@@ -942,9 +942,8 @@ class Stagehand:
 
             # Map level strings to internal levels
             level_map = {
-                "debug": 3,
+                "debug": 2,
                 "info": 1,
-                "warning": 2,
                 "error": 0,
             }
 
@@ -952,7 +951,7 @@ class Stagehand:
             if isinstance(level_str, str):
                 internal_level = level_map.get(level_str.lower(), 1)
             else:
-                internal_level = min(level_str, 3)  # Ensure level is between 0-3
+                internal_level = min(level_str, 2)  # Ensure level is between 0-2
 
             # Handle the case where message itself might be a JSON-like object
             if isinstance(message, dict):
@@ -986,7 +985,7 @@ class Stagehand:
 
         Args:
             message: The message to log
-            level: Verbosity level (0=error, 1=info, 2=detailed, 3=debug)
+            level: Verbosity level (0=error, 1=info, 2=debug)
             category: Optional category for the message
             auxiliary: Optional auxiliary data to include
         """

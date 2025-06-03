@@ -150,7 +150,7 @@ class GoogleCUAClient(AgentClient):
                 and candidate.safety_ratings
             ):
                 error_message += f" - Safety Ratings: {candidate.safety_ratings}"
-            self.logger.warning(error_message, category="agent")
+            self.logger.info(error_message, category="agent")
             return None, reasoning_text, True, error_message, None
 
         agent_action: Optional[AgentAction] = None
@@ -218,7 +218,7 @@ class GoogleCUAClient(AgentClient):
                         "keys": [self.key_to_playwright("PageDown")],
                     }
                 else:
-                    self.logger.warning(
+                    self.logger.error(
                         f"Unsupported scroll direction: {direction}", category="agent"
                     )
                     return (
@@ -264,7 +264,7 @@ class GoogleCUAClient(AgentClient):
                     "arguments": {"url": "https://www.google.com"},
                 }
             else:
-                self.logger.warning(
+                self.logger.error(
                     f"Unsupported Google CUA function: {action_name}", category="agent"
                 )
                 return (
@@ -524,7 +524,7 @@ class GoogleCUAClient(AgentClient):
                 )
 
             if not agent_action and not task_completed:
-                self.logger.warning(
+                self.logger.error(
                     "Model did not request an action and task not marked complete. Ending task.",
                     category="agent",
                 )
@@ -540,7 +540,7 @@ class GoogleCUAClient(AgentClient):
                     usage=usage_obj,
                 )
 
-        self.logger.warning("Max steps reached for Google CUA task.", category="agent")
+        self.logger.error("Max steps reached for Google CUA task.", category="agent")
         usage_obj = {
             "input_tokens": total_input_tokens,
             "output_tokens": total_output_tokens,

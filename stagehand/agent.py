@@ -31,12 +31,20 @@ class Agent:
         self._stagehand = stagehand_client
         self._config = agent_config  # Store the required config
 
+        if not self._stagehand._initialized:
+            self._stagehand.logger.error(
+                "Stagehand must be initialized before creating an agent. Call await stagehand.init() first."
+            )
+            raise RuntimeError(
+                "Stagehand must be initialized before creating an agent. Call await stagehand.init() first."
+            )
+
         # Perform provider inference and validation
         if self._config.model and not self._config.provider:
             if self._config.model in MODEL_TO_PROVIDER_MAP:
                 self._config.provider = MODEL_TO_PROVIDER_MAP[self._config.model]
             else:
-                self._stagehand.logger.warning(
+                self._stagehand.logger.error(
                     f"Could not infer provider for model: {self._config.model}"
                 )
 

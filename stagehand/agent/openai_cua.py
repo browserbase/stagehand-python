@@ -214,7 +214,7 @@ class OpenAICUAClient(AgentClient):
                 )
                 # Ensure arguments is a dict, even if empty
                 if not isinstance(arguments, dict):
-                    self.logger.warning(
+                    self.logger.debug(
                         f"Function call arguments are not a dict: {arguments}. Using empty dict.",
                         category="agent",
                     )
@@ -464,7 +464,7 @@ class OpenAICUAClient(AgentClient):
                 )
 
             if not agent_action and not task_completed:
-                self.logger.warning(
+                self.logger.info(
                     "Model did not request an action and task not marked complete. Ending task to prevent loop.",
                     category="agent",
                 )
@@ -480,7 +480,7 @@ class OpenAICUAClient(AgentClient):
                     usage=usage_obj,
                 )
 
-        self.logger.warning("Max steps reached for OpenAI CUA task.", category="agent")
+        self.logger.info("Max steps reached for OpenAI CUA task.", category="agent")
         usage_obj = {
             "input_tokens": total_input_tokens,
             "output_tokens": total_output_tokens,

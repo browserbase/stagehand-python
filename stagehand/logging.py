@@ -132,7 +132,7 @@ class StagehandLogger:
         Initialize the logger with specified verbosity and optional external logger.
 
         Args:
-            verbose: Verbosity level (0=error only, 1=info, 2=detailed, 3=debug)
+            verbose: Verbosity level (0=error only, 1=info, 2=debug)
             external_logger: Optional callback function for log events
             use_rich: Whether to use Rich for pretty output (default: True)
         """
@@ -145,12 +145,11 @@ class StagehandLogger:
         self.level_map = {
             0: logging.ERROR,  # Critical errors only
             1: logging.INFO,  # Standard information
-            2: logging.WARNING,  # More detailed info (using WARNING level)
-            3: logging.DEBUG,  # Debug information
+            2: logging.DEBUG,  # Debug information
         }
 
         # Map level to style names
-        self.level_style = {0: "error", 1: "info", 2: "warning", 3: "debug"}
+        self.level_style = {0: "error", 1: "info", 2: "debug"}
 
         # Update logger level based on verbosity
         self._set_verbosity(verbose)
@@ -351,7 +350,7 @@ class StagehandLogger:
 
         Args:
             message: The message to log
-            level: Verbosity level (0=error, 1=info, 2=detailed, 3=debug)
+            level: Verbosity level (0=error, 1=info, 2=debug)
             category: Optional category for the message
             auxiliary: Optional dictionary of auxiliary data
         """
@@ -539,8 +538,6 @@ class StagehandLogger:
             elif level == 1:
                 logger.info(log_message)
             elif level == 2:
-                logger.warning(log_message)
-            elif level == 3:
                 logger.debug(log_message)
 
     # Convenience methods
@@ -556,17 +553,11 @@ class StagehandLogger:
         """Log an info message (level 1)"""
         self.log(message, level=1, category=category, auxiliary=auxiliary)
 
-    def warning(
-        self, message: str, category: str = None, auxiliary: dict[str, Any] = None
-    ):
-        """Log a warning/detailed message (level 2)"""
-        self.log(message, level=2, category=category, auxiliary=auxiliary)
-
     def debug(
         self, message: str, category: str = None, auxiliary: dict[str, Any] = None
     ):
-        """Log a debug message (level 3)"""
-        self.log(message, level=3, category=category, auxiliary=auxiliary)
+        """Log a debug message (level 2)"""
+        self.log(message, level=2, category=category, auxiliary=auxiliary)
 
 
 # Create a synchronous wrapper for the async default_log_handler
@@ -578,7 +569,7 @@ def sync_log_handler(log_data: dict[str, Any]) -> None:
     # Extract relevant data from the log message
     level = log_data.get("level", 1)
     if isinstance(level, str):
-        level = {"error": 0, "info": 1, "warning": 2, "debug": 3}.get(level.lower(), 1)
+        level = {"error": 0, "info": 1, "warning": 2, "debug": 2}.get(level.lower(), 1)
 
     message = log_data.get("message", "")
     category = log_data.get("category", "")
@@ -601,7 +592,7 @@ def sync_log_handler(log_data: dict[str, Any]) -> None:
                 pass
 
     # Create a temporary logger to handle
-    temp_logger = StagehandLogger(verbose=3, use_rich=True, external_logger=None)
+    temp_logger = StagehandLogger(verbose=2, use_rich=True, external_logger=None)
 
     try:
         # Use the logger to format and display the message

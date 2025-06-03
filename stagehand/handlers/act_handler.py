@@ -156,7 +156,7 @@ class ActHandler:
         )
 
         if observe_result.method == "not-supported":
-            self.logger.warning(
+            self.logger.error(
                 message="Cannot execute ObserveResult with unsupported method",
                 category="act",
                 auxiliary={
@@ -229,7 +229,7 @@ class ActHandler:
             if (
                 not act_command
             ):  # If both method and description were empty or resulted in an empty command
-                self.logger.warning(
+                self.logger.error(
                     "Self-heal attempt aborted: could not construct a valid command from ObserveResult.",
                     category="act",
                     auxiliary={
@@ -307,7 +307,7 @@ class ActHandler:
             elif hasattr(locator, method) and callable(getattr(locator, method)):
                 await fallback_locator_method(context)
             else:
-                self.logger.warning(
+                self.logger.error(
                     message="chosen method is invalid",
                     category="act",
                     auxiliary={"method": {"value": method, "type": "string"}},

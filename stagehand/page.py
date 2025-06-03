@@ -124,7 +124,7 @@ class StagehandPage:
         # Check if it's an ObserveResult for direct execution
         if isinstance(action_or_result, ObserveResult):
             if kwargs:
-                self._stagehand.logger.warning(
+                self._stagehand.logger.debug(
                     "Additional keyword arguments provided to 'act' when using an ObserveResult are ignored."
                 )
             payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
@@ -208,7 +208,7 @@ class StagehandPage:
             # If single dict, wrap in list (should ideally be list from server)
             return [ObserveResult(**result)]
         # Handle unexpected return types
-        self._stagehand.logger.warning(
+        self._stagehand.logger.info(
             f"Unexpected result type from observe: {type(result)}"
         )
         return []
@@ -308,7 +308,7 @@ class StagehandPage:
                 # Return raw dict if parsing fails, or raise? Returning dict for now.
                 return result  # type: ignore
         # Handle unexpected return types
-        self._stagehand.logger.warning(
+        self._stagehand.logger.info(
             f"Unexpected result type from extract: {type(result)}"
         )
         # Return raw result if not dict or raise error
@@ -331,7 +331,7 @@ class StagehandPage:
             str: Base64-encoded screenshot data.
         """
         if self._stagehand.env == "LOCAL":
-            self._stagehand.logger.warning(
+            self._stagehand.logger.info(
                 "Local execution of screenshot is not implemented"
             )
             return None
@@ -364,7 +364,11 @@ class StagehandPage:
             # Type assertion might be needed depending on playwright version/typing
             result = await client.send(method, params or {})
         except Exception as e:
-            self._stagehand.logger.error(f"CDP command '{method}' failed: {e}")
+            self._stagehand.logger.debug(
+                f"CDP command '{method}' failed: {e}. Attempting to reconnect..."
+            )
+            # Try to reconnect
+            await self._ensure_cdp_session()
             # Handle specific errors if needed (e.g., session closed)
             if "Target closed" in str(e) or "Session closed" in str(e):
                 # Attempt to reset the client if the session closed unexpectedly
@@ -381,9 +385,7 @@ class StagehandPage:
         try:
             await self.send_cdp(f"{domain}.enable")
         except Exception as e:
-            self._stagehand.logger.warning(
-                f"Failed to enable CDP domain '{domain}': {e}"
-            )
+            self._stagehand.logger.debug(f"Failed to enable CDP domain '{domain}': {e}")
 
     # Method to disable a specific CDP domain
     async def disable_cdp_domain(self, domain: str):
@@ -402,7 +404,7 @@ class StagehandPage:
                 await self._cdp_client.detach()
                 self._cdp_client = None
             except Exception as e:
-                self._stagehand.logger.warning(f"Error detaching CDP client: {e}")
+                self._stagehand.logger.debug(f"Error detaching CDP client: {e}")
         self._cdp_client = None
 
     async def _wait_for_settled_dom(self, timeout_ms: int = None):
@@ -463,13 +465,13 @@ class StagehandPage:
 
                 # If the timeout was hit, log a warning
                 if timeout_task in done:
-                    self._stagehand.logger.warning(
+                    self._stagehand.logger.debug(
                         "DOM settle timeout exceeded, continuing anyway",
                         extra={"timeout_ms": timeout},
                     )
 
             except Exception as e:
-                self._stagehand.logger.warning(f"Error waiting for DOM to settle: {e}")
+                self._stagehand.logger.debug(f"Error waiting for DOM to settle: {e}")
 
         except Exception as e:
             self._stagehand.logger.error(f"Error in _wait_for_settled_dom: {e}")
