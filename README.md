@@ -93,7 +93,11 @@ git clone https://github.com/browserbase/stagehand-python.git
 cd stagehand-python
 
 # Install in editable mode with development dependencies
-pip install -e .[dev]
+pip install -e ".[dev]"
+
+### INSTRUCTION TO BE REMOVED BEFORE RELEASE
+# install google cua
+pip install temp/path-to-the-cua-wheel.wheel
 ```
 
 ## Requirements
@@ -111,7 +115,7 @@ The main dependencies include:
 
 ### Development Dependencies
 
-The development dependencies are automatically installed when using `pip install -e .[dev]` and include:
+The development dependencies are automatically installed when using `pip install -e ".[dev]"` and include:
 - pytest, pytest-asyncio, pytest-mock, pytest-cov (testing)
 - black, isort, ruff (code formatting and linting)
 - mypy (type checking)
@@ -119,13 +123,13 @@ The development dependencies are automatically installed when using `pip install
 
 ## Environment Variables
 
-Before running your script, set the following environment variables:
+Before running your script, copy `.env.example` to `.env.` set the following environment variables:
 
 ```bash
-export BROWSERBASE_API_KEY="your-api-key"
-export BROWSERBASE_PROJECT_ID="your-project-id"
+export BROWSERBASE_API_KEY="your-api-key" # if running remotely
+export BROWSERBASE_PROJECT_ID="your-project-id" # if running remotely
 export MODEL_API_KEY="your-openai-api-key"  # or your preferred model's API key
-export STAGEHAND_API_URL="url-of-stagehand-server"
+export STAGEHAND_API_URL="url-of-stagehand-server" # if running remotely
 export STAGEHAND_ENV="BROWSERBASE" # or "LOCAL" to run Stagehand locally
 ```
 

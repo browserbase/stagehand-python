@@ -24,6 +24,9 @@ dependencies = [
     "playwright>=1.42.1",
     "requests>=2.31.0",
     "browserbase>=1.4.0",
+    "anthropic>=0.52.2",
+    "openai>=1.83.0",
+    "litellm>=1.72.0"
 ]
 
 [project.optional-dependencies]
