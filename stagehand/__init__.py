@@ -2,6 +2,7 @@ from .agent import Agent
 from .client import Stagehand
 from .config import StagehandConfig, default_config
 from .handlers.observe_handler import ObserveHandler
+from .logging import configure_logging
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import (
@@ -17,7 +18,6 @@ from .schemas import (
     ObserveOptions,
     ObserveResult,
 )
-from .utils import configure_logging
 
 __version__ = "0.0.1"
 

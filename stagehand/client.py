@@ -2,9 +2,9 @@ import asyncio
 import json
 import os
 import shutil
-import tempfile
 import signal
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, Literal, Optional
@@ -23,13 +23,12 @@ from .agent import Agent
 from .config import StagehandConfig, default_config
 from .context import StagehandContext
 from .llm import LLMClient
+from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import AgentConfig
 from .utils import (
-    StagehandLogger,
     convert_dict_keys_to_camel_case,
-    default_log_handler,
     make_serializable,
 )
 
@@ -47,7 +46,7 @@ class Stagehand:
 
     # Dictionary to store one lock per session_id
     _session_locks = {}
-    
+
     # Flag to track if cleanup has been called
     _cleanup_called = False
 
@@ -193,7 +192,7 @@ class Stagehand:
                     raise ValueError(
                         "browserbase_project_id is required for BROWSERBASE env with existing session_id (or set BROWSERBASE_PROJECT_ID in env)."
                     )
-            
+
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()
 
@@ -224,13 +223,16 @@ class Stagehand:
 
     def _register_signal_handlers(self):
         """Register signal handlers for SIGINT and SIGTERM to ensure proper cleanup."""
+
         def cleanup_handler(sig, frame):
             # Prevent multiple cleanup calls
             if self.__class__._cleanup_called:
                 return
 
             self.__class__._cleanup_called = True
-            print(f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session...")
+            print(
+                f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session..."
+            )
 
             try:
                 # Try to get the current event loop
@@ -252,11 +254,11 @@ class Stagehand:
                 def schedule_cleanup():
                     task = asyncio.create_task(self._async_cleanup())
                     # Shield the task to prevent it from being cancelled
-                    shielded = asyncio.shield(task)
+                    asyncio.shield(task)
                     # We don't need to await here since we're in call_soon_threadsafe
-                
+
                 loop.call_soon_threadsafe(schedule_cleanup)
-                
+
             except Exception as e:
                 print(f"Error during signal cleanup: {str(e)}")
                 sys.exit(1)

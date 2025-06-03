@@ -193,7 +193,6 @@ class ObserveOptions(StagehandBaseModel):
     instruction: str = Field(
         ..., description="Instruction detailing what the AI should observe."
     )
-    only_visible: Optional[bool] = False
     model_name: Optional[str] = None
     return_action: Optional[bool] = None
     draw_overlay: Optional[bool] = None

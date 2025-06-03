@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING, Optional, Union
 if TYPE_CHECKING:
     from stagehand.page import StagehandPage
 
+from ..logging import StagehandLogger
 from ..types.a11y import (
     AccessibilityNode,
     AXNode,
     CDPSession,
     TreeResult,
 )
-from ..utils import StagehandLogger, format_simplified_tree
+from ..utils import format_simplified_tree
 
 
 async def _clean_structural_nodes(
