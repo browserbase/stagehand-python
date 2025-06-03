@@ -649,58 +649,76 @@ class StagehandLogger:
         self.log(message, level=2, category=category, auxiliary=auxiliary)
 
 
-# Create a synchronous wrapper for the async default_log_handler
 def sync_log_handler(log_data: dict[str, Any]) -> None:
     """
-    Synchronous wrapper for log handling, doesn't require awaiting.
-    This avoids the coroutine never awaited warnings.
+    Enhanced log handler for messages from the Stagehand server.
+    Uses Rich for pretty printing and JSON formatting.
+
+    The log_data structure from the server is:
+    {
+        "message": {  // This is the actual LogLine object
+            "message": "...",
+            "level": 0|1|2,
+            "category": "...",
+            "auxiliary": {...}
+        },
+        "status": "running"
+    }
     """
-    # Extract relevant data from the log message
-    level = log_data.get("level", 1)
-    if isinstance(level, str):
-        level = {"error": 0, "info": 1, "warning": 2, "debug": 2}.get(level.lower(), 1)
-
-    message = log_data.get("message", "")
-    category = log_data.get("category", "")
-    auxiliary = {}
-
-    # Process auxiliary data if present
-    if "auxiliary" in log_data:
-        auxiliary = log_data.get("auxiliary", {})
-
-        # Convert string representation to actual object if needed
-        if isinstance(auxiliary, str) and (
-            auxiliary.startswith("{") or auxiliary.startswith("{'")
-        ):
-            try:
-                import ast
-
-                auxiliary = ast.literal_eval(auxiliary)
-            except (SyntaxError, ValueError):
-                # If parsing fails, keep as string
-                pass
-
-    # Create a temporary logger to handle
-    temp_logger = StagehandLogger(verbose=2, use_rich=True, external_logger=None)
-
     try:
+        # Extract the actual LogLine object from the nested structure
+        log_line = log_data.get("message", {})
+
+        # Handle case where log_data might directly be the LogLine (fallback)
+        if not isinstance(log_line, dict) or not log_line:
+            # If message field is not a dict or is empty, treat log_data as the LogLine
+            log_line = log_data
+
+        # Extract data from the LogLine object
+        level = log_line.get("level", 1)
+        message = log_line.get("message", "")
+        category = log_line.get("category", "")
+        auxiliary = log_line.get("auxiliary", {})
+
+        # Handle level conversion if it's a string
+        if isinstance(level, str):
+            level = {"error": 0, "info": 1, "warning": 1, "warn": 1, "debug": 2}.get(
+                level.lower(), 1
+            )
+
+        # Ensure level is within valid range
+        level = max(0, min(2, int(level))) if level is not None else 1
+
+        # Handle cases where message might be a complex object
+        if isinstance(message, dict):
+            # If message is a dict, convert to string for display
+            if "message" in message:
+                # Handle nested message structure
+                actual_message = message.get("message", "")
+                if not level and "level" in message:
+                    level = message.get("level", 1)
+                if not category and "category" in message:
+                    category = message.get("category", "")
+                message = actual_message
+            else:
+                # Convert dict to JSON string
+                message = json.dumps(message, indent=2)
+
+        # Create a temporary logger to handle the message
+        temp_logger = StagehandLogger(verbose=2, use_rich=True, external_logger=None)
+
         # Use the logger to format and display the message
-        temp_logger.log(message, level=level, category=category, auxiliary=auxiliary)
+        temp_logger.log(message, level=level, auxiliary=auxiliary)
+
     except Exception as e:
         # Fall back to basic logging if formatting fails
         print(f"Error formatting log: {str(e)}")
-        print(f"Original message: {message}")
-        if category:
-            print(f"Category: {category}")
-        if auxiliary:
-            print(f"Auxiliary data: {auxiliary}")
+        print(f"Original log_data: {log_data}")
 
 
 async def default_log_handler(log_data: dict[str, Any]) -> None:
     """
-    Enhanced default handler for log messages from the Stagehand server.
-    Uses Rich for pretty printing and JSON formatting.
-
-    This is an async function but calls the synchronous implementation.
+    Default handler for log messages from the Stagehand server.
+    This is just a wrapper around sync_log_handler for backward compatibility.
     """
     sync_log_handler(log_data)

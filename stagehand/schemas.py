@@ -193,7 +193,6 @@ class ObserveOptions(StagehandBaseModel):
         ..., description="Instruction detailing what the AI should observe."
     )
     model_name: Optional[str] = None
-    return_action: Optional[bool] = None
     draw_overlay: Optional[bool] = None
     dom_settle_timeout_ms: Optional[int] = None
     model_client_options: Optional[dict[str, Any]] = None
