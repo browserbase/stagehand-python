@@ -2,9 +2,9 @@ import asyncio
 import json
 import os
 import shutil
-import tempfile
 import signal
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, Literal, Optional
@@ -47,7 +47,7 @@ class Stagehand:
 
     # Dictionary to store one lock per session_id
     _session_locks = {}
-    
+
     # Flag to track if cleanup has been called
     _cleanup_called = False
 
@@ -122,15 +122,17 @@ class Stagehand:
         self.wait_for_captcha_solves = self.config.wait_for_captcha_solves
         self.system_prompt = self.config.system_prompt
         self.verbose = self.config.verbose
-        
+
         # Smart environment detection
         if self.config.env:
             self.env = self.config.env.upper()
         else:
             # Auto-detect environment based on available configuration
-            has_browserbase_config = bool(self.browserbase_api_key and self.browserbase_project_id)
+            has_browserbase_config = bool(
+                self.browserbase_api_key and self.browserbase_project_id
+            )
             has_local_config = bool(self.config.local_browser_launch_options)
-            
+
             if has_local_config and not has_browserbase_config:
                 # Local browser options specified but no Browserbase config
                 self.env = "LOCAL"
@@ -140,7 +142,7 @@ class Stagehand:
             else:
                 # Default to BROWSERBASE if Browserbase config is available
                 self.env = "BROWSERBASE"
-        
+
         self.local_browser_launch_options = (
             self.config.local_browser_launch_options or {}
         )
@@ -211,7 +213,7 @@ class Stagehand:
                     raise ValueError(
                         "browserbase_project_id is required for BROWSERBASE env with existing session_id (or set BROWSERBASE_PROJECT_ID in env)."
                     )
-            
+
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()
 
@@ -242,6 +244,7 @@ class Stagehand:
 
     def _register_signal_handlers(self):
         """Register signal handlers for SIGINT and SIGTERM to ensure proper cleanup."""
+
         def cleanup_handler(sig, frame):
             # Prevent multiple cleanup calls
             if self.__class__._cleanup_called:
@@ -249,9 +252,13 @@ class Stagehand:
 
             self.__class__._cleanup_called = True
             if self.env == "BROWSERBASE":
-                print(f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session...")
+                print(
+                    f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session..."
+                )
             else:
-                print(f"\n[{signal.Signals(sig).name}] received. Cleaning up Stagehand resources...")
+                print(
+                    f"\n[{signal.Signals(sig).name}] received. Cleaning up Stagehand resources..."
+                )
 
             try:
                 # Try to get the current event loop
@@ -275,9 +282,9 @@ class Stagehand:
                     # Shield the task to prevent it from being cancelled
                     shielded = asyncio.shield(task)
                     # We don't need to await here since we're in call_soon_threadsafe
-                
+
                 loop.call_soon_threadsafe(schedule_cleanup)
-                
+
             except Exception as e:
                 print(f"Error during signal cleanup: {str(e)}")
                 sys.exit(1)
