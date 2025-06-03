@@ -45,7 +45,7 @@ async def main():
     console.print(
         "\n",
         Panel.fit(
-            "[light_gray]New Stagehand 🤘 Python Async Test[/]",
+            "[light_gray]New Stagehand 🤘 Python Test[/]",
             border_style="green",
             padding=(1, 10),
         ),
@@ -230,7 +230,7 @@ async def main():
                 console.print(f"[warning]Could not fill search bar: {e}[/]")
         
         # Final test summary
-        console.print("\n[success]All async tests completed successfully![/]")
+        console.print("\n[success]All tests completed successfully![/]")
         
     except Exception as e:
         console.print(f"[error]Error during testing: {str(e)}[/]")
