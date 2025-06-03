@@ -222,6 +222,7 @@ class Stagehand:
         self.llm = None
         if self.env == "LOCAL":
             self.llm = LLMClient(
+                stagehand_logger=self.logger,
                 api_key=self.model_api_key,
                 default_model=self.model_name,
                 metrics_callback=self._handle_llm_metrics,

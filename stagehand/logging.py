@@ -49,15 +49,6 @@ class LogConfig:
         """
         return self.verbose
 
-    def get_python_log_level(self) -> int:
-        """Get the Python logging level based on verbose setting."""
-        level_map = {
-            0: logging.ERROR,
-            1: logging.INFO,
-            2: logging.DEBUG,
-        }
-        return level_map.get(self.verbose, logging.INFO)
-
     def should_log(self, level: int) -> bool:
         """Check if a message at the given level should be logged."""
         # Always log errors (level 0)
@@ -214,24 +205,17 @@ class StagehandLogger:
             config: Optional LogConfig instance. If provided, overrides other parameters.
         """
         if config:
-            self.verbose = config.verbose
-            self.external_logger = config.external_logger
-            self.use_rich = config.use_rich
             self.config = config
         else:
-            self.verbose = verbose
-            self.external_logger = external_logger
-            self.use_rich = use_rich
             self.config = LogConfig(
                 verbose=verbose,
                 use_rich=use_rich,
                 external_logger=external_logger,
             )
 
-        self.console = get_console(self.use_rich)
+        self.console = get_console(self.config.use_rich)
 
         # Map our verbosity levels to Python's logging levels
-        # Now using only 3 levels to match the remote Fastify server
         self.level_map = {
             0: logging.ERROR,  # Critical errors only
             1: logging.INFO,  # Standard information
@@ -242,11 +226,26 @@ class StagehandLogger:
         self.level_style = {0: "error", 1: "info", 2: "debug"}
 
         # Update logger level based on verbosity
-        self._set_verbosity(self.verbose)
+        self._set_verbosity(self.config.verbose)
+
+    @property
+    def verbose(self):
+        """Get verbose level from config"""
+        return self.config.verbose
+
+    @property
+    def use_rich(self):
+        """Get use_rich setting from config"""
+        return self.config.use_rich
+
+    @property
+    def external_logger(self):
+        """Get external logger from config"""
+        return self.config.external_logger
 
     def _set_verbosity(self, level: int):
         """Set the logger verbosity level"""
-        self.verbose = level
+        self.config.verbose = level
         logger.setLevel(self.level_map.get(level, logging.INFO))
 
     def _format_json(self, data: dict) -> str:
@@ -445,7 +444,7 @@ class StagehandLogger:
             auxiliary: Optional dictionary of auxiliary data
         """
         # Skip logging if below current verbosity level
-        if level > self.verbose and level != 0:  # Always log errors (level 0)
+        if not self.config.should_log(level):
             return
 
         # Call external logger if provided (handle async function)
@@ -648,20 +647,6 @@ class StagehandLogger:
     ):
         """Log a debug message (level 2)"""
         self.log(message, level=2, category=category, auxiliary=auxiliary)
-
-
-def get_logger(name: str, config: LogConfig) -> StagehandLogger:
-    """
-    Factory function to get a configured logger instance for a module.
-
-    Args:
-        name: The name of the module requesting the logger
-        config: LogConfig instance with logging configuration
-
-    Returns:
-        StagehandLogger: Configured logger instance
-    """
-    return StagehandLogger(config=config)
 
 
 # Create a synchronous wrapper for the async default_log_handler
