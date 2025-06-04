@@ -91,7 +91,7 @@ def mock_stagehand_page(mock_playwright_page):
 
 
 @pytest.fixture
-async def mock_stagehand_client(mock_stagehand_config):
+def mock_stagehand_client(mock_stagehand_config):
     """Provide a mock Stagehand client for testing"""
     with patch('stagehand.client.async_playwright'), \
          patch('stagehand.client.LLMClient'), \
@@ -108,12 +108,9 @@ async def mock_stagehand_client(mock_stagehand_config):
         client.agent = MagicMock()
         client._client = MagicMock()
         client._execute = AsyncMock()
+        client._get_lock_for_session = MagicMock(return_value=AsyncMock())
         
-        yield client
-        
-        # Cleanup
-        if not client._closed:
-            client._closed = True
+        return client
 
 
 @pytest.fixture

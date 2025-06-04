@@ -15,6 +15,7 @@ class TestActHandlerInitialization:
         """Test basic ActHandler creation"""
         mock_client = MagicMock()
         mock_client.llm = MockLLMClient()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(
             mock_stagehand_page,
@@ -23,7 +24,7 @@ class TestActHandlerInitialization:
             self_heal=True
         )
         
-        assert handler.page == mock_stagehand_page
+        assert handler.stagehand_page == mock_stagehand_page
         assert handler.stagehand == mock_client
         assert handler.user_provided_instructions == "Test instructions"
         assert handler.self_heal is True
@@ -32,6 +33,7 @@ class TestActHandlerInitialization:
         """Test ActHandler with self-healing disabled"""
         mock_client = MagicMock()
         mock_client.llm = MockLLMClient()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(
             mock_stagehand_page,
@@ -351,7 +353,7 @@ class TestPromptGeneration:
         
         # This would test that DOM context is included in prompts
         # Actual implementation would depend on prompt structure
-        assert handler.page == mock_stagehand_page
+        assert handler.stagehand_page == mock_stagehand_page
 
 
 class TestMetricsAndLogging:
