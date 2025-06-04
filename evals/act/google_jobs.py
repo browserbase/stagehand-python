@@ -5,7 +5,6 @@ from typing import Any, Optional, Dict
 from pydantic import BaseModel
 
 from evals.init_stagehand import init_stagehand
-from stagehand.schemas import ActOptions, ExtractOptions
 
 
 class Qualifications(BaseModel):
@@ -59,7 +58,7 @@ def is_job_details_valid(details: Dict[str, Any] | JobDetails) -> bool:
     return True
 
 
-async def google_jobs(model_name: str, logger, use_text_extract: bool) -> dict:
+async def google_jobs(model_name: str, logger, use_text_extract: bool = False) -> dict:
     """
     Evaluates a Google jobs flow by:
       1. Initializing Stagehand with the given model name and logger.
@@ -86,82 +85,80 @@ async def google_jobs(model_name: str, logger, use_text_extract: bool) -> dict:
       - logs (list): Logs collected from the provided logger.
       - error (dict, optional): Error details if an exception was raised.
     """
-    stagehand, init_response = await init_stagehand(model_name, logger)
-    debug_url = (
-        init_response.get("debugUrl", {}).get("value")
-        if isinstance(init_response.get("debugUrl"), dict)
-        else init_response.get("debugUrl")
-    )
-    session_url = (
-        init_response.get("sessionUrl", {}).get("value")
-        if isinstance(init_response.get("sessionUrl"), dict)
-        else init_response.get("sessionUrl")
-    )
-
+    stagehand = None
     try:
+        stagehand, init_response = await init_stagehand(model_name, logger)
+        debug_url = init_response.get("debugUrl")
+        session_url = init_response.get("sessionUrl")
+
+        logger.info("Navigating to Google...")
         await stagehand.page.goto("https://www.google.com/")
         await asyncio.sleep(3)
-        await stagehand.page.act(ActOptions(action="click on the about page"))
-        await stagehand.page.act(ActOptions(action="click on the careers page"))
-        await stagehand.page.act(ActOptions(action="input data scientist into role"))
-        await stagehand.page.act(ActOptions(action="input new york city into location"))
-        await stagehand.page.act(ActOptions(action="click on the search button"))
-        await stagehand.page.act(ActOptions(action="click on the first job link"))
+        
+        logger.info("Clicking on the about page...")
+        await stagehand.page.act("click on the about page")
+        
+        logger.info("Clicking on the careers page...")
+        await stagehand.page.act("click on the careers page")
+        
+        logger.info("Inputting data scientist into role field...")
+        await stagehand.page.act("input data scientist into role")
+        
+        logger.info("Inputting new york city into location field...")
+        await stagehand.page.act("input new york city into location")
+        
+        logger.info("Clicking on the search button...")
+        await stagehand.page.act("click on the search button")
+        
+        logger.info("Clicking on the first job link...")
+        await stagehand.page.act("click on the first job link")
 
+        logger.info("Extracting job details...")
+        # Note: The modern API may have changed how schema is passed
+        # Using the extraction pattern from the examples
         job_details = await stagehand.page.extract(
-            ExtractOptions(
-                instruction=(
-                    "Extract the following details from the job posting: "
-                    "application deadline, minimum qualifications "
-                    "(degree and years of experience), and preferred qualifications "
-                    "(degree and years of experience)"
-                ),
-                schemaDefinition=JobDetails,
-                useTextExtract=use_text_extract,
-            )
+            "Extract the following details from the job posting: "
+            "application deadline, minimum qualifications "
+            "(degree and years of experience), and preferred qualifications "
+            "(degree and years of experience). Return as JSON with fields: "
+            "application_deadline, minimum_qualifications, preferred_qualifications. "
+            "Each qualification should have degree and years_of_experience fields."
         )
 
-        print("Extracted job details:", job_details)
+        logger.info(f"Extracted job details: {job_details}")
         
+        # Validate the extracted data
         valid = is_job_details_valid(job_details)
-
-        await stagehand.close()
+        logger.info(f"Job details validation result: {valid}")
 
         return {
             "_success": valid,
-            "jobDetails": job_details,
+            "jobDetails": job_details.model_dump() if hasattr(job_details, "model_dump") else job_details,
             "debugUrl": debug_url,
             "sessionUrl": session_url,
             "logs": logger.get_logs() if hasattr(logger, "get_logs") else [],
         }
+        
     except Exception as e:
         err_message = str(e)
         err_trace = traceback.format_exc()
-        logger.error(
-            {
-                "message": "error in google_jobs function",
-                "level": 0,
-                "auxiliary": {
-                    "error": {"value": err_message, "type": "string"},
-                    "trace": {"value": err_trace, "type": "string"},
-                },
-            }
-        )
-
-        await stagehand.close()
+        logger.error(f"Error in google_jobs function: {err_message}")
+        logger.error(f"Traceback: {err_trace}")
 
         return {
             "_success": False,
-            "debugUrl": debug_url,
-            "sessionUrl": session_url,
+            "debugUrl": debug_url if 'debug_url' in locals() else None,
+            "sessionUrl": session_url if 'session_url' in locals() else None,
             "error": {"message": err_message, "trace": err_trace},
             "logs": logger.get_logs() if hasattr(logger, "get_logs") else [],
         }
+    finally:
+        if stagehand:
+            await stagehand.close()
 
 
 # For quick local testing
 if __name__ == "__main__":
-    import asyncio
     import logging
 
     logging.basicConfig(level=logging.INFO)
@@ -183,9 +180,7 @@ if __name__ == "__main__":
 
     async def main():
         logger = SimpleLogger()
-        result = await google_jobs(
-            "gpt-4o-mini", logger, use_text_extract=False
-        )  # TODO - use text extract
+        result = await google_jobs("gpt-4o-mini", logger, use_text_extract=False)
         print("Result:", result)
 
     asyncio.run(main())

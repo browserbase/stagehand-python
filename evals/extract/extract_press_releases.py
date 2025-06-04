@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from evals.init_stagehand import init_stagehand
 from evals.utils import compare_strings
-from stagehand.schemas import ExtractOptions
 
 
 # Define Pydantic models for validating press release data
@@ -18,7 +17,7 @@ class PressReleases(BaseModel):
     items: list[PressRelease]
 
 
-async def extract_press_releases(model_name: str, logger, use_text_extract: bool):
+async def extract_press_releases(model_name: str, logger, use_text_extract: bool = False):
     """
     Extract press releases from the dummy press releases page using the Stagehand
     client.
@@ -37,47 +36,47 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
            - sessionUrl (str): Session URL.
     """
     stagehand = None
-    debug_url = None
-    session_url = None
     try:
         # Initialize Stagehand (mimicking the TS initStagehand)
         stagehand, init_response = await init_stagehand(
             model_name, logger, dom_settle_timeout_ms=3000
         )
-        debug_url = init_response["debugUrl"]
-        session_url = init_response["sessionUrl"]
+        debug_url = init_response.get("debugUrl")
+        session_url = init_response.get("sessionUrl")
 
-        # Navigate to the dummy press releases page # TODO - choose a different page
-        await stagehand.page.goto(
-            "https://dummy-press-releases.surge.sh/news"
-        )
+        # Navigate to the dummy press releases page
+        logger.info("Navigating to press releases page...")
+        await stagehand.page.goto("https://dummy-press-releases.surge.sh/news")
+        
         # Wait for 5 seconds to ensure content has loaded
         await asyncio.sleep(5)
 
-        # Extract data using Stagehand's extract method.
-        # TODO - FAILING - extract is likely timing out
+        # Extract data using Stagehand's extract method with simplified API
+        logger.info("Extracting press releases...")
         raw_result = await stagehand.page.extract(
-            ExtractOptions(
-                instruction=(
-                    "extract the title and corresponding publish date of EACH AND EVERY "
-                    "press releases on this page. DO NOT MISS ANY PRESS RELEASES."
-                ),
-                schemaDefinition=PressReleases,
-                useTextExtract=use_text_extract,
-            )
+            "Extract the title and corresponding publish date of EACH AND EVERY "
+            "press releases on this page. DO NOT MISS ANY PRESS RELEASES. "
+            "Return as JSON with an 'items' array, where each item has 'title' and 'publish_date' fields."
         )
-        print("Raw result:", raw_result)
+        
+        logger.info(f"Raw extraction result: {raw_result}")
         
         # Get the items list from the raw_result, which could be a dict or a PressReleases object
         if isinstance(raw_result, PressReleases):
             items = raw_result.items
+        elif hasattr(raw_result, "model_dump"):
+            # It's a Pydantic model, get the dict representation
+            result_dict = raw_result.model_dump()
+            if "items" in result_dict:
+                items = [PressRelease(**item) for item in result_dict["items"]]
+            else:
+                raise ValueError("No 'items' field found in extraction result")
         elif isinstance(raw_result, dict) and "items" in raw_result:
             # Parse the raw result using the defined schema if it's a dictionary
-            parsed = PressReleases.model_validate(raw_result)
-            items = parsed.items
+            items = [PressRelease(**item) for item in raw_result["items"]]
         else:
             error_message = "Extraction did not return valid press releases data."
-            logger.error({"message": error_message, "raw_result": raw_result})
+            logger.error(f"{error_message} Raw result: {raw_result}")
             return {
                 "_success": False,
                 "error": error_message,
@@ -85,6 +84,8 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
                 "debugUrl": debug_url,
                 "sessionUrl": session_url,
             }
+
+        logger.info(f"Successfully extracted {len(items)} press releases")
 
         # Expected results (from the TS eval)
         expected_length = 28
@@ -98,16 +99,10 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
         )
 
         if len(items) <= expected_length:
-            logger.error(
-                {
-                    "message": "Not enough items extracted",
-                    "expected": f"> {expected_length}",
-                    "actual": len(items),
-                }
-            )
+            logger.error(f"Not enough items extracted. Expected > {expected_length}, got {len(items)}")
             return {
                 "_success": False,
-                "error": "Not enough items extracted",
+                "error": f"Not enough items extracted. Expected > {expected_length}, got {len(items)}",
                 "logs": logger.get_logs() if hasattr(logger, "get_logs") else [],
                 "debugUrl": debug_url,
                 "sessionUrl": session_url,
@@ -121,24 +116,31 @@ async def extract_press_releases(model_name: str, logger, use_text_extract: bool
         found_first = any(is_item_match(item, expected_first) for item in items)
         found_last = any(is_item_match(item, expected_last) for item in items)
 
+        logger.info(f"Found expected first item: {found_first}")
+        logger.info(f"Found expected last item: {found_last}")
+
         result = {
             "_success": found_first and found_last,
+            "extracted_count": len(items),
+            "found_first": found_first,
+            "found_last": found_last,
             "logs": logger.get_logs() if hasattr(logger, "get_logs") else [],
             "debugUrl": debug_url,
             "sessionUrl": session_url,
         }
-        await stagehand.close()
         return result
+        
     except Exception as e:
-        logger.error(
-            {"message": "Error in extract_press_releases function", "error": str(e)}
-        )
+        logger.error(f"Error in extract_press_releases function: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
         return {
             "_success": False,
             "error": str(e),
             "logs": logger.get_logs() if hasattr(logger, "get_logs") else [],
-            "debugUrl": debug_url,
-            "sessionUrl": session_url,
+            "debugUrl": debug_url if 'debug_url' in locals() else None,
+            "sessionUrl": session_url if 'session_url' in locals() else None,
         }
     finally:
         # Ensure we close the Stagehand client even upon error.
@@ -169,9 +171,7 @@ if __name__ == "__main__":
 
     async def main():
         logger = SimpleLogger()
-        result = await extract_press_releases(
-            "gpt-4o", logger, use_text_extract=False
-        )  # TODO - use text extract
+        result = await extract_press_releases("gpt-4o", logger, use_text_extract=False)
         print("Result:", result)
 
     asyncio.run(main())

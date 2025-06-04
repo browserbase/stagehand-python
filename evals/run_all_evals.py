@@ -172,6 +172,8 @@ async def run_all_evals(only_observe=True, model_name=None, specific_eval=None):
             print(f"Result: {'SUCCESS' if result.get('_success') else 'FAILURE'}")
         except Exception as e:
             print(f"Error running {module_path}: {e}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
             results[module_path] = {"_success": False, "error": str(e)}
 
     return results

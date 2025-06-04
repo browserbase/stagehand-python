@@ -1,18 +1,11 @@
 import os
-
-from evals.utils import ensure_stagehand_config
-from stagehand import Stagehand
+from stagehand import Stagehand, StagehandConfig
 
 
 async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3000):
     """
     Initialize a Stagehand client with the given model name, logger, and DOM settle
-    timeout.
-
-    This function creates a configuration from environment variables, initializes
-    the Stagehand client, and returns a tuple of (stagehand, init_response).
-    The init_response contains debug and session URLs if using BROWSERBASE, or
-    None values if running in LOCAL mode.
+    timeout using the modern StagehandConfig approach.
 
     Args:
         model_name (str): The name of the AI model to use.
@@ -21,8 +14,8 @@ async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3
 
     Returns:
         tuple: (stagehand, init_response) where init_response is a dict containing:
-            - "debugUrl": A dict with a "value" key for the debug URL (or None in LOCAL mode).
-            - "sessionUrl": A dict with a "value" key for the session URL (or None in LOCAL mode).
+            - "debugUrl": Debug URL for the session (or None in LOCAL mode).
+            - "sessionUrl": Session URL for the session (or None in LOCAL mode).
     """
     # Determine whether to use BROWSERBASE or LOCAL mode
     env_mode = (
@@ -32,56 +25,37 @@ async def init_stagehand(model_name: str, logger, dom_settle_timeout_ms: int = 3
     )
     logger.info(f"Using environment mode: {env_mode}")
 
-    # For BROWSERBASE mode only: Add API key and project ID
-    browserbase_api_key = (
-        os.getenv("BROWSERBASE_API_KEY") if env_mode == "BROWSERBASE" else None
+    # Build a unified configuration object for Stagehand
+    config = StagehandConfig(
+        env=env_mode,
+        api_key=os.getenv("BROWSERBASE_API_KEY") if env_mode == "BROWSERBASE" else None,
+        project_id=os.getenv("BROWSERBASE_PROJECT_ID") if env_mode == "BROWSERBASE" else None,
+        headless=False,  # Set to False for debugging
+        dom_settle_timeout_ms=dom_settle_timeout_ms,
+        model_name=model_name,
+        self_heal=True,
+        wait_for_captcha_solves=True,
+        system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
+        model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+        verbose=2,  # Medium detail logs
     )
-    browserbase_project_id = (
-        os.getenv("BROWSERBASE_PROJECT_ID") if env_mode == "BROWSERBASE" else None
-    )
 
-    # Define common parameters directly for the Stagehand constructor
-    stagehand_params = {
-        "env": env_mode,
-        "verbose": 2,
-        "on_log": lambda log: logger.info(f"Stagehand log: {log}"),
-        "model_name": model_name,
-        "dom_settle_timeout_ms": dom_settle_timeout_ms,
-        "model_client_options": {
-            "apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")
-        },
-    }
-
-    # Add browserbase-specific parameters if needed
-    if env_mode == "BROWSERBASE":
-        stagehand_params["browserbase_api_key"] = browserbase_api_key
-        stagehand_params["browserbase_project_id"] = browserbase_project_id
-
-        # Only include server_url for BROWSERBASE mode
-        if os.getenv("STAGEHAND_SERVER_URL"):
-            stagehand_params["server_url"] = os.getenv("STAGEHAND_SERVER_URL")
-    else:  # LOCAL mode
-        stagehand_params["local_browser_launch_options"] = {
-            "headless": False,  # Set to False for debugging if needed
-            "viewport": {"width": 1024, "height": 768},
-        }
-
-    # Create the Stagehand client with params directly
-    stagehand = Stagehand(**stagehand_params)
+    # Create the Stagehand client using the configuration object
+    stagehand = Stagehand(config)
 
     # Initialize the stagehand client
+    logger.info("Initializing Stagehand...")
     await stagehand.init()
-
-    # Ensure the stagehand instance has a config attribute
-    stagehand = ensure_stagehand_config(stagehand)
+    logger.info(f"Stagehand initialized with session ID: {stagehand.session_id}")
 
     # For BROWSERBASE mode, construct debug and session URLs
     if env_mode == "BROWSERBASE" and stagehand.session_id:
-        api_key = os.getenv("BROWSERBASE_API_KEY")
-        url = f"wss://connect.browserbase.com?apiKey={api_key}&sessionId={stagehand.session_id}"
-        init_response = {"debugUrl": {"value": url}, "sessionUrl": {"value": url}}
+        session_url = f"https://www.browserbase.com/sessions/{stagehand.session_id}"
+        init_response = {"debugUrl": session_url, "sessionUrl": session_url}
+        logger.info(f"Session URL: {session_url}")
     else:
         # For LOCAL mode, provide None values for the URLs
-        init_response = {"debugUrl": {"value": None}, "sessionUrl": {"value": None}}
+        init_response = {"debugUrl": None, "sessionUrl": None}
+        logger.info("Running in LOCAL mode - no session URLs available")
 
     return stagehand, init_response
