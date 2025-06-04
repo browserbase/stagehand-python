@@ -30,10 +30,8 @@ from .logging import LogConfig, StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import AgentConfig
-from .utils import (
-    convert_dict_keys_to_camel_case,
-    make_serializable,
-)
+from .utils import make_serializable
+
 
 load_dotenv()
 

@@ -14,7 +14,7 @@ from playwright.async_api import (
 
 from .context import StagehandContext
 from .page import StagehandPage
-from .utils import StagehandLogger
+from .logging import StagehandLogger
 
 
 async def connect_browserbase_browser(
