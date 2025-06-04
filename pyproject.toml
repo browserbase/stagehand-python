@@ -46,7 +46,7 @@ Homepage = "https://github.com/browserbase/stagehand-python"
 Repository = "https://github.com/browserbase/stagehand-python"
 
 [tool.setuptools]
-packages = []
+# Omit explicit package list so we can use the nested `.packages.find` table below.
 
 [tool.setuptools.packages.find]
 where = ["."]
