@@ -84,9 +84,7 @@ async def main():
         # Get accessibility tree
         tree = await get_accessibility_tree(stagehand.page, stagehand.logger)
         console.print("[success]✓ Extracted accessibility tree[/]")
-        with open("../tree.txt", "w") as f:
-            f.write(tree.get("simplified"))
-            
+        
         print("ID to URL mapping:", tree.get("idToUrl"))
         print("IFrames:", tree.get("iframes"))
         
@@ -165,8 +163,6 @@ async def main():
         
         # Get accessibility tree for the new page
         tree = await get_accessibility_tree(new_page, stagehand.logger)
-        with open("../tree.txt", "w") as f:
-            f.write(tree.get("simplified"))
         console.print("[success]✓ Extracted accessibility tree for new page[/]")
         
         # Try clicking Get Started button on Google
