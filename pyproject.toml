@@ -46,7 +46,11 @@ Homepage = "https://github.com/browserbase/stagehand-python"
 Repository = "https://github.com/browserbase/stagehand-python"
 
 [tool.setuptools]
-packages = ["stagehand"]
+packages = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["stagehand*"]
 
 [tool.setuptools.package-data]
 stagehand = ["domScripts.js"]
