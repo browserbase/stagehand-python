@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Get in Touch</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 40px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            color: #555; 
+        }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 16px; 
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+        .required { color: #e74c3c; }
+        .btn { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 12px 30px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #545b62; }
+        .form-row { display: flex; gap: 20px; }
+        .form-row .form-group { flex: 1; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input[type="checkbox"] { width: auto; }
+        .success-message { 
+            background: #d4edda; 
+            border: 1px solid #c3e6cb; 
+            color: #155724; 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error-message { 
+            background: #f8d7da; 
+            border: 1px solid #f5c6cb; 
+            color: #721c24; 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contact Us</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+        </p>
+
+        <div id="success-message" class="success-message">
+            Thank you for your message! We'll get back to you within 24 hours.
+        </div>
+
+        <div id="error-message" class="error-message">
+            Please fill in all required fields correctly.
+        </div>
+
+        <form id="contact-form" novalidate>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first-name">First Name <span class="required">*</span></label>
+                    <input type="text" id="first-name" name="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="last-name">Last Name <span class="required">*</span></label>
+                    <input type="text" id="last-name" name="lastName" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567">
+            </div>
+
+            <div class="form-group">
+                <label for="company">Company/Organization</label>
+                <input type="text" id="company" name="company">
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Subject <span class="required">*</span></label>
+                <select id="subject" name="subject" required>
+                    <option value="">Please select a subject</option>
+                    <option value="general">General Inquiry</option>
+                    <option value="support">Technical Support</option>
+                    <option value="sales">Sales Question</option>
+                    <option value="billing">Billing Issue</option>
+                    <option value="feedback">Feedback</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority Level</label>
+                <select id="priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message <span class="required">*</span></label>
+                <textarea id="message" name="message" rows="6" placeholder="Please describe your inquiry in detail..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="newsletter" name="newsletter" value="yes">
+                    <label for="newsletter">Subscribe to our newsletter for updates and special offers</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms" name="terms" value="yes" required>
+                    <label for="terms">I agree to the <a href="#terms" target="_blank">Terms of Service</a> and <a href="#privacy" target="_blank">Privacy Policy</a> <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <div class="form-group" style="text-align: center; margin-top: 30px;">
+                <button type="submit" class="btn" id="submit-btn">Send Message</button>
+                <button type="reset" class="btn btn-secondary" id="reset-btn">Clear Form</button>
+            </div>
+        </form>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666;">
+            <h3>Other Ways to Reach Us</h3>
+            <p>
+                <strong>Email:</strong> <a href="mailto:support@example.com">support@example.com</a><br>
+                <strong>Phone:</strong> <a href="tel:+15551234567">(555) 123-4567</a><br>
+                <strong>Address:</strong> 123 Business St, Suite 100, City, State 12345
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simple form validation
+            const requiredFields = ['first-name', 'last-name', 'email', 'subject', 'message', 'terms'];
+            let isValid = true;
+            
+            // Hide previous messages
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Check required fields
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim() || (field.type === 'checkbox' && !field.checked)) {
+                    isValid = false;
+                    field.style.borderColor = '#e74c3c';
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            });
+            
+            // Email validation
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email)) {
+                isValid = false;
+                document.getElementById('email').style.borderColor = '#e74c3c';
+            }
+            
+            if (isValid) {
+                // Simulate form submission
+                setTimeout(() => {
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('contact-form').reset();
+                    // Reset priority to default
+                    document.getElementById('priority').value = 'medium';
+                }, 500);
+            } else {
+                document.getElementById('error-message').style.display = 'block';
+                // Scroll to error message
+                document.getElementById('error-message').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+        
+        // Reset form validation styling on input
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                this.style.borderColor = '#ddd';
+            });
+        });
+        
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+            }
+            e.target.value = value;
+        });
+        
+        // Form reset handler
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            // Reset validation styling
+            inputs.forEach(input => {
+                input.style.borderColor = '#ddd';
+            });
+            
+            // Hide messages
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Reset priority to default after form reset
+            setTimeout(() => {
+                document.getElementById('priority').value = 'medium';
+            }, 10);
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,331 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # schedule:
+  #   # Run tests daily at 6 AM UTC
+  #   - cron: '0 6 * * *'
+
+jobs:
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        # Install jsonschema for schema validation tests
+        pip install jsonschema
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --cov-report=term-missing \
+          --junit-xml=junit-unit-${{ matrix.python-version }}.xml \
+          -m "unit and not slow"
+    
+    - name: Upload unit test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: unit-test-results-${{ matrix.python-version }}
+        path: junit-unit-${{ matrix.python-version }}.xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: matrix.python-version == '3.11'
+      with:
+        file: ./coverage.xml
+        flags: unit
+        name: unit-tests
+
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    strategy:
+      matrix:
+        test-category: ["local", "mock", "e2e"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        # Install Playwright browsers for integration tests
+        playwright install chromium
+    
+    - name: Run integration tests - ${{ matrix.test-category }}
+      run: |
+        pytest tests/integration/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-integration-${{ matrix.test-category }}.xml \
+          -m "${{ matrix.test-category }}"
+      env:
+        # Mock environment variables for testing
+        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY || 'mock-api-key' }}
+        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID || 'mock-project-id' }}
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
+        STAGEHAND_API_URL: "http://localhost:3000"
+    
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: integration-test-results-${{ matrix.test-category }}
+        path: junit-integration-${{ matrix.test-category }}.xml
+
+  test-browserbase:
+    name: Browserbase Integration Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[test-browserbase]')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+    
+    - name: Run Browserbase tests
+      run: |
+        pytest tests/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-browserbase.xml \
+          -m "browserbase" \
+          --tb=short
+      env:
+        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+        STAGEHAND_API_URL: ${{ secrets.STAGEHAND_API_URL }}
+    
+    - name: Upload Browserbase test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: browserbase-test-results
+        path: junit-browserbase.xml
+
+  test-performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[test-performance]')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        playwright install chromium
+    
+    - name: Run performance tests
+      run: |
+        pytest tests/performance/ -v \
+          --junit-xml=junit-performance.xml \
+          -m "performance" \
+          --tb=short
+      env:
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
+    
+    - name: Upload performance test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-test-results
+        path: junit-performance.xml
+
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+    
+    - name: Run smoke tests
+      run: |
+        pytest tests/ -v \
+          --junit-xml=junit-smoke.xml \
+          -m "smoke" \
+          --tb=line \
+          --maxfail=5
+    
+    - name: Upload smoke test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: smoke-test-results
+        path: junit-smoke.xml
+
+  lint-and-format:
+    name: Linting and Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+    
+    - name: Run ruff linting
+      run: |
+        ruff check stagehand/ tests/ --output-format=github
+    
+    - name: Run ruff formatting check
+      run: |
+        ruff format --check stagehand/ tests/
+    
+    - name: Run mypy type checking
+      run: |
+        mypy stagehand/ --ignore-missing-imports
+    
+    - name: Check import sorting
+      run: |
+        isort --check-only stagehand/ tests/
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration]
+    if: always()
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install coverage[toml] codecov
+    
+    - name: Download coverage artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: coverage-reports/
+    
+    - name: Combine coverage reports
+      run: |
+        coverage combine coverage-reports/**/.coverage*
+        coverage report --show-missing
+        coverage html
+        coverage xml
+    
+    - name: Upload combined coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        name: combined-coverage
+    
+    - name: Upload coverage HTML report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-html-report
+        path: htmlcov/
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration, smoke-tests, lint-and-format]
+    if: always()
+    
+    steps:
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: test-results/
+    
+    - name: Generate test summary
+      run: |
+        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Count test files
+        UNIT_TESTS=$(find test-results/ -name "junit-unit-*.xml" | wc -l)
+        INTEGRATION_TESTS=$(find test-results/ -name "junit-integration-*.xml" | wc -l)
+        
+        echo "- Unit test configurations: $UNIT_TESTS" >> $GITHUB_STEP_SUMMARY
+        echo "- Integration test categories: $INTEGRATION_TESTS" >> $GITHUB_STEP_SUMMARY
+        
+        # Check for test failures
+        if [ -f test-results/*/junit-*.xml ]; then
+          echo "- Test artifacts generated successfully ✅" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Test artifacts missing ❌" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Detailed results are available in the artifacts section." >> $GITHUB_STEP_SUMMARY 

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - Buy the Latest Electronics</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .header { background: #333; color: white; padding: 1rem; }
+        .nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav-menu { display: flex; list-style: none; gap: 20px; margin: 0; padding: 0; }
+        .nav-menu a { color: white; text-decoration: none; }
+        .search-bar { padding: 8px; border: none; border-radius: 4px; }
+        .cart-icon { background: #007bff; padding: 8px 16px; border-radius: 4px; }
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 40px 0; }
+        .product-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; }
+        .product-image { width: 100%; height: 200px; background: #f5f5f5; margin-bottom: 15px; border-radius: 4px; }
+        .price { font-size: 24px; font-weight: bold; color: #007bff; }
+        .btn { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #0056b3; }
+        .filters { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .filter-group { display: inline-block; margin-right: 20px; }
+        .footer { background: #333; color: white; padding: 40px 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">TechStore</div>
+            <ul class="nav-menu">
+                <li><a href="#home" id="nav-home">Home</a></li>
+                <li><a href="#products" id="nav-products">Products</a></li>
+                <li><a href="#deals" id="nav-deals">Deals</a></li>
+                <li><a href="#support" id="nav-support">Support</a></li>
+                <li><a href="#about" id="nav-about">About</a></li>
+            </ul>
+            <div>
+                <input type="search" class="search-bar" id="search-input" placeholder="Search products...">
+                <button class="btn" id="search-btn">Search</button>
+                <span class="cart-icon" id="cart-icon">Cart (0)</span>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Welcome to TechStore</h1>
+            <p>Discover the latest electronics and tech gadgets at unbeatable prices</p>
+            <button class="btn" id="shop-now-btn">Shop Now</button>
+        </div>
+    </section>
+
+    <main class="container">
+        <div class="filters">
+            <h3>Filter Products</h3>
+            <div class="filter-group">
+                <label for="category-filter">Category:</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="laptops">Laptops</option>
+                    <option value="phones">Smartphones</option>
+                    <option value="accessories">Accessories</option>
+                    <option value="gaming">Gaming</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="price-filter">Price Range:</label>
+                <select id="price-filter">
+                    <option value="">Any Price</option>
+                    <option value="0-100">$0 - $100</option>
+                    <option value="100-500">$100 - $500</option>
+                    <option value="500-1000">$500 - $1000</option>
+                    <option value="1000+">$1000+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <input type="checkbox" id="in-stock-filter" checked>
+                <label for="in-stock-filter">In Stock Only</label>
+            </div>
+            <button class="btn" id="apply-filters">Apply Filters</button>
+        </div>
+
+        <div class="product-grid" id="product-grid">
+            <div class="product-card" data-product-id="1" data-category="laptops" data-price="1299">
+                <div class="product-image"></div>
+                <h3 class="product-title">Gaming Laptop Pro</h3>
+                <p class="product-description">High-performance gaming laptop with RTX 4070 and 32GB RAM</p>
+                <div class="price">$1,299.99</div>
+                <div class="stock-status" data-stock="5">In Stock (5 available)</div>
+                <button class="btn add-to-cart" data-product="1">Add to Cart</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;">View Details</button>
+            </div>
+
+            <div class="product-card" data-product-id="2" data-category="phones" data-price="899">
+                <div class="product-image"></div>
+                <h3 class="product-title">Smartphone X Pro</h3>
+                <p class="product-description">Latest flagship smartphone with 256GB storage and triple camera</p>
+                <div class="price">$899.99</div>
+                <div class="stock-status" data-stock="12">In Stock (12 available)</div>
+                <button class="btn add-to-cart" data-product="2">Add to Cart</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;">View Details</button>
+            </div>
+
+            <div class="product-card" data-product-id="3" data-category="accessories" data-price="79">
+                <div class="product-image"></div>
+                <h3 class="product-title">Wireless Headphones</h3>
+                <p class="product-description">Premium noise-cancelling wireless headphones with 30hr battery</p>
+                <div class="price">$79.99</div>
+                <div class="stock-status" data-stock="0">Out of Stock</div>
+                <button class="btn" disabled style="background: #6c757d;">Out of Stock</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;">View Details</button>
+            </div>
+
+            <div class="product-card" data-product-id="4" data-category="gaming" data-price="199">
+                <div class="product-image"></div>
+                <h3 class="product-title">Gaming Mouse RGB</h3>
+                <p class="product-description">Professional gaming mouse with customizable RGB lighting</p>
+                <div class="price">$199.99</div>
+                <div class="stock-status" data-stock="8">In Stock (8 available)</div>
+                <button class="btn add-to-cart" data-product="4">Add to Cart</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;">View Details</button>
+            </div>
+
+            <div class="product-card" data-product-id="5" data-category="laptops" data-price="2499">
+                <div class="product-image"></div>
+                <h3 class="product-title">MacBook Pro 16"</h3>
+                <p class="product-description">Apple MacBook Pro with M3 Max chip and 64GB unified memory</p>
+                <div class="price">$2,499.99</div>
+                <div class="stock-status" data-stock="3">In Stock (3 available)</div>
+                <button class="btn add-to-cart" data-product="5">Add to Cart</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;">View Details</button>
+            </div>
+
+            <div class="product-card" data-product-id="6" data-category="accessories" data-price="49">
+                <div class="product-image"></div>
+                <h3 class="product-title">USB-C Hub</h3>
+                <p class="product-description">7-in-1 USB-C hub with HDMI, USB 3.0, and SD card reader</p>
+                <div class="price">$49.99</div>
+                <div class="stock-status" data-stock="25">In Stock (25 available)</div>
+                <button class="btn add-to-cart" data-product="6">Add to Cart</button>
+                <button class="btn" style="background: #6c757d; margin-left: 10px;">View Details</button>
+            </div>
+        </div>
+
+        <div id="newsletter-signup" style="background: #f8f9fa; padding: 40px; border-radius: 8px; text-align: center; margin: 40px 0;">
+            <h2>Stay Updated</h2>
+            <p>Subscribe to our newsletter for the latest deals and product updates</p>
+            <form id="newsletter-form">
+                <input type="email" id="newsletter-email" placeholder="Enter your email" style="padding: 12px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <button type="submit" class="btn" id="newsletter-submit">Subscribe</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 TechStore. All rights reserved.</p>
+            <p>
+                <a href="#privacy" style="color: #ccc;">Privacy Policy</a> | 
+                <a href="#terms" style="color: #ccc;">Terms of Service</a> | 
+                <a href="#contact" style="color: #ccc;">Contact Us</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple cart functionality for testing
+        let cart = [];
+        
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.product;
+                cart.push(productId);
+                document.getElementById('cart-icon').textContent = `Cart (${cart.length})`;
+                alert('Product added to cart!');
+            });
+        });
+
+        // Search functionality
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const query = document.getElementById('search-input').value;
+            if (query) {
+                alert(`Searching for: ${query}`);
+            }
+        });
+
+        // Filter functionality
+        document.getElementById('apply-filters').addEventListener('click', function() {
+            const category = document.getElementById('category-filter').value;
+            const price = document.getElementById('price-filter').value;
+            const inStock = document.getElementById('in-stock-filter').checked;
+            
+            console.log('Applying filters:', { category, price, inStock });
+            // In a real app, this would filter the products
+        });
+
+        // Newsletter signup
+        document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('newsletter-email').value;
+            if (email) {
+                alert('Thank you for subscribing!');
+                document.getElementById('newsletter-email').value = '';
+            }
+        });
+    </script>
+</body>
+</html> 
