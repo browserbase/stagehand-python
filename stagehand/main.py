@@ -39,8 +39,9 @@ load_dotenv()
 
 class Stagehand:
     """
-    Main Stagehand class. 
+    Main Stagehand class.
     """
+
     _session_locks = {}
     _cleanup_called = False
 
