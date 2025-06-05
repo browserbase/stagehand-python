@@ -7,7 +7,11 @@ from pydantic import BaseModel
 from stagehand.a11y.utils import get_accessibility_tree
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.metrics import StagehandFunctionName  # Changed import location
-from stagehand.schemas import DEFAULT_EXTRACT_SCHEMA as DefaultExtractSchema, ExtractOptions, ExtractResult
+from stagehand.schemas import (
+    DEFAULT_EXTRACT_SCHEMA,
+    ExtractOptions,
+    ExtractResult,
+)
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
 
 T = TypeVar("T", bound=BaseModel)
@@ -93,7 +97,7 @@ class ExtractHandler:
             # TODO: Remove this once we have a better way to handle URLs
             transformed_schema, url_paths = transform_url_strings_to_ids(schema)
         else:
-            transformed_schema = DefaultExtractSchema
+            transformed_schema = DEFAULT_EXTRACT_SCHEMA
 
         # Use inference to call the LLM
         extraction_response = extract_inference(
@@ -149,7 +153,7 @@ class ExtractHandler:
                 validated_model_instance = schema.model_validate(raw_data_dict)
                 processed_data_payload = validated_model_instance  # Payload is now the Pydantic model instance
             except Exception as e:
-                schema_name = getattr(schema, '__name__', str(schema))
+                schema_name = getattr(schema, "__name__", str(schema))
                 self.logger.error(
                     f"Failed to validate extracted data against schema {schema_name}: {e}. Keeping raw data dict in .data field."
                 )
@@ -157,7 +161,7 @@ class ExtractHandler:
         # Create ExtractResult object with extracted data as fields
         if isinstance(processed_data_payload, dict):
             result = ExtractResult(**processed_data_payload)
-        elif hasattr(processed_data_payload, 'model_dump'):
+        elif hasattr(processed_data_payload, "model_dump"):
             # For Pydantic models, convert to dict and spread as fields
             result = ExtractResult(**processed_data_payload.model_dump())
         else:
