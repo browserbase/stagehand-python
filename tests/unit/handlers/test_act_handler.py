@@ -55,7 +55,7 @@ class TestActExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Set up mock LLM response for action
         mock_llm.set_custom_response("act", {
@@ -116,7 +116,7 @@ class TestActExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock LLM response with action
         mock_llm.set_custom_response("act", {
@@ -164,7 +164,7 @@ class TestSelfHealing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # First LLM call returns failing action
         # Second LLM call returns successful action
@@ -214,7 +214,7 @@ class TestSelfHealing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         mock_llm.set_custom_response("act", {
             "selector": "#missing-btn",
@@ -242,7 +242,7 @@ class TestSelfHealing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Always return failing action
         mock_llm.set_custom_response("act", {
@@ -366,7 +366,7 @@ class TestMetricsAndLogging:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         mock_llm.set_custom_response("act", {
             "selector": "#btn",
@@ -381,7 +381,7 @@ class TestMetricsAndLogging:
         
         # Should start timing and update metrics
         mock_client.start_inference_timer.assert_called()
-        mock_client.update_metrics_from_response.assert_called()
+        mock_client.update_metrics.assert_called()
     
     @pytest.mark.asyncio 
     async def test_logging_on_action_failure(self, mock_stagehand_page):
@@ -390,7 +390,7 @@ class TestMetricsAndLogging:
         mock_client.llm = MockLLMClient()
         mock_client.logger = MagicMock()
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         handler._execute_action = AsyncMock(return_value=False)
@@ -425,7 +425,7 @@ class TestActionValidation:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Set malformed response
         mock_llm.set_custom_response("act", "invalid response format")
@@ -449,7 +449,7 @@ class TestVariableSubstitution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         handler._execute_action = AsyncMock(return_value=True)

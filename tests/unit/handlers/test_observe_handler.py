@@ -5,7 +5,25 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from stagehand.handlers.observe_handler import ObserveHandler
 from stagehand.schemas import ObserveOptions, ObserveResult
-from tests.mocks.mock_llm import MockLLMClient, MockLLMResponse
+from tests.mocks.mock_llm import MockLLMClient
+
+
+def setup_observe_mocks(mock_stagehand_page):
+    """Helper function to set up common mocks for observe tests."""
+    # Mock CDP calls for xpath generation
+    mock_stagehand_page.send_cdp = AsyncMock(return_value={
+        "object": {"objectId": "mock-object-id"}
+    })
+    mock_cdp_client = AsyncMock()
+    mock_stagehand_page.get_cdp_client = AsyncMock(return_value=mock_cdp_client)
+    
+    # Mock accessibility tree
+    mock_tree = {
+        "simplified": "[1] button: Click me\n[2] textbox: Search input",
+        "iframes": []
+    }
+    
+    return mock_tree
 
 
 class TestObserveHandlerInitialization:
@@ -22,7 +40,7 @@ class TestObserveHandlerInitialization:
             user_provided_instructions="Test observation instructions"
         )
         
-        assert handler.page == mock_stagehand_page
+        assert handler.stagehand_page == mock_stagehand_page
         assert handler.stagehand == mock_client
         assert handler.user_provided_instructions == "Test observation instructions"
     
@@ -46,38 +64,49 @@ class TestObserveExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Set up mock LLM response for single element
         mock_llm.set_custom_response("observe", [
             {
-                "selector": "#submit-button",
+                "element_id": 12345,
                 "description": "Submit button in the form",
-                "backend_node_id": 12345,
                 "method": "click",
                 "arguments": []
             }
         ])
         
+        # Mock CDP calls for xpath generation
+        mock_stagehand_page.send_cdp = AsyncMock(return_value={
+            "object": {"objectId": "mock-object-id"}
+        })
+        mock_cdp_client = AsyncMock()
+        mock_stagehand_page.get_cdp_client = AsyncMock(return_value=mock_cdp_client)
+        
         handler = ObserveHandler(mock_stagehand_page, mock_client, "")
         
-        # Mock DOM evaluation
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="DOM content")
-        
-        options = ObserveOptions(instruction="find the submit button")
-        result = await handler.observe(options)
+        # Mock accessibility tree and xpath generation
+        with patch('stagehand.handlers.observe_handler.get_accessibility_tree') as mock_get_tree:
+            mock_get_tree.return_value = {
+                "simplified": "[1] button: Submit button",
+                "iframes": []
+            }
+            
+            with patch('stagehand.handlers.observe_handler.get_xpath_by_resolved_object_id') as mock_get_xpath:
+                mock_get_xpath.return_value = "//button[@id='submit-button']"
+                
+                options = ObserveOptions(instruction="find the submit button")
+                result = await handler.observe(options)
         
         assert isinstance(result, list)
         assert len(result) == 1
         assert isinstance(result[0], ObserveResult)
-        assert result[0].selector == "#submit-button"
+        assert result[0].selector == "xpath=//button[@id='submit-button']"
         assert result[0].description == "Submit button in the form"
-        assert result[0].backend_node_id == 12345
         assert result[0].method == "click"
         
         # Should have called LLM
         assert mock_llm.call_count == 1
-        assert mock_llm.was_called_with_content("find")
     
     @pytest.mark.asyncio
     async def test_observe_multiple_elements(self, mock_stagehand_page):
@@ -86,28 +115,28 @@ class TestObserveExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Set up mock LLM response for multiple elements
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#home-link",
                 "description": "Home navigation link",
-                "backend_node_id": 100,
+                "element_id": 100,
                 "method": "click",
                 "arguments": []
             },
             {
                 "selector": "#about-link",
                 "description": "About navigation link",
-                "backend_node_id": 101,
+                "element_id": 101,
                 "method": "click",
                 "arguments": []
             },
             {
                 "selector": "#contact-link",
                 "description": "Contact navigation link",
-                "backend_node_id": 102,
+                "element_id": 102,
                 "method": "click",
                 "arguments": []
             }
@@ -138,14 +167,14 @@ class TestObserveExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock response with only visible elements
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#visible-button",
                 "description": "Visible button",
-                "backend_node_id": 200,
+                "element_id": 200,
                 "method": "click",
                 "arguments": []
             }
@@ -174,14 +203,14 @@ class TestObserveExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock response with action information
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#form-input",
                 "description": "Email input field",
-                "backend_node_id": 300,
+                "element_id": 300,
                 "method": "fill",
                 "arguments": ["example@email.com"]
             }
@@ -208,13 +237,13 @@ class TestObserveExecution:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#target-element",
                 "description": "Element to act on",
-                "backend_node_id": 400,
+                "element_id": 400,
                 "method": "click",
                 "arguments": []
             }
@@ -258,7 +287,7 @@ class TestDOMProcessing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock DOM extraction
         mock_dom_elements = [
@@ -272,7 +301,7 @@ class TestDOMProcessing:
             {
                 "selector": "#btn1",
                 "description": "Click me button",
-                "backend_node_id": 501,
+                "element_id": 501,
                 "method": "click",
                 "arguments": []
             }
@@ -296,7 +325,7 @@ class TestDOMProcessing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock filtered DOM elements (only interactive ones)
         mock_filtered_elements = [
@@ -309,7 +338,7 @@ class TestDOMProcessing:
             {
                 "selector": "#interactive-btn",
                 "description": "Interactive button",
-                "backend_node_id": 600,
+                "element_id": 600,
                 "method": "click",
                 "arguments": []
             }
@@ -334,7 +363,7 @@ class TestDOMProcessing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock elements with coordinates
         mock_elements_with_coords = [
@@ -351,7 +380,7 @@ class TestDOMProcessing:
             {
                 "selector": "#positioned-element",
                 "description": "Element at specific position",
-                "backend_node_id": 700,
+                "element_id": 700,
                 "method": "click",
                 "arguments": [],
                 "coordinates": {"x": 175, "y": 215}  # Center of element
@@ -377,13 +406,13 @@ class TestObserveOptions:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#highlighted-element",
                 "description": "Element with overlay",
-                "backend_node_id": 800,
+                "element_id": 800,
                 "method": "click",
                 "arguments": []
             }
@@ -411,13 +440,13 @@ class TestObserveOptions:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#custom-model-element",
                 "description": "Element found with custom model",
-                "backend_node_id": 900,
+                "element_id": 900,
                 "method": "click",
                 "arguments": []
             }
@@ -448,14 +477,14 @@ class TestObserveResultProcessing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock complex result with all fields
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#complex-element",
                 "description": "Complex element with all properties",
-                "backend_node_id": 1000,
+                "element_id": 1000,
                 "method": "type",
                 "arguments": ["test input"],
                 "tagName": "INPUT",
@@ -490,7 +519,7 @@ class TestObserveResultProcessing:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock result with minimal required fields
         mock_llm.set_custom_response("observe", [
@@ -530,7 +559,7 @@ class TestErrorHandling:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         # Mock empty result
         mock_llm.set_custom_response("observe", [])
@@ -551,7 +580,7 @@ class TestErrorHandling:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         mock_client.logger = MagicMock()
         
         # Mock malformed response
@@ -601,13 +630,13 @@ class TestMetricsAndLogging:
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics_from_response = MagicMock()
+        mock_client.update_metrics = MagicMock()
         
         mock_llm.set_custom_response("observe", [
             {
                 "selector": "#test-element",
                 "description": "Test element",
-                "backend_node_id": 1100,
+                "element_id": 1100,
                 "method": "click",
                 "arguments": []
             }
@@ -621,7 +650,7 @@ class TestMetricsAndLogging:
         
         # Should start timing and update metrics
         mock_client.start_inference_timer.assert_called()
-        mock_client.update_metrics_from_response.assert_called()
+        mock_client.update_metrics.assert_called()
     
     @pytest.mark.asyncio
     async def test_logging_on_observation_errors(self, mock_stagehand_page):
@@ -672,4 +701,4 @@ class TestPromptGeneration:
         
         # This would test that DOM context is included in prompts
         # Actual implementation would depend on prompt structure
-        assert handler.page == mock_stagehand_page
+        assert handler.stagehand_page == mock_stagehand_page

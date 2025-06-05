@@ -149,15 +149,19 @@ class ExtractHandler:
                 validated_model_instance = schema.model_validate(raw_data_dict)
                 processed_data_payload = validated_model_instance  # Payload is now the Pydantic model instance
             except Exception as e:
+                schema_name = getattr(schema, '__name__', str(schema))
                 self.logger.error(
-                    f"Failed to validate extracted data against schema {schema.__name__}: {e}. Keeping raw data dict in .data field."
+                    f"Failed to validate extracted data against schema {schema_name}: {e}. Keeping raw data dict in .data field."
                 )
 
         # Create ExtractResult object with extracted data as fields
         if isinstance(processed_data_payload, dict):
             result = ExtractResult(**processed_data_payload)
+        elif hasattr(processed_data_payload, 'model_dump'):
+            # For Pydantic models, convert to dict and spread as fields
+            result = ExtractResult(**processed_data_payload.model_dump())
         else:
-            # For non-dict data (like Pydantic models), create with data field
+            # For other data types, create with data field
             result = ExtractResult(data=processed_data_payload)
 
         return result
@@ -168,4 +172,4 @@ class ExtractHandler:
 
         tree = await get_accessibility_tree(self.stagehand_page, self.logger)
         output_string = tree["simplified"]
-        return ExtractResult(data=output_string)
+        return ExtractResult(extraction=output_string)
