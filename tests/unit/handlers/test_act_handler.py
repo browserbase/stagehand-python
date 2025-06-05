@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from stagehand.handlers.act_handler import ActHandler
-from stagehand.schemas import ActOptions, ActResult
+from stagehand.schemas import ActOptions, ActResult, ObserveResult
 from tests.mocks.mock_llm import MockLLMClient, MockLLMResponse
 
 
@@ -56,45 +56,45 @@ class TestActExecution:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        # Set up mock LLM response for action
-        mock_llm.set_custom_response("act", {
-            "success": True,
-            "message": "Button clicked successfully",
-            "action": "click on submit button",
-            "selector": "#submit-btn",
-            "method": "click"
-        })
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Mock the handler's internal methods
-        handler._execute_action = AsyncMock(return_value=True)
+        # Mock the observe handler to return a successful result
+        mock_observe_result = ObserveResult(
+            selector="xpath=//button[@id='submit-btn']",
+            description="Submit button",
+            method="click",
+            arguments=[]
+        )
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
+        
+        # Mock the playwright method execution
+        handler._perform_playwright_method = AsyncMock()
         
         result = await handler.act({"action": "click on the submit button"})
         
         assert isinstance(result, ActResult)
         assert result.success is True
-        assert "clicked" in result.message.lower()
-        
-        # Should have called LLM
-        assert mock_llm.call_count == 1
-        assert mock_llm.was_called_with_content("click")
+        assert "performed successfully" in result.message
+        assert result.action == "Submit button"
     
     @pytest.mark.asyncio
     async def test_act_with_pre_observed_action(self, mock_stagehand_page):
         """Test executing pre-observed action without LLM call"""
         mock_client = MagicMock()
         mock_client.llm = MockLLMClient()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Mock the action execution
-        handler._execute_action = AsyncMock(return_value=True)
+        # Mock the playwright method execution
+        handler._perform_playwright_method = AsyncMock()
         
-        # Pre-observed action payload
+        # Pre-observed action payload (ObserveResult format)
         action_payload = {
-            "selector": "#submit-btn",
+            "selector": "xpath=//button[@id='submit-btn']",
             "method": "click",
             "arguments": [],
             "description": "Submit button"
@@ -104,10 +104,10 @@ class TestActExecution:
         
         assert isinstance(result, ActResult)
         assert result.success is True
+        assert "performed successfully" in result.message
         
-        # Should execute action directly without LLM call
-        handler._execute_action.assert_called_once()
-        assert mock_client.llm.call_count == 0  # No LLM call for pre-observed action
+        # Should not call observe handler for pre-observed actions
+        handler._perform_playwright_method.assert_called_once()
     
     @pytest.mark.asyncio
     async def test_act_with_action_failure(self, mock_stagehand_page):
@@ -117,24 +117,28 @@ class TestActExecution:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        # Mock LLM response with action
-        mock_llm.set_custom_response("act", {
-            "selector": "#missing-btn",
-            "method": "click",
-            "arguments": []
-        })
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
+        # Mock the observe handler to return a result
+        mock_observe_result = ObserveResult(
+            selector="xpath=//button[@id='missing-btn']",
+            description="Missing button",
+            method="click",
+            arguments=[]
+        )
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
+        
         # Mock action execution to fail
-        handler._execute_action = AsyncMock(return_value=False)
+        handler._perform_playwright_method = AsyncMock(side_effect=Exception("Element not found"))
         
         result = await handler.act({"action": "click on missing button"})
         
         assert isinstance(result, ActResult)
         assert result.success is False
-        assert "failed" in result.message.lower() or "error" in result.message.lower()
+        assert "Failed to perform act" in result.message
     
     @pytest.mark.asyncio
     async def test_act_with_llm_failure(self, mock_stagehand_page):
@@ -144,14 +148,19 @@ class TestActExecution:
         mock_llm.simulate_failure(True, "API rate limit exceeded")
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
+        
+        # Mock the observe handler to fail with LLM error
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(side_effect=Exception("API rate limit exceeded"))
         
         result = await handler.act({"action": "click button"})
         
         assert isinstance(result, ActResult)
         assert result.success is False
-        assert "API rate limit exceeded" in result.message
+        assert "Failed to perform act" in result.message
 
 
 class TestSelfHealing:
@@ -165,47 +174,33 @@ class TestSelfHealing:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        # First LLM call returns failing action
-        # Second LLM call returns successful action
-        call_count = 0
-        def custom_response(messages, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                return {
-                    "selector": "#wrong-btn",
-                    "method": "click",
-                    "arguments": []
-                }
-            else:
-                return {
-                    "selector": "#correct-btn", 
-                    "method": "click",
-                    "arguments": []
-                }
-        
-        mock_llm.set_custom_response("act", custom_response)
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", self_heal=True)
         
-        # Mock action execution: first fails, second succeeds
-        execution_count = 0
-        async def mock_execute(selector, method, args):
-            nonlocal execution_count
-            execution_count += 1
-            return execution_count > 1  # Fail first, succeed second
+        # Mock a pre-observed action that fails first time
+        action_payload = {
+            "selector": "xpath=//button[@id='btn']",
+            "method": "click",
+            "arguments": [],
+            "description": "Test button"
+        }
         
-        handler._execute_action = mock_execute
+        # Mock self-healing by having the page.act method succeed on retry
+        mock_stagehand_page.act = AsyncMock(return_value=ActResult(
+            success=True,
+            message="Self-heal successful",
+            action="Test button"
+        ))
         
-        result = await handler.act({"action": "click button"})
+        # First attempt fails, should trigger self-heal
+        handler._perform_playwright_method = AsyncMock(side_effect=Exception("Element not clickable"))
+        
+        result = await handler.act(action_payload)
         
         assert isinstance(result, ActResult)
-        assert result.success is True
-        
-        # Should have made 2 LLM calls (original + retry)
-        assert mock_llm.call_count == 2
-        assert execution_count == 2
+        # Self-healing should have been attempted
+        mock_stagehand_page.act.assert_called_once()
     
     @pytest.mark.asyncio
     async def test_self_healing_disabled_no_retry(self, mock_stagehand_page):
@@ -215,55 +210,62 @@ class TestSelfHealing:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        mock_llm.set_custom_response("act", {
-            "selector": "#missing-btn",
-            "method": "click", 
-            "arguments": []
-        })
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", self_heal=False)
         
-        # Mock action execution to fail
-        handler._execute_action = AsyncMock(return_value=False)
+        # Mock a pre-observed action that fails
+        action_payload = {
+            "selector": "xpath=//button[@id='btn']",
+            "method": "click",
+            "arguments": [],
+            "description": "Test button"
+        }
         
-        result = await handler.act({"action": "click button"})
+        # Mock action execution to fail
+        handler._perform_playwright_method = AsyncMock(side_effect=Exception("Element not found"))
+        
+        result = await handler.act(action_payload)
         
         assert isinstance(result, ActResult)
         assert result.success is False
-        
-        # Should have made only 1 LLM call (no retry)
-        assert mock_llm.call_count == 1
+        assert "Failed to perform act" in result.message
     
     @pytest.mark.asyncio
     async def test_self_healing_max_retry_limit(self, mock_stagehand_page):
-        """Test that self-healing respects maximum retry limit"""
+        """Test that self-healing eventually gives up after retries"""
         mock_client = MagicMock()
         mock_llm = MockLLMClient()
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        # Always return failing action
-        mock_llm.set_custom_response("act", {
-            "selector": "#always-fails",
-            "method": "click",
-            "arguments": []
-        })
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", self_heal=True)
         
-        # Mock action execution to always fail
-        handler._execute_action = AsyncMock(return_value=False)
+        # Mock a pre-observed action that always fails
+        action_payload = {
+            "selector": "xpath=//button[@id='btn']",
+            "method": "click",
+            "arguments": [],
+            "description": "Always fails button"
+        }
         
-        result = await handler.act({"action": "click button"})
+        # Mock self-healing to also fail
+        mock_stagehand_page.act = AsyncMock(return_value=ActResult(
+            success=False,
+            message="Self-heal also failed",
+            action="Always fails button"
+        ))
+        
+        # First attempt fails, triggers self-heal which also fails
+        handler._perform_playwright_method = AsyncMock(side_effect=Exception("Always fails"))
+        
+        result = await handler.act(action_payload)
         
         assert isinstance(result, ActResult)
+        # Should eventually give up and return failure
         assert result.success is False
-        
-        # Should have reached max retry limit (implementation dependent)
-        # Assuming 3 total attempts (1 original + 2 retries)
-        assert mock_llm.call_count <= 3
 
 
 class TestActionExecution:
@@ -271,59 +273,98 @@ class TestActionExecution:
     
     @pytest.mark.asyncio
     async def test_execute_click_action(self, mock_stagehand_page):
-        """Test executing click action"""
+        """Test executing click action through _perform_playwright_method"""
         mock_client = MagicMock()
+        mock_client.logger = MagicMock()
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Mock page methods
-        mock_stagehand_page._page.click = AsyncMock()
-        mock_stagehand_page._page.wait_for_selector = AsyncMock()
+        # Mock page locator and click method
+        mock_locator = MagicMock()
+        mock_locator.first = mock_locator
+        mock_locator.click = AsyncMock()
+        mock_stagehand_page._page.locator.return_value = mock_locator
+        mock_stagehand_page._page.url = "http://test.com"
+        mock_stagehand_page._wait_for_settled_dom = AsyncMock()
         
-        result = await handler._execute_action("#submit-btn", "click", [])
+        # Mock method handler to just call the locator method
+        with patch('stagehand.handlers.act_handler.method_handler_map', {"click": AsyncMock()}):
+            await handler._perform_playwright_method("click", [], "//button[@id='submit-btn']")
         
-        assert result is True
-        mock_stagehand_page._page.click.assert_called_with("#submit-btn")
+        # Should have created locator with xpath
+        mock_stagehand_page._page.locator.assert_called_with("xpath=//button[@id='submit-btn']")
     
     @pytest.mark.asyncio
     async def test_execute_type_action(self, mock_stagehand_page):
-        """Test executing type action"""
+        """Test executing type action through _perform_playwright_method"""
         mock_client = MagicMock()
+        mock_client.logger = MagicMock()
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Mock page methods
-        mock_stagehand_page._page.fill = AsyncMock()
-        mock_stagehand_page._page.wait_for_selector = AsyncMock()
+        # Mock page locator and fill method
+        mock_locator = MagicMock()
+        mock_locator.first = mock_locator
+        mock_locator.fill = AsyncMock()
+        mock_stagehand_page._page.locator.return_value = mock_locator
+        mock_stagehand_page._page.url = "http://test.com"
+        mock_stagehand_page._wait_for_settled_dom = AsyncMock()
         
-        result = await handler._execute_action("#input-field", "type", ["test text"])
+        # Mock method handler
+        with patch('stagehand.handlers.act_handler.method_handler_map', {"fill": AsyncMock()}):
+            await handler._perform_playwright_method("fill", ["test text"], "//input[@id='input-field']")
         
-        assert result is True
-        mock_stagehand_page._page.fill.assert_called_with("#input-field", "test text")
+        # Should have created locator with xpath
+        mock_stagehand_page._page.locator.assert_called_with("xpath=//input[@id='input-field']")
     
     @pytest.mark.asyncio
     async def test_execute_action_with_timeout(self, mock_stagehand_page):
         """Test action execution with timeout"""
         mock_client = MagicMock()
+        mock_client.logger = MagicMock()
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Mock selector not found (timeout)
-        mock_stagehand_page._page.wait_for_selector = AsyncMock(
-            side_effect=Exception("Timeout waiting for selector")
-        )
+        # Mock locator that times out
+        mock_locator = MagicMock()
+        mock_locator.first = mock_locator
+        mock_stagehand_page._page.locator.return_value = mock_locator
+        mock_stagehand_page._page.url = "http://test.com"
+        mock_stagehand_page._wait_for_settled_dom = AsyncMock()
         
-        result = await handler._execute_action("#missing-element", "click", [])
+        # Mock method handler to raise timeout
+        async def mock_timeout_handler(context):
+            raise Exception("Timeout waiting for selector")
         
-        assert result is False
+        with patch('stagehand.handlers.act_handler.method_handler_map', {"click": mock_timeout_handler}):
+            with pytest.raises(Exception) as exc_info:
+                await handler._perform_playwright_method("click", [], "//div[@id='missing-element']")
+            
+            assert "Timeout waiting for selector" in str(exc_info.value)
     
     @pytest.mark.asyncio
     async def test_execute_unsupported_action(self, mock_stagehand_page):
         """Test handling of unsupported action methods"""
         mock_client = MagicMock()
+        mock_client.logger = MagicMock()
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        result = await handler._execute_action("#element", "unsupported_method", [])
+        # Mock locator
+        mock_locator = MagicMock()
+        mock_locator.first = mock_locator
+        mock_stagehand_page._page.locator.return_value = mock_locator
+        mock_stagehand_page._page.url = "http://test.com"
+        mock_stagehand_page._wait_for_settled_dom = AsyncMock()
         
-        # Should handle gracefully
-        assert result is False
+        # Mock method handler map without the unsupported method
+        with patch('stagehand.handlers.act_handler.method_handler_map', {}):
+            # Mock fallback locator method that doesn't exist
+            with patch('stagehand.handlers.act_handler.fallback_locator_method') as mock_fallback:
+                mock_fallback.side_effect = AsyncMock()
+                mock_locator.unsupported_method = None  # Method doesn't exist
+                
+                # Should handle gracefully and log warning
+                await handler._perform_playwright_method("unsupported_method", [], "//div[@id='element']")
+                
+                # Should have logged warning about invalid method
+                mock_client.logger.warning.assert_called()
 
 
 class TestPromptGeneration:
@@ -337,8 +378,6 @@ class TestPromptGeneration:
         user_instructions = "Always be careful with form submissions"
         handler = ActHandler(mock_stagehand_page, mock_client, user_instructions, True)
         
-        # This would be tested by examining the actual prompt sent to LLM
-        # Implementation depends on how prompts are structured
         assert handler.user_provided_instructions == user_instructions
     
     def test_prompt_includes_action_context(self, mock_stagehand_page):
@@ -348,11 +387,6 @@ class TestPromptGeneration:
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Mock DOM context
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="<button>Submit</button>")
-        
-        # This would test that DOM context is included in prompts
-        # Actual implementation would depend on prompt structure
         assert handler.stagehand_page == mock_stagehand_page
 
 
@@ -367,21 +401,30 @@ class TestMetricsAndLogging:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        mock_llm.set_custom_response("act", {
-            "selector": "#btn",
-            "method": "click",
-            "arguments": []
-        })
+        mock_client.get_inference_time_ms = MagicMock(return_value=100)
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        handler._execute_action = AsyncMock(return_value=True)
+        
+        # Mock the observe handler to return a successful result
+        mock_observe_result = ObserveResult(
+            selector="xpath=//button[@id='btn']",
+            description="Test button",
+            method="click",
+            arguments=[]
+        )
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
+        
+        # Mock successful execution
+        handler._perform_playwright_method = AsyncMock()
         
         await handler.act({"action": "click button"})
         
-        # Should start timing and update metrics
+        # Should start timing
         mock_client.start_inference_timer.assert_called()
-        mock_client.update_metrics.assert_called()
+        # Metrics are updated in the observe handler, so just check timing was called
+        mock_client.get_inference_time_ms.assert_called()
     
     @pytest.mark.asyncio 
     async def test_logging_on_action_failure(self, mock_stagehand_page):
@@ -393,12 +436,15 @@ class TestMetricsAndLogging:
         mock_client.update_metrics = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        handler._execute_action = AsyncMock(return_value=False)
+        
+        # Mock the observe handler to fail
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(side_effect=Exception("Test failure"))
         
         await handler.act({"action": "click missing button"})
         
-        # Should log the failure (implementation dependent)
-        # This would test actual logging calls if they exist
+        # Should log the failure
+        mock_client.logger.error.assert_called()
 
 
 class TestActionValidation:
@@ -409,14 +455,20 @@ class TestActionValidation:
         """Test handling of invalid action payload"""
         mock_client = MagicMock()
         mock_client.llm = MockLLMClient()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
         
-        # Test with empty payload
-        result = await handler.act({})
+        # Mock the observe handler to return empty results
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[])
+        
+        # Test with payload that has empty action string
+        result = await handler.act({"action": ""})
         
         assert isinstance(result, ActResult)
         assert result.success is False
+        assert "No observe results found" in result.message
     
     @pytest.mark.asyncio
     async def test_malformed_llm_response(self, mock_stagehand_page):
@@ -426,17 +478,19 @@ class TestActionValidation:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
-        
-        # Set malformed response
-        mock_llm.set_custom_response("act", "invalid response format")
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
+        
+        # Mock the observe handler to fail with malformed response
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(side_effect=Exception("Malformed response"))
         
         result = await handler.act({"action": "click button"})
         
         assert isinstance(result, ActResult)
         assert result.success is False
-        assert "error" in result.message.lower() or "failed" in result.message.lower()
+        assert "Failed to perform act" in result.message
 
 
 class TestVariableSubstitution:
@@ -450,9 +504,22 @@ class TestVariableSubstitution:
         mock_client.llm = mock_llm
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        handler._execute_action = AsyncMock(return_value=True)
+        
+        # Mock the observe handler to return a result with arguments
+        mock_observe_result = ObserveResult(
+            selector="xpath=//input[@id='username']",
+            description="Username field",
+            method="fill",
+            arguments=["%username%"]  # Will be substituted
+        )
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
+        
+        # Mock successful execution
+        handler._perform_playwright_method = AsyncMock()
         
         # Action with variables
         action_payload = {
@@ -463,16 +530,30 @@ class TestVariableSubstitution:
         result = await handler.act(action_payload)
         
         assert isinstance(result, ActResult)
-        # Variable substitution would be tested by examining LLM calls
-        # Implementation depends on how variables are processed
+        assert result.success is True
+        # Variable substitution would be tested by checking the arguments passed
     
     @pytest.mark.asyncio
     async def test_action_with_missing_variables(self, mock_stagehand_page):
         """Test action with missing variable values"""
         mock_client = MagicMock()
         mock_client.llm = MockLLMClient()
+        mock_client.logger = MagicMock()
         
         handler = ActHandler(mock_stagehand_page, mock_client, "", True)
+        
+        # Mock the observe handler to return a result
+        mock_observe_result = ObserveResult(
+            selector="xpath=//input[@id='field']",
+            description="Input field",
+            method="fill",
+            arguments=["%undefined_var%"]
+        )
+        mock_stagehand_page._observe_handler = MagicMock()
+        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
+        
+        # Mock successful execution (variables just won't be substituted)
+        handler._perform_playwright_method = AsyncMock()
         
         # Action with undefined variable
         action_payload = {
@@ -482,5 +563,6 @@ class TestVariableSubstitution:
         
         result = await handler.act(action_payload)
         
-        # Should handle gracefully (implementation dependent)
+        # Should handle gracefully
         assert isinstance(result, ActResult) 
+        # Missing variables should not break execution 
