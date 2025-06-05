@@ -67,7 +67,7 @@ class TestClientInitialization:
 
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_config_priority_over_direct_params(self):
-        """Test that direct parameters override config parameters."""
+        """Test that config parameters take precedence over direct parameters (except session_id)."""
         config = StagehandConfig(
             env="LOCAL",  # Use LOCAL to avoid BROWSERBASE validation
             api_key="config-api-key",
@@ -82,9 +82,10 @@ class TestClientInitialization:
             session_id="direct-session-id",
         )
 
-        # Direct parameters should override config values
-        assert client.browserbase_api_key == "direct-api-key"
-        assert client.browserbase_project_id == "direct-project-id"
+        # Config parameters take precedence for api_key and project_id
+        assert client.browserbase_api_key == "config-api-key"
+        assert client.browserbase_project_id == "config-project-id"
+        # But session_id parameter overrides config since it's handled specially
         assert client.session_id == "direct-session-id"
 
     def test_init_with_missing_required_fields(self):

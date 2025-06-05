@@ -95,6 +95,10 @@ class TestDOMScriptInjection:
         import stagehand.page
         stagehand.page._INJECTION_SCRIPT = None
         
+        # Remove the mock and restore the real ensure_injection method
+        from stagehand.page import StagehandPage
+        mock_stagehand_page.ensure_injection = StagehandPage.ensure_injection.__get__(mock_stagehand_page)
+        
         # Set up the page to return False for script check, triggering script loading
         mock_stagehand_page._page.evaluate.return_value = False
         

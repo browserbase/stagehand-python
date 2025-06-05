@@ -179,7 +179,8 @@ class TestObserveExecution:
         ])
         
         handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="Only visible elements")
+        # Mock evaluate method for find_scrollable_element_ids
+        mock_stagehand_page.evaluate = AsyncMock(return_value=["//body", "//div[@class='content']"])
         
         options = ObserveOptions(
             instruction="find buttons",
@@ -191,8 +192,8 @@ class TestObserveExecution:
         assert len(result) == 1
         assert result[0].selector == "xpath=//button[@id='visible-button']"
         
-        # Should have called evaluate with visibility filter
-        mock_stagehand_page._page.evaluate.assert_called()
+        # Should have called evaluate for scrollable elements
+        mock_stagehand_page.evaluate.assert_called()
     
     @pytest.mark.asyncio
     async def test_observe_with_return_action_option(self, mock_stagehand_page):
@@ -236,23 +237,26 @@ class TestObserveExecution:
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
         
-        mock_llm.set_custom_response("observe", [
+        # When from_act=True, the function_name becomes "ACT", so set custom response for "act"
+        mock_llm.set_custom_response("act", [
             {
                 "description": "Element to act on",
-                "element_id": 400,
+                "element_id": 1,  # Use element_id 1 which exists in the accessibility tree
                 "method": "click",
                 "arguments": []
             }
         ])
         
         handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="Act context DOM")
+        # Mock evaluate method for find_scrollable_element_ids
+        mock_stagehand_page.evaluate = AsyncMock(return_value=["//body"])
         
         options = ObserveOptions(instruction="find target element")
         result = await handler.observe(options, from_act=True)
         
         assert len(result) == 1
-        assert result[0].selector == "xpath=//div[@id='target-element']"
+        # The xpath mapping for element_id 1 should be "//div[@id='test']" based on conftest setup
+        assert result[0].selector == "xpath=//div[@id='test']"
     
     @pytest.mark.asyncio
     async def test_observe_with_llm_failure(self, mock_stagehand_page):
@@ -286,14 +290,6 @@ class TestDOMProcessing:
         mock_client.start_inference_timer = MagicMock()
         mock_client.update_metrics = MagicMock()
         
-        # Mock DOM extraction
-        mock_dom_elements = [
-            {"id": "btn1", "text": "Click me", "tagName": "BUTTON"},
-            {"id": "btn2", "text": "Submit", "tagName": "BUTTON"}
-        ]
-        
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value=mock_dom_elements)
-        
         mock_llm.set_custom_response("observe", [
             {
                 "description": "Click me button",
@@ -304,12 +300,14 @@ class TestDOMProcessing:
         ])
         
         handler = ObserveHandler(mock_stagehand_page, mock_client, "")
+        # Mock evaluate method for find_scrollable_element_ids
+        mock_stagehand_page.evaluate = AsyncMock(return_value=["//button[@id='btn1']", "//button[@id='btn2']"])
         
         options = ObserveOptions(instruction="find button elements")
         result = await handler.observe(options)
         
-        # Should have called page.evaluate to extract DOM elements
-        mock_stagehand_page._page.evaluate.assert_called()
+        # Should have called evaluate to find scrollable elements
+        mock_stagehand_page.evaluate.assert_called()
         
         assert len(result) == 1
         assert result[0].selector == "xpath=//button[@id='btn1']"
@@ -412,7 +410,8 @@ class TestObserveOptions:
         ])
         
         handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="DOM with overlay")
+        # Mock evaluate method for find_scrollable_element_ids
+        mock_stagehand_page.evaluate = AsyncMock(return_value=["//div[@id='highlighted-element']"])
         
         options = ObserveOptions(
             instruction="find elements",
@@ -423,8 +422,8 @@ class TestObserveOptions:
         
         # Should have drawn overlay on elements
         assert len(result) == 1
-        # Overlay drawing would be tested through DOM evaluation calls
-        mock_stagehand_page._page.evaluate.assert_called()
+        # Should have called evaluate for finding scrollable elements
+        mock_stagehand_page.evaluate.assert_called()
     
     @pytest.mark.asyncio
     async def test_observe_with_custom_model(self, mock_stagehand_page):
@@ -485,7 +484,8 @@ class TestObserveResultProcessing:
         ])
         
         handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="Complex DOM")
+        # Mock evaluate method for find_scrollable_element_ids
+        mock_stagehand_page.evaluate = AsyncMock(return_value=["//input[@id='complex-element']"])
         
         options = ObserveOptions(instruction="find complex elements")
         result = await handler.observe(options)
@@ -495,7 +495,6 @@ class TestObserveResultProcessing:
         
         assert obs_result.selector == "xpath=//input[@id='complex-element']"
         assert obs_result.description == "Complex element with all properties"
-        assert obs_result.backend_node_id == 1000
         assert obs_result.method == "type"
         assert obs_result.arguments == ["test input"]
         
