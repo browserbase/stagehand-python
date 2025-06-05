@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Literal, Optional
 
 from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from pydantic import BaseModel, ConfigDict, Field
@@ -12,36 +12,48 @@ class StagehandConfig(BaseModel):
 
     Attributes:
         env (str): Environment type. 'BROWSERBASE' for remote usage
-        api_key (Optional[str]): API key for authentication.
-        project_id (Optional[str]): Project identifier.
-        headless (bool): Run browser in headless mode.
-        logger (Optional[Callable[[Any], None]]): Custom logging function.
-        dom_settle_timeout_ms (Optional[int]): Timeout for DOM to settle (in milliseconds).
+        api_key (Optional[str]): BrowserbaseAPI key for authentication.
+        project_id (Optional[str]): Browserbase Project identifier.
+        api_url (Optional[str]): Stagehand API URL.
         browserbase_session_create_params (Optional[BrowserbaseSessionCreateParams]): Browserbase session create params.
-        enable_caching (Optional[bool]): Enable caching functionality.
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.
+        model_api_key (Optional[str]): Model API key.
+        logger (Optional[Callable[[Any], None]]): Custom logging function.
+        verbose (Optional[int]): Verbosity level for logs (1=minimal, 2=medium, 3=detailed).
+        use_rich_logging (bool): Whether to use Rich for colorized logging.
+        dom_settle_timeout_ms (Optional[int]): Timeout for DOM to settle (in milliseconds).
+        enable_caching (Optional[bool]): Enable caching functionality.
         self_heal (Optional[bool]): Enable self-healing functionality.
         wait_for_captcha_solves (Optional[bool]): Whether to wait for CAPTCHA to be solved.
         act_timeout_ms (Optional[int]): Timeout for act commands (in milliseconds).
+        headless (bool): Run browser in headless mode
         system_prompt (Optional[str]): System prompt to use for LLM interactions.
-        verbose (Optional[int]): Verbosity level for logs (1=minimal, 2=medium, 3=detailed).
         local_browser_launch_options (Optional[dict[str, Any]]): Local browser launch options.
     """
 
-    env: str = "BROWSERBASE"
+    env: Literal["BROWSERBASE", "LOCAL"] = "BROWSERBASE"
     api_key: Optional[str] = Field(
         None, alias="apiKey", description="Browserbase API key for authentication"
     )
     project_id: Optional[str] = Field(
         None, alias="projectId", description="Browserbase project ID"
     )
+    api_url: Optional[str] = Field(
+        None, alias="apiUrl", description="Stagehand API URL"
+    )  # might add a default value here
+    model_api_key: Optional[str] = Field(
+        None, alias="modelApiKey", description="Model API key"
+    )
     verbose: Optional[int] = Field(
         1,
-        description="Verbosity level for logs: 1=minimal (INFO), 2=medium (WARNING), 3=detailed (DEBUG)",
+        description="Verbosity level for logs: 0=minimal (ERROR), 1=medium (INFO), 2=detailed (DEBUG)",
     )
     logger: Optional[Callable[[Any], None]] = Field(
         None, description="Custom logging function"
+    )
+    use_rich_logging: Optional[bool] = Field(
+        True, description="Whether to use Rich for colorized logging"
     )
     dom_settle_timeout_ms: Optional[int] = Field(
         3000,
