@@ -144,7 +144,9 @@ class MockLLMClient:
         if isinstance(data, str):
             return MockLLMResponse(data, model=model)
         elif isinstance(data, dict):
-            content = data.get("content", str(data))
+            # For extract responses, convert dict to JSON string for content
+            import json
+            content = json.dumps(data)
             return MockLLMResponse(content, data=data, model=model)
         else:
             return MockLLMResponse(str(data), data=data, model=model)
@@ -247,4 +249,60 @@ class MockLLMClient:
             "total_prompt_tokens": total_prompt_tokens,
             "total_completion_tokens": total_completion_tokens,
             "total_tokens": total_prompt_tokens + total_completion_tokens
-        } 
+        }
+    
+    def create_response(
+        self,
+        *,
+        messages: list[dict[str, str]],
+        model: Optional[str] = None,
+        function_name: Optional[str] = None,
+        **kwargs
+    ) -> MockLLMResponse:
+        """Create a response using the same interface as the real LLMClient"""
+        # Use function_name to determine response type if available
+        if function_name:
+            response_type = function_name.lower()
+        else:
+            # Fall back to content-based detection
+            content = str(messages).lower()
+            response_type = self._determine_response_type(content)
+        
+        # Track the call
+        self.call_count += 1
+        self.last_messages = messages
+        self.last_model = model or self.default_model
+        self.last_kwargs = kwargs
+        
+        # Store call in history
+        call_info = {
+            "messages": messages,
+            "model": self.last_model,
+            "kwargs": kwargs,
+            "function_name": function_name,
+            "timestamp": asyncio.get_event_loop().time()
+        }
+        self.call_history.append(call_info)
+        
+        # Simulate failure if configured
+        if self.should_fail:
+            raise Exception(self.failure_message)
+        
+        # Check for custom responses first
+        if response_type in self.custom_responses:
+            response_data = self.custom_responses[response_type]
+            if callable(response_data):
+                response_data = response_data(messages, **kwargs)
+            return self._create_response(response_data, model=self.last_model)
+        
+        # Use default response mapping
+        response_generator = self.response_mapping.get(response_type, self._default_response)
+        response_data = response_generator(messages, **kwargs)
+        
+        response = self._create_response(response_data, model=self.last_model)
+        
+        # Call metrics callback if set
+        if self.metrics_callback:
+            self.metrics_callback(response, 100, response_type)  # 100ms mock inference time
+        
+        return response 

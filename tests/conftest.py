@@ -85,8 +85,65 @@ def mock_stagehand_page(mock_playwright_page):
     mock_client.logger.error = MagicMock()
     mock_client._get_lock_for_session = MagicMock(return_value=AsyncMock())
     mock_client._execute = AsyncMock()
+    mock_client.update_metrics = MagicMock()
     
     stagehand_page = StagehandPage(mock_playwright_page, mock_client)
+    
+    # Mock CDP calls for accessibility tree
+    async def mock_send_cdp(method, params=None):
+        if method == "Accessibility.getFullAXTree":
+            return {
+                "nodes": [
+                    {
+                        "nodeId": "1",
+                        "role": {"value": "button"},
+                        "name": {"value": "Click me"},
+                        "backendDOMNodeId": 1,
+                        "childIds": [],
+                        "properties": []
+                    },
+                    {
+                        "nodeId": "2", 
+                        "role": {"value": "textbox"},
+                        "name": {"value": "Search input"},
+                        "backendDOMNodeId": 2,
+                        "childIds": [],
+                        "properties": []
+                    }
+                ]
+            }
+        elif method == "DOM.resolveNode":
+            return {
+                "object": {
+                    "objectId": "test-object-id"
+                }
+            }
+        elif method == "Runtime.callFunctionOn":
+            return {
+                "result": {
+                    "value": "//div[@id='test']"
+                }
+            }
+        return {}
+    
+    stagehand_page.send_cdp = AsyncMock(side_effect=mock_send_cdp)
+    
+    # Mock get_cdp_client to return a mock CDP session
+    mock_cdp_client = AsyncMock()
+    mock_cdp_client.send = AsyncMock(return_value={"result": {"value": "//div[@id='test']"}})
+    stagehand_page.get_cdp_client = AsyncMock(return_value=mock_cdp_client)
+    
+    # Mock ensure_injection and evaluate methods
+    stagehand_page.ensure_injection = AsyncMock()
+    stagehand_page.evaluate = AsyncMock(return_value=[])
+    
+    # Mock enable/disable CDP domain methods
+    stagehand_page.enable_cdp_domain = AsyncMock()
+    stagehand_page.disable_cdp_domain = AsyncMock()
+    
+    # Mock _wait_for_settled_dom to avoid asyncio.sleep issues
+    stagehand_page._wait_for_settled_dom = AsyncMock()
+    
     return stagehand_page
 
 

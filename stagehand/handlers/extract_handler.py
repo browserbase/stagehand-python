@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from stagehand.a11y.utils import get_accessibility_tree
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.metrics import StagehandFunctionName  # Changed import location
-from stagehand.types import DefaultExtractSchema, ExtractOptions, ExtractResult
+from stagehand.schemas import DEFAULT_EXTRACT_SCHEMA as DefaultExtractSchema, ExtractOptions, ExtractResult
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
 
 T = TypeVar("T", bound=BaseModel)
@@ -153,10 +153,12 @@ class ExtractHandler:
                     f"Failed to validate extracted data against schema {schema.__name__}: {e}. Keeping raw data dict in .data field."
                 )
 
-        # Create ExtractResult object
-        result = ExtractResult(
-            data=processed_data_payload,
-        )
+        # Create ExtractResult object with extracted data as fields
+        if isinstance(processed_data_payload, dict):
+            result = ExtractResult(**processed_data_payload)
+        else:
+            # For non-dict data (like Pydantic models), create with data field
+            result = ExtractResult(data=processed_data_payload)
 
         return result
 

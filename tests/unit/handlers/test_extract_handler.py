@@ -23,7 +23,7 @@ class TestExtractHandlerInitialization:
             user_provided_instructions="Test extraction instructions"
         )
         
-        assert handler.page == mock_stagehand_page
+        assert handler.stagehand_page == mock_stagehand_page
         assert handler.stagehand == mock_client
         assert handler.user_provided_instructions == "Test extraction instructions"
     
@@ -65,8 +65,8 @@ class TestExtractExecution:
         assert isinstance(result, ExtractResult)
         assert result.extraction == "Sample extracted text from the page"
         
-        # Should have called LLM
-        assert mock_llm.call_count == 1
+        # Should have called LLM twice (once for extraction, once for metadata)
+        assert mock_llm.call_count == 2
         assert mock_llm.was_called_with_content("extract")
     
     @pytest.mark.asyncio
@@ -365,7 +365,7 @@ class TestPromptGeneration:
         
         # This would test that schema context is included in prompts
         # Implementation depends on how prompts are structured
-        assert handler.page == mock_stagehand_page
+        assert handler.stagehand_page == mock_stagehand_page
 
 
 class TestMetricsAndLogging:
