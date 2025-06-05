@@ -39,17 +39,9 @@ load_dotenv()
 
 class Stagehand:
     """
-    Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
-
-    Now supports automatically creating a new session if no session_id is provided.
-    You can provide a configuration via the 'config' parameter, or use individual parameters to override
-    the default configuration values.
+    Main Stagehand class. 
     """
-
-    # Dictionary to store one lock per session_id
     _session_locks = {}
-
-    # Flag to track if cleanup has been called
     _cleanup_called = False
 
     def __init__(

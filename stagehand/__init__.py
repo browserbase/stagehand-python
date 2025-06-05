@@ -1,5 +1,5 @@
 from .agent import Agent
-from .client import Stagehand
+from .main import Stagehand
 from .config import StagehandConfig, default_config
 from .handlers.observe_handler import ObserveHandler
 from .metrics import StagehandFunctionName, StagehandMetrics
