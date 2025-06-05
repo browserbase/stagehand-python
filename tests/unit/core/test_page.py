@@ -40,6 +40,9 @@ class TestStagehandPageInitialization:
         mock_client.env = "LOCAL"
         mock_client.logger = MagicMock()
         
+        # Ensure keyboard.press returns a regular value, not a coroutine
+        mock_playwright_page.keyboard.press.return_value = None
+        
         page = StagehandPage(mock_playwright_page, mock_client)
         
         # Should forward attribute access to underlying page
