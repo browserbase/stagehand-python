@@ -148,6 +148,13 @@ class MockLLMClient:
             import json
             content = json.dumps(data)
             return MockLLMResponse(content, data=data, model=model)
+        elif isinstance(data, list):
+            # For observe responses, convert list to JSON string for content
+            import json
+            # Wrap the list in the expected format for observe responses
+            response_dict = {"elements": data}
+            content = json.dumps(response_dict)
+            return MockLLMResponse(content, data=response_dict, model=model)
         else:
             return MockLLMResponse(str(data), data=data, model=model)
     

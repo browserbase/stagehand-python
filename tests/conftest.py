@@ -113,15 +113,44 @@ def mock_stagehand_page(mock_playwright_page):
                 ]
             }
         elif method == "DOM.resolveNode":
+            # Create a mapping of element IDs to appropriate object IDs
+            backend_node_id = params.get("backendNodeId", 1)
             return {
                 "object": {
-                    "objectId": "test-object-id"
+                    "objectId": f"test-object-id-{backend_node_id}"
                 }
             }
         elif method == "Runtime.callFunctionOn":
+            # Map object IDs to appropriate selectors based on the element ID
+            object_id = params.get("objectId", "")
+            
+            # Extract backend_node_id from object_id
+            if "test-object-id-" in object_id:
+                backend_node_id = object_id.replace("test-object-id-", "")
+                
+                # Map specific element IDs to expected selectors for tests
+                selector_mapping = {
+                    "100": "//a[@id='home-link']",
+                    "101": "//a[@id='about-link']", 
+                    "102": "//a[@id='contact-link']",
+                    "200": "//button[@id='visible-button']",
+                    "300": "//input[@id='form-input']",
+                    "400": "//div[@id='target-element']",
+                    "501": "//button[@id='btn1']",
+                    "600": "//button[@id='interactive-btn']",
+                    "700": "//div[@id='positioned-element']",
+                    "800": "//div[@id='highlighted-element']",
+                    "900": "//div[@id='custom-model-element']",
+                    "1000": "//input[@id='complex-element']",
+                }
+                
+                xpath = selector_mapping.get(backend_node_id, "//div[@id='test']")
+            else:
+                xpath = "//div[@id='test']"
+                
             return {
                 "result": {
-                    "value": "//div[@id='test']"
+                    "value": xpath
                 }
             }
         return {}
@@ -130,7 +159,45 @@ def mock_stagehand_page(mock_playwright_page):
     
     # Mock get_cdp_client to return a mock CDP session
     mock_cdp_client = AsyncMock()
-    mock_cdp_client.send = AsyncMock(return_value={"result": {"value": "//div[@id='test']"}})
+    
+    # Set up the mock CDP client to handle Runtime.callFunctionOn properly
+    async def mock_cdp_send(method, params=None):
+        if method == "Runtime.callFunctionOn":
+            # Map object IDs to appropriate selectors based on the element ID
+            object_id = params.get("objectId", "")
+            
+            # Extract backend_node_id from object_id
+            if "test-object-id-" in object_id:
+                backend_node_id = object_id.replace("test-object-id-", "")
+                
+                # Map specific element IDs to expected selectors for tests
+                selector_mapping = {
+                    "100": "//a[@id='home-link']",
+                    "101": "//a[@id='about-link']", 
+                    "102": "//a[@id='contact-link']",
+                    "200": "//button[@id='visible-button']",
+                    "300": "//input[@id='form-input']",
+                    "400": "//div[@id='target-element']",
+                    "501": "//button[@id='btn1']",
+                    "600": "//button[@id='interactive-btn']",
+                    "700": "//div[@id='positioned-element']",
+                    "800": "//div[@id='highlighted-element']",
+                    "900": "//div[@id='custom-model-element']",
+                    "1000": "//input[@id='complex-element']",
+                }
+                
+                xpath = selector_mapping.get(backend_node_id, "//div[@id='test']")
+            else:
+                xpath = "//div[@id='test']"
+                
+            return {
+                "result": {
+                    "value": xpath
+                }
+            }
+        return {"result": {"value": "//div[@id='test']"}}
+    
+    mock_cdp_client.send = AsyncMock(side_effect=mock_cdp_send)
     stagehand_page.get_cdp_client = AsyncMock(return_value=mock_cdp_client)
     
     # Mock ensure_injection and evaluate methods

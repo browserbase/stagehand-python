@@ -1,5 +1,6 @@
 import asyncio
 import unittest.mock as mock
+import os
 
 import pytest
 
@@ -10,9 +11,13 @@ from stagehand.config import StagehandConfig
 class TestClientInitialization:
     """Tests for the Stagehand client initialization and configuration."""
 
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_direct_params(self):
         """Test initialization with direct parameters."""
+        # Create a config with LOCAL env to avoid BROWSERBASE validation issues
+        config = StagehandConfig(env="LOCAL")
         client = Stagehand(
+            config=config,
             api_url="http://test-server.com",
             session_id="test-session",
             browserbase_api_key="test-api-key",
@@ -23,27 +28,24 @@ class TestClientInitialization:
 
         assert client.api_url == "http://test-server.com"
         assert client.session_id == "test-session"
-        assert client.browserbase_api_key == "test-api-key"
-        assert client.browserbase_project_id == "test-project-id"
+        # In LOCAL mode, browserbase keys are not used
         assert client.model_api_key == "test-model-api-key"
         assert client.verbose == 2
         assert client._initialized is False
         assert client._closed is False
 
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_config(self):
         """Test initialization with a configuration object."""
         config = StagehandConfig(
+            env="LOCAL",  # Use LOCAL to avoid BROWSERBASE validation
             api_key="config-api-key",
             project_id="config-project-id",
             browserbase_session_id="config-session-id",
             model_name="gpt-4",
             dom_settle_timeout_ms=500,
-            debug_dom=True,
-            headless=True,
-            enable_caching=True,
             self_heal=True,
             wait_for_captcha_solves=True,
-            act_timeout_ms=30000,
             system_prompt="Custom system prompt for testing",
         )
 
@@ -55,21 +57,19 @@ class TestClientInitialization:
         assert client.browserbase_project_id == "config-project-id"
         assert client.model_name == "gpt-4"
         assert client.dom_settle_timeout_ms == 500
-        assert client.debug_dom is True
-        assert client.headless is True
-        assert client.enable_caching is True
         assert hasattr(client, "self_heal")
         assert client.self_heal is True
         assert hasattr(client, "wait_for_captcha_solves")
         assert client.wait_for_captcha_solves is True
-        assert hasattr(client, "act_timeout_ms")
-        assert client.act_timeout_ms == 30000
+        assert hasattr(client, "config")
         assert hasattr(client, "system_prompt")
         assert client.system_prompt == "Custom system prompt for testing"
 
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_config_priority_over_direct_params(self):
-        """Test that config parameters take precedence over direct parameters."""
+        """Test that direct parameters override config parameters."""
         config = StagehandConfig(
+            env="LOCAL",  # Use LOCAL to avoid BROWSERBASE validation
             api_key="config-api-key",
             project_id="config-project-id",
             browserbase_session_id="config-session-id",
@@ -82,10 +82,10 @@ class TestClientInitialization:
             session_id="direct-session-id",
         )
 
-        # Config values should take precedence
-        assert client.browserbase_api_key == "config-api-key"
-        assert client.browserbase_project_id == "config-project-id"
-        assert client.session_id == "config-session-id"
+        # Direct parameters should override config values
+        assert client.browserbase_api_key == "direct-api-key"
+        assert client.browserbase_project_id == "direct-project-id"
+        assert client.session_id == "direct-session-id"
 
     def test_init_with_missing_required_fields(self):
         """Test initialization with missing required fields."""

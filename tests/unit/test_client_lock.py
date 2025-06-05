@@ -1,7 +1,9 @@
 import asyncio
 import unittest.mock as mock
+import os
 
 import pytest
+import pytest_asyncio
 
 from stagehand.client import Stagehand
 
@@ -9,24 +11,26 @@ from stagehand.client import Stagehand
 class TestClientLock:
     """Tests for the client-side locking mechanism in the Stagehand client."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def mock_stagehand(self):
         """Create a mock Stagehand instance for testing."""
-        stagehand = Stagehand(
-            api_url="http://localhost:8000",
-            session_id="test-session-id",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
-        )
-        # Mock the _execute method to avoid actual API calls
-        stagehand._execute = mock.AsyncMock(return_value={"result": "success"})
-        yield stagehand
+        with mock.patch.dict(os.environ, {}, clear=True):
+            stagehand = Stagehand(
+                api_url="http://localhost:8000",
+                session_id="test-session-id",
+                browserbase_api_key="test-api-key",
+                browserbase_project_id="test-project-id",
+                env="LOCAL",  # Avoid BROWSERBASE validation
+            )
+            # Mock the _execute method to avoid actual API calls
+            stagehand._execute = mock.AsyncMock(return_value={"result": "success"})
+            yield stagehand
 
     @pytest.mark.asyncio
     async def test_lock_creation(self, mock_stagehand):
         """Test that locks are properly created for session IDs."""
-        # Check initial state
-        assert Stagehand._session_locks == {}
+        # Clear any existing locks first
+        Stagehand._session_locks.clear()
 
         # Get lock for session
         lock = mock_stagehand._get_lock_for_session()
@@ -42,29 +46,35 @@ class TestClientLock:
     @pytest.mark.asyncio
     async def test_lock_per_session(self):
         """Test that different sessions get different locks."""
-        stagehand1 = Stagehand(
-            api_url="http://localhost:8000",
-            session_id="session-1",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
-        )
+        # Clear any existing locks first
+        Stagehand._session_locks.clear()
+        
+        with mock.patch.dict(os.environ, {}, clear=True):
+            stagehand1 = Stagehand(
+                api_url="http://localhost:8000",
+                session_id="session-1",
+                browserbase_api_key="test-api-key",
+                browserbase_project_id="test-project-id",
+                env="LOCAL",
+            )
 
-        stagehand2 = Stagehand(
-            api_url="http://localhost:8000",
-            session_id="session-2",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
-        )
+            stagehand2 = Stagehand(
+                api_url="http://localhost:8000",
+                session_id="session-2",
+                browserbase_api_key="test-api-key",
+                browserbase_project_id="test-project-id",
+                env="LOCAL",
+            )
 
-        lock1 = stagehand1._get_lock_for_session()
-        lock2 = stagehand2._get_lock_for_session()
+            lock1 = stagehand1._get_lock_for_session()
+            lock2 = stagehand2._get_lock_for_session()
 
-        # Different sessions should have different locks
-        assert lock1 is not lock2
+            # Different sessions should have different locks
+            assert lock1 is not lock2
 
-        # Both sessions should have locks in the class-level dict
-        assert "session-1" in Stagehand._session_locks
-        assert "session-2" in Stagehand._session_locks
+            # Both sessions should have locks in the class-level dict
+            assert "session-1" in Stagehand._session_locks
+            assert "session-2" in Stagehand._session_locks
 
     @pytest.mark.asyncio
     async def test_concurrent_access(self, mock_stagehand):

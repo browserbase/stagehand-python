@@ -1,7 +1,10 @@
 import asyncio
 import time
+import os
+import unittest.mock as mock
 
 import pytest
+import pytest_asyncio
 
 from stagehand.client import Stagehand
 
@@ -9,46 +12,46 @@ from stagehand.client import Stagehand
 class TestClientConcurrentRequests:
     """Tests focused on verifying concurrent request handling with locks."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def real_stagehand(self):
         """Create a Stagehand instance with a mocked _execute method that simulates delays."""
-        stagehand = Stagehand(
-            api_url="http://localhost:8000",
-            session_id="test-concurrent-session",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
-        )
-
-        # Track timestamps and method calls to verify serialization
-        execution_log = []
-
-        # Replace _execute with a version that logs timestamps
-        original_execute = stagehand._execute
-
-        async def logged_execute(method, payload):
-            method_name = method
-            start_time = time.time()
-            execution_log.append(
-                {"method": method_name, "event": "start", "time": start_time}
+        with mock.patch.dict(os.environ, {}, clear=True):
+            stagehand = Stagehand(
+                api_url="http://localhost:8000",
+                session_id="test-concurrent-session",
+                browserbase_api_key="test-api-key",
+                browserbase_project_id="test-project-id",
+                env="LOCAL",  # Avoid BROWSERBASE validation
             )
 
-            # Simulate API delay of 100ms
-            await asyncio.sleep(0.1)
+            # Track timestamps and method calls to verify serialization
+            execution_log = []
 
-            end_time = time.time()
-            execution_log.append(
-                {"method": method_name, "event": "end", "time": end_time}
-            )
+            # Replace _execute with a version that logs timestamps
+            async def logged_execute(method, payload):
+                method_name = method
+                start_time = time.time()
+                execution_log.append(
+                    {"method": method_name, "event": "start", "time": start_time}
+                )
 
-            return {"result": f"{method_name} completed"}
+                # Simulate API delay of 100ms
+                await asyncio.sleep(0.1)
 
-        stagehand._execute = logged_execute
-        stagehand.execution_log = execution_log
+                end_time = time.time()
+                execution_log.append(
+                    {"method": method_name, "event": "end", "time": end_time}
+                )
 
-        yield stagehand
+                return {"result": f"{method_name} completed"}
 
-        # Clean up
-        Stagehand._session_locks.pop("test-concurrent-session", None)
+            stagehand._execute = logged_execute
+            stagehand.execution_log = execution_log
+
+            yield stagehand
+
+            # Clean up
+            Stagehand._session_locks.pop("test-concurrent-session", None)
 
     @pytest.mark.asyncio
     async def test_concurrent_requests_serialization(self, real_stagehand):

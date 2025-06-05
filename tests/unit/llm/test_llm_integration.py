@@ -464,8 +464,11 @@ class TestLLMIntegrationWithStagehand:
         response = await mock_llm.completion(observe_messages)
         
         assert mock_llm.was_called_with_content("find")
-        assert isinstance(response.data, list)
-        assert len(response.data) == 2
+        # MockLLMClient wraps list responses in {"elements": list}
+        assert isinstance(response.data, dict)
+        assert "elements" in response.data
+        assert isinstance(response.data["elements"], list)
+        assert len(response.data["elements"]) == 2
 
 
 class TestLLMPerformance:

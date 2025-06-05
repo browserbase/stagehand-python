@@ -576,7 +576,7 @@ class TestBrowserbaseIntegration:
                 # Extract data via Browserbase
                 extracted = await stagehand.page.extract("extract page title and content")
                 assert extracted["title"] == "Remote Page Title"
-                assert "Browserbase" in extracted["content"]
+                assert extracted["content"] == "Content extracted via Browserbase"
                 
                 # Verify server interactions
                 assert server.was_called_with_endpoint("act")

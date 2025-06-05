@@ -199,21 +199,23 @@ class MockStagehandServer:
         # Remove base URL and extract the last path component
         path = url.split("/")[-1]
         
-        # Handle common Stagehand endpoints
+        # Handle common Stagehand endpoints - check exact matches to avoid substring issues
         if "session" in url and "create" in url:
-            return "create_session"
-        elif "navigate" in path:
-            return "navigate"
-        elif "act" in path:
-            return "act"
-        elif "observe" in path:
-            return "observe"
-        elif "extract" in path:
-            return "extract"
-        elif "screenshot" in path:
-            return "screenshot"
+            endpoint = "create_session"
+        elif path == "navigate":
+            endpoint = "navigate"
+        elif path == "act":
+            endpoint = "act"
+        elif path == "observe":
+            endpoint = "observe"
+        elif path == "extract":
+            endpoint = "extract"
+        elif path == "screenshot":
+            endpoint = "screenshot"
         else:
-            return path or "unknown"
+            endpoint = path or "unknown"
+            
+        return endpoint
     
     def set_response_override(self, endpoint: str, response: Union[Dict, callable]):
         """Override the default response for a specific endpoint"""
