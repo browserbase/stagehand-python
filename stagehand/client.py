@@ -4,7 +4,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 
 import httpx
 from dotenv import load_dotenv
@@ -135,7 +135,9 @@ class Stagehand:
         # Initialize the centralized logger with the specified verbosity
         self.on_log = self.config.logger or default_log_handler
         self.logger = StagehandLogger(
-            verbose=self.verbose, external_logger=self.on_log, use_rich=self.config.use_rich_logging
+            verbose=self.verbose,
+            external_logger=self.on_log,
+            use_rich=self.config.use_rich_logging,
         )
 
         # If using BROWSERBASE, session_id or creation params are needed
@@ -396,9 +398,7 @@ class Stagehand:
 
         if self.env == "BROWSERBASE":
             if not self._client:
-                self._client = httpx.AsyncClient(
-                    timeout=self.timeout_settings
-                )
+                self._client = httpx.AsyncClient(timeout=self.timeout_settings)
 
             # Create session if we don't have one
             if not self.session_id:

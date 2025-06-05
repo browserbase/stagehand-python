@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Literal
+from typing import Any, Callable, Literal, Optional
 
 from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from pydantic import BaseModel, ConfigDict, Field
@@ -41,7 +41,7 @@ class StagehandConfig(BaseModel):
     )
     api_url: Optional[str] = Field(
         None, alias="apiUrl", description="Stagehand API URL"
-    ) # might add a default value here
+    )  # might add a default value here
     model_api_key: Optional[str] = Field(
         None, alias="modelApiKey", description="Model API key"
     )
