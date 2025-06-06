@@ -3,29 +3,15 @@ import os
 from typing import Any, Optional
 
 from dotenv import load_dotenv
-
-try:
-    from google import genai
-    from google.genai import types
-    from google.genai.types import (
-        Candidate,
-        Content,
-        FunctionResponse,
-        GenerateContentConfig,
-        Part,
-    )
-
-    GOOGLE_AVAILABLE = True
-except ImportError:
-    # Create placeholder classes for when google.genai is not available
-    genai = None
-    types = None
-    Candidate = None
-    Content = None
-    FunctionResponse = None
-    GenerateContentConfig = None
-    Part = None
-    GOOGLE_AVAILABLE = False
+from google import genai
+from google.genai import types
+from google.genai.types import (
+    Candidate,
+    Content,
+    FunctionResponse,
+    GenerateContentConfig,
+    Part,
+)
 
 from ..handlers.cua_handler import CUAHandler
 from ..types.agent import (
@@ -54,12 +40,6 @@ class GoogleCUAClient(AgentClient):
         **kwargs,  # Allow for other Google specific options if any
     ):
         super().__init__(model, instructions, config, logger, handler)
-
-        if not GOOGLE_AVAILABLE:
-            raise ImportError(
-                "Google Generative AI library is not available. "
-                "Please install it with: pip install google-generativeai"
-            )
 
         if not os.getenv("GEMINI_API_KEY"):
             raise ValueError("GEMINI_API_KEY environment variable not set.")

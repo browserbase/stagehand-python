@@ -38,6 +38,8 @@ jobs:
           pip install build twine wheel setuptools ruff
           pip install -r requirements.txt
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          # Install temporary Google GenAI wheel
+          pip install temp/google_genai-1.14.0-py3-none-any.whl
           
       - name: Run Ruff linting
         run: |
