@@ -5,7 +5,7 @@ import os
 import pytest
 import pytest_asyncio
 
-from stagehand.client import Stagehand
+from stagehand import Stagehand
 from stagehand.page import StagehandPage
 from stagehand.schemas import ActOptions, ObserveOptions
 
@@ -19,9 +19,9 @@ class TestClientLockScenarios:
         with mock.patch.dict(os.environ, {}, clear=True):
             stagehand = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="test-scenario-session",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="test-scenario-session",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",  # Avoid BROWSERBASE validation
             )
 
@@ -212,17 +212,17 @@ class TestClientLockScenarios:
             # Create two Stagehand instances with different session IDs
             stagehand1 = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="test-parallel-session-1",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="test-parallel-session-1",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",
             )
 
             stagehand2 = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="test-parallel-session-2",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="test-parallel-session-2",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",
             )
 

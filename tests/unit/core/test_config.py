@@ -231,10 +231,10 @@ class TestConfigValidation:
     """Test configuration validation and error handling"""
     
     def test_invalid_env_value(self):
-        """Test that invalid environment values are handled gracefully"""
-        # StagehandConfig allows any env value, validation happens in client
-        config = StagehandConfig(env="INVALID_ENV")
-        assert config.env == "INVALID_ENV"
+        """Test that invalid environment values raise validation errors"""
+        # StagehandConfig only accepts "BROWSERBASE" or "LOCAL"
+        with pytest.raises(Exception):  # Pydantic validation error
+            StagehandConfig(env="INVALID_ENV")
     
     def test_invalid_verbose_level(self):
         """Test with invalid verbose levels"""

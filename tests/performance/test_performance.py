@@ -21,8 +21,8 @@ class TestResponseTimePerformance:
         """Test that act operations complete within acceptable time limits"""
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("act", {
@@ -68,8 +68,8 @@ class TestResponseTimePerformance:
         """Test that observe operations complete within acceptable time limits"""
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("observe", [
@@ -116,8 +116,8 @@ class TestResponseTimePerformance:
         """Test that extract operations complete within acceptable time limits"""
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("extract", {
@@ -173,8 +173,8 @@ class TestMemoryUsagePerformance:
         
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("act", {"success": True, "action": "click"})
@@ -211,8 +211,8 @@ class TestMemoryUsagePerformance:
         
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("extract", {
@@ -265,8 +265,8 @@ class TestConcurrencyPerformance:
         """Test performance of concurrent act operations"""
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("act", {"success": True, "action": "concurrent click"})
@@ -320,8 +320,8 @@ class TestConcurrencyPerformance:
         """Test performance of mixed concurrent operations"""
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("act", {"success": True})
@@ -396,8 +396,8 @@ class TestScalabilityPerformance:
             large_html += f'<div id="element-{i}" class="test-class">Element {i}</div>'
         large_html += "</body></html>"
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("observe", [
@@ -452,8 +452,8 @@ class TestScalabilityPerformance:
             for i in range(3):  # Reduced number for performance testing
                 playwright, browser, context, page = create_mock_browser_stack()
                 
-                with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-                     patch('stagehand.client.LLMClient') as mock_llm_class:
+                with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+                     patch('stagehand.main.LLMClient') as mock_llm_class:
                     
                     mock_llm = MockLLMClient()
                     mock_llm.set_custom_response("act", {"success": True, "session": i})
@@ -509,7 +509,7 @@ class TestNetworkPerformance:
         server.set_response_override("act", {"success": True, "action": "fast action"})
         server.set_response_override("observe", [{"selector": "#fast", "description": "fast element"}])
         
-        with patch('stagehand.client.httpx.AsyncClient') as mock_http_class:
+        with patch('stagehand.main.httpx.AsyncClient') as mock_http_class:
             mock_http_class.return_value = http_client
             
             stagehand = Stagehand(
@@ -565,8 +565,8 @@ class TestLongRunningPerformance:
         """Test performance over extended session duration"""
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_llm.set_custom_response("act", {"success": True})

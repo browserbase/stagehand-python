@@ -217,9 +217,9 @@ def mock_stagehand_page(mock_playwright_page):
 @pytest.fixture
 def mock_stagehand_client(mock_stagehand_config):
     """Provide a mock Stagehand client for testing"""
-    with patch('stagehand.client.async_playwright'), \
-         patch('stagehand.client.LLMClient'), \
-         patch('stagehand.client.StagehandLogger'):
+    with patch('stagehand.main.async_playwright'), \
+         patch('stagehand.main.LLMClient'), \
+         patch('stagehand.main.StagehandLogger'):
         
         client = Stagehand(config=mock_stagehand_config)
         client._initialized = True  # Skip init for testing

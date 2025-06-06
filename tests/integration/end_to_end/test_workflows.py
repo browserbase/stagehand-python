@@ -40,8 +40,8 @@ class TestCompleteWorkflows:
             ]
         })
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
             mock_llm_class.return_value = mock_llm
@@ -139,8 +139,8 @@ class TestCompleteWorkflows:
         
         mock_llm.set_custom_response("act", form_response_generator)
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
             mock_llm_class.return_value = mock_llm
@@ -225,8 +225,8 @@ class TestCompleteWorkflows:
         playwright, browser, context, page = create_mock_browser_stack()
         setup_page_with_content(page, complex_page_html, "https://shop.example.com")
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
             mock_llm_class.return_value = MockLLMClient()
@@ -360,8 +360,8 @@ class TestCompleteWorkflows:
         
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
             mock_llm_class.return_value = MockLLMClient()
@@ -446,8 +446,8 @@ class TestCompleteWorkflows:
         
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_llm = MockLLMClient()
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
@@ -527,7 +527,7 @@ class TestBrowserbaseIntegration:
             "content": "Content extracted via Browserbase"
         })
         
-        with patch('stagehand.client.httpx.AsyncClient') as mock_http_class:
+        with patch('stagehand.main.httpx.AsyncClient') as mock_http_class:
             mock_http_class.return_value = http_client
             
             stagehand = Stagehand(
@@ -606,8 +606,8 @@ class TestWorkflowPydanticSchemas:
         
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
             mock_llm_class.return_value = MockLLMClient()
@@ -686,8 +686,8 @@ class TestPerformanceWorkflows:
         
         playwright, browser, context, page = create_mock_browser_stack()
         
-        with patch('stagehand.client.async_playwright') as mock_playwright_func, \
-             patch('stagehand.client.LLMClient') as mock_llm_class:
+        with patch('stagehand.main.async_playwright') as mock_playwright_func, \
+             patch('stagehand.main.LLMClient') as mock_llm_class:
             
             mock_playwright_func.return_value.start = AsyncMock(return_value=playwright)
             mock_llm_class.return_value = MockLLMClient()

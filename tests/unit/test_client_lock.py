@@ -5,7 +5,7 @@ import os
 import pytest
 import pytest_asyncio
 
-from stagehand.client import Stagehand
+from stagehand import Stagehand
 
 
 class TestClientLock:
@@ -17,9 +17,9 @@ class TestClientLock:
         with mock.patch.dict(os.environ, {}, clear=True):
             stagehand = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="test-session-id",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="test-session-id",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",  # Avoid BROWSERBASE validation
             )
             # Mock the _execute method to avoid actual API calls
@@ -52,17 +52,17 @@ class TestClientLock:
         with mock.patch.dict(os.environ, {}, clear=True):
             stagehand1 = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="session-1",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="session-1",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",
             )
 
             stagehand2 = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="session-2",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="session-2",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",
             )
 

@@ -4,7 +4,7 @@ import unittest.mock as mock
 import playwright.async_api
 import pytest
 
-from stagehand.client import Stagehand
+from stagehand import Stagehand
 from stagehand.page import StagehandPage
 
 
@@ -50,9 +50,9 @@ class TestClientLifecycle:
         # Setup client with a session ID
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock health check to avoid actual API calls
@@ -91,8 +91,8 @@ class TestClientLifecycle:
         # Setup client without a session ID
         client = Stagehand(
             api_url="http://test-server.com",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            api_key="test-api-key",
+            project_id="test-project-id",
             model_api_key="test-model-api-key",
         )
 
@@ -136,9 +136,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock needed methods
@@ -174,9 +174,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock health check
@@ -209,9 +209,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Modify mock browser to have empty contexts
@@ -263,9 +263,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock the needed attributes and methods
@@ -323,9 +323,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock the needed attributes and methods
@@ -379,9 +379,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock the needed attributes
@@ -432,9 +432,9 @@ class TestClientLifecycle:
         # Setup client
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",
+            project_id="test-project-id",
         )
 
         # Mock needed methods

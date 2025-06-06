@@ -6,7 +6,7 @@ import unittest.mock as mock
 import pytest
 import pytest_asyncio
 
-from stagehand.client import Stagehand
+from stagehand import Stagehand
 
 
 class TestClientConcurrentRequests:
@@ -18,9 +18,9 @@ class TestClientConcurrentRequests:
         with mock.patch.dict(os.environ, {}, clear=True):
             stagehand = Stagehand(
                 api_url="http://localhost:8000",
-                session_id="test-concurrent-session",
-                browserbase_api_key="test-api-key",
-                browserbase_project_id="test-project-id",
+                browserbase_session_id="test-concurrent-session",
+                api_key="test-api-key",
+                project_id="test-project-id",
                 env="LOCAL",  # Avoid BROWSERBASE validation
             )
 
