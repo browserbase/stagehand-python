@@ -11,6 +11,7 @@ from stagehand import Stagehand
 class TestClientAPI:
     """Tests for the Stagehand client API interactions."""
 
+    @pytest.mark.smoke
     @pytest.mark.asyncio
     async def test_execute_success(self, mock_stagehand_client):
         """Test successful execution of a streaming API request."""
@@ -151,6 +152,7 @@ class TestClientAPI:
         for item in items:
             yield item
 
+    @pytest.mark.smoke
     @pytest.mark.asyncio
     async def test_create_session_success(self, mock_stagehand_client):
         """Test successful session creation."""

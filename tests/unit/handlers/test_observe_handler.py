@@ -51,6 +51,7 @@ class TestObserveHandlerInitialization:
 class TestObserveExecution:
     """Test observe execution and response processing"""
     
+    @pytest.mark.smoke
     @pytest.mark.asyncio
     async def test_observe_single_element(self, mock_stagehand_page):
         """Test observing a single element"""

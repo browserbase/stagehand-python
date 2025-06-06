@@ -48,6 +48,7 @@ class TestActHandlerInitialization:
 class TestActExecution:
     """Test action execution functionality"""
     
+    @pytest.mark.smoke
     @pytest.mark.asyncio
     async def test_act_with_string_action(self, mock_stagehand_page):
         """Test executing action with string instruction"""

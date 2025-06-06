@@ -11,6 +11,7 @@ from stagehand.config import StagehandConfig
 class TestClientInitialization:
     """Tests for the Stagehand client initialization and configuration."""
 
+    @pytest.mark.smoke
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_direct_params(self):
         """Test initialization with direct parameters."""
@@ -34,6 +35,7 @@ class TestClientInitialization:
         assert client._initialized is False
         assert client._closed is False
 
+    @pytest.mark.smoke
     @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_config(self):
         """Test initialization with a configuration object."""
