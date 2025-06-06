@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from stagehand.config import StagehandConfig, default_config
 
-
+# TODO: need to update after config-constructor refactor
 class TestStagehandConfig:
     """Test StagehandConfig creation and validation"""
     

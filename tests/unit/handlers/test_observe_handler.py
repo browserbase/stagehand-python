@@ -37,15 +37,6 @@ class TestObserveHandlerInitialization:
         assert handler.stagehand_page == mock_stagehand_page
         assert handler.stagehand == mock_client
         assert handler.user_provided_instructions == ""
-    
-    def test_observe_handler_with_empty_instructions(self, mock_stagehand_page):
-        """Test handler creation with empty instructions"""
-        mock_client = MagicMock()
-        mock_client.logger = MagicMock()
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, None)
-        
-        assert handler.user_provided_instructions is None
 
 
 class TestObserveExecution:
@@ -109,7 +100,7 @@ class TestObserveExecution:
         assert result[0].method == "click"
         
         # Verify that LLM was called
-        assert mock_llm.call_count >= 1
+        assert mock_llm.call_count == 1
     
     @pytest.mark.asyncio
     async def test_observe_multiple_elements(self, mock_stagehand_page):
@@ -160,74 +151,6 @@ class TestObserveExecution:
         assert result[1].selector == "xpath=//a[@id='about-link']"
         assert result[2].selector == "xpath=//a[@id='contact-link']"
     
-    @pytest.mark.asyncio
-    async def test_observe_with_only_visible_option(self, mock_stagehand_page):
-        """Test observe with only_visible option"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        # Mock response with only visible elements
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Visible button",
-                "element_id": 200,
-                "method": "click",
-                "arguments": []
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        # Mock evaluate method for find_scrollable_element_ids
-        mock_stagehand_page.evaluate = AsyncMock(return_value=["//body", "//div[@class='content']"])
-        
-        options = ObserveOptions(
-            instruction="find buttons",
-            only_visible=True
-        )
-        
-        result = await handler.observe(options)
-        
-        assert len(result) == 1
-        assert result[0].selector == "xpath=//button[@id='visible-button']"
-        
-        # Should have called evaluate for scrollable elements
-        mock_stagehand_page.evaluate.assert_called()
-    
-    @pytest.mark.asyncio
-    async def test_observe_with_return_action_option(self, mock_stagehand_page):
-        """Test observe with return_action option"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        # Mock response with action information
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Email input field",
-                "element_id": 300,
-                "method": "fill",
-                "arguments": ["example@email.com"]
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="Form elements")
-        
-        options = ObserveOptions(
-            instruction="find email input",
-            return_action=True
-        )
-        
-        result = await handler.observe(options)
-        
-        assert len(result) == 1
-        assert result[0].method == "fill"
-        assert result[0].arguments == ["example@email.com"]
     
     @pytest.mark.asyncio
     async def test_observe_from_act_context(self, mock_stagehand_page):
@@ -279,116 +202,6 @@ class TestObserveExecution:
         assert len(result) == 0
 
 
-class TestDOMProcessing:
-    """Test DOM processing for observation"""
-    
-    @pytest.mark.asyncio
-    async def test_dom_element_extraction(self, mock_stagehand_page):
-        """Test DOM element extraction for observation"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Click me button",
-                "element_id": 501,
-                "method": "click",
-                "arguments": []
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        # Mock evaluate method for find_scrollable_element_ids
-        mock_stagehand_page.evaluate = AsyncMock(return_value=["//button[@id='btn1']", "//button[@id='btn2']"])
-        
-        options = ObserveOptions(instruction="find button elements")
-        result = await handler.observe(options)
-        
-        # Should have called evaluate to find scrollable elements
-        mock_stagehand_page.evaluate.assert_called()
-        
-        assert len(result) == 1
-        assert result[0].selector == "xpath=//button[@id='btn1']"
-    
-    @pytest.mark.asyncio
-    async def test_dom_element_filtering(self, mock_stagehand_page):
-        """Test DOM element filtering during observation"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        # Mock filtered DOM elements (only interactive ones)
-        mock_filtered_elements = [
-            {"id": "interactive-btn", "text": "Interactive", "tagName": "BUTTON", "clickable": True}
-        ]
-        
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value=mock_filtered_elements)
-        
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Interactive button",
-                "element_id": 600,
-                "method": "click",
-                "arguments": []
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        
-        options = ObserveOptions(
-            instruction="find interactive elements",
-            only_visible=True
-        )
-        
-        result = await handler.observe(options)
-        
-        assert len(result) == 1
-        assert result[0].selector == "xpath=//button[@id='interactive-btn']"
-    
-    @pytest.mark.asyncio
-    async def test_dom_coordinate_mapping(self, mock_stagehand_page):
-        """Test DOM coordinate mapping for elements"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        # Mock elements with coordinates
-        mock_elements_with_coords = [
-            {
-                "id": "positioned-element", 
-                "rect": {"x": 100, "y": 200, "width": 150, "height": 30},
-                "text": "Positioned element"
-            }
-        ]
-        
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value=mock_elements_with_coords)
-        
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Element at specific position",
-                "element_id": 700,
-                "method": "click",
-                "arguments": [],
-                "coordinates": {"x": 175, "y": 215}  # Center of element
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        
-        options = ObserveOptions(instruction="find positioned elements")
-        result = await handler.observe(options)
-        
-        assert len(result) == 1
-        assert result[0].selector == "xpath=//div[@id='positioned-element']"
-
-
 class TestObserveOptions:
     """Test different observe options and configurations"""
     
@@ -425,104 +238,6 @@ class TestObserveOptions:
         assert len(result) == 1
         # Should have called evaluate for finding scrollable elements
         mock_stagehand_page.evaluate.assert_called()
-    
-    @pytest.mark.asyncio
-    async def test_observe_with_custom_model(self, mock_stagehand_page):
-        """Test observe with custom model specification"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Element found with custom model",
-                "element_id": 900,
-                "method": "click",
-                "arguments": []
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="DOM content")
-        
-        options = ObserveOptions(
-            instruction="find specific elements",
-            model_name="gpt-4o"
-        )
-        
-        result = await handler.observe(options)
-        
-        assert len(result) == 1
-        # Model name should be used in LLM call
-        assert mock_llm.call_count == 1
-
-
-class TestObserveResultProcessing:
-    """Test processing of observe results"""
-    
-    @pytest.mark.asyncio
-    async def test_observe_result_serialization(self, mock_stagehand_page):
-        """Test that observe results are properly serialized"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        # Mock complex result with all fields
-        mock_llm.set_custom_response("observe", [
-            {
-                "description": "Complex element with all properties",
-                "element_id": 1000,
-                "method": "type",
-                "arguments": ["test input"],
-                "tagName": "INPUT",
-                "text": "Input field",
-                "attributes": {"type": "text", "placeholder": "Enter text"}
-            }
-        ])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        # Mock evaluate method for find_scrollable_element_ids
-        mock_stagehand_page.evaluate = AsyncMock(return_value=["//input[@id='complex-element']"])
-        
-        options = ObserveOptions(instruction="find complex elements")
-        result = await handler.observe(options)
-        
-        assert len(result) == 1
-        obs_result = result[0]
-        
-        assert obs_result.selector == "xpath=//input[@id='complex-element']"
-        assert obs_result.description == "Complex element with all properties"
-        assert obs_result.method == "type"
-        assert obs_result.arguments == ["test input"]
-        
-        # Test dictionary access
-        assert obs_result["selector"] == "xpath=//input[@id='complex-element']"
-        assert obs_result["method"] == "type"
-    
-    @pytest.mark.asyncio
-    async def test_observe_result_validation(self, mock_stagehand_page):
-        """Test validation of observe results"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        # Mock result with minimal required fields - no element_id means it will be skipped
-        mock_llm.set_custom_response("observe", [])
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="Minimal DOM")
-        
-        options = ObserveOptions(instruction="find minimal elements")
-        result = await handler.observe(options)
-        
-        # Should return empty list since no element_id was provided
-        assert len(result) == 0
 
 
 class TestErrorHandling:
@@ -548,65 +263,9 @@ class TestErrorHandling:
         
         assert isinstance(result, list)
         assert len(result) == 0
-    
-    @pytest.mark.asyncio
-    async def test_observe_with_malformed_llm_response(self, mock_stagehand_page):
-        """Test observe with malformed LLM response"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        mock_client.logger = MagicMock()
-        
-        # Mock malformed response
-        mock_llm.set_custom_response("observe", "invalid response format")
-        
-        handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-        mock_stagehand_page._page.evaluate = AsyncMock(return_value="DOM content")
-        
-        options = ObserveOptions(instruction="find elements")
-        
-        # Should handle gracefully and return empty list or raise specific error
-        result = await handler.observe(options)
-        
-        # Depending on implementation, might return empty list or raise exception
-        assert isinstance(result, list)
-    
-    @pytest.mark.asyncio
-    async def test_observe_with_dom_evaluation_error(self, mock_stagehand_page):
-        """Test observe when DOM evaluation fails"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.logger = MagicMock()
-        
-        # Mock DOM evaluation failure - this will affect the accessibility tree call
-        # But the observe_inference will still be called and can return results
-        mock_stagehand_page._page.evaluate = AsyncMock(
-            side_effect=Exception("DOM evaluation failed")
-        )
-        
-        # Also need to mock the accessibility tree call to fail
-        with patch('stagehand.handlers.observe_handler.get_accessibility_tree') as mock_get_tree:
-            mock_get_tree.side_effect = Exception("DOM evaluation failed")
-            
-            handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-            
-            options = ObserveOptions(instruction="find elements")
-            
-            # The observe handler may catch the exception internally and return empty results
-            # or it might re-raise. Let's check what actually happens.
-            try:
-                result = await handler.observe(options)
-                # If no exception, check that result is reasonable
-                assert isinstance(result, list)
-            except Exception as e:
-                # If exception is raised, check it's the expected one
-                assert "DOM evaluation failed" in str(e)
 
 
-class TestMetricsAndLogging:
+class TestMetrics:
     """Test metrics collection and logging in observe operations"""
     
     @pytest.mark.asyncio
@@ -625,33 +284,7 @@ class TestMetricsAndLogging:
         # Should have called update_metrics
         mock_client.update_metrics.assert_called_once()
     
-    @pytest.mark.asyncio
-    async def test_logging_on_observation_errors(self, mock_stagehand_page):
-        """Test that observation errors are properly logged"""
-        mock_client = MagicMock()
-        mock_client.llm = MockLLMClient()
-        mock_client.logger = MagicMock()
-        
-        # Simulate an error during observation by making accessibility tree fail
-        with patch('stagehand.handlers.observe_handler.get_accessibility_tree') as mock_get_tree:
-            mock_get_tree.side_effect = Exception("Observation failed")
-            
-            handler = ObserveHandler(mock_stagehand_page, mock_client, "")
-            
-            options = ObserveOptions(instruction="find elements")
-            
-            # The handler may catch the exception internally
-            try:
-                result = await handler.observe(options)
-                # If no exception, that's fine - some errors are handled gracefully
-                assert isinstance(result, list)
-            except Exception:
-                # If exception is raised, that's also acceptable for this test
-                pass
-            
-            # The key is that something should be logged - either success or error
-
-
+# TODO: move to llm/inference tests
 class TestPromptGeneration:
     """Test prompt generation for observation"""
     

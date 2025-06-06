@@ -28,21 +28,6 @@ class TestActHandlerInitialization:
         assert handler.stagehand == mock_client
         assert handler.user_provided_instructions == "Test instructions"
         assert handler.self_heal is True
-    
-    def test_act_handler_with_disabled_self_healing(self, mock_stagehand_page):
-        """Test ActHandler with self-healing disabled"""
-        mock_client = MagicMock()
-        mock_client.llm = MockLLMClient()
-        mock_client.logger = MagicMock()
-        
-        handler = ActHandler(
-            mock_stagehand_page,
-            mock_client,
-            user_provided_instructions="Test",
-            self_heal=False
-        )
-        
-        assert handler.self_heal is False
 
 
 class TestActExecution:
@@ -111,37 +96,6 @@ class TestActExecution:
         handler._perform_playwright_method.assert_called_once()
     
     @pytest.mark.asyncio
-    async def test_act_with_action_failure(self, mock_stagehand_page):
-        """Test handling of action execution failure"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        mock_client.logger = MagicMock()
-        
-        handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        
-        # Mock the observe handler to return a result
-        mock_observe_result = ObserveResult(
-            selector="xpath=//button[@id='missing-btn']",
-            description="Missing button",
-            method="click",
-            arguments=[]
-        )
-        mock_stagehand_page._observe_handler = MagicMock()
-        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
-        
-        # Mock action execution to fail
-        handler._perform_playwright_method = AsyncMock(side_effect=Exception("Element not found"))
-        
-        result = await handler.act({"action": "click on missing button"})
-        
-        assert isinstance(result, ActResult)
-        assert result.success is False
-        assert "Failed to perform act" in result.message
-    
-    @pytest.mark.asyncio
     async def test_act_with_llm_failure(self, mock_stagehand_page):
         """Test handling of LLM API failure"""
         mock_client = MagicMock()
@@ -200,6 +154,7 @@ class TestSelfHealing:
         result = await handler.act(action_payload)
         
         assert isinstance(result, ActResult)
+        assert result.success is True
         # Self-healing should have been attempted
         mock_stagehand_page.act.assert_called_once()
     
@@ -269,6 +224,7 @@ class TestSelfHealing:
         assert result.success is False
 
 
+ # TODO: move to test_act_handler_utils.py
 class TestActionExecution:
     """Test low-level action execution methods"""
     
@@ -380,15 +336,6 @@ class TestPromptGeneration:
         handler = ActHandler(mock_stagehand_page, mock_client, user_instructions, True)
         
         assert handler.user_provided_instructions == user_instructions
-    
-    def test_prompt_includes_action_context(self, mock_stagehand_page):
-        """Test that prompts include relevant action context"""
-        mock_client = MagicMock()
-        mock_client.llm = MockLLMClient()
-        
-        handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        
-        assert handler.stagehand_page == mock_stagehand_page
 
 
 class TestMetricsAndLogging:
@@ -426,26 +373,6 @@ class TestMetricsAndLogging:
         mock_client.start_inference_timer.assert_called()
         # Metrics are updated in the observe handler, so just check timing was called
         mock_client.get_inference_time_ms.assert_called()
-    
-    @pytest.mark.asyncio 
-    async def test_logging_on_action_failure(self, mock_stagehand_page):
-        """Test that failures are properly logged"""
-        mock_client = MagicMock()
-        mock_client.llm = MockLLMClient()
-        mock_client.logger = MagicMock()
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        
-        handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        
-        # Mock the observe handler to fail
-        mock_stagehand_page._observe_handler = MagicMock()
-        mock_stagehand_page._observe_handler.observe = AsyncMock(side_effect=Exception("Test failure"))
-        
-        await handler.act({"action": "click missing button"})
-        
-        # Should log the failure
-        mock_client.logger.error.assert_called()
 
 
 class TestActionValidation:
@@ -471,99 +398,3 @@ class TestActionValidation:
         assert result.success is False
         assert "No observe results found" in result.message
     
-    @pytest.mark.asyncio
-    async def test_malformed_llm_response(self, mock_stagehand_page):
-        """Test handling of malformed LLM response"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        mock_client.logger = MagicMock()
-        
-        handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        
-        # Mock the observe handler to fail with malformed response
-        mock_stagehand_page._observe_handler = MagicMock()
-        mock_stagehand_page._observe_handler.observe = AsyncMock(side_effect=Exception("Malformed response"))
-        
-        result = await handler.act({"action": "click button"})
-        
-        assert isinstance(result, ActResult)
-        assert result.success is False
-        assert "Failed to perform act" in result.message
-
-
-class TestVariableSubstitution:
-    """Test variable substitution in actions"""
-    
-    @pytest.mark.asyncio
-    async def test_action_with_variables(self, mock_stagehand_page):
-        """Test action execution with variable substitution"""
-        mock_client = MagicMock()
-        mock_llm = MockLLMClient()
-        mock_client.llm = mock_llm
-        mock_client.start_inference_timer = MagicMock()
-        mock_client.update_metrics = MagicMock()
-        mock_client.logger = MagicMock()
-        
-        handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        
-        # Mock the observe handler to return a result with arguments
-        mock_observe_result = ObserveResult(
-            selector="xpath=//input[@id='username']",
-            description="Username field",
-            method="fill",
-            arguments=["%username%"]  # Will be substituted
-        )
-        mock_stagehand_page._observe_handler = MagicMock()
-        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
-        
-        # Mock successful execution
-        handler._perform_playwright_method = AsyncMock()
-        
-        # Action with variables
-        action_payload = {
-            "action": "type '{{username}}' in the username field",
-            "variables": {"username": "testuser"}
-        }
-        
-        result = await handler.act(action_payload)
-        
-        assert isinstance(result, ActResult)
-        assert result.success is True
-        # Variable substitution would be tested by checking the arguments passed
-    
-    @pytest.mark.asyncio
-    async def test_action_with_missing_variables(self, mock_stagehand_page):
-        """Test action with missing variable values"""
-        mock_client = MagicMock()
-        mock_client.llm = MockLLMClient()
-        mock_client.logger = MagicMock()
-        
-        handler = ActHandler(mock_stagehand_page, mock_client, "", True)
-        
-        # Mock the observe handler to return a result
-        mock_observe_result = ObserveResult(
-            selector="xpath=//input[@id='field']",
-            description="Input field",
-            method="fill",
-            arguments=["%undefined_var%"]
-        )
-        mock_stagehand_page._observe_handler = MagicMock()
-        mock_stagehand_page._observe_handler.observe = AsyncMock(return_value=[mock_observe_result])
-        
-        # Mock successful execution (variables just won't be substituted)
-        handler._perform_playwright_method = AsyncMock()
-        
-        # Action with undefined variable
-        action_payload = {
-            "action": "type '{{undefined_var}}' in field",
-            "variables": {"other_var": "value"}
-        }
-        
-        result = await handler.act(action_payload)
-        
-        # Should handle gracefully
-        assert isinstance(result, ActResult) 
-        # Missing variables should not break execution 

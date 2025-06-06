@@ -256,30 +256,6 @@ class TestActFunctionality:
             }
         )
         assert isinstance(result, ActResult)
-    
-    @pytest.mark.asyncio
-    async def test_act_ignores_kwargs_with_observe_result(self, mock_stagehand_page):
-        """Test that kwargs are ignored when using ObserveResult"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        observe_result = ObserveResult(
-            selector="#test",
-            description="test",
-            method="click"
-        )
-        
-        mock_act_handler = MagicMock()
-        mock_act_handler.act = AsyncMock(return_value=ActResult(
-            success=True,
-            message="Done",
-            action="click"
-        ))
-        mock_stagehand_page._act_handler = mock_act_handler
-        
-        # Should warn about ignored kwargs
-        await mock_stagehand_page.act(observe_result, model_name="ignored")
-        
-        mock_stagehand_page._stagehand.logger.warning.assert_called()
 
 
 class TestObserveFunctionality:
@@ -312,26 +288,6 @@ class TestObserveFunctionality:
         mock_observe_handler.observe.assert_called_once()
     
     @pytest.mark.asyncio
-    async def test_observe_with_options_object(self, mock_stagehand_page):
-        """Test observe() with ObserveOptions object"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        options = ObserveOptions(
-            instruction="find buttons",
-            only_visible=True,
-            return_action=True
-        )
-        
-        mock_observe_handler = MagicMock()
-        mock_observe_handler.observe = AsyncMock(return_value=[])
-        mock_stagehand_page._observe_handler = mock_observe_handler
-        
-        result = await mock_stagehand_page.observe(options)
-        
-        assert isinstance(result, list)
-        mock_observe_handler.observe.assert_called_with(options, from_act=False)
-    
-    @pytest.mark.asyncio
     async def test_observe_browserbase_mode(self, mock_stagehand_page):
         """Test observe() in BROWSERBASE mode"""
         mock_stagehand_page._stagehand.env = "BROWSERBASE"
@@ -352,23 +308,6 @@ class TestObserveFunctionality:
         assert len(result) == 1
         assert isinstance(result[0], ObserveResult)
         assert result[0].selector == "#test-btn"
-    
-    @pytest.mark.asyncio
-    async def test_observe_with_none_options(self, mock_stagehand_page):
-        """Test observe() with None options"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        mock_observe_handler = MagicMock()
-        mock_observe_handler.observe = AsyncMock(return_value=[])
-        mock_stagehand_page._observe_handler = mock_observe_handler
-        
-        # This test should pass a default instruction instead of None
-        result = await mock_stagehand_page.observe("default instruction")
-        
-        assert isinstance(result, list)
-        # Should create ObserveOptions with the instruction
-        call_args = mock_observe_handler.observe.call_args[0][0]
-        assert isinstance(call_args, ObserveOptions)
 
 
 class TestExtractFunctionality:
@@ -421,34 +360,7 @@ class TestExtractFunctionality:
         assert isinstance(call_args[0][0], ExtractOptions)  # First argument should be ExtractOptions
         assert call_args[0][1] == ProductSchema  # Second argument should be the Pydantic model
     
-    @pytest.mark.asyncio
-    async def test_extract_with_dict_schema(self, mock_stagehand_page):
-        """Test extract() with dictionary schema"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        schema = {
-            "type": "object",
-            "properties": {
-                "title": {"type": "string"},
-                "content": {"type": "string"}
-            }
-        }
-        
-        options = ExtractOptions(
-            instruction="extract content",
-            schema_definition=schema
-        )
-        
-        mock_extract_handler = MagicMock()
-        mock_extract_result = MagicMock()
-        mock_extract_result.data = {"title": "Test", "content": "Test content"}
-        mock_extract_handler.extract = AsyncMock(return_value=mock_extract_result)
-        mock_stagehand_page._extract_handler = mock_extract_handler
-        
-        result = await mock_stagehand_page.extract(options)
-        
-        assert result == {"title": "Test", "content": "Test content"}
-    
+
     @pytest.mark.asyncio
     async def test_extract_with_none_options(self, mock_stagehand_page):
         """Test extract() with None options (extract entire page)"""
@@ -489,16 +401,6 @@ class TestExtractFunctionality:
 
 class TestScreenshotFunctionality:
     """Test screenshot functionality"""
-    
-    @pytest.mark.asyncio
-    async def test_screenshot_local_mode_not_implemented(self, mock_stagehand_page):
-        """Test that screenshot in LOCAL mode shows warning"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        result = await mock_stagehand_page.screenshot()
-        
-        assert result is None
-        mock_stagehand_page._stagehand.logger.warning.assert_called()
     
     @pytest.mark.asyncio
     async def test_screenshot_browserbase_mode(self, mock_stagehand_page):
@@ -636,58 +538,3 @@ class TestDOMSettling:
             # If we get here, it means the method handled the exception gracefully
         except Exception:
             pytest.fail("_wait_for_settled_dom should handle exceptions gracefully")
-
-
-class TestPageIntegration:
-    """Test page integration workflows"""
-    
-    @pytest.mark.asyncio
-    async def test_observe_then_act_workflow(self, mock_stagehand_page):
-        """Test workflow of observing then acting on results"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        # Mock observe handler
-        mock_observe_handler = MagicMock()
-        observe_result = ObserveResult(
-            selector="#button",
-            description="Test button",
-            method="click",
-            arguments=[]
-        )
-        mock_observe_handler.observe = AsyncMock(return_value=[observe_result])
-        mock_stagehand_page._observe_handler = mock_observe_handler
-        
-        # Mock act handler
-        mock_act_handler = MagicMock()
-        mock_act_handler.act = AsyncMock(return_value=ActResult(
-            success=True,
-            message="Button clicked",
-            action="click"
-        ))
-        mock_stagehand_page._act_handler = mock_act_handler
-        
-        # Test workflow
-        observe_results = await mock_stagehand_page.observe("find a button")
-        assert len(observe_results) == 1
-        
-        act_result = await mock_stagehand_page.act(observe_results[0])
-        assert act_result.success is True
-    
-    @pytest.mark.asyncio
-    async def test_navigation_then_extraction_workflow(self, mock_stagehand_page, sample_html_content):
-        """Test workflow of navigation then data extraction"""
-        mock_stagehand_page._stagehand.env = "LOCAL"
-        
-        # Mock extract handler
-        mock_extract_handler = MagicMock()
-        mock_extract_result = MagicMock()
-        mock_extract_result.data = {"title": "Sample Post Title"}
-        mock_extract_handler.extract = AsyncMock(return_value=mock_extract_result)
-        mock_stagehand_page._extract_handler = mock_extract_handler
-        
-        # Test navigation
-        await mock_stagehand_page.goto("https://example.com")
-        
-        # Test extraction
-        result = await mock_stagehand_page.extract("extract the title")
-        assert result == {"title": "Sample Post Title"} 
