@@ -9,15 +9,23 @@ from ..types.agent import (
 )
 from .anthropic_cua import AnthropicCUAClient
 from .client import AgentClient
-from .google_cua import GoogleCUAClient
 from .openai_cua import OpenAICUAClient
+
+try:
+    from .google_cua import GoogleCUAClient
+    GOOGLE_CUA_AVAILABLE = True
+except ImportError:
+    GoogleCUAClient = None
+    GOOGLE_CUA_AVAILABLE = False
 
 MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
     "computer-use-preview": OpenAICUAClient,
     "claude-3-5-sonnet-latest": AnthropicCUAClient,
     "claude-3-7-sonnet-latest": AnthropicCUAClient,
-    "models/computer-use-exp": GoogleCUAClient,
 }
+
+if GOOGLE_CUA_AVAILABLE:
+    MODEL_TO_CLIENT_CLASS_MAP["models/computer-use-exp"] = GoogleCUAClient
 
 AGENT_METRIC_FUNCTION_NAME = "AGENT_EXECUTE_TASK"
 
@@ -48,6 +56,15 @@ class Agent:
     def _get_client(self) -> AgentClient:
         ClientClass = MODEL_TO_CLIENT_CLASS_MAP.get(self.config.model)  # noqa: N806
         if not ClientClass:
+            # Check if this is a Google model but Google client is not available
+            if self.config.model == "models/computer-use-exp" and not GOOGLE_CUA_AVAILABLE:
+                error_msg = (
+                    f"Google model '{self.config.model}' requires google-generativeai library. "
+                    "Please install it with: pip install google-generativeai"
+                )
+                self.logger.error(error_msg)
+                raise ImportError(error_msg)
+            
             self.logger.error(
                 f"Unsupported model or client not mapped: {self.config.model}"
             )

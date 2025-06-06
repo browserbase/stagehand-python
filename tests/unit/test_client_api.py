@@ -5,7 +5,7 @@ import unittest.mock as mock
 import pytest
 from httpx import AsyncClient, Response
 
-from stagehand.client import Stagehand
+from stagehand import Stagehand
 
 
 class TestClientAPI:
