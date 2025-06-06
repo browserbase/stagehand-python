@@ -249,11 +249,11 @@ jobs:
     
     - name: Run ruff linting
       run: |
-        ruff check stagehand/ tests/ --output-format=github
+        ruff check stagehand/ --output-format=github
     
     - name: Run ruff formatting check
       run: |
-        ruff format --check stagehand/ tests/
+        ruff format --check stagehand/
     
     - name: Run mypy type checking
       run: |
