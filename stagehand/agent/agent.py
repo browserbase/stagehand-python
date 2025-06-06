@@ -9,8 +9,8 @@ from ..types.agent import (
 )
 from .anthropic_cua import AnthropicCUAClient
 from .client import AgentClient
-from .openai_cua import OpenAICUAClient
 from .google_cua import GoogleCUAClient
+from .openai_cua import OpenAICUAClient
 
 MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
     "computer-use-preview": OpenAICUAClient,
