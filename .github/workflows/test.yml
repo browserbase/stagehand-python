@@ -50,7 +50,7 @@ jobs:
           -m "unit and not slow"
     
     - name: Upload unit test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: unit-test-results-${{ matrix.python-version }}
@@ -103,7 +103,7 @@ jobs:
         STAGEHAND_API_URL: "http://localhost:3000"
     
     - name: Upload integration test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: integration-test-results-${{ matrix.test-category }}
@@ -144,7 +144,7 @@ jobs:
         STAGEHAND_API_URL: ${{ secrets.STAGEHAND_API_URL }}
     
     - name: Upload Browserbase test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: browserbase-test-results
@@ -181,7 +181,7 @@ jobs:
         MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
     
     - name: Upload performance test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: performance-test-results
@@ -214,7 +214,7 @@ jobs:
           --maxfail=5
     
     - name: Upload smoke test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: smoke-test-results
@@ -273,7 +273,7 @@ jobs:
         pip install coverage[toml] codecov
     
     - name: Download coverage artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: coverage-reports/
     
@@ -291,7 +291,7 @@ jobs:
         name: combined-coverage
     
     - name: Upload coverage HTML report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-html-report
         path: htmlcov/
@@ -304,7 +304,7 @@ jobs:
     
     steps:
     - name: Download all test artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: test-results/
     
