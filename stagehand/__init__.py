@@ -3,9 +3,9 @@
 from .agent import Agent
 from .config import StagehandConfig, default_config
 from .handlers.observe_handler import ObserveHandler
-from .main import Stagehand
 from .llm import LLMClient
 from .logging import LogConfig, configure_logging
+from .main import Stagehand
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import (
