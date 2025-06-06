@@ -13,6 +13,7 @@ from .openai_cua import OpenAICUAClient
 
 try:
     from .google_cua import GoogleCUAClient
+
     GOOGLE_CUA_AVAILABLE = True
 except ImportError:
     GoogleCUAClient = None
@@ -57,14 +58,17 @@ class Agent:
         ClientClass = MODEL_TO_CLIENT_CLASS_MAP.get(self.config.model)  # noqa: N806
         if not ClientClass:
             # Check if this is a Google model but Google client is not available
-            if self.config.model == "models/computer-use-exp" and not GOOGLE_CUA_AVAILABLE:
+            if (
+                self.config.model == "models/computer-use-exp"
+                and not GOOGLE_CUA_AVAILABLE
+            ):
                 error_msg = (
                     f"Google model '{self.config.model}' requires google-generativeai library. "
                     "Please install it with: pip install google-generativeai"
                 )
                 self.logger.error(error_msg)
                 raise ImportError(error_msg)
-            
+
             self.logger.error(
                 f"Unsupported model or client not mapped: {self.config.model}"
             )

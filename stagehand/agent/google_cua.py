@@ -14,6 +14,7 @@ try:
         GenerateContentConfig,
         Part,
     )
+
     GOOGLE_AVAILABLE = True
 except ImportError:
     # Create placeholder classes for when google.genai is not available
