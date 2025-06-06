@@ -2,7 +2,6 @@ import asyncio
 import os
 import signal
 import sys
-import tempfile
 import time
 from pathlib import Path
 from typing import Any, Literal, Optional
@@ -31,7 +30,6 @@ from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import AgentConfig
 from .utils import make_serializable
-
 
 load_dotenv()
 
