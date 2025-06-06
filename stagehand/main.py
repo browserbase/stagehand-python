@@ -25,14 +25,11 @@ from .browser import (
 from .config import StagehandConfig, default_config
 from .context import StagehandContext
 from .llm import LLMClient
+from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import AgentConfig
-from .utils import (
-    StagehandLogger,
-    default_log_handler,
-    make_serializable,
-)
+from .utils import make_serializable
 
 load_dotenv()
 
@@ -183,6 +180,7 @@ class Stagehand:
         self.llm = None
         if self.env == "LOCAL":
             self.llm = LLMClient(
+                stagehand_logger=self.logger,
                 api_key=self.model_api_key,
                 default_model=self.model_name,
                 metrics_callback=self._handle_llm_metrics,
