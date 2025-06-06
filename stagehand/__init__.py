@@ -1,7 +1,7 @@
 from .agent import Agent
-from .client import Stagehand
 from .config import StagehandConfig, default_config
 from .handlers.observe_handler import ObserveHandler
+from .main import Stagehand
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import (

@@ -4,7 +4,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 
 import httpx
 from dotenv import load_dotenv
@@ -39,30 +39,15 @@ load_dotenv()
 
 class Stagehand:
     """
-    Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
-
-    Now supports automatically creating a new session if no session_id is provided.
-    You can provide a configuration via the 'config' parameter, or use individual parameters to override
-    the default configuration values.
+    Main Stagehand class.
     """
 
-    # Dictionary to store one lock per session_id
     _session_locks = {}
-
-    # Flag to track if cleanup has been called
     _cleanup_called = False
 
     def __init__(
         self,
-        config: Optional[StagehandConfig] = None,
-        *,
-        api_url: Optional[str] = None,
-        model_api_key: Optional[str] = None,
-        session_id: Optional[str] = None,
-        env: Optional[Literal["BROWSERBASE", "LOCAL"]] = None,
-        httpx_client: Optional[httpx.AsyncClient] = None,
-        timeout_settings: Optional[httpx.Timeout] = None,
-        use_rich_logging: bool = True,
+        config: StagehandConfig = default_config,
         **config_overrides,
     ):
         """
@@ -70,31 +55,11 @@ class Stagehand:
 
         Args:
             config (Optional[StagehandConfig]): Configuration object. If not provided, uses default_config.
-            api_url (Optional[str]): The running Stagehand server URL. Overrides config if provided.
-            model_api_key (Optional[str]): Your model API key (e.g. OpenAI, Anthropic, etc.). Overrides config if provided.
-            session_id (Optional[str]): Existing Browserbase session ID to connect to. Overrides config if provided.
-            env (Optional[Literal["BROWSERBASE", "LOCAL"]]): Environment to run in. Overrides config if provided.
-            httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
-            timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
-            use_rich_logging (bool): Whether to use Rich for colorized logging.
             **config_overrides: Additional configuration overrides to apply to the config.
         """
-        # Start with provided config or default config
-        if config is None:
-            config = default_config
 
         # Apply any overrides
         overrides = {}
-        if api_url is not None:
-            # api_url isn't in config, handle separately
-            pass
-        if model_api_key is not None:
-            # model_api_key isn't in config, handle separately
-            pass
-        if session_id is not None:
-            overrides["browserbase_session_id"] = session_id
-        if env is not None:
-            overrides["env"] = env
 
         # Add any additional config overrides
         overrides.update(config_overrides)
@@ -106,8 +71,9 @@ class Stagehand:
             self.config = config
 
         # Handle non-config parameters
-        self.api_url = api_url or os.getenv("STAGEHAND_API_URL")
-        self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
+        self.api_url = self.config.api_url or os.getenv("STAGEHAND_API_URL")
+        self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
+        self.model_name = self.config.model_name
 
         # Extract frequently used values from config for convenience
         self.browserbase_api_key = self.config.api_key or os.getenv(
@@ -117,7 +83,6 @@ class Stagehand:
             "BROWSERBASE_PROJECT_ID"
         )
         self.session_id = self.config.browserbase_session_id
-        self.model_name = self.config.model_name
         self.dom_settle_timeout_ms = self.config.dom_settle_timeout_ms
         self.self_heal = self.config.self_heal
         self.wait_for_captcha_solves = self.config.wait_for_captcha_solves
@@ -161,8 +126,7 @@ class Stagehand:
         # Handle streaming response setting
         self.streamed_response = True
 
-        self.httpx_client = httpx_client
-        self.timeout_settings = timeout_settings or httpx.Timeout(
+        self.timeout_settings = httpx.Timeout(
             connect=180.0,
             read=180.0,
             write=180.0,
@@ -184,7 +148,9 @@ class Stagehand:
         # Initialize the centralized logger with the specified verbosity
         self.on_log = self.config.logger or default_log_handler
         self.logger = StagehandLogger(
-            verbose=self.verbose, external_logger=self.on_log, use_rich=use_rich_logging
+            verbose=self.verbose,
+            external_logger=self.on_log,
+            use_rich=self.config.use_rich_logging,
         )
 
         # If using BROWSERBASE, session_id or creation params are needed
@@ -456,9 +422,7 @@ class Stagehand:
 
         if self.env == "BROWSERBASE":
             if not self._client:
-                self._client = self.httpx_client or httpx.AsyncClient(
-                    timeout=self.timeout_settings
-                )
+                self._client = httpx.AsyncClient(timeout=self.timeout_settings)
 
             # Create session if we don't have one
             if not self.session_id:
@@ -570,8 +534,7 @@ class Stagehand:
                     "Cannot end server session: HTTP client not available."
                 )
 
-            # Close internal HTTPX client if it was created by Stagehand
-            if self._client and not self.httpx_client:
+            if self._client:
                 self.logger.debug("Closing the internal HTTPX client...")
                 await self._client.aclose()
                 self._client = None
