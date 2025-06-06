@@ -15,6 +15,8 @@ from .a11y import (
 )
 from .agent import (
     AgentConfig,
+    AgentExecuteOptions,
+    AgentResult,
 )
 from .llm import (
     ChatMessage,

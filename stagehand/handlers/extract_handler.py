@@ -7,8 +7,8 @@ from pydantic import BaseModel
 from stagehand.a11y.utils import get_accessibility_tree
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.metrics import StagehandFunctionName  # Changed import location
-from stagehand.schemas import (
-    DEFAULT_EXTRACT_SCHEMA,
+from stagehand.types import (
+    DefaultExtractSchema,
     ExtractOptions,
     ExtractResult,
 )
@@ -97,7 +97,7 @@ class ExtractHandler:
             # TODO: Remove this once we have a better way to handle URLs
             transformed_schema, url_paths = transform_url_strings_to_ids(schema)
         else:
-            transformed_schema = DEFAULT_EXTRACT_SCHEMA
+            transformed_schema = DefaultExtractSchema
 
         # Use inference to call the LLM
         extraction_response = extract_inference(
