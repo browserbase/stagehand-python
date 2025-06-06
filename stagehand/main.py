@@ -4,7 +4,7 @@ import signal
 import sys
 import time
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 
 import httpx
 from dotenv import load_dotenv
@@ -25,41 +25,29 @@ from .browser import (
 from .config import StagehandConfig, default_config
 from .context import StagehandContext
 from .llm import LLMClient
-from .logging import LogConfig, StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .schemas import AgentConfig
-from .utils import make_serializable
+from .utils import (
+    StagehandLogger,
+    default_log_handler,
+    make_serializable,
+)
 
 load_dotenv()
 
 
 class Stagehand:
     """
-    Python client for interacting with a running Stagehand server and Browserbase remote headless browser.
-
-    Now supports automatically creating a new session if no session_id is provided.
-    You can provide a configuration via the 'config' parameter, or use individual parameters to override
-    the default configuration values.
+    Main Stagehand class.
     """
 
-    # Dictionary to store one lock per session_id
     _session_locks = {}
-
-    # Flag to track if cleanup has been called
     _cleanup_called = False
 
     def __init__(
         self,
-        config: Optional[StagehandConfig] = None,
-        *,
-        api_url: Optional[str] = None,
-        model_api_key: Optional[str] = None,
-        session_id: Optional[str] = None,
-        env: Optional[Literal["BROWSERBASE", "LOCAL"]] = None,
-        httpx_client: Optional[httpx.AsyncClient] = None,
-        timeout_settings: Optional[httpx.Timeout] = None,
-        use_rich_logging: bool = True,
+        config: StagehandConfig = default_config,
         **config_overrides,
     ):
         """
@@ -67,31 +55,11 @@ class Stagehand:
 
         Args:
             config (Optional[StagehandConfig]): Configuration object. If not provided, uses default_config.
-            api_url (Optional[str]): The running Stagehand server URL. Overrides config if provided.
-            model_api_key (Optional[str]): Your model API key (e.g. OpenAI, Anthropic, etc.). Overrides config if provided.
-            session_id (Optional[str]): Existing Browserbase session ID to connect to. Overrides config if provided.
-            env (Optional[Literal["BROWSERBASE", "LOCAL"]]): Environment to run in. Overrides config if provided.
-            httpx_client (Optional[httpx.AsyncClient]): Optional custom httpx.AsyncClient instance.
-            timeout_settings (Optional[httpx.Timeout]): Optional custom timeout settings for httpx.
-            use_rich_logging (bool): Whether to use Rich for colorized logging.
             **config_overrides: Additional configuration overrides to apply to the config.
         """
-        # Start with provided config or default config
-        if config is None:
-            config = default_config
 
         # Apply any overrides
         overrides = {}
-        if api_url is not None:
-            # api_url isn't in config, handle separately
-            pass
-        if model_api_key is not None:
-            # model_api_key isn't in config, handle separately
-            pass
-        if session_id is not None:
-            overrides["browserbase_session_id"] = session_id
-        if env is not None:
-            overrides["env"] = env
 
         # Add any additional config overrides
         overrides.update(config_overrides)
@@ -103,8 +71,9 @@ class Stagehand:
             self.config = config
 
         # Handle non-config parameters
-        self.api_url = api_url or os.getenv("STAGEHAND_API_URL")
-        self.model_api_key = model_api_key or os.getenv("MODEL_API_KEY")
+        self.api_url = self.config.api_url or os.getenv("STAGEHAND_API_URL")
+        self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
+        self.model_name = self.config.model_name
 
         # Extract frequently used values from config for convenience
         self.browserbase_api_key = self.config.api_key or os.getenv(
@@ -114,7 +83,6 @@ class Stagehand:
             "BROWSERBASE_PROJECT_ID"
         )
         self.session_id = self.config.browserbase_session_id
-        self.model_name = self.config.model_name
         self.dom_settle_timeout_ms = self.config.dom_settle_timeout_ms
         self.self_heal = self.config.self_heal
         self.wait_for_captcha_solves = self.config.wait_for_captcha_solves
@@ -138,8 +106,7 @@ class Stagehand:
         # Handle streaming response setting
         self.streamed_response = True
 
-        self.httpx_client = httpx_client
-        self.timeout_settings = timeout_settings or httpx.Timeout(
+        self.timeout_settings = httpx.Timeout(
             connect=180.0,
             read=180.0,
             write=180.0,
@@ -158,18 +125,13 @@ class Stagehand:
         if self.env not in ["BROWSERBASE", "LOCAL"]:
             raise ValueError("env must be either 'BROWSERBASE' or 'LOCAL'")
 
-        # Create centralized log configuration
-        self.log_config = LogConfig(
+        # Initialize the centralized logger with the specified verbosity
+        self.on_log = self.config.logger or default_log_handler
+        self.logger = StagehandLogger(
             verbose=self.verbose,
-            use_rich=use_rich_logging,
-            env=self.env,
-            external_logger=self.config.logger or default_log_handler,
-            quiet_dependencies=True,
+            external_logger=self.on_log,
+            use_rich=self.config.use_rich_logging,
         )
-
-        # Initialize the centralized logger with the LogConfig
-        self.on_log = self.log_config.external_logger
-        self.logger = StagehandLogger(config=self.log_config)
 
         # If using BROWSERBASE, session_id or creation params are needed
         if self.env == "BROWSERBASE":
@@ -185,7 +147,7 @@ class Stagehand:
                     )
                 if not self.model_api_key:
                     # Model API key needed if Stagehand server creates the session
-                    self.logger.info(
+                    self.logger.warning(
                         "model_api_key is recommended when creating a new BROWSERBASE session to configure the Stagehand server's LLM."
                     )
             elif self.session_id:
@@ -221,7 +183,6 @@ class Stagehand:
         self.llm = None
         if self.env == "LOCAL":
             self.llm = LLMClient(
-                stagehand_logger=self.logger,
                 api_key=self.model_api_key,
                 default_model=self.model_name,
                 metrics_callback=self._handle_llm_metrics,
@@ -403,11 +364,13 @@ class Stagehand:
         return self._session_locks[self.session_id]
 
     async def __aenter__(self):
+        self.logger.debug("Entering Stagehand context manager (__aenter__)...")
         # Just call init() if not already done
         await self.init()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self.logger.debug("Exiting Stagehand context manager (__aexit__)...")
         await self.close()
 
     async def init(self):
@@ -428,18 +391,16 @@ class Stagehand:
 
         if self.env == "BROWSERBASE":
             if not self._client:
-                self._client = self.httpx_client or httpx.AsyncClient(
-                    timeout=self.timeout_settings
-                )
+                self._client = httpx.AsyncClient(timeout=self.timeout_settings)
 
             # Create session if we don't have one
             if not self.session_id:
                 await self._create_session()  # Uses self._client and api_url
-                self.logger.info(
-                    f"Created new Browserbase session. Session ID: {self.session_id}"
+                self.logger.debug(
+                    f"Created new Browserbase session via Stagehand server: {self.session_id}"
                 )
             else:
-                self.logger.info(
+                self.logger.debug(
                     f"Using existing Browserbase session: {self.session_id}"
                 )
 
@@ -538,12 +499,11 @@ class Stagehand:
                         f"Error ending server session {self.session_id}: {str(e)}"
                     )
             elif self.session_id:
-                self.logger.debug(
+                self.logger.warning(
                     "Cannot end server session: HTTP client not available."
                 )
 
-            # Close internal HTTPX client if it was created by Stagehand
-            if self._client and not self.httpx_client:
+            if self._client:
                 self.logger.debug("Closing the internal HTTPX client...")
                 await self._client.aclose()
                 self._client = None
@@ -580,8 +540,9 @@ class Stagehand:
 
             # Map level strings to internal levels
             level_map = {
-                "debug": 2,
+                "debug": 3,
                 "info": 1,
+                "warning": 2,
                 "error": 0,
             }
 
@@ -589,7 +550,7 @@ class Stagehand:
             if isinstance(level_str, str):
                 internal_level = level_map.get(level_str.lower(), 1)
             else:
-                internal_level = min(level_str, 2)  # Ensure level is between 0-2
+                internal_level = min(level_str, 3)  # Ensure level is between 0-3
 
             # Handle the case where message itself might be a JSON-like object
             if isinstance(message, dict):
@@ -623,7 +584,7 @@ class Stagehand:
 
         Args:
             message: The message to log
-            level: Verbosity level (0=error, 1=info, 2=debug)
+            level: Verbosity level (0=error, 1=info, 2=detailed, 3=debug)
             category: Optional category for the message
             auxiliary: Optional auxiliary data to include
         """

@@ -1,9 +1,9 @@
 """Stagehand - The AI Browser Automation Framework"""
 
 from .agent import Agent
-from .client import Stagehand
-from .config import StagehandConfig
+from .config import StagehandConfig, default_config
 from .handlers.observe_handler import ObserveHandler
+from .main import Stagehand
 from .llm import LLMClient
 from .logging import LogConfig, configure_logging
 from .metrics import StagehandFunctionName, StagehandMetrics

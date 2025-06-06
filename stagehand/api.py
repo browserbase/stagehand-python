@@ -73,7 +73,7 @@ async def _create_session(self):
         "x-language": "python",
     }
 
-    client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+    client = httpx.AsyncClient(timeout=self.timeout_settings)
     async with client:
         resp = await client.post(
             f"{self.api_url}/sessions/start",
@@ -109,7 +109,7 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
     # Convert snake_case keys to camelCase for the API
     modified_payload = convert_dict_keys_to_camel_case(payload)
 
-    client = self.httpx_client or httpx.AsyncClient(timeout=self.timeout_settings)
+    client = httpx.AsyncClient(timeout=self.timeout_settings)
 
     async with client:
         try:

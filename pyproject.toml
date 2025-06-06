@@ -24,6 +24,10 @@ dependencies = [
     "playwright>=1.42.1",
     "requests>=2.31.0",
     "browserbase>=1.4.0",
+    "rich>=14.0.0",
+    "openai>=1.83.0",
+    "anthropic>=0.51.0",
+    "litellm>=1.72.0",
 ]
 
 [project.optional-dependencies]
@@ -36,7 +40,6 @@ dev = [
     "isort>=5.12.0",
     "mypy>=1.3.0",
     "ruff",
-    "rich",  # Useful for development/debugging
 ]
 
 [project.urls]
@@ -44,7 +47,11 @@ Homepage = "https://github.com/browserbase/stagehand-python"
 Repository = "https://github.com/browserbase/stagehand-python"
 
 [tool.setuptools]
-packages = ["stagehand"]
+# Omit explicit package list so we can use the nested `.packages.find` table below.
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["stagehand*"]
 
 [tool.setuptools.package-data]
 stagehand = ["domScripts.js"]
