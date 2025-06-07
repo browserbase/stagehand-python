@@ -121,18 +121,62 @@ pytest -m local
 # Browserbase tests (requires credentials)
 pytest -m browserbase
 
+# LLM integration tests (requires API keys)
+pytest -m llm
+
+# End-to-end workflow tests
+pytest -m e2e
+
+# Performance tests
+pytest -m performance
+
+# Slow tests
+pytest -m slow
+
 # Mock-only tests (no external dependencies)
 pytest -m mock
 ```
+
+### PR Label-Based Testing
+
+Instead of manually running specific test categories, you can add labels to your PR:
+
+| PR Label | Equivalent Command | Description |
+|----------|-------------------|-------------|
+| `test-browserbase` | `pytest -m browserbase` | Browserbase integration tests |
+| `test-performance` | `pytest -m performance` | Performance and load tests |
+| `test-llm` | `pytest -m llm` | LLM provider integration tests |
+| `test-e2e` | `pytest -m e2e` | End-to-end workflow tests |
+| `test-slow` | `pytest -m slow` | All time-intensive tests |
+| `test-all` | `pytest` | Complete test suite |
+
+**Benefits of label-based testing:**
+- No need to modify commit messages
+- Tests can be triggered after PR creation
+- Multiple test categories can run simultaneously
+- Team members can add/remove labels as needed
 
 ### CI/CD Test Execution
 
 The tests are automatically run in GitHub Actions with different configurations:
 
+#### Always Run on PRs:
 - **Unit Tests**: Run on Python 3.9, 3.10, 3.11, 3.12
-- **Integration Tests**: Run on Python 3.11 with different categories
-- **Browserbase Tests**: Run on schedule or with `[test-browserbase]` in commit message
-- **Performance Tests**: Run on schedule or with `[test-performance]` in commit message
+- **Integration Tests**: Run on Python 3.11 with different categories (api, browser, end_to_end)
+- **Smoke Tests**: Quick validation tests
+
+#### Label-Triggered Tests:
+Add these labels to your PR to run additional test suites:
+
+- **`test-browserbase`** or **`browserbase`**: Browserbase integration tests
+- **`test-performance`** or **`performance`**: Performance and load tests
+- **`test-llm`** or **`llm`**: LLM integration tests
+- **`test-e2e`** or **`e2e`**: End-to-end workflow tests
+- **`test-slow`** or **`slow`**: All slow-marked tests
+- **`test-all`** or **`full-test`**: Complete test suite
+
+#### Scheduled Tests:
+- **Daily**: Comprehensive test suite including Browserbase and performance tests
 
 ## 🎯 Test Coverage Requirements
 

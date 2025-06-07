@@ -5,6 +5,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   # schedule:
   #   # Run tests daily at 6 AM UTC
   #   - cron: '0 6 * * *'
@@ -140,7 +141,10 @@ jobs:
     name: Browserbase Integration Tests
     runs-on: ubuntu-latest
     needs: test-unit
-    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[test-browserbase]')
+    if: |
+      github.event_name == 'schedule' || 
+      contains(github.event.pull_request.labels.*.name, 'test-browserbase') ||
+      contains(github.event.pull_request.labels.*.name, 'browserbase')
     
     steps:
     - uses: actions/checkout@v4
@@ -183,7 +187,10 @@ jobs:
     name: Performance Tests
     runs-on: ubuntu-latest
     needs: test-unit
-    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[test-performance]')
+    if: |
+      github.event_name == 'schedule' || 
+      contains(github.event.pull_request.labels.*.name, 'test-performance') ||
+      contains(github.event.pull_request.labels.*.name, 'performance')
     
     steps:
     - uses: actions/checkout@v4
@@ -252,6 +259,192 @@ jobs:
       with:
         name: smoke-test-results
         path: junit-smoke.xml
+
+  test-llm:
+    name: LLM Integration Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'test-llm') ||
+      contains(github.event.pull_request.labels.*.name, 'llm')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        # Install temporary Google GenAI wheel
+        pip install temp/google_genai-1.14.0-py3-none-any.whl
+    
+    - name: Run LLM tests
+      run: |
+        pytest tests/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-llm.xml \
+          -m "llm" \
+          --tb=short
+      env:
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'mock-openai-key' }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'mock-anthropic-key' }}
+    
+    - name: Upload LLM test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: llm-test-results
+        path: junit-llm.xml
+
+  test-e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'test-e2e') ||
+      contains(github.event.pull_request.labels.*.name, 'e2e')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        # Install temporary Google GenAI wheel
+        pip install temp/google_genai-1.14.0-py3-none-any.whl
+        playwright install chromium
+    
+    - name: Run E2E tests
+      run: |
+        pytest tests/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-e2e.xml \
+          -m "e2e" \
+          --tb=short
+      env:
+        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY || 'mock-api-key' }}
+        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID || 'mock-project-id' }}
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
+        STAGEHAND_API_URL: ${{ secrets.STAGEHAND_API_URL || 'http://localhost:3000' }}
+    
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-results
+        path: junit-e2e.xml
+
+  test-slow:
+    name: Slow Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'test-slow') ||
+      contains(github.event.pull_request.labels.*.name, 'slow')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        # Install temporary Google GenAI wheel
+        pip install temp/google_genai-1.14.0-py3-none-any.whl
+        playwright install chromium
+    
+    - name: Run slow tests
+      run: |
+        pytest tests/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-slow.xml \
+          -m "slow" \
+          --tb=short
+      env:
+        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY || 'mock-api-key' }}
+        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID || 'mock-project-id' }}
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
+    
+    - name: Upload slow test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: slow-test-results
+        path: junit-slow.xml
+
+  test-all:
+    name: Complete Test Suite
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'test-all') ||
+      contains(github.event.pull_request.labels.*.name, 'full-test')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        # Install temporary Google GenAI wheel
+        pip install temp/google_genai-1.14.0-py3-none-any.whl
+        playwright install chromium
+    
+    - name: Run complete test suite
+      run: |
+        pytest tests/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --cov-report=html \
+          --junit-xml=junit-all.xml \
+          --maxfail=10 \
+          --tb=short
+      env:
+        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY }}
+        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID }}
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        STAGEHAND_API_URL: ${{ secrets.STAGEHAND_API_URL }}
+    
+    - name: Upload complete test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: complete-test-results
+        path: |
+          junit-all.xml
+          htmlcov/
 
   coverage-report:
     name: Coverage Report
@@ -342,12 +535,38 @@ jobs:
         echo "- Unit test configurations: $UNIT_TESTS" >> $GITHUB_STEP_SUMMARY
         echo "- Integration test categories: $INTEGRATION_TESTS" >> $GITHUB_STEP_SUMMARY
         
-        # Check for test failures
-        if [ -f test-results/*/junit-*.xml ]; then
-          echo "- Test artifacts generated successfully ✅" >> $GITHUB_STEP_SUMMARY
+        # Check for optional test runs
+        if [ -f test-results/*/junit-browserbase.xml ]; then
+          echo "- Browserbase tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
         else
-          echo "- Test artifacts missing ❌" >> $GITHUB_STEP_SUMMARY
+          echo "- Browserbase tests: ⏭️ Skipped (add 'test-browserbase' label to run)" >> $GITHUB_STEP_SUMMARY
         fi
         
+        if [ -f test-results/*/junit-performance.xml ]; then
+          echo "- Performance tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Performance tests: ⏭️ Skipped (add 'test-performance' label to run)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ -f test-results/*/junit-llm.xml ]; then
+          echo "- LLM tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- LLM tests: ⏭️ Skipped (add 'test-llm' label to run)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ -f test-results/*/junit-e2e.xml ]; then
+          echo "- E2E tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- E2E tests: ⏭️ Skipped (add 'test-e2e' label to run)" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Available Test Labels" >> $GITHUB_STEP_SUMMARY
+        echo "- \`test-browserbase\` - Run Browserbase integration tests" >> $GITHUB_STEP_SUMMARY
+        echo "- \`test-performance\` - Run performance and load tests" >> $GITHUB_STEP_SUMMARY
+        echo "- \`test-llm\` - Run LLM integration tests" >> $GITHUB_STEP_SUMMARY
+        echo "- \`test-e2e\` - Run end-to-end workflow tests" >> $GITHUB_STEP_SUMMARY
+        echo "- \`test-slow\` - Run all slow-marked tests" >> $GITHUB_STEP_SUMMARY
+        echo "- \`test-all\` - Run complete test suite" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Detailed results are available in the artifacts section." >> $GITHUB_STEP_SUMMARY 
