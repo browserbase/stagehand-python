@@ -75,13 +75,10 @@ jobs:
         flags: unit
         name: unit-tests
 
-  test-integration:
-    name: Integration Tests
+  test-integration-local:
+    name: Integration Tests (Local)
     runs-on: ubuntu-latest
     needs: test-unit
-    strategy:
-      matrix:
-        test-category: ["api", "browser", "end_to_end"]
     
     steps:
     - uses: actions/checkout@v4
@@ -90,6 +87,11 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
     
     - name: Install dependencies
       run: |
@@ -100,42 +102,93 @@ jobs:
         pip install temp/google_genai-1.14.0-py3-none-any.whl
         # Install Playwright browsers for integration tests
         playwright install chromium
+        playwright install-deps chromium
     
-    - name: Run integration tests - ${{ matrix.test-category }}
+    - name: Run local integration tests
       run: |
-        # Check if test directory exists and has test files before running pytest
-        if [ -d "tests/integration/${{ matrix.test-category }}" ] && find "tests/integration/${{ matrix.test-category }}" -name "test_*.py" -o -name "*_test.py" | grep -q .; then
-          pytest tests/integration/${{ matrix.test-category }}/ -v \
-            --cov=stagehand \
-            --cov-report=xml \
-            --junit-xml=junit-integration-${{ matrix.test-category }}.xml
-        else
-          echo "No test files found in tests/integration/${{ matrix.test-category }}/, skipping..."
-          # Create empty junit file to prevent workflow failure
-          echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="0" time="0" timestamp="$(date -Iseconds)" hostname="$(hostname)"></testsuite></testsuites>' > junit-integration-${{ matrix.test-category }}.xml
-        fi
+        # Run integration tests marked as 'local' and not 'slow'
+        xvfb-run -a pytest tests/integration/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-integration-local.xml \
+          -m "local and not slow" \
+          --tb=short \
+          --maxfail=5
       env:
-        # Mock environment variables for testing
-        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY || 'mock-api-key' }}
-        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID || 'mock-project-id' }}
         MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
-        STAGEHAND_API_URL: "http://localhost:3000"
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'mock-openai-key' }}
+        DISPLAY: ":99"
     
     - name: Upload integration test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: integration-test-results-${{ matrix.test-category }}
-        path: junit-integration-${{ matrix.test-category }}.xml
+        name: integration-test-results-local
+        path: junit-integration-local.xml
     
     - name: Upload coverage data
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: coverage-data-integration-${{ matrix.test-category }}
+        name: coverage-data-integration-local
         path: |
           .coverage
           coverage.xml
+
+  test-integration-slow:
+    name: Integration Tests (Slow)
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'test-slow') ||
+      contains(github.event.pull_request.labels.*.name, 'slow') ||
+      github.event_name == 'schedule'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install jsonschema
+        # Install temporary Google GenAI wheel
+        pip install temp/google_genai-1.14.0-py3-none-any.whl
+        # Install Playwright browsers for integration tests
+        playwright install chromium
+        playwright install-deps chromium
+    
+    - name: Run slow integration tests
+      run: |
+        # Run integration tests marked as 'slow' and 'local'
+        xvfb-run -a pytest tests/integration/ -v \
+          --cov=stagehand \
+          --cov-report=xml \
+          --junit-xml=junit-integration-slow.xml \
+          -m "slow and local" \
+          --tb=short \
+          --maxfail=3
+      env:
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'mock-openai-key' }}
+        DISPLAY: ":99"
+    
+    - name: Upload slow test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results-slow
+        path: junit-integration-slow.xml
 
   test-browserbase:
     name: Browserbase Integration Tests
@@ -449,7 +502,7 @@ jobs:
   coverage-report:
     name: Coverage Report
     runs-on: ubuntu-latest
-    needs: [test-unit, test-integration]
+    needs: [test-unit, test-integration-local]
     if: always() && (needs.test-unit.result == 'success')
     
     steps:
@@ -514,7 +567,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [test-unit, test-integration, smoke-tests]
+    needs: [test-unit, test-integration-local, smoke-tests]
     if: always()
     
     steps:
