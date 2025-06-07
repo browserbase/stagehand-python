@@ -116,6 +116,7 @@ async def main():
     console.print("\n▶️ [highlight] Extracting[/] first search result")
     data = await page.extract("extract the first result from the search")
     console.print("📊 [info]Extracted data:[/]")
+    # NOTE: we will not return json from extract but rather pydantic to match local
     console.print_json(data=data.model_dump())
 
     # Close the session
