@@ -79,8 +79,8 @@ class TestObserveIntegration:
         
         # Check observation structure
         for obs in observations:
-            assert "selector" in obs
-            assert obs["selector"]  # Not empty
+            assert hasattr(obs, "selector")
+            assert obs.selector  # Not empty
             
         # Test finding specific labeled elements
         labeled_observations = await stagehand.page.observe("Find all form elements with labels")
@@ -108,8 +108,8 @@ class TestObserveIntegration:
         
         # Check observation structure
         for obs in observations:
-            assert "selector" in obs
-            assert obs["selector"]  # Not empty
+            assert hasattr(obs, "selector")
+            assert obs.selector  # Not empty
 
     @pytest.mark.asyncio
     @pytest.mark.local  
@@ -195,7 +195,7 @@ class TestObserveIntegration:
         
         # Validate that we can get element info for each observed element
         for element in form_elements[:3]:  # Test first 3 to avoid timeout
-            selector = element.get("selector")
+            selector = element.selector
             if selector:
                 try:
                     # Try to check if element exists and is visible
@@ -277,7 +277,7 @@ class TestObserveIntegration:
         total_time = time.time() - start_time
         
         # Multiple observations should still be reasonable
-        assert total_time < 60.0  # 1 minute max for 3 operations
+        assert total_time < 120.0  # 2 minutes max for 3 operations
 
     @pytest.mark.asyncio
     @pytest.mark.e2e

@@ -112,8 +112,8 @@ class TestStagehandIntegration:
         
         # Verify observation structure
         for obs in observations:
-            assert "selector" in obs
-            assert obs["selector"]  # Not empty
+            assert hasattr(obs, "selector")
+            assert obs.selector  # Not empty
 
     @pytest.mark.asyncio
     @pytest.mark.browserbase
@@ -137,8 +137,8 @@ class TestStagehandIntegration:
         
         # Verify observation structure
         for obs in observations:
-            assert "selector" in obs
-            assert obs["selector"]  # Not empty
+            assert hasattr(obs, "selector")
+            assert obs.selector  # Not empty
 
     @pytest.mark.asyncio
     @pytest.mark.local

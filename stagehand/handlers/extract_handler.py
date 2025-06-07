@@ -159,14 +159,9 @@ class ExtractHandler:
                 )
 
         # Create ExtractResult object with extracted data as fields
-        if isinstance(processed_data_payload, dict):
-            result = ExtractResult(**processed_data_payload)
-        elif hasattr(processed_data_payload, "model_dump"):
-            # For Pydantic models, convert to dict and spread as fields
-            result = ExtractResult(**processed_data_payload.model_dump())
-        else:
-            # For other data types, create with data field
-            result = ExtractResult(data=processed_data_payload)
+        # Instead of trying to spread dict fields, always use the data field approach
+        # This ensures result.data is properly set for the page.extract() method
+        result = ExtractResult(data=processed_data_payload)
 
         return result
 
