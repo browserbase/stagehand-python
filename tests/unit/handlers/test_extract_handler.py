@@ -69,10 +69,9 @@ class TestExtractExecution:
                 result = await handler.extract(options)
                 
                 assert isinstance(result, ExtractResult)
-                # Due to the current limitation where ExtractResult from stagehand.types only has a data field
-                # and doesn't accept extra fields, the handler fails to properly populate the result
-                # This is a known issue with the current implementation
-                assert result.data is None  # This is the current behavior due to the schema mismatch
+                # The handler should now properly populate the result with extracted data
+                assert result.data is not None
+                assert result.data == {"extraction": "Sample extracted text from the page"}
                 
                 # Verify the mocks were called
                 mock_get_tree.assert_called_once()
@@ -129,10 +128,13 @@ class TestExtractExecution:
                 result = await handler.extract(options, ProductModel)
                 
                 assert isinstance(result, ExtractResult)
-                # Due to the current limitation where ExtractResult from stagehand.types only has a data field
-                # and doesn't accept extra fields, the handler fails to properly populate the result
-                # This is a known issue with the current implementation
-                assert result.data is None  # This is the current behavior due to the schema mismatch
+                # The handler should now properly populate the result with a validated Pydantic model
+                assert result.data is not None
+                assert isinstance(result.data, ProductModel)
+                assert result.data.name == "Wireless Mouse"
+                assert result.data.price == 29.99
+                assert result.data.in_stock is True
+                assert result.data.tags == ["electronics", "computer", "accessories"]
                 
                 # Verify the mocks were called
                 mock_get_tree.assert_called_once()
@@ -163,11 +165,11 @@ class TestExtractExecution:
             result = await handler.extract()
             
             assert isinstance(result, ExtractResult)
-            # When no options are provided, _extract_page_text tries to create ExtractResult(extraction=output_string)
-            # But since ExtractResult from stagehand.types only has a data field, the extraction field will be None
-            # and data will also be None. This is a limitation of the current implementation.
-            # We'll test that it returns a valid ExtractResult instance
-            assert result.data is None  # This is the current behavior due to the schema mismatch
+            # When no options are provided, _extract_page_text should return the page text in data field
+            assert result.data is not None
+            assert isinstance(result.data, dict)
+            assert "extraction" in result.data
+            assert result.data["extraction"] == "General page accessibility tree content"
             
             # Verify the mock was called
             mock_get_tree.assert_called_once()

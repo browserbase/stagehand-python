@@ -171,4 +171,4 @@ class ExtractHandler:
 
         tree = await get_accessibility_tree(self.stagehand_page, self.logger)
         output_string = tree["simplified"]
-        return ExtractResult(extraction=output_string)
+        return ExtractResult(data={"extraction": output_string})
