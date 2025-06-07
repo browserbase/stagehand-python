@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from stagehand.handlers.act_handler import ActHandler
-from stagehand.schemas import ActOptions, ActResult, ObserveResult
+from stagehand.types import ActOptions, ActResult, ObserveResult
 from tests.mocks.mock_llm import MockLLMClient, MockLLMResponse
 
 

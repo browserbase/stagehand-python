@@ -7,7 +7,7 @@ from stagehand.handlers.act_handler_utils import (
     method_handler_map,
 )
 from stagehand.llm.prompts import build_act_observe_prompt
-from stagehand.schemas import ActOptions, ActResult, ObserveOptions, ObserveResult
+from stagehand.types import ActOptions, ActResult, ObserveOptions, ObserveResult
 
 
 class ActHandler:
