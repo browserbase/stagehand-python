@@ -115,10 +115,6 @@ jobs:
     name: API Integration Tests
     runs-on: ubuntu-latest
     needs: test-unit
-    if: |
-      github.event_name == 'schedule' || 
-      contains(github.event.pull_request.labels.*.name, 'test-api') ||
-      contains(github.event.pull_request.labels.*.name, 'api')
     
     steps:
     - uses: actions/checkout@v4
