@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ main, develop ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
-  # schedule:
-  #   # Run tests daily at 6 AM UTC
-  #   - cron: '0 6 * * *'
 
 jobs:
   test-unit:
@@ -45,11 +42,7 @@ jobs:
     
     - name: Run unit tests
       run: |
-        pytest tests/unit/ -v \
-          --cov=stagehand \
-          --cov-report=xml \
-          --cov-report=term-missing \
-          --junit-xml=junit-unit-${{ matrix.python-version }}.xml
+        pytest tests/unit/ -v --junit-xml=junit-unit-${{ matrix.python-version }}.xml
     
     - name: Upload unit test results
       uses: actions/upload-artifact@v4
@@ -57,26 +50,9 @@ jobs:
       with:
         name: unit-test-results-${{ matrix.python-version }}
         path: junit-unit-${{ matrix.python-version }}.xml
-    
-    - name: Upload coverage data
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: coverage-data-${{ matrix.python-version }}
-        path: |
-          .coverage
-          coverage.xml
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      if: matrix.python-version == '3.11'
-      with:
-        file: ./coverage.xml
-        flags: unit
-        name: unit-tests
 
   test-integration-local:
-    name: Integration Tests (Local)
+    name: Local Integration Tests
     runs-on: ubuntu-latest
     needs: test-unit
     
@@ -135,61 +111,6 @@ jobs:
           .coverage
           coverage.xml
 
-  test-integration-slow:
-    name: Integration Tests (Slow)
-    runs-on: ubuntu-latest
-    needs: test-unit
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'test-slow') ||
-      contains(github.event.pull_request.labels.*.name, 'slow') ||
-      github.event_name == 'schedule'
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-        pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
-        # Install Playwright browsers for integration tests
-        playwright install chromium
-        playwright install-deps chromium
-    
-    - name: Run slow integration tests
-      run: |
-        # Run integration tests marked as 'slow' and 'local'
-        xvfb-run -a pytest tests/integration/ -v \
-          --cov=stagehand \
-          --cov-report=xml \
-          --junit-xml=junit-integration-slow.xml \
-          -m "slow and local" \
-          --tb=short \
-          --maxfail=3
-      env:
-        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'mock-openai-key' }}
-        DISPLAY: ":99"
-    
-    - name: Upload slow test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: integration-test-results-slow
-        path: junit-integration-slow.xml
-
   test-integration-api:
     name: API Integration Tests
     runs-on: ubuntu-latest
@@ -236,48 +157,6 @@ jobs:
         name: api-integration-test-results
         path: junit-integration-api.xml
 
-  test-performance:
-    name: Performance Tests
-    runs-on: ubuntu-latest
-    needs: test-unit
-    if: |
-      github.event_name == 'schedule' || 
-      contains(github.event.pull_request.labels.*.name, 'test-performance') ||
-      contains(github.event.pull_request.labels.*.name, 'performance')
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-        pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
-        playwright install chromium
-    
-    - name: Run performance tests
-      run: |
-        pytest tests/performance/ -v \
-          --junit-xml=junit-performance.xml \
-          -m "performance" \
-          --tb=short
-      env:
-        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
-    
-    - name: Upload performance test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: performance-test-results
-        path: junit-performance.xml
-
   smoke-tests:
     name: Smoke Tests
     runs-on: ubuntu-latest
@@ -295,7 +174,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        # Install temporary Google GenAI wheel
         pip install temp/google_genai-1.14.0-py3-none-any.whl
     
     - name: Run smoke tests
@@ -312,50 +190,6 @@ jobs:
       with:
         name: smoke-test-results
         path: junit-smoke.xml
-
-  test-llm:
-    name: LLM Integration Tests
-    runs-on: ubuntu-latest
-    needs: test-unit
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'test-llm') ||
-      contains(github.event.pull_request.labels.*.name, 'llm')
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-        pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
-    
-    - name: Run LLM tests
-      run: |
-        pytest tests/ -v \
-          --cov=stagehand \
-          --cov-report=xml \
-          --junit-xml=junit-llm.xml \
-          -m "llm" \
-          --tb=short
-      env:
-        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'mock-openai-key' }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'mock-anthropic-key' }}
-    
-    - name: Upload LLM test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: llm-test-results
-        path: junit-llm.xml
 
   test-e2e:
     name: End-to-End Tests
@@ -410,51 +244,6 @@ jobs:
         name: e2e-test-results
         path: junit-e2e.xml
 
-  test-slow:
-    name: Slow Tests
-    runs-on: ubuntu-latest
-    needs: test-unit
-    if: |
-      contains(github.event.pull_request.labels.*.name, 'test-slow') ||
-      contains(github.event.pull_request.labels.*.name, 'slow')
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-        pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
-        playwright install chromium
-    
-    - name: Run slow tests
-      run: |
-        pytest tests/ -v \
-          --cov=stagehand \
-          --cov-report=xml \
-          --junit-xml=junit-slow.xml \
-          -m "slow" \
-          --tb=short
-      env:
-        BROWSERBASE_API_KEY: ${{ secrets.BROWSERBASE_API_KEY || 'mock-api-key' }}
-        BROWSERBASE_PROJECT_ID: ${{ secrets.BROWSERBASE_PROJECT_ID || 'mock-project-id' }}
-        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
-    
-    - name: Upload slow test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: slow-test-results
-        path: junit-slow.xml
-
   test-all:
     name: Complete Test Suite
     runs-on: ubuntu-latest
@@ -505,128 +294,3 @@ jobs:
         path: |
           junit-all.xml
           htmlcov/
-
-  coverage-report:
-    name: Coverage Report
-    runs-on: ubuntu-latest
-    needs: [test-unit, test-integration-local]
-    if: always() && (needs.test-unit.result == 'success')
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install coverage[toml] codecov
-    
-    - name: Download coverage artifacts
-      uses: actions/download-artifact@v4
-      with:
-        pattern: coverage-data-*
-        path: coverage-reports/
-    
-    - name: Combine coverage reports
-      run: |
-        # List downloaded artifacts for debugging
-        echo "Downloaded coverage artifacts:"
-        find coverage-reports/ -name ".coverage*" -o -name "coverage.xml" | sort || echo "No coverage files found"
-        
-        # Find and combine coverage files
-        COVERAGE_FILES=$(find coverage-reports/ -name ".coverage" -type f 2>/dev/null | head -10)
-        if [ -n "$COVERAGE_FILES" ]; then
-          echo "Found coverage files:"
-          echo "$COVERAGE_FILES"
-          
-          # Copy coverage files to current directory for combining
-          for file in $COVERAGE_FILES; do
-            cp "$file" ".coverage.$(basename $(dirname $file))"
-          done
-          
-          # Combine coverage files
-          coverage combine .coverage.* || echo "Failed to combine coverage files"
-          coverage report --show-missing || echo "No coverage data to report"
-          coverage html || echo "No coverage data for HTML report" 
-          coverage xml || echo "No coverage data for XML report"
-        else
-          echo "No .coverage files found to combine"
-          # Create minimal coverage.xml to prevent downstream failures
-          echo '<?xml version="1.0" encoding="UTF-8"?><coverage version="0" timestamp="0" lines-valid="0" lines-covered="0" line-rate="0"></coverage>' > coverage.xml
-        fi
-    
-    - name: Upload combined coverage
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        name: combined-coverage
-    
-    - name: Upload coverage HTML report
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-html-report
-        path: htmlcov/
-
-  test-summary:
-    name: Test Summary
-    runs-on: ubuntu-latest
-    needs: [test-unit, test-integration-local, smoke-tests]
-    if: always()
-    
-    steps:
-    - name: Download all test artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: test-results/
-    
-    - name: Generate test summary
-      run: |
-        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Count test files
-        UNIT_TESTS=$(find test-results/ -name "junit-unit-*.xml" | wc -l)
-        INTEGRATION_TESTS=$(find test-results/ -name "junit-integration-*.xml" | wc -l)
-        
-        echo "- Unit test configurations: $UNIT_TESTS" >> $GITHUB_STEP_SUMMARY
-        echo "- Integration test categories: $INTEGRATION_TESTS" >> $GITHUB_STEP_SUMMARY
-        
-        # Check for optional test runs
-        if [ -f test-results/*/junit-browserbase.xml ]; then
-          echo "- Browserbase tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- Browserbase tests: ⏭️ Skipped (add 'test-browserbase' label to run)" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [ -f test-results/*/junit-performance.xml ]; then
-          echo "- Performance tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- Performance tests: ⏭️ Skipped (add 'test-performance' label to run)" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [ -f test-results/*/junit-llm.xml ]; then
-          echo "- LLM tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- LLM tests: ⏭️ Skipped (add 'test-llm' label to run)" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        if [ -f test-results/*/junit-e2e.xml ]; then
-          echo "- E2E tests: ✅ Executed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "- E2E tests: ⏭️ Skipped (add 'test-e2e' label to run)" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Available Test Labels" >> $GITHUB_STEP_SUMMARY
-        echo "- \`test-browserbase\` - Run Browserbase integration tests" >> $GITHUB_STEP_SUMMARY
-        echo "- \`test-performance\` - Run performance and load tests" >> $GITHUB_STEP_SUMMARY
-        echo "- \`test-llm\` - Run LLM integration tests" >> $GITHUB_STEP_SUMMARY
-        echo "- \`test-e2e\` - Run end-to-end workflow tests" >> $GITHUB_STEP_SUMMARY
-        echo "- \`test-slow\` - Run all slow-marked tests" >> $GITHUB_STEP_SUMMARY
-        echo "- \`test-all\` - Run complete test suite" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Detailed results are available in the artifacts section." >> $GITHUB_STEP_SUMMARY 
