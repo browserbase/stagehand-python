@@ -3,20 +3,3 @@
 # what changed
 
 # test plan
-
----
-
-## 🧪 Test Execution
-
-By default, **unit tests**, **integration tests**, and **smoke tests** run on all PRs.
-
-For additional testing, add one or more of these labels to your PR:
-
-- `test-browserbase` - Run Browserbase integration tests (requires API credentials)
-- `test-performance` - Run performance and load tests  
-- `test-llm` - Run LLM integration tests (requires API keys)
-- `test-e2e` - Run end-to-end workflow tests
-- `test-slow` - Run all slow-marked tests
-- `test-all` - Run the complete test suite (use sparingly)
-
-**Note**: Label-triggered tests only run when the labels are applied to the PR, not on individual commits.
