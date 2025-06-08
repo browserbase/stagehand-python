@@ -14,6 +14,8 @@ async def stagehand_local():
     await sh.close()
 
 
+@pytest.mark.integration
+@pytest.mark.local
 @pytest.mark.asyncio
 async def test_stagehand_local_initialization(stagehand_local):
     """Ensure that Stagehand initializes correctly in LOCAL mode."""

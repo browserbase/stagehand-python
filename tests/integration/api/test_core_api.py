@@ -30,6 +30,8 @@ async def stagehand_api():
 
 
 @skip_if_no_creds
+@pytest.mark.integration
+@pytest.mark.api
 @pytest.mark.asyncio
 async def test_stagehand_api_initialization(stagehand_api):
     """Ensure that Stagehand initializes correctly against the Browserbase API."""
