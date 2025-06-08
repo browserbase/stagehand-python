@@ -16,9 +16,9 @@ class TestClientAPI:
         """Create a mock Stagehand client for testing."""
         client = Stagehand(
             api_url="http://test-server.com",
-            session_id="test-session-123",
-            browserbase_api_key="test-api-key",
-            browserbase_project_id="test-project-id",
+            browserbase_session_id="test-session-123",
+            api_key="test-api-key",               
+            project_id="test-project-id",
             model_api_key="test-model-api-key",
         )
         return client
