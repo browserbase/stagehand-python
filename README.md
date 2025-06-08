@@ -94,10 +94,6 @@ cd stagehand-python
 
 # Install in editable mode with development dependencies
 pip install -e ".[dev]"
-
-### INSTRUCTION TO BE REMOVED BEFORE RELEASE
-# install google cua
-pip install temp/path-to-the-cua-wheel.wheel
 ```
 
 ## Requirements

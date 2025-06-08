@@ -856,7 +856,6 @@ def transform_model(model_cls, path=[]):  # noqa: F841 B006
     Returns:
         Tuple of (transformed_model_cls, url_paths)
     """
-
     # Get model fields based on Pydantic version
     try:
         # Pydantic V2 approach
