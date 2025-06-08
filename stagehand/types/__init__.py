@@ -14,7 +14,7 @@ from .a11y import (
     TreeResult,
 )
 from .agent import (
-    AgentConfig
+    AgentConfig,
 )
 from .llm import (
     ChatMessage,
