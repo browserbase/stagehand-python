@@ -40,8 +40,9 @@ class TestStagehandPageInitialization:
         mock_client.env = "LOCAL"
         mock_client.logger = MagicMock()
         
-        # Ensure keyboard.press returns a regular value, not a coroutine
-        mock_playwright_page.keyboard.press.return_value = None
+        # Ensure keyboard is a regular MagicMock, not AsyncMock
+        mock_playwright_page.keyboard = MagicMock()
+        mock_playwright_page.keyboard.press = MagicMock(return_value=None)
         
         page = StagehandPage(mock_playwright_page, mock_client)
         
