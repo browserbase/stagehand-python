@@ -19,8 +19,7 @@ class TestStagehandLocalIntegration:
             dom_settle_timeout_ms=2000,
             self_heal=True,
             wait_for_captcha_solves=False,
-            system_prompt="You are a browser automation assistant for testing purposes.",
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+            system_prompt="You are a browser automation assistant for testing purposes."
         )
 
     @pytest_asyncio.fixture
