@@ -76,7 +76,7 @@ class TestActTimeout:
         await stagehand.page.goto("https://docs.stagehand.dev")
         
         result = await stagehand.page.act(
-            "Click the button with id 'nonexistent-button-that-will-never-exist-12345'",
+             "search for 'Stagehand'",
             timeout_ms=1000  # 1 second timeout
         )
         
@@ -102,7 +102,7 @@ class TestActTimeout:
         await stagehand.page.goto("https://docs.stagehand.dev")
         
         result = await stagehand.page.act(
-            "Click the button with id 'nonexistent-button-that-will-never-exist-12345'",
+            "search for 'Stagehand'",
             timeout_ms=1000  # 1 second timeout
         )
         
