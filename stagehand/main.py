@@ -161,9 +161,7 @@ class Stagehand:
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()
 
-        self._client: Optional[httpx.AsyncClient] = (
-            None  # Used for server communication in BROWSERBASE
-        )
+        self._client = httpx.AsyncClient(timeout=self.timeout_settings)
 
         self._playwright: Optional[Playwright] = None
         self._browser = None
@@ -388,9 +386,6 @@ class Stagehand:
         self._playwright = await async_playwright().start()
 
         if self.env == "BROWSERBASE":
-            if not self._client:
-                self._client = httpx.AsyncClient(timeout=self.timeout_settings)
-
             # Create session if we don't have one
             if not self.session_id:
                 await self._create_session()  # Uses self._client and api_url

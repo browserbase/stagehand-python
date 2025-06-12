@@ -1,8 +1,6 @@
 import json
 from typing import Any
 
-import httpx
-
 from .utils import convert_dict_keys_to_camel_case
 
 __all__ = ["_create_session", "_execute"]
@@ -73,21 +71,20 @@ async def _create_session(self):
         "x-language": "python",
     }
 
-    client = httpx.AsyncClient(timeout=self.timeout_settings)
-    async with client:
-        resp = await client.post(
-            f"{self.api_url}/sessions/start",
-            json=payload,
-            headers=headers,
-        )
-        if resp.status_code != 200:
-            raise RuntimeError(f"Failed to create session: {resp.text}")
-        data = resp.json()
-        self.logger.debug(f"Session created: {data}")
-        if not data.get("success") or "sessionId" not in data.get("data", {}):
-            raise RuntimeError(f"Invalid response format: {resp.text}")
+    # async with self._client:
+    resp = await self._client.post(
+        f"{self.api_url}/sessions/start",
+        json=payload,
+        headers=headers,
+    )
+    if resp.status_code != 200:
+        raise RuntimeError(f"Failed to create session: {resp.text}")
+    data = resp.json()
+    self.logger.debug(f"Session created: {data}")
+    if not data.get("success") or "sessionId" not in data.get("data", {}):
+        raise RuntimeError(f"Invalid response format: {resp.text}")
 
-        self.session_id = data["data"]["sessionId"]
+    self.session_id = data["data"]["sessionId"]
 
 
 async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
@@ -109,65 +106,61 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
     # Convert snake_case keys to camelCase for the API
     modified_payload = convert_dict_keys_to_camel_case(payload)
 
-    client = httpx.AsyncClient(timeout=self.timeout_settings)
+    # async with self._client:
+    try:
+        # Always use streaming for consistent log handling
+        async with self._client.stream(
+            "POST",
+            f"{self.api_url}/sessions/{self.session_id}/{method}",
+            json=modified_payload,
+            headers=headers,
+        ) as response:
+            if response.status_code != 200:
+                error_text = await response.aread()
+                error_message = error_text.decode("utf-8")
+                self.logger.error(
+                    f"[HTTP ERROR] Status {response.status_code}: {error_message}"
+                )
+                raise RuntimeError(
+                    f"Request failed with status {response.status_code}: {error_message}"
+                )
+            result = None
 
-    async with client:
-        try:
-            # Always use streaming for consistent log handling
-            async with client.stream(
-                "POST",
-                f"{self.api_url}/sessions/{self.session_id}/{method}",
-                json=modified_payload,
-                headers=headers,
-            ) as response:
-                if response.status_code != 200:
-                    error_text = await response.aread()
-                    error_message = error_text.decode("utf-8")
-                    self.logger.error(
-                        f"[HTTP ERROR] Status {response.status_code}: {error_message}"
-                    )
-                    raise RuntimeError(
-                        f"Request failed with status {response.status_code}: {error_message}"
-                    )
-                result = None
+            async for line in response.aiter_lines():
+                # Skip empty lines
+                if not line.strip():
+                    continue
 
-                async for line in response.aiter_lines():
-                    # Skip empty lines
-                    if not line.strip():
-                        continue
+                try:
+                    # Handle SSE-style messages that start with "data: "
+                    if line.startswith("data: "):
+                        line = line[len("data: ") :]
 
-                    try:
-                        # Handle SSE-style messages that start with "data: "
-                        if line.startswith("data: "):
-                            line = line[len("data: ") :]
+                    message = json.loads(line)
+                    # Handle different message types
+                    msg_type = message.get("type")
 
-                        message = json.loads(line)
-                        # Handle different message types
-                        msg_type = message.get("type")
+                    if msg_type == "system":
+                        status = message.get("data", {}).get("status")
+                        if status == "error":
+                            error_msg = message.get("data", {}).get(
+                                "error", "Unknown error"
+                            )
+                            self.logger.error(f"[ERROR] {error_msg}")
+                            raise RuntimeError(f"Server returned error: {error_msg}")
+                        elif status == "finished":
+                            result = message.get("data", {}).get("result")
+                    elif msg_type == "log":
+                        # Process log message using _handle_log
+                        await self._handle_log(message)
+                    else:
+                        # Log any other message types
+                        self.logger.debug(f"[UNKNOWN] Message type: {msg_type}")
+                except json.JSONDecodeError:
+                    self.logger.warning(f"Could not parse line as JSON: {line}")
 
-                        if msg_type == "system":
-                            status = message.get("data", {}).get("status")
-                            if status == "error":
-                                error_msg = message.get("data", {}).get(
-                                    "error", "Unknown error"
-                                )
-                                self.logger.error(f"[ERROR] {error_msg}")
-                                raise RuntimeError(
-                                    f"Server returned error: {error_msg}"
-                                )
-                            elif status == "finished":
-                                result = message.get("data", {}).get("result")
-                        elif msg_type == "log":
-                            # Process log message using _handle_log
-                            await self._handle_log(message)
-                        else:
-                            # Log any other message types
-                            self.logger.debug(f"[UNKNOWN] Message type: {msg_type}")
-                    except json.JSONDecodeError:
-                        self.logger.warning(f"Could not parse line as JSON: {line}")
-
-                # Return the final result
-                return result
-        except Exception as e:
-            self.logger.error(f"[EXCEPTION] {str(e)}")
-            raise
+            # Return the final result
+            return result
+    except Exception as e:
+        self.logger.error(f"[EXCEPTION] {str(e)}")
+        raise
