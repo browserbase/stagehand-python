@@ -37,9 +37,7 @@ jobs:
         pip install -e ".[dev]"
         # Install jsonschema for schema validation tests
         pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
-    
+
     - name: Run unit tests
       run: |
         pytest tests/unit/ -v --junit-xml=junit-unit-${{ matrix.python-version }}.xml
@@ -74,8 +72,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
         # Install Playwright browsers for integration tests
         playwright install chromium
         playwright install-deps chromium
@@ -129,8 +125,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
     
     - name: Run API integration tests
       run: |
@@ -170,7 +164,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
     
     - name: Run smoke tests
       run: |
@@ -213,8 +206,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
         playwright install chromium
         playwright install-deps chromium
     
@@ -261,8 +252,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
         playwright install chromium
     
     - name: Run complete test suite
