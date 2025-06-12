@@ -48,6 +48,8 @@ class ActHandler:
             )
 
         # Extract timeout_ms from options (check both snake_case and camelCase)
+        ## TODO - this is a temporary fix to support the timeout_ms field in the options.
+        ## We should update the options to use the timeout_ms field instead of timeoutMs.
         timeout_ms = options.get("timeout_ms") or options.get("timeoutMs")
         
         # If timeout is specified, wrap the entire act operation with asyncio.wait_for
