@@ -62,109 +62,76 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 
 ## Installation
 
-Install the Python package via pip:
+### Creating a Virtual Environment (Recommended)
 
+First, create and activate a virtual environment to keep your project dependencies isolated:
+
+```bash
+# Create a virtual environment
+python -m venv stagehand-env
+
+# Activate the environment
+# On macOS/Linux:
+source stagehand-env/bin/activate
+# On Windows:
+stagehand-env\Scripts\activate
+```
+
+### Install Stagehand
+
+**Normal Installation:**
 ```bash
 pip install stagehand
 ```
+
+**Local Development Installation:**
+If you're contributing to Stagehand or want to modify the source code:
+
+```bash
+# Clone the repository
+git clone https://github.com/browserbase/stagehand-python.git
+cd stagehand-python
+
+# Install in editable mode with development dependencies
+pip install -e ".[dev]"
+```
+
 ## Requirements
 
 - Python 3.9+
-- httpx (for async client)
-- requests (for sync client)
-- asyncio (for async client)
-- pydantic
-- python-dotenv (optional, for .env support)
-- playwright
-- rich (for `examples/` terminal support)
+- All dependencies are automatically handled when installing via `pip`
 
-You can simply run:
+The main dependencies include:
+- httpx (for async HTTP client)
+- requests (for sync HTTP client)
+- pydantic (for data validation)
+- playwright (for browser automation)
+- python-dotenv (for environment variable support)
+- browserbase (for Browserbase integration)
 
-```bash
-pip install -r requirements.txt
-```
+### Development Dependencies
 
-**requirements.txt**
-```txt
-httpx>=0.24.0
-asyncio>=3.4.3 
-python-dotenv>=1.0.0
-pydantic>=1.10.0
-playwright>=1.42.1
-requests>=2.31.0
-rich
-browserbase
-```
-
+The development dependencies are automatically installed when using `pip install -e ".[dev]"` and include:
+- pytest, pytest-asyncio, pytest-mock, pytest-cov (testing)
+- black, isort, ruff (code formatting and linting)
+- mypy (type checking)
+- rich (enhanced terminal output)
 
 ## Environment Variables
 
-Before running your script, set the following environment variables:
+Before running your script, copy `.env.example` to `.env.` set the following environment variables:
 
 ```bash
-export BROWSERBASE_API_KEY="your-api-key"
-export BROWSERBASE_PROJECT_ID="your-project-id"
+export BROWSERBASE_API_KEY="your-api-key" # if running remotely
+export BROWSERBASE_PROJECT_ID="your-project-id" # if running remotely
 export MODEL_API_KEY="your-openai-api-key"  # or your preferred model's API key
-export STAGEHAND_API_URL="url-of-stagehand-server"
+export STAGEHAND_API_URL="url-of-stagehand-server" # if running remotely
+export STAGEHAND_ENV="BROWSERBASE" # or "LOCAL" to run Stagehand locally
 ```
 
 You can also make a copy of `.env.example` and add these to your `.env` file. 
 
 ## Quickstart
-
-Stagehand supports both synchronous and asynchronous usage. Here are examples for both approaches:
-
-### Sync Client
-
-```python
-import os
-from stagehand.sync import Stagehand
-from stagehand import StagehandConfig
-from dotenv import load_dotenv
-
-load_dotenv()
-
-def main():
-    # Configure Stagehand
-    config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
-    )
-
-    # Initialize Stagehand
-    stagehand = Stagehand(config=config, api_url=os.getenv("STAGEHAND_API_URL"))
-    stagehand.init()
-    print(f"Session created: {stagehand.session_id}")
-
-    # Navigate to a page
-    stagehand.page.goto("https://google.com/")
-
-    # Use Stagehand AI primitives
-    stagehand.page.act("search for openai")
-
-    # Combine with Playwright
-    stagehand.page.keyboard.press("Enter")
-
-    # Observe elements on the page
-    observed = stagehand.page.observe("find the news button")
-    if observed:
-        stagehand.page.act(observed[0])  # Act on the first observed element
-
-    # Extract data from the page
-    data = stagehand.page.extract("extract the first result from the search")
-    print(f"Extracted data: {data}")
-
-    # Close the session
-    stagehand.close()
-
-if __name__ == "__main__":
-    main()
-```
-
-### Async Client
 
 ```python
 import os

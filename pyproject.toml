@@ -40,6 +40,7 @@ dev = [
     "isort>=5.12.0",
     "mypy>=1.3.0",
     "ruff",
+    "psutil>=5.9.0",
 ]
 
 [project.urls]
@@ -105,6 +106,44 @@ classmethod-decorators = ["classmethod", "validator"]
 # Add more customizations if needed
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--cov=stagehand",
+    "--cov-report=html:htmlcov",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    # "--cov-fail-under=75",  # Commented out for future addition
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--tb=short"
+]
+markers = [
+    "unit: Unit tests for individual components",
+    "integration: Integration tests requiring multiple components",
+    "e2e: End-to-end tests with full workflows",
+    "slow: Tests that take longer to run",
+    "browserbase: Tests requiring Browserbase connection",
+    "local: Tests for local browser functionality",
+    "llm: Tests involving LLM interactions",
+    "mock: Tests using mock objects only",
+    "performance: Performance and load tests",
+    "smoke: Quick smoke tests for basic functionality"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::UserWarning:pytest_asyncio",
+    "ignore::RuntimeWarning"
+]
+minversion = "7.0"
 
 # Black configuration
 [tool.black]
