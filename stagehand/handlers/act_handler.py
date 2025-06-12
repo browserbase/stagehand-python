@@ -1,5 +1,5 @@
-import traceback
 import asyncio
+import traceback
 from typing import Any, Optional, Union
 
 from stagehand.handlers.act_handler_utils import (
@@ -51,13 +51,13 @@ class ActHandler:
         ## TODO - this is a temporary fix to support the timeout_ms field in the options.
         ## We should update the options to use the timeout_ms field instead of timeoutMs.
         timeout_ms = options.get("timeout_ms") or options.get("timeoutMs")
-        
+
         # If timeout is specified, wrap the entire act operation with asyncio.wait_for
         if timeout_ms:
             try:
                 return await asyncio.wait_for(
                     self._perform_act_with_timeout(options),
-                    timeout=timeout_ms / 1000.0  # Convert ms to seconds
+                    timeout=timeout_ms / 1000.0,  # Convert ms to seconds
                 )
             except asyncio.TimeoutError:
                 action_task = options.get("action")
