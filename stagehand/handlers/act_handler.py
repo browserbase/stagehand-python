@@ -1,4 +1,5 @@
 import traceback
+import asyncio
 from typing import Any, Optional, Union
 
 from stagehand.handlers.act_handler_utils import (
@@ -46,6 +47,29 @@ class ActHandler:
                 options, self.stagehand.dom_settle_timeout_ms
             )
 
+        # Extract timeout_ms from options (check both snake_case and camelCase)
+        timeout_ms = options.get("timeout_ms") or options.get("timeoutMs")
+        
+        # If timeout is specified, wrap the entire act operation with asyncio.wait_for
+        if timeout_ms:
+            try:
+                return await asyncio.wait_for(
+                    self._perform_act_with_timeout(options),
+                    timeout=timeout_ms / 1000.0  # Convert ms to seconds
+                )
+            except asyncio.TimeoutError:
+                action_task = options.get("action")
+                return ActResult(
+                    success=False,
+                    message=f"Action timed out after {timeout_ms}ms",
+                    action=action_task,
+                )
+        else:
+            # No timeout specified, use existing behavior
+            return await self._perform_act_with_timeout(options)
+
+    async def _perform_act_with_timeout(self, options) -> ActResult:
+        """Extract the main act logic into a separate method for timeout handling"""
         # Start inference timer if available
         if hasattr(self.stagehand, "start_inference_timer"):
             self.stagehand.start_inference_timer()
