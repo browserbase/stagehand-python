@@ -33,28 +33,18 @@ configure_logging(
     quiet_dependencies=True,  # Reduce noise from dependencies
 )
 
-console.print(
-    Panel.fit(
-        "[yellow]Logging Levels:[/]\n"
-        "[white]- Set [bold]verbose=0[/] for errors (ERROR)[/]\n"
-        "[white]- Set [bold]verbose=1[/] for minimal logs (INFO)[/]\n"
-        "[white]- Set [bold]verbose=2[/] for detailed logs (DEBUG)[/]",
-        title="Verbosity Options",
-        border_style="blue",
-    )
-)
-
 async def main():
     # Build a unified configuration object for Stagehand
     config = StagehandConfig(
         env="BROWSERBASE",
+        # env="LOCAL",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="gpt-4o",
         self_heal=True,
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
-        verbose=2,
+        verbose=1,
     )
 
     # Create a Stagehand client using the configuration object.
@@ -63,10 +53,11 @@ async def main():
     # Initialize - this creates a new session automatically.
     console.print("\n🚀 [info]Initializing Stagehand...[/]")
     await stagehand.init()
-    console.print(f"\n[yellow]Created new session:[/] {stagehand.session_id}")
-    console.print(
-        f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
-    )
+    if stagehand.env == "BROWSERBASE":    
+        console.print(f"\n[yellow]Created new session:[/] {stagehand.session_id}")
+        console.print(
+            f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
+        )
     
     # Define the task for the agent
     execute_options = AgentExecuteOptions(
@@ -86,7 +77,7 @@ async def main():
         options={"apiKey": os.getenv("MODEL_API_KEY")}
     )
     agent_result = await agent.execute(execute_options)
-    
+
     console.print("📊 [info]Agent execution result:[/]")
     console.print(f"✅ Success: [bold]{'Yes' if agent_result.success else 'No'}[/]")
     console.print(f"🎯 Completed: [bold]{'Yes' if agent_result.completed else 'No'}[/]")

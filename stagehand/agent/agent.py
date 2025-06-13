@@ -36,29 +36,32 @@ class Agent:
         self.stagehand = stagehand_client
         self.config = AgentConfig(**kwargs) if kwargs else AgentConfig()
         self.logger = self.stagehand.logger
-        if self.config.model in MODEL_TO_PROVIDER_MAP:
-            self.provider = MODEL_TO_PROVIDER_MAP[self.config.model]
+        if self.stagehand.env == "BROWSERBASE":
+            if self.config.model in MODEL_TO_PROVIDER_MAP:
+                self.provider = MODEL_TO_PROVIDER_MAP[self.config.model]
+            else:
+                self.provider = None
+                self.logger.error(
+                    f"Could not infer provider for model: {self.config.model}"
+                )
         else:
-            self.provider = None
-            self.logger.error(
-                f"Could not infer provider for model: {self.config.model}"
+            if not hasattr(self.stagehand, "page") or not hasattr(
+                self.stagehand.page, "_page"
+            ):
+                self.logger.error(
+                    "Stagehand page object not available for CUAHandler initialization."
+                )
+                raise ValueError("Stagehand page not initialized. Cannot create Agent.")
+
+            self.cua_handler = CUAHandler(
+                stagehand=self.stagehand,
+                page=self.stagehand.page._page,
+                logger=self.logger,
             )
 
-        if not hasattr(self.stagehand, "page") or not hasattr(
-            self.stagehand.page, "_page"
-        ):
-            self.logger.error(
-                "Stagehand page object not available for CUAHandler initialization."
-            )
-            raise ValueError("Stagehand page not initialized. Cannot create Agent.")
-
-        self.cua_handler = CUAHandler(
-            stagehand=self.stagehand, page=self.stagehand.page._page, logger=self.logger
-        )
-
-        self.viewport = self.stagehand.page._page.viewport_size
-        # self.viewport = {"width": 1024, "height": 768}
-        self.client: AgentClient = self._get_client()
+            self.viewport = self.stagehand.page._page.viewport_size
+            # self.viewport = {"width": 1024, "height": 768}
+            self.client: AgentClient = self._get_client()
 
     def _get_client(self) -> AgentClient:
         ClientClass = MODEL_TO_CLIENT_CLASS_MAP.get(self.config.model)  # noqa: N806
