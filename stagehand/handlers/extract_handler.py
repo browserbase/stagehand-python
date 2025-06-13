@@ -93,7 +93,7 @@ class ExtractHandler:
             # TODO: Remove this once we have a better way to handle URLs
             transformed_schema, url_paths = transform_url_strings_to_ids(schema)
         else:
-            transformed_schema = DefaultExtractSchema
+            schema = transformed_schema = DefaultExtractSchema
 
         # Use inference to call the LLM
         extraction_response = extract_inference(
