@@ -1,6 +1,6 @@
 """Observe handler for performing observations of page elements using LLMs."""
 
-from typing import Any
+from typing import Any, Optional, Union
 
 from stagehand.a11y.utils import get_accessibility_tree, get_xpath_by_resolved_object_id
 from stagehand.llm.inference import observe as observe_inference
@@ -28,22 +28,45 @@ class ObserveHandler:
         self.logger = stagehand_client.logger
         self.user_provided_instructions = user_provided_instructions
 
-    # TODO: better kwargs
+
     async def observe(
         self,
-        options: ObserveOptions,
+        options_or_instruction: Union[ObserveOptions, str, dict, None] = None,
         from_act: bool = False,
+        **kwargs,
     ) -> list[ObserveResult]:
         """
         Execute an observation operation locally.
 
         Args:
-            options: ObserveOptions containing the instruction and other parameters
+            options_or_instruction: ObserveOptions, instruction string, dict, or None
+            from_act: Whether this observe is being called from act
+            **kwargs: Additional options to be merged
 
         Returns:
             list of ObserveResult instances
         """
-        instruction = options.instruction
+        options: Optional[ObserveOptions] = None
+        options_dict = {}
+
+        if isinstance(options_or_instruction, ObserveOptions):
+            options_dict = options_or_instruction.model_dump()
+        elif isinstance(options_or_instruction, dict):
+            options_dict = options_or_instruction.copy()
+        elif isinstance(options_or_instruction, str):
+            options_dict["instruction"] = options_or_instruction
+
+        options_dict.update(kwargs)
+
+        # Validate options if we have any
+        if options_dict:
+            try:
+                options = ObserveOptions(**options_dict)
+            except Exception as e:
+                self.logger.error(f"Invalid observe options: {e}")
+                raise
+
+        instruction = options.instruction if options else None
         if not instruction:
             instruction = (
                 "Find elements that can be used for any future actions in the page. "
@@ -117,7 +140,8 @@ class ObserveHandler:
         )
 
         # Draw overlay if requested
-        if options.draw_overlay:
+        draw_overlay = options.draw_overlay if options else False
+        if draw_overlay:
             await draw_observe_overlay(self.stagehand_page, elements_with_selectors)
 
         # Return the list of results without trying to attach _llm_response

@@ -35,22 +35,67 @@ class ActHandler:
         self.user_provided_instructions = user_provided_instructions
         self.self_heal = self_heal
 
-    async def act(self, options: Union[ActOptions, ObserveResult]) -> ActResult:
+    async def act(
+        self, 
+        options_or_action: Union[ActOptions, ObserveResult, str, dict, None] = None,
+        **kwargs
+    ) -> ActResult:
         """
         Perform an act based on an instruction.
         This method will observe the page and then perform the act on the first element returned.
+        
+        Args:
+            options_or_action: ActOptions, ObserveResult, action string, dict, or None
+            **kwargs: Additional options to be merged
+            
+        Returns:
+            ActResult instance
         """
-        if "selector" in options and "method" in options:
-            options = ObserveResult(**options)
+        # Handle ObserveResult case first (legacy compatibility)
+        if isinstance(options_or_action, ObserveResult):
             return await self._act_from_observe_result(
-                options, self.stagehand.dom_settle_timeout_ms
+                options_or_action, self.stagehand.dom_settle_timeout_ms
+            )
+        
+        # Handle the new flexible parameter format
+        options: Optional[ActOptions] = None
+        options_dict = {}
+
+        if isinstance(options_or_action, ActOptions):
+            options_dict = options_or_action.model_dump()
+        elif isinstance(options_or_action, dict):
+            # Check if it's actually an ObserveResult dict
+            if "selector" in options_or_action and "method" in options_or_action:
+                observe_result = ObserveResult(**options_or_action)
+                return await self._act_from_observe_result(
+                    observe_result, self.stagehand.dom_settle_timeout_ms
+                )
+            options_dict = options_or_action.copy()
+        elif isinstance(options_or_action, str):
+            options_dict["action"] = options_or_action
+
+        options_dict.update(kwargs)
+
+        # Validate options if we have any
+        if options_dict:
+            try:
+                options = ActOptions(**options_dict)
+            except Exception as e:
+                self.logger.error(f"Invalid act options: {e}")
+                raise
+        
+        if not options or not options.action:
+            return ActResult(
+                success=False,
+                message="No action provided for act operation",
+                action="",
             )
 
         # Start inference timer if available
         if hasattr(self.stagehand, "start_inference_timer"):
             self.stagehand.start_inference_timer()
 
-        action_task = options.get("action")
+        action_task = options.action
         self.logger.info(
             f"Starting action for task: '{action_task}'",
             category="act",
@@ -58,17 +103,15 @@ class ActHandler:
         prompt = build_act_observe_prompt(
             action=action_task,
             supported_actions=list(method_handler_map.keys()),
-            variables=options.get("variables"),
+            variables=options.variables,
         )
 
         observe_options_dict = {"instruction": prompt}
         # Add other observe options from ActOptions if they exist
-        if options.get("model_name"):
-            observe_options_dict["model_name"] = options.get("model_name")
-        if options.get("model_client_options"):
-            observe_options_dict["model_client_options"] = options.get(
-                "model_client_options"
-            )
+        if options.model_name:
+            observe_options_dict["model_name"] = options.model_name
+        if options.model_client_options:
+            observe_options_dict["model_client_options"] = options.model_client_options
 
         observe_options = ObserveOptions(**observe_options_dict)
 
@@ -93,8 +136,8 @@ class ActHandler:
             element_to_act_on = observe_results[0]
 
             # Substitute variables in arguments
-            if options.get("variables"):
-                variables = options.get("variables", {})
+            if options.variables:
+                variables = options.variables
                 element_to_act_on.arguments = [
                     str(arg).replace(f"%{key}%", str(value))
                     for arg in (element_to_act_on.arguments or [])
@@ -102,7 +145,7 @@ class ActHandler:
                 ]
 
             # domSettleTimeoutMs might come from options if specified for act
-            dom_settle_timeout_ms = options.get("dom_settle_timeout_ms")
+            dom_settle_timeout_ms = options.dom_settle_timeout_ms
 
             try:
                 await self._perform_playwright_method(
