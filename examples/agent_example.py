@@ -36,8 +36,8 @@ configure_logging(
 async def main():
     # Build a unified configuration object for Stagehand
     config = StagehandConfig(
-        # env="BROWSERBASE",
-        env="LOCAL",
+        env="BROWSERBASE",
+        # env="LOCAL",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="gpt-4o",
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     console.print(
         "\n",
         Panel.fit(
-            "[light_gray]Stagehand 🤘 Async Agent Example[/]",
+            "[light_gray]Stagehand 🤘 Agent Example[/]",
             border_style="green",
             padding=(1, 10),
         ),
