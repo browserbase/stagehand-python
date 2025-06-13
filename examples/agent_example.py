@@ -38,8 +38,7 @@ console.print(
         "[yellow]Logging Levels:[/]\n"
         "[white]- Set [bold]verbose=0[/] for errors (ERROR)[/]\n"
         "[white]- Set [bold]verbose=1[/] for minimal logs (INFO)[/]\n"
-        "[white]- Set [bold]verbose=2[/] for medium logs (WARNING)[/]\n"
-        "[white]- Set [bold]verbose=3[/] for detailed logs (DEBUG)[/]",
+        "[white]- Set [bold]verbose=2[/] for detailed logs (DEBUG)[/]",
         title="Verbosity Options",
         border_style="blue",
     )
@@ -51,21 +50,15 @@ async def main():
         env="BROWSERBASE",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        headless=False,
-        dom_settle_timeout_ms=3000,
         model_name="gpt-4o",
         self_heal=True,
-        wait_for_captcha_solves=True,
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
         verbose=2,
     )
 
     # Create a Stagehand client using the configuration object.
-    stagehand = Stagehand(
-        config=config, 
-        api_url=os.getenv("STAGEHAND_API_URL"),
-    )
+    stagehand = Stagehand(config)
 
     # Initialize - this creates a new session automatically.
     console.print("\n🚀 [info]Initializing Stagehand...[/]")
@@ -73,14 +66,6 @@ async def main():
     console.print(f"\n[yellow]Created new session:[/] {stagehand.session_id}")
     console.print(
         f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
-    )
-    
-    # Configure the agent
-    agent_config = AgentConfig(
-        provider=AgentProvider.OPENAI,
-        model="computer-use-preview",
-        instructions="You are a helpful web navigation assistant that helps users find information. You are currently on the following page: google.com. Do not ask follow up questions, the user will trust your judgement.",
-        options={"apiKey": os.getenv("MODEL_API_KEY")}
     )
     
     # Define the task for the agent
@@ -95,7 +80,11 @@ async def main():
     console.print("✅ [success]Navigated to Google[/]")
     
     console.print("\n▶️ [highlight] Using Agent to perform a task[/]: playing a game of 2048")
-    agent = stagehand.agent(agent_config)
+    agent = stagehand.agent(
+        model="computer-use-preview",
+        instructions="You are a helpful web navigation assistant that helps users find information. You are currently on the following page: google.com. Do not ask follow up questions, the user will trust your judgement.",
+        options={"apiKey": os.getenv("MODEL_API_KEY")}
+    )
     agent_result = await agent.execute(execute_options)
     
     console.print("📊 [info]Agent execution result:[/]")
