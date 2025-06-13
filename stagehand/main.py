@@ -28,7 +28,7 @@ from .llm import LLMClient
 from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
-from .schemas import AgentConfig
+from .types import AgentConfigAPI as AgentConfig
 from .utils import make_serializable
 
 load_dotenv()

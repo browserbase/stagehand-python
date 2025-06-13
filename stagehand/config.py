@@ -3,7 +3,7 @@ from typing import Any, Callable, Literal, Optional
 from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from pydantic import BaseModel, ConfigDict, Field
 
-from stagehand.schemas import AvailableModel
+from stagehand.types import AvailableModel
 
 
 class StagehandConfig(BaseModel):

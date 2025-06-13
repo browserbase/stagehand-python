@@ -7,7 +7,7 @@ from stagehand.handlers.act_handler import ActHandler
 from stagehand.handlers.extract_handler import ExtractHandler
 from stagehand.handlers.observe_handler import ObserveHandler
 
-from .schemas import (
+from .types import (
     DEFAULT_EXTRACT_SCHEMA,
     ActOptions,
     ActResult,

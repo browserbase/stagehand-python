@@ -1,6 +1,6 @@
-from .schemas import (
-    AgentConfig,
-    AgentExecuteOptions,
+from .types import (
+    AgentConfigAPI as AgentConfig,
+    AgentExecuteOptionsAPI as AgentExecuteOptions,
     AgentExecuteResult,
     AgentProvider,
 )

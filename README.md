@@ -190,7 +190,7 @@ if __name__ == "__main__":
 import os
 from stagehand.sync import Stagehand
 from stagehand import StagehandConfig
-from stagehand.schemas import AgentConfig, AgentExecuteOptions, AgentProvider
+from stagehand.types import AgentConfigAPI as AgentConfig, AgentExecuteOptionsAPI as AgentExecuteOptions, AgentProvider
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
   The `ActOptions` model takes an `action` field that tells the AI what to do on the page, plus optional fields such as `useVision` and `variables`:
   ```python
-  from stagehand.schemas import ActOptions
+  from stagehand.types import ActOptions
   
   # Example:
   await page.act(ActOptions(action="click on the 'Quickstart' button"))
@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
   The `ObserveOptions` model lets you find elements on the page using natural language. The `onlyVisible` option helps limit the results:
   ```python
-  from stagehand.schemas import ObserveOptions
+  from stagehand.types import ObserveOptions
   
   # Example:
   await page.observe(ObserveOptions(instruction="find the button labeled 'News'", onlyVisible=True))
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
   The `ExtractOptions` model extracts structured data from the page. Pass your instructions and a schema defining your expected data format. **Note:** If you are using a Pydantic model for the schema, call its `.model_json_schema()` method to ensure JSON serializability.
   ```python
-  from stagehand.schemas import ExtractOptions
+  from stagehand.types import ExtractOptions
   from pydantic import BaseModel
   
   class DescriptionSchema(BaseModel):
