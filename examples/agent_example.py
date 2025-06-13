@@ -36,8 +36,8 @@ configure_logging(
 async def main():
     # Build a unified configuration object for Stagehand
     config = StagehandConfig(
-        env="BROWSERBASE",
-        # env="LOCAL",
+        # env="BROWSERBASE",
+        env="LOCAL",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="gpt-4o",
@@ -58,13 +58,6 @@ async def main():
         console.print(
             f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
         )
-    
-    # Define the task for the agent
-    execute_options = AgentExecuteOptions(
-        instruction="Play a game of 2048",
-        max_steps=20,
-        auto_screenshot=True,
-    )
 
     console.print("\n▶️ [highlight] Navigating[/] to Google")
     await stagehand.page.goto("https://google.com/")
@@ -76,7 +69,11 @@ async def main():
         instructions="You are a helpful web navigation assistant that helps users find information. You are currently on the following page: google.com. Do not ask follow up questions, the user will trust your judgement.",
         options={"apiKey": os.getenv("MODEL_API_KEY")}
     )
-    agent_result = await agent.execute(execute_options)
+    agent_result = await agent.execute(
+        instruction="Play a game of 2048",
+        max_steps=20,
+        auto_screenshot=True,
+    )
 
     console.print("📊 [info]Agent execution result:[/]")
     console.print(f"✅ Success: [bold]{'Yes' if agent_result.success else 'No'}[/]")

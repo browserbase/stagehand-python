@@ -87,31 +87,40 @@ class Agent:
         )
 
     async def execute(
-        self, options_or_instruction: Union[AgentExecuteOptions, str]
+        self,
+        options_or_instruction: Union[AgentExecuteOptions, str, dict, None] = None,
+        **kwargs,
     ) -> AgentResult:
         options: Optional[AgentExecuteOptions] = None
-        instruction: str
+        options_dict = {}
 
-        if isinstance(options_or_instruction, str):
-            instruction = options_or_instruction
-            options = AgentExecuteOptions(instruction=instruction)
+        if isinstance(options_or_instruction, AgentExecuteOptions):
+            options_dict = options_or_instruction.model_dump()
         elif isinstance(options_or_instruction, dict):
-            options = AgentExecuteOptions(**options_or_instruction)
-            instruction = options.instruction
-        else:
-            options = options_or_instruction
-            instruction = options.instruction
+            options_dict = options_or_instruction.copy()
+        elif isinstance(options_or_instruction, str):
+            options_dict["instruction"] = options_or_instruction
+
+        options_dict.update(kwargs)
+
+        try:
+            options = AgentExecuteOptions(**options_dict)
+        except Exception as e:
+            self.logger.error(f"Invalid agent execute options: {e}")
+            raise
+
+        if not options.instruction:
+            self.logger.error("No instruction provided for agent execution.")
+            return AgentResult(
+                message="No instruction provided.",
+                completed=True,
+                actions=[],
+                usage={},
+            )
+
+        instruction = options.instruction
 
         if self.stagehand.env == "LOCAL":
-            if not instruction:
-                self.logger.error("No instruction provided for agent execution.")
-                return AgentResult(
-                    message="No instruction provided.",
-                    completed=True,
-                    actions=[],
-                    usage={},
-                )
-
             self.logger.info(
                 f"Agent starting execution for instruction: '{instruction}'",
                 category="agent",
