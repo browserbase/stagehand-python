@@ -157,7 +157,7 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
                         # Log any other message types
                         self.logger.debug(f"[UNKNOWN] Message type: {msg_type}")
                 except json.JSONDecodeError:
-                    self.logger.warning(f"Could not parse line as JSON: {line}")
+                    self.logger.error(f"Could not parse line as JSON: {line}")
 
             # Return the final result
             return result

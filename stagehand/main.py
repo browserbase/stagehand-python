@@ -144,7 +144,7 @@ class Stagehand:
                     )
                 if not self.model_api_key:
                     # Model API key needed if Stagehand server creates the session
-                    self.logger.warning(
+                    self.logger.info(
                         "model_api_key is recommended when creating a new BROWSERBASE session to configure the Stagehand server's LLM."
                     )
             elif self.session_id:
