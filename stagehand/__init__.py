@@ -8,11 +8,11 @@ from .logging import LogConfig, configure_logging
 from .main import Stagehand
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
-from .schemas import (
+from .types import (
     ActOptions,
     ActResult,
-    AgentConfig,
-    AgentExecuteOptions,
+    AgentConfigAPI as AgentConfig,
+    AgentExecuteOptionsAPI as AgentExecuteOptions,
     AgentExecuteResult,
     AgentProvider,
     ExtractOptions,

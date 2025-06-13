@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from typing import Dict, Any
 
 from stagehand import Stagehand, StagehandConfig
-from stagehand.schemas import ActResult, ExtractResult, ObserveResult
+from stagehand.types import ActResult, ExtractResult, ObserveResult
 
 
 # Set up pytest-asyncio as the default

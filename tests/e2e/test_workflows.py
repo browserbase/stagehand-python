@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import BaseModel
 
 from stagehand import Stagehand, StagehandConfig
-from stagehand.schemas import ActResult, ObserveResult, ExtractResult
+from stagehand.types import ActResult, ObserveResult, ExtractResult
 from tests.mocks.mock_llm import MockLLMClient
 from tests.mocks.mock_browser import create_mock_browser_stack, setup_page_with_content
 from tests.mocks.mock_server import create_mock_server_with_client, setup_successful_session_flow
@@ -648,7 +648,7 @@ class TestWorkflowPydanticSchemas:
                 await stagehand.page.goto("https://electronics-store.com")
                 
                 # Extract with Pydantic schema
-                from stagehand.schemas import ExtractOptions
+                from stagehand.types import ExtractOptions
                 
                 extract_options = ExtractOptions(
                     instruction="extract all products with detailed information",

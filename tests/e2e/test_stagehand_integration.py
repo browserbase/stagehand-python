@@ -13,7 +13,7 @@ from typing import Dict, Any
 from pydantic import BaseModel, Field, HttpUrl
 
 from stagehand import Stagehand, StagehandConfig
-from stagehand.schemas import ExtractOptions
+from stagehand.types import ExtractOptions
 
 
 class Company(BaseModel):

@@ -5,7 +5,7 @@ from typing import Any
 from stagehand.a11y.utils import get_accessibility_tree, get_xpath_by_resolved_object_id
 from stagehand.llm.inference import observe as observe_inference
 from stagehand.metrics import StagehandFunctionName  # Changed import location
-from stagehand.schemas import ObserveOptions, ObserveResult
+from stagehand.types import ObserveOptions, ObserveResult
 from stagehand.utils import draw_observe_overlay
 
 

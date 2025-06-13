@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import BaseModel
 
 from stagehand.page import StagehandPage
-from stagehand.schemas import (
+from stagehand.types import (
     ActOptions,
     ActResult,
     ExtractOptions,

@@ -1,5 +1,5 @@
 """
-Exports for accessibility types.
+Exports for Stagehand types.
 """
 
 from .a11y import (
@@ -15,6 +15,16 @@ from .a11y import (
 )
 from .agent import (
     AgentConfig,
+    AgentConfigAPI,
+    AgentExecuteOptions,
+    AgentExecuteOptionsAPI,
+    AgentExecuteResult,
+)
+from .base import (
+    AgentProvider,
+    AvailableModel,
+    DEFAULT_EXTRACT_SCHEMA,
+    StagehandBaseModel,
 )
 from .llm import (
     ChatMessage,
@@ -33,6 +43,12 @@ from .page import (
 )
 
 __all__ = [
+    # Base types
+    "StagehandBaseModel",
+    "AgentProvider",
+    "AvailableModel",
+    "DEFAULT_EXTRACT_SCHEMA",
+    # A11y types
     "AXProperty",
     "AXValue",
     "AXNode",
@@ -42,7 +58,9 @@ __all__ = [
     "Locator",
     "PlaywrightCommandError",
     "PlaywrightMethodNotSupportedError",
+    # LLM types
     "ChatMessage",
+    # Page types
     "ObserveElementSchema",
     "ObserveInferenceSchema",
     "ActOptions",
@@ -53,7 +71,10 @@ __all__ = [
     "DefaultExtractSchema",
     "ExtractOptions",
     "ExtractResult",
+    # Agent types
     "AgentConfig",
+    "AgentConfigAPI",
     "AgentExecuteOptions",
-    "AgentResult",
+    "AgentExecuteOptionsAPI",
+    "AgentExecuteResult",
 ]

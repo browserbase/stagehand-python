@@ -5,7 +5,7 @@ import pytest_asyncio
 from pydantic import BaseModel, Field
 
 from stagehand import Stagehand, StagehandConfig
-from stagehand.schemas import ExtractOptions
+from stagehand.types import ExtractOptions
 
 
 class Article(BaseModel):
