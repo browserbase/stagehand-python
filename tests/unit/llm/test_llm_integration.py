@@ -6,6 +6,7 @@ import json
 
 from stagehand.llm.client import LLMClient
 from tests.mocks.mock_llm import MockLLMClient, MockLLMResponse
+from stagehand.logging import StagehandLogger
 
 
 class TestLLMClientInitialization:
@@ -15,7 +16,8 @@ class TestLLMClientInitialization:
         """Test LLM client creation with OpenAI provider"""
         client = LLMClient(
             api_key="test-openai-key",
-            default_model="gpt-4o"
+            default_model="gpt-4o",
+            stagehand_logger=StagehandLogger(),
         )
         
         assert client.default_model == "gpt-4o"
@@ -25,7 +27,8 @@ class TestLLMClientInitialization:
         """Test LLM client creation with Anthropic provider"""
         client = LLMClient(
             api_key="test-anthropic-key",
-            default_model="claude-3-sonnet"
+            default_model="claude-3-sonnet",
+            stagehand_logger=StagehandLogger(),
         )
         
         assert client.default_model == "claude-3-sonnet"
@@ -35,7 +38,8 @@ class TestLLMClientInitialization:
         """Test LLM client with custom configuration options"""
         client = LLMClient(
             api_key="test-key",
-            default_model="gpt-4o-mini"
+            default_model="gpt-4o-mini",
+            stagehand_logger=StagehandLogger(),
         )
         
         assert client.default_model == "gpt-4o-mini"
