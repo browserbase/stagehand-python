@@ -27,7 +27,7 @@
       <img alt="MIT License" src="https://stagehand.dev/api/assets/license?mode=light" />
     </picture>
   </a>
-  <a href="https://join.slack.com/t/stagehand-dev/shared_invite/zt-2tdncfgkk-fF8y5U0uJzR2y2_M9c9OJA">
+  <a href="https://stagehand.dev/slack">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://stagehand.dev/api/assets/slack?mode=dark" />
       <img alt="Slack Community" src="https://stagehand.dev/api/assets/slack?mode=light" />
@@ -58,6 +58,91 @@ await stagehand.page.observe("find the search bar")
 - **agent** — Execute autonomous multi-step tasks with provider-specific agents (OpenAI, Anthropic, etc.).
 ```python
 await stagehand.agent.execute("book a reservation for 2 people for a trip to the Maldives")
+```
+
+## Quickstart
+
+```python
+import asyncio
+import os
+from dotenv import load_dotenv
+from pydantic import BaseModel, Field, HttpUrl
+
+from stagehand import StagehandConfig, Stagehand
+from stagehand.types import ExtractOptions
+
+# Load environment variables
+load_dotenv()
+
+# Define Pydantic models for structured data extraction
+class Company(BaseModel):
+    name: str = Field(..., description="The name of the company")
+    url: HttpUrl = Field(..., description="The URL of the company website or relevant page")
+    
+class Companies(BaseModel):
+    companies: list[Company] = Field(..., description="List of companies extracted from the page, maximum of 5 companies")
+
+async def main():
+    # Create configuration
+    config = StagehandConfig(
+        api_key=os.getenv("BROWSERBASE_API_KEY"),
+        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        model_name="gpt-4o",
+        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+        verbose=1,
+    )
+    
+    # Initialize async client
+    stagehand = Stagehand(
+        env=os.getenv("STAGEHAND_ENV"),
+        config=config,
+        api_url=os.getenv("STAGEHAND_SERVER_URL"),
+    )
+    
+    try:
+        # Initialize the client
+        await stagehand.init()
+        print("✓ Successfully initialized Stagehand async client")
+        
+        # Navigate to AIgrant
+        await stagehand.page.goto("https://www.aigrant.com")
+        print("✓ Navigated to AIgrant")
+        
+        # Click the "Get Started" button using AI
+        await stagehand.page.act("click the button with text 'Get Started'")
+        print("✓ Clicked 'Get Started' button")
+        
+        # Observe elements on the page
+        observed = await stagehand.page.observe("the button with text 'Get Started'")
+        print("✓ Observed 'Get Started' button")
+        
+        # Extract companies using structured schema
+        extract_options = ExtractOptions(
+            instruction="Extract the names and URLs of up to 5 companies mentioned on this page",
+            schema_definition=Companies.model_json_schema()
+        )
+        
+        companies_data = await stagehand.page.extract(extract_options)
+        print("✓ Extracted companies data")
+        
+        # Display results
+        print("\nExtracted Companies:")
+        if hasattr(companies_data, "companies"):
+            for idx, company in enumerate(companies_data.companies, 1):
+                print(f"{idx}. {company.name}: {company.url}")
+        else:
+            print("No companies were found in the extraction result")
+            
+    except Exception as e:
+        print(f"Error during testing: {str(e)}")
+        raise
+    finally:
+        # Close the client
+        await stagehand.close()
+        print("Stagehand async client closed")
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ## Installation
@@ -129,60 +214,7 @@ export STAGEHAND_API_URL="url-of-stagehand-server" # if running remotely
 export STAGEHAND_ENV="BROWSERBASE" # or "LOCAL" to run Stagehand locally
 ```
 
-You can also make a copy of `.env.example` and add these to your `.env` file. 
-
-## Quickstart
-
-```python
-import os
-import asyncio
-from stagehand import Stagehand, StagehandConfig
-from dotenv import load_dotenv
-
-load_dotenv()
-
-async def main():
-    # Configure Stagehand
-    config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")}
-    )
-
-    # Initialize Stagehand
-    stagehand = Stagehand(config=config, api_url=os.getenv("STAGEHAND_API_URL"))
-    await stagehand.init()
-    print(f"Session created: {stagehand.session_id}")
-    
-    # Get page reference
-    page = stagehand.page
-
-    # Navigate to a page
-    await page.goto("https://google.com/")
-
-    # Use Stagehand AI primitives
-    await page.act("search for openai")
-
-    # Combine with Playwright
-    await page.keyboard.press("Enter")
-
-    # Observe elements on the page
-    observed = await page.observe("find the news button")
-    if observed:
-        await page.act(observed[0])  # Act on the first observed element
-
-    # Extract data from the page
-    data = await page.extract("extract the first result from the search")
-    print(f"Extracted data: {data}")
-
-    # Close the session
-    await stagehand.close()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
+You can also make a copy of `.env.example` and add these to your `.env` file.
 
 ## Agent Example
 
