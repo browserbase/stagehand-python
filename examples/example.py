@@ -4,11 +4,11 @@ import os
 from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
-import json
 from dotenv import load_dotenv
 
-from stagehand import Stagehand, StagehandConfig
-from stagehand.utils import configure_logging
+from stagehand import Stagehand, StagehandConfig, configure_logging
+
+from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 
 # Configure logging with cleaner format
 configure_logging(
@@ -34,6 +34,11 @@ console = Console(theme=custom_theme)
 
 load_dotenv()
 
+browserbase_session_create_params = BrowserbaseSessionCreateParams(
+    project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+    proxies=True,
+)
+
 console.print(
     Panel.fit(
         "[yellow]Logging Levels:[/]\n"
@@ -52,6 +57,7 @@ async def main():
         env="BROWSERBASE",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        browserbase_session_create_params=browserbase_session_create_params,
         headless=False,
         dom_settle_timeout_ms=3000,
         model_name="google/gemini-2.0-flash",
@@ -98,7 +104,7 @@ async def main():
     await asyncio.sleep(2)
 
     console.print("\n▶️ [highlight] Observing page[/] for news button")
-    observed = await page.observe("find all articles")
+    observed = await page.observe("find the news button")
     
     if len(observed) > 0:
         element = observed[0]
