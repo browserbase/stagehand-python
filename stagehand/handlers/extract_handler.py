@@ -1,6 +1,6 @@
 """Extract handler for performing data extraction from page elements using LLMs."""
 
-from typing import Optional, TypeVar, Union
+from typing import Optional, TypeVar
 
 from pydantic import BaseModel
 
@@ -34,41 +34,19 @@ class ExtractHandler:
 
     async def extract(
         self,
-        options_or_instruction: Union[ExtractOptions, str, dict, None] = None,
+        options: Optional[ExtractOptions] = None,
         schema: Optional[type[BaseModel]] = None,
-        **kwargs,
     ) -> ExtractResult:
         """
         Execute an extraction operation locally.
 
         Args:
-            options_or_instruction: ExtractOptions, instruction string, dict, or None
+            options: ExtractOptions containing the instruction and other parameters
             schema: Optional Pydantic model for structured output
-            **kwargs: Additional options to be merged
 
         Returns:
             ExtractResult instance
         """
-        options: Optional[ExtractOptions] = None
-        options_dict = {}
-
-        if isinstance(options_or_instruction, ExtractOptions):
-            options_dict = options_or_instruction.model_dump()
-        elif isinstance(options_or_instruction, dict):
-            options_dict = options_or_instruction.copy()
-        elif isinstance(options_or_instruction, str):
-            options_dict["instruction"] = options_or_instruction
-
-        options_dict.update(kwargs)
-
-        # Validate options if we have any
-        if options_dict:
-            try:
-                options = ExtractOptions(**options_dict)
-            except Exception as e:
-                self.logger.error(f"Invalid extract options: {e}")
-                raise
-
         if not options:
             # If no options provided, extract the entire page text
             self.logger.info("Extracting entire page text")

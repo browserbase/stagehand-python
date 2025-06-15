@@ -104,18 +104,21 @@ class StagehandPage:
         return result
 
     async def act(
-        self, action_or_result: Union[str, ObserveResult], **kwargs
+        self, action_or_options: Union[str, ObserveResult, ActOptions, dict, None] = None, **kwargs
     ) -> ActResult:
         """
         Execute an AI action or a pre-observed action via the Stagehand server.
 
         Args:
-            action_or_result (Union[str, ObserveResult]):
+            action_or_options (Union[str, ObserveResult, ActOptions, dict, None]):
                 - A string with the action command to be executed by the AI.
                 - An ObserveResult containing selector and method for direct execution.
+                - An ActOptions object with full configuration.
+                - A dict with options.
+                - None to use only **kwargs.
             **kwargs: Additional options corresponding to fields in ActOptions
                       (e.g., model_name, timeout_ms). These are ignored if
-                      action_or_result is an ObserveResult.
+                      action_or_options is an ObserveResult.
 
         Returns:
             ActResult: The result from the Stagehand server's action execution.
@@ -123,18 +126,34 @@ class StagehandPage:
         await self.ensure_injection()
 
         payload: dict
+        
         # Check if it's an ObserveResult for direct execution
-        if isinstance(action_or_result, ObserveResult):
+        if isinstance(action_or_options, ObserveResult):
             if kwargs:
                 self._stagehand.logger.debug(
                     "Additional keyword arguments provided to 'act' when using an ObserveResult are ignored."
                 )
-            payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
-        # If it's a string, construct ActOptions using the string and kwargs
-        elif isinstance(action_or_result, str):
-            options = ActOptions(action=action_or_result, **kwargs)
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            payload = action_or_options.model_dump(exclude_none=True, by_alias=True)
         else:
+            # Handle other cases: ActOptions, dict, string, or None
+            options_dict = {}
+            
+            if isinstance(action_or_options, ActOptions):
+                options_dict = action_or_options.model_dump()
+            elif isinstance(action_or_options, dict):
+                options_dict = action_or_options.copy()
+            elif isinstance(action_or_options, str):
+                options_dict["action"] = action_or_options
+            # If None, options_dict remains empty
+            
+            options_dict.update(kwargs)
+            
+            try:
+                options = ActOptions(**options_dict)
+            except Exception as e:
+                self._stagehand.logger.error(f"Invalid act options: {e}")
+                raise
+                
             payload = options.model_dump(exclude_none=True, by_alias=True)
 
         # TODO: Temporary until we move api based logic to client
@@ -158,12 +177,16 @@ class StagehandPage:
             return ActResult(**result)
         return result
 
-    async def observe(self, options: Union[str, ObserveOptions]) -> list[ObserveResult]:
+    async def observe(self, options_or_instruction: Union[str, ObserveOptions, dict, None] = None, **kwargs) -> list[ObserveResult]:
         """
         Make an AI observation via the Stagehand server.
 
         Args:
-            instruction (str): The observation instruction for the AI.
+            options_or_instruction (Union[str, ObserveOptions, dict, None]):
+                - A string with the observation instruction for the AI.
+                - An ObserveOptions object with full configuration.
+                - A dict with options.
+                - None to use only **kwargs.
             **kwargs: Additional options corresponding to fields in ObserveOptions
                       (e.g., model_name, only_visible, return_action).
 
@@ -172,12 +195,24 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
-        # Convert string to ObserveOptions if needed
-        if isinstance(options, str):
-            options = ObserveOptions(instruction=options)
-        # Handle None by creating an empty options object
-        elif options is None:
-            options = ObserveOptions()
+        # Handle different input types and merge with kwargs
+        options_dict = {}
+        
+        if isinstance(options_or_instruction, ObserveOptions):
+            options_dict = options_or_instruction.model_dump()
+        elif isinstance(options_or_instruction, dict):
+            options_dict = options_or_instruction.copy()
+        elif isinstance(options_or_instruction, str):
+            options_dict["instruction"] = options_or_instruction
+        # If None, options_dict remains empty
+        
+        options_dict.update(kwargs)
+        
+        try:
+            options = ObserveOptions(**options_dict)
+        except Exception as e:
+            self._stagehand.logger.error(f"Invalid observe options: {e}")
+            raise
 
         # Otherwise use API implementation
         payload = options.model_dump(exclude_none=True, by_alias=True)
@@ -216,16 +251,18 @@ class StagehandPage:
         return []
 
     async def extract(
-        self, options: Union[str, ExtractOptions, None] = None
+        self, options_or_instruction: Union[str, ExtractOptions, dict, None] = None, **kwargs
     ) -> ExtractResult:
         # TODO update args
         """
         Extract data using AI via the Stagehand server.
 
         Args:
-            instruction (Optional[str]): Instruction specifying what data to extract.
-                                         If None, attempts to extract the entire page content
-                                         based on other kwargs (e.g., schema_definition).
+            options_or_instruction (Union[str, ExtractOptions, dict, None]):
+                - A string with instruction specifying what data to extract.
+                - An ExtractOptions object with full configuration.
+                - A dict with options.
+                - None to extract the entire page content based on **kwargs (e.g., schema_definition).
             **kwargs: Additional options corresponding to fields in ExtractOptions
                       (e.g., schema_definition, model_name, use_text_extract).
 
@@ -234,20 +271,27 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
+        # Handle different input types and merge with kwargs
+        options_dict = {}
+        
+        if isinstance(options_or_instruction, ExtractOptions):
+            options_dict = options_or_instruction.model_dump()
+        elif isinstance(options_or_instruction, dict):
+            options_dict = options_or_instruction.copy()
+        elif isinstance(options_or_instruction, str):
+            options_dict["instruction"] = options_or_instruction
+        # If None, options_dict remains empty
+        
+        options_dict.update(kwargs)
+        
+        try:
+            options_obj = ExtractOptions(**options_dict)
+        except Exception as e:
+            self._stagehand.logger.error(f"Invalid extract options: {e}")
+            raise
+
         # Otherwise use API implementation
-        # Allow for no options to extract the entire page
-        if options is None:
-            options_obj = ExtractOptions()
-            payload = {}
-        # Convert string to ExtractOptions if needed
-        elif isinstance(options, str):
-            options_obj = ExtractOptions(instruction=options)
-            payload = options_obj.model_dump(exclude_none=True, by_alias=True)
-        # Otherwise, it should be an ExtractOptions object
-        else:
-            options_obj = options
-            # Allow extraction without instruction if other options (like schema) are provided
-            payload = options_obj.model_dump(exclude_none=True, by_alias=True)
+        payload = options_obj.model_dump(exclude_none=True, by_alias=True)
 
         # Determine the schema to pass to the handler
         schema_to_validate_with = None
@@ -276,8 +320,8 @@ class StagehandPage:
                     self, self._stagehand, self._stagehand.system_prompt
                 )
 
-            # Allow for no options to extract the entire page
-            if options is None:
+            # Check if we have no options at all (empty options_dict after processing)
+            if not any(options_dict.values()):
                 # Call local extract implementation with no options
                 result = await self._extract_handler.extract(
                     None,

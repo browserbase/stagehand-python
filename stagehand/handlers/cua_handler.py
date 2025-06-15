@@ -1,6 +1,6 @@
 import asyncio
 import base64
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from ..types.agent import (
     ActionExecutionResult,
@@ -33,49 +33,8 @@ class CUAHandler:  # Computer Use Agent Handler
         screenshot_bytes = await self.page.screenshot(full_page=False, type="png")
         return base64.b64encode(screenshot_bytes).decode()
 
-    async def perform_action(
-        self, 
-        action_or_dict: Union[AgentAction, dict, None] = None,
-        **kwargs
-    ) -> ActionExecutionResult:
-        """
-        Execute a single action on the page.
-        
-        Args:
-            action_or_dict: AgentAction, dict, or None
-            **kwargs: Additional action parameters to be merged
-            
-        Returns:
-            ActionExecutionResult dict
-        """
-        action: Optional[AgentAction] = None
-        action_dict = {}
-
-        if isinstance(action_or_dict, AgentAction):
-            action_dict = action_or_dict.model_dump()
-        elif isinstance(action_or_dict, dict):
-            action_dict = action_or_dict.copy()
-
-        action_dict.update(kwargs)
-
-        # Validate action if we have any
-        if action_dict:
-            try:
-                action = AgentAction(**action_dict)
-            except Exception as e:
-                self.logger.error(f"Invalid agent action: {e}")
-                raise
-        
-        if not action:
-            self.logger.error(
-                "No action provided for perform_action",
-                category=StagehandFunctionName.AGENT,
-            )
-            return {
-                "success": False,
-                "error": "No action provided",
-            }
-
+    async def perform_action(self, action: AgentAction) -> ActionExecutionResult:
+        """Execute a single action on the page."""
         self.logger.info(
             f"Performing action: {action.action.root if action.action else ''}",
             category=StagehandFunctionName.AGENT,
