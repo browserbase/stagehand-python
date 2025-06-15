@@ -35,11 +35,9 @@
   </a>
 </p>
 
-
-  > This is a Python SDK for Stagehand. We also have a TypeScript SDK available <a href="https://github.com/browserbase/stagehand" >here</a>.
-
-
 > Stagehand Python SDK is currently available as an early release, and we're actively seeking feedback from the community. Please join our [Slack community](https://stagehand.dev/slack) to stay updated on the latest developments and provide feedback.  
+
+> We also have a TypeScript SDK available <a href="https://github.com/browserbase/stagehand" >here</a>.
 
 ## Why Stagehand?
 
@@ -55,7 +53,7 @@ Most existing browser automation tools either require you to write low-level cod
 
 -----
 
-### TL;DR Automate the web *reliably* with natural language:
+### TL;DR: Automate the web *reliably* with natural language:
 
 - **act** — Instruct the AI to perform actions (e.g. click a button or scroll).
 ```python
@@ -89,19 +87,19 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field, HttpUrl
 
 from stagehand import StagehandConfig, Stagehand
-from stagehand.types import ExtractOptions
+from stagehand.schemas import ExtractOptions
 
 # Load environment variables
 load_dotenv()
 
 # Define Pydantic models for structured data extraction
 class Company(BaseModel):
-    name: str = Field(..., description="The name of the company")
-    url: HttpUrl = Field(..., description="The URL of the company website or relevant page")
-    
-class Companies(BaseModel):
-    companies: list[Company] = Field(..., description="List of companies extracted from the page, maximum of 5 companies")
+    name: str = Field(..., description="Company name")
+    url: HttpUrl = Field(..., description="Company URL")
 
+class Companies(BaseModel):
+    companies: list[Company] = Field(..., description="List of companies")
+    
 async def main():
     # Create configuration
     config = StagehandConfig(
@@ -109,7 +107,6 @@ async def main():
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="gpt-4o",
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
-        verbose=1,
     )
     
     # Initialize async client
@@ -122,44 +119,31 @@ async def main():
     try:
         # Initialize the client
         await stagehand.init()
-        print("✓ Successfully initialized Stagehand async client")
-        
-        # Navigate to AIgrant
-        await stagehand.page.goto("https://www.aigrant.com")
-        print("✓ Navigated to AIgrant")
-        
-        # Click the "Get Started" button using AI
-        await stagehand.page.act("click the button with text 'Get Started'")
-        print("✓ Clicked 'Get Started' button")
-        
-        # Observe elements on the page
-        observed = await stagehand.page.observe("the button with text 'Get Started'")
-        print("✓ Observed 'Get Started' button")
+        page = stagehand.page
+
+        await page.goto("https://www.aigrant.com")
         
         # Extract companies using structured schema
         extract_options = ExtractOptions(
-            instruction="Extract the names and URLs of up to 5 companies mentioned on this page",
-            schema_definition=Companies.model_json_schema()
+            instruction="Extract names and URLs of up to 5 companies in batch 3",
+            schema_definition=Companies
         )
         
-        companies_data = await stagehand.page.extract(extract_options)
-        print("✓ Extracted companies data")
+        companies_data = await page.extract(extract_options)
         
         # Display results
-        print("\nExtracted Companies:")
-        if hasattr(companies_data, "companies"):
-            for idx, company in enumerate(companies_data.companies, 1):
-                print(f"{idx}. {company.name}: {company.url}")
-        else:
-            print("No companies were found in the extraction result")
+        print("Extracted Companies:")
+        for idx, company in enumerate(companies_data.companies, 1):
+            print(f"{idx}. {company.name}: {company.url}")
+
+        await page.act("click the link to the company Browserbase")
             
     except Exception as e:
-        print(f"Error during testing: {str(e)}")
+        print(f"Error: {str(e)}")
         raise
     finally:
         # Close the client
         await stagehand.close()
-        print("Stagehand async client closed")
 
 if __name__ == "__main__":
     asyncio.run(main())
