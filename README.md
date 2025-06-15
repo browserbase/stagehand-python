@@ -35,9 +35,9 @@
   </a>
 </p>
 
-<div class="note" style="background-color: #808096; border-left: 5px solid #ffeb3b; padding: 15px; margin: 10px 0; color: white;">
-  This is a Python SDK for Stagehand. We also have a TypeScript SDK available <a href="https://github.com/browserbase/stagehand" style="color: blue;">here</a>.
-</div>
+
+  > This is a Python SDK for Stagehand. We also have a TypeScript SDK available <a href="https://github.com/browserbase/stagehand" >here</a>.
+
 
 > Stagehand Python SDK is currently available as an early release, and we're actively seeking feedback from the community. Please join our [Slack community](https://stagehand.dev/slack) to stay updated on the latest developments and provide feedback.  
 
