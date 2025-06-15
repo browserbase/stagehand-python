@@ -416,27 +416,27 @@ def transform_type(annotation, path):
 def is_url_type(annotation):
     """
     Checks if a type annotation is a URL type (directly or nested in a container).
-    
+
     This function is part of the URL transformation system that handles Pydantic models
     with URL fields during extraction operations. When extracting data from web pages,
     URLs are represented as numeric IDs in the accessibility tree, so we need to:
-    
+
     1. Identify which fields in Pydantic models are URL types
     2. Transform those fields to numeric types during extraction
     3. Convert the numeric IDs back to actual URLs in the final result
-    
+
     Pydantic V2 Compatibility Notes:
     --------------------------------
     Modern Pydantic versions (V2+) can create complex type annotations that include
-    subscripted generics (e.g., typing.Annotated[...] with constraints). These 
+    subscripted generics (e.g., typing.Annotated[...] with constraints). These
     subscripted generics cannot be used directly with Python's issubclass() function,
-    which raises TypeError: "Subscripted generics cannot be used with class and 
+    which raises TypeError: "Subscripted generics cannot be used with class and
     instance checks".
-    
+
     To handle this, we use a try-catch approach when checking for URL types, allowing
     the function to gracefully handle both simple type annotations and complex
     subscripted generics that Pydantic V2 may generate.
-    
+
     URL Type Detection Strategy:
     ---------------------------
     1. Direct URL types: AnyUrl, HttpUrl from Pydantic
@@ -450,7 +450,7 @@ def is_url_type(annotation):
     Returns:
         bool: True if the annotation represents a URL type (directly or nested),
               False otherwise.
-              
+
     Examples:
         >>> is_url_type(AnyUrl)
         True
