@@ -417,51 +417,11 @@ def is_url_type(annotation):
     """
     Checks if a type annotation is a URL type (directly or nested in a container).
 
-    This function is part of the URL transformation system that handles Pydantic models
-    with URL fields during extraction operations. When extracting data from web pages,
-    URLs are represented as numeric IDs in the accessibility tree, so we need to:
-
-    1. Identify which fields in Pydantic models are URL types
-    2. Transform those fields to numeric types during extraction
-    3. Convert the numeric IDs back to actual URLs in the final result
-
-    Pydantic V2 Compatibility Notes:
-    --------------------------------
-    Modern Pydantic versions (V2+) can create complex type annotations that include
-    subscripted generics (e.g., typing.Annotated[...] with constraints). These
-    subscripted generics cannot be used directly with Python's issubclass() function,
-    which raises TypeError: "Subscripted generics cannot be used with class and
-    instance checks".
-
-    To handle this, we use a try-catch approach when checking for URL types, allowing
-    the function to gracefully handle both simple type annotations and complex
-    subscripted generics that Pydantic V2 may generate.
-
-    URL Type Detection Strategy:
-    ---------------------------
-    1. Direct URL types: AnyUrl, HttpUrl from Pydantic
-    2. Container types: list[URL], Optional[URL], Union[URL, None]
-    3. Nested combinations: list[Optional[AnyUrl]], etc.
-
     Args:
-        annotation: Type annotation to check. Can be a simple type, generic type,
-                   or complex Pydantic V2 subscripted generic.
+        annotation: Type annotation to check
 
     Returns:
-        bool: True if the annotation represents a URL type (directly or nested),
-              False otherwise.
-
-    Examples:
-        >>> is_url_type(AnyUrl)
-        True
-        >>> is_url_type(list[HttpUrl])
-        True
-        >>> is_url_type(Optional[AnyUrl])
-        True
-        >>> is_url_type(str)
-        False
-        >>> is_url_type(typing.Annotated[pydantic_core.Url, UrlConstraints(...)])
-        False  # Safely handles subscripted generics without crashing
+        bool: True if it's a URL type, False otherwise
     """
     if annotation is None:
         return False
@@ -477,16 +437,16 @@ def is_url_type(annotation):
         # We gracefully skip these rather than crashing, as they're not simple URL types
         pass
 
-    # Check for URL types nested in generic containers
+    # Check for URL in generic containers
     origin = get_origin(annotation)
 
-    # Handle list[URL], List[URL], etc.
+    # Handle list[URL]
     if origin in (list, list):
         args = get_args(annotation)
         if args:
             return is_url_type(args[0])
 
-    # Handle Optional[URL] / Union[URL, None], etc.
+    # Handle Optional[URL] / Union[URL, None]
     elif origin is Union:
         args = get_args(annotation)
         return any(is_url_type(arg) for arg in args)
