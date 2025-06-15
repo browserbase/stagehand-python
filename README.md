@@ -136,7 +136,10 @@ async def main():
         for idx, company in enumerate(companies_data.companies, 1):
             print(f"{idx}. {company.name}: {company.url}")
 
-        await page.act("click the link to the company Browserbase")
+        observe = await page.observe("the link to the company Browserbase")
+        print("Observe result:", observe)
+        act = await page.act("click the link to the company Browserbase")
+        print("Act result:", act)
             
     except Exception as e:
         print(f"Error: {str(e)}")
