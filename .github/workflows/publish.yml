@@ -101,8 +101,6 @@ jobs:
           
       - name: Commit version bump
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
           git add pyproject.toml stagehand/__init__.py
           git commit -m "Bump version to ${{ steps.version.outputs.new_version }}"
           git tag "v${{ steps.version.outputs.new_version }}"
