@@ -42,8 +42,10 @@ class StagehandConfig(BaseModel):
         None, alias="projectId", description="Browserbase project ID"
     )
     api_url: Optional[str] = Field(
-        None, alias="apiUrl", description="Stagehand API URL"
-    )  # might add a default value here
+        "https://api.stagehand.browserbase.com/v1",
+        alias="apiUrl",
+        description="Stagehand API URL",
+    )
     model_api_key: Optional[str] = Field(
         None, alias="modelApiKey", description="Model API key"
     )
