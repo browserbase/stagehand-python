@@ -98,12 +98,8 @@ class StagehandConfig(BaseModel):
         alias="localBrowserLaunchOptions",
         description="Local browser launch options",
     )
-    use_api: bool = Field(
-        True, alias="useAPI", description="Whether to use API mode"
-    )
-    experimental: bool = Field(
-        False, description="Enable experimental features"
-    )
+    use_api: bool = Field(True, alias="useAPI", description="Whether to use API mode")
+    experimental: bool = Field(False, description="Enable experimental features")
 
     model_config = ConfigDict(populate_by_name=True)
 
