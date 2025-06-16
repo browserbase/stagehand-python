@@ -98,12 +98,12 @@ class StagehandConfig(BaseModel):
     )
     use_api: Optional[bool] = Field(
         True,
-        alias="useAPI",
+        alias=None,
         description="Whether to use the Stagehand API",
     )
     experimental: Optional[bool] = Field(
         False,
-        alias="experimental",
+        alias=None,
         description="Whether to use experimental features",
     )
 

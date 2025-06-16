@@ -64,8 +64,8 @@ async def connect_browserbase_browser(
             session = bb.sessions.create(**browserbase_session_create_params)
             if not session.id:
                 raise Exception("Could not create Browserbase session")
+            stagehand_instance.session_id = session.id
         connect_url = session.connectUrl
-        stagehand_instance.session_id = session.id
     except Exception as e:
         logger.error(f"Error retrieving or validating Browserbase session: {str(e)}")
         raise
