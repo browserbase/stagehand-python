@@ -33,7 +33,7 @@ class TestStagehandAPIIntegration:
     @pytest_asyncio.fixture
     async def stagehand_api(self, browserbase_config):
         """Create a Stagehand instance for BROWSERBASE API testing"""
-        if not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_URL_API")):
+        if not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_API_URL")):
             pytest.skip("Browserbase credentials and API URL not available")
         
         stagehand = Stagehand(config=browserbase_config)
@@ -45,7 +45,7 @@ class TestStagehandAPIIntegration:
     @pytest.mark.integration
     @pytest.mark.api
     @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_URL_API")),
+        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_API_URL")),
         reason="Browserbase credentials and API URL are not available for API integration tests",
     )
     async def test_stagehand_api_initialization(self, stagehand_api):
@@ -56,7 +56,7 @@ class TestStagehandAPIIntegration:
     @pytest.mark.integration
     @pytest.mark.api
     @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_URL_API")),
+        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_API_URL")),
         reason="Browserbase credentials and API URL are not available for API integration tests",
     )
     async def test_api_observe_and_act_workflow(self, stagehand_api):
@@ -97,7 +97,7 @@ class TestStagehandAPIIntegration:
     @pytest.mark.integration
     @pytest.mark.api
     @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_URL_API")),
+        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_API_URL")),
         reason="Browserbase credentials and API URL are not available for API integration tests",
     )
     async def test_api_basic_navigation_and_observe(self, stagehand_api):
@@ -123,7 +123,7 @@ class TestStagehandAPIIntegration:
     @pytest.mark.integration
     @pytest.mark.api
     @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_URL_API")),
+        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") and os.getenv("STAGEHAND_API_URL")),
         reason="Browserbase credentials and API URL are not available for API integration tests",
     )
     async def test_api_extraction_functionality(self, stagehand_api):
