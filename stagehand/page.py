@@ -80,7 +80,7 @@ class StagehandPage:
         Returns:
             The result from the Stagehand server's navigation execution.
         """
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             await self._page.goto(
                 url, referer=referer, timeout=timeout, wait_until=wait_until
             )
@@ -142,7 +142,7 @@ class StagehandPage:
             )
 
         # TODO: Temporary until we move api based logic to client
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             # TODO: revisit passing user_provided_instructions
             if not hasattr(self, "_observe_handler"):
                 # TODO: revisit handlers initialization on page creation
@@ -207,7 +207,7 @@ class StagehandPage:
         payload = options_obj.model_dump(exclude_none=True, by_alias=True)
 
         # If in LOCAL mode, use local implementation
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             self._stagehand.logger.debug(
                 "observe", category="observe", auxiliary=payload
             )
@@ -324,8 +324,7 @@ class StagehandPage:
         else:
             schema_to_validate_with = DefaultExtractSchema
 
-        # If in LOCAL mode, use local implementation
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             # If we don't have an extract handler yet, create one
             if not hasattr(self, "_extract_handler"):
                 self._extract_handler = ExtractHandler(
@@ -391,18 +390,16 @@ class StagehandPage:
         Returns:
             str: Base64-encoded screenshot data.
         """
-        if self._stagehand.env == "LOCAL":
-            self._stagehand.logger.info(
-                "Local execution of screenshot is not implemented"
-            )
-            return None
         payload = options or {}
 
-        lock = self._stagehand._get_lock_for_session()
-        async with lock:
-            result = await self._stagehand._execute("screenshot", payload)
+        if self._stagehand.use_api:
+            lock = self._stagehand._get_lock_for_session()
+            async with lock:
+                result = await self._stagehand._execute("screenshot", payload)
 
-        return result
+            return result
+        else:
+            return await self._page.screenshot(options)
 
     # Method to get or initialize the persistent CDP client
     async def get_cdp_client(self) -> CDPSession:
