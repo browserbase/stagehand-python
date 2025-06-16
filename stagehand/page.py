@@ -134,8 +134,15 @@ class StagehandPage:
         elif isinstance(action_or_result, str):
             options = ActOptions(action=action_or_result, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
-        else:
+        elif isinstance(action_or_result, dict):
+            options = ActOptions(**action_or_result, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
+        elif isinstance(action_or_result, ActOptions):
+            payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
+        else:
+            raise TypeError(
+                "Invalid arguments for 'act'. Expected str, ObserveResult, dict, or ActOptions."
+            )
 
         # TODO: Temporary until we move api based logic to client
         if self._stagehand.env == "LOCAL":
@@ -158,12 +165,20 @@ class StagehandPage:
             return ActResult(**result)
         return result
 
-    async def observe(self, options: Union[str, ObserveOptions]) -> list[ObserveResult]:
+    async def observe(
+        self,
+        options_or_instruction: Union[str, ObserveOptions, dict, None] = None,
+        **kwargs,
+    ) -> list[ObserveResult]:
         """
         Make an AI observation via the Stagehand server.
 
         Args:
-            instruction (str): The observation instruction for the AI.
+            options_or_instruction (Union[str, ObserveOptions, dict, None]):
+                - A string with the observation instruction for the AI.
+                - An ObserveOptions object.
+                - A dictionary with options for the observation.
+                - None to use default options.
             **kwargs: Additional options corresponding to fields in ObserveOptions
                       (e.g., model_name, only_visible, return_action).
 
@@ -172,15 +187,46 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
-        # Convert string to ObserveOptions if needed
-        if isinstance(options, str):
-            options = ObserveOptions(instruction=options)
-        # Handle None by creating an empty options object
-        elif options is None:
-            options = ObserveOptions()
+        # ------------------------------------------------------------------
+        # Normalise user-supplied args (string / dict / kwargs) into
+        # a validated ObserveOptions instance. Callers can simply do:
+        # await page.observe("Click the blue button", model_name="gpt-4o")
+        # ------------------------------------------------------------------
+        options_dict: dict = {}
 
-        # Otherwise use API implementation
-        payload = options.model_dump(exclude_none=True, by_alias=True)
+        if isinstance(options_or_instruction, ObserveOptions):
+            # Already a pydantic object – take it as is.
+            options_obj = options_or_instruction
+        else:
+            if isinstance(options_or_instruction, dict):
+                options_dict = options_or_instruction.copy()
+            elif isinstance(options_or_instruction, str):
+                options_dict["instruction"] = options_or_instruction
+
+            # Merge any explicit keyword arguments (highest priority)
+            options_dict.update(kwargs)
+
+            if not options_dict:
+                # Nothing useful provided – bail out early as we cannot
+                # construct a valid ObserveOptions (instruction is mandatory)
+                self._stagehand.logger.error(
+                    "No instruction provided for observe.", category="observe"
+                )
+                return []
+
+            try:
+                options_obj = ObserveOptions(**options_dict)
+            except Exception as e:
+                self._stagehand.logger.error(
+                    f"Invalid observe options: {e}", category="observe"
+                )
+                raise
+
+        # At this point `options_obj` is guaranteed to have an instruction.
+
+        # Serialized payload for server / local handlers
+        payload = options_obj.model_dump(exclude_none=True, by_alias=True)
+
         # If in LOCAL mode, use local implementation
         if self._stagehand.env == "LOCAL":
             self._stagehand.logger.debug(
@@ -193,7 +239,7 @@ class StagehandPage:
 
             # Call local observe implementation
             result = await self._observe_handler.observe(
-                options,
+                options_obj,
                 from_act=False,
             )
 
@@ -216,43 +262,96 @@ class StagehandPage:
         return []
 
     async def extract(
-        self, options: Union[str, ExtractOptions, None] = None
+        self,
+        options_or_instruction: Union[str, ExtractOptions, dict, None] = None,
+        *,
+        schema_definition: Union[dict, type[BaseModel], None] = None,
+        **kwargs,
     ) -> ExtractResult:
-        # TODO update args
         """
         Extract data using AI via the Stagehand server.
 
         Args:
-            instruction (Optional[str]): Instruction specifying what data to extract.
-                                         If None, attempts to extract the entire page content
-                                         based on other kwargs (e.g., schema_definition).
+            options_or_instruction (Union[str, ExtractOptions, dict, None]):
+                - A string with the instruction specifying what data to extract.
+                - An ExtractOptions object.
+                - A dictionary with options for the extraction.
+                - None to extract the entire page content.
+            schema_definition (Union[dict, type[BaseModel], None], optional):
+                A JSON schema dictionary or Pydantic model class that defines the structure
+                of the expected extracted data. If provided, this takes precedence over any
+                schema_definition in options_or_instruction or **kwargs.
             **kwargs: Additional options corresponding to fields in ExtractOptions
-                      (e.g., schema_definition, model_name, use_text_extract).
+                      (e.g., model_name, use_text_extract, selector, dom_settle_timeout_ms).
+                      Note: schema_definition in kwargs will be ignored if the explicit
+                      schema_definition parameter is provided.
 
         Returns:
             ExtractResult: Depending on the type of the schema provided, the result will be a Pydantic model or JSON representation of the extracted data.
         """
         await self.ensure_injection()
 
-        # Otherwise use API implementation
-        # Allow for no options to extract the entire page
-        if options is None:
-            options_obj = ExtractOptions()
-            payload = {}
-        # Convert string to ExtractOptions if needed
-        elif isinstance(options, str):
-            options_obj = ExtractOptions(instruction=options)
-            payload = options_obj.model_dump(exclude_none=True, by_alias=True)
-        # Otherwise, it should be an ExtractOptions object
+        # ------------------------------------------------------------------
+        # Build validated ExtractOptions from flexible user inputs.
+        # The user can now do, for example:
+        # await page.extract("Pull all links", selector="a")
+        # or
+        # await page.extract(selector="a", instruction="Pull all links")
+        # ------------------------------------------------------------------
+
+        options_dict: dict = {}
+
+        if isinstance(options_or_instruction, ExtractOptions):
+            options_obj = options_or_instruction
         else:
-            options_obj = options
-            # Allow extraction without instruction if other options (like schema) are provided
+            if isinstance(options_or_instruction, dict):
+                options_dict = options_or_instruction.copy()
+            elif isinstance(options_or_instruction, str):
+                options_dict["instruction"] = options_or_instruction
+
+            # Merge keyword overrides (highest priority)
+            options_dict.update(kwargs)
+
+            # Ensure schema_definition is only set once (explicit arg wins)
+            if schema_definition is not None:
+                options_dict["schema_definition"] = schema_definition
+
+            # Special case: if the user provided *no* structured options at all,
+            # replicate the previous behaviour which extracted the full page
+            # (options_obj stays None and we treat it later)
+            if options_dict:
+                try:
+                    options_obj = ExtractOptions(**options_dict)
+                except Exception as e:
+                    self._stagehand.logger.error(
+                        f"Invalid extract options: {e}", category="extract"
+                    )
+                    raise
+            else:
+                # No options_dict provided and no ExtractOptions given: full page extract.
+                options_obj = None
+
+        # If we started with an existing ExtractOptions instance and the caller
+        # explicitly provided a schema_definition, override it now.
+        if (
+            schema_definition is not None
+            and isinstance(options_obj, ExtractOptions)
+            and options_obj.schema_definition != schema_definition
+        ):
+            options_obj = options_obj.model_copy(
+                update={"schema_definition": schema_definition}
+            )
+
+        # When options_obj is None we want full-page extraction; payload is empty.
+        if options_obj is None:
+            payload: dict = {}
+        else:
             payload = options_obj.model_dump(exclude_none=True, by_alias=True)
 
         # Determine the schema to pass to the handler
         schema_to_validate_with = None
         if (
-            hasattr(options_obj, "schema_definition")
+            options_obj is not None
             and options_obj.schema_definition != DEFAULT_EXTRACT_SCHEMA
         ):
             if isinstance(options_obj.schema_definition, type) and issubclass(
@@ -277,7 +376,7 @@ class StagehandPage:
                 )
 
             # Allow for no options to extract the entire page
-            if options is None:
+            if options_obj is None:
                 # Call local extract implementation with no options
                 result = await self._extract_handler.extract(
                     None,
