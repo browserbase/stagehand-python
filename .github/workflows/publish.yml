@@ -35,14 +35,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine wheel setuptools ruff black
+          pip install build twine wheel setuptools ruff black tomllib
           pip install -r requirements.txt
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
           
-      - name: Run Ruff linting
+      - name: Run linting and formatting
         run: |
-          # Run Ruff linter
-          ruff check .
+          # Run linter
+          black --check --diff stagehand
           
           # Run Ruff formatter check (without modifying files)
           ruff check stagehand
