@@ -41,7 +41,6 @@ async def _create_session(self):
                 },
             }
         ),
-        "proxies": True,
     }
 
     # Add the new parameters if they have values

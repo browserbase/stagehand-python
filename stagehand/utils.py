@@ -426,9 +426,16 @@ def is_url_type(annotation):
     if annotation is None:
         return False
 
-    # Direct URL type
-    if inspect.isclass(annotation) and issubclass(annotation, (AnyUrl, HttpUrl)):
-        return True
+    # Direct URL type - handle subscripted generics safely
+    # Pydantic V2 can generate complex type annotations that can't be used with issubclass()
+    try:
+        if inspect.isclass(annotation) and issubclass(annotation, (AnyUrl, HttpUrl)):
+            return True
+    except TypeError:
+        # Handle subscripted generics that can't be used with issubclass
+        # This commonly occurs with Pydantic V2's typing.Annotated[...] constructs
+        # We gracefully skip these rather than crashing, as they're not simple URL types
+        pass
 
     # Check for URL in generic containers
     origin = get_origin(annotation)

@@ -76,6 +76,7 @@ class TestPageNavigation:
     async def test_goto_browserbase_mode(self, mock_stagehand_page):
         """Test navigation in BROWSERBASE mode"""
         mock_stagehand_page._stagehand.env = "BROWSERBASE"
+        mock_stagehand_page._stagehand.use_api = True
         mock_stagehand_page._stagehand._execute = AsyncMock(return_value={"success": True})
         
         lock = AsyncMock()

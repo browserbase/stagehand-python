@@ -168,13 +168,23 @@ class Stagehand:
         self._playwright_page: Optional[PlaywrightPage] = None
         self.page: Optional[StagehandPage] = None
         self.context: Optional[StagehandContext] = None
+        self.use_api = self.config.use_api
+        self.experimental = self.config.experimental
+        if self.experimental:
+            self.use_api = False
+        if (
+            self.browserbase_session_create_params
+            and self.browserbase_session_create_params.get("region")
+            and self.browserbase_session_create_params.get("region") != "us-west-2"
+        ):
+            self.use_api = False
 
         self._initialized = False  # Flag to track if init() has run
         self._closed = False  # Flag to track if resources have been closed
 
         # Setup LLM client if LOCAL mode
         self.llm = None
-        if self.env == "LOCAL":
+        if not self.use_api:
             self.llm = LLMClient(
                 stagehand_logger=self.logger,
                 api_key=self.model_api_key,
@@ -385,15 +395,16 @@ class Stagehand:
 
         if self.env == "BROWSERBASE":
             # Create session if we don't have one
-            if not self.session_id:
-                await self._create_session()  # Uses self._client and api_url
-                self.logger.debug(
-                    f"Created new Browserbase session via Stagehand server: {self.session_id}"
-                )
-            else:
-                self.logger.debug(
-                    f"Using existing Browserbase session: {self.session_id}"
-                )
+            if self.use_api:
+                if not self.session_id:
+                    await self._create_session()  # Uses self._client and api_url
+                    self.logger.debug(
+                        f"Created new Browserbase session via Stagehand server: {self.session_id}"
+                    )
+                else:
+                    self.logger.debug(
+                        f"Using existing Browserbase session: {self.session_id}"
+                    )
 
             # Connect to remote browser
             try:
@@ -470,8 +481,8 @@ class Stagehand:
 
         self.logger.debug("Closing resources...")
 
-        if self.env == "BROWSERBASE":
-            # --- BROWSERBASE Cleanup ---
+        if self.use_api:
+            # --- BROWSERBASE Cleanup (API) ---
             # End the session on the server if we have a session ID
             if self.session_id and self._client:  # Check if client was initialized
                 try:

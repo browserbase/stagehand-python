@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from browserbase import Browserbase
+from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from playwright.async_api import (
     Browser,
     BrowserContext,
@@ -40,11 +41,30 @@ async def connect_browserbase_browser(
     # Connect to remote browser via Browserbase SDK and CDP
     bb = Browserbase(api_key=browserbase_api_key)
     try:
-        session = bb.sessions.retrieve(session_id)
-        if session.status != "RUNNING":
-            raise RuntimeError(
-                f"Browserbase session {session_id} is not running (status: {session.status})"
+        if session_id:
+            session = bb.sessions.retrieve(session_id)
+            if session.status != "RUNNING":
+                raise RuntimeError(
+                    f"Browserbase session {session_id} is not running (status: {session.status})"
+                )
+        else:
+            browserbase_session_create_params = (
+                BrowserbaseSessionCreateParams(
+                    project_id=stagehand_instance.browserbase_project_id,
+                    browser_settings={
+                        "viewport": {
+                            "width": 1024,
+                            "height": 768,
+                        },
+                    },
+                )
+                if not stagehand_instance.browserbase_session_create_params
+                else stagehand_instance.browserbase_session_create_params
             )
+            session = bb.sessions.create(**browserbase_session_create_params)
+            if not session.id:
+                raise Exception("Could not create Browserbase session")
+            stagehand_instance.session_id = session.id
         connect_url = session.connectUrl
     except Exception as e:
         logger.error(f"Error retrieving or validating Browserbase session: {str(e)}")

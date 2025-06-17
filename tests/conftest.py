@@ -30,13 +30,15 @@ def mock_stagehand_config():
     return StagehandConfig(
         env="LOCAL",
         model_name="gpt-4o-mini",
-        verbose=0,  # Quiet for tests
+        verbose=1,  # Quiet for tests
         api_key="test-api-key",
         project_id="test-project-id",
         dom_settle_timeout_ms=1000,
         self_heal=True,
         wait_for_captcha_solves=False,
-        system_prompt="Test system prompt"
+        system_prompt="Test system prompt",
+        use_api=False,
+        experimental=False,
     )
 
 
@@ -48,7 +50,9 @@ def mock_browserbase_config():
         model_name="gpt-4o",
         api_key="test-browserbase-api-key",
         project_id="test-browserbase-project-id",
-        verbose=0
+        verbose=0,
+        use_api=True,
+        experimental=False,
     )
 
 
@@ -78,6 +82,7 @@ def mock_stagehand_page(mock_playwright_page):
     
     # Create a mock stagehand client
     mock_client = MagicMock()
+    mock_client.use_api = False
     mock_client.env = "LOCAL"
     mock_client.logger = MagicMock()
     mock_client.logger.debug = MagicMock()
