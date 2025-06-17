@@ -34,9 +34,8 @@
   </a>
 </p>
 
-> Stagehand Python SDK is currently available as an early release, and we're actively seeking feedback from the community. Please join our [Slack community](https://stagehand.dev/slack) to stay updated on the latest developments and provide feedback.  
+> Stagehand Python is now available! We're actively seeking feedback from the community and looking for contributors. Join our [Slack community](https://stagehand.dev/slack) to stay updated on the latest updates
 
-> We also have a TypeScript SDK available <a href="https://github.com/browserbase/stagehand" >here</a>.
 
 ## Why Stagehand?
 
@@ -58,11 +57,11 @@ Most existing browser automation tools either require you to write low-level cod
 ```python
 await stagehand.page.act("click on the 'Quickstart' button")
 ```
-- **extract** — Extract and validate data from a page using a JSON schema (generated either manually or via a Pydantic model).
+- **extract** — Extract and validate data from a page using a Pydantic schema.
 ```python
 await stagehand.page.extract("the summary of the first paragraph")
 ```
-- **observe** — Get natural language interpretations to, for example, identify selectors or elements from the DOM.
+- **observe** — Get natural language interpretations to, for example, identify selectors or elements from the page.
 ```python
 await stagehand.page.observe("find the search bar")
 ```
@@ -74,8 +73,19 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 
 ## Installation:
 
-`pip install stagehand`
+To get started, simply:
 
+```bash
+pip install stagehand
+```
+
+> We recommend using [uv](https://docs.astral.sh/uv/) for your package/project manager. If you're using uv can follow these steps:
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install stagehand
+```
 
 ## Quickstart
 
@@ -83,10 +93,9 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 import asyncio
 import os
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 from stagehand import StagehandConfig, Stagehand
-from stagehand.schemas import ExtractOptions
 
 # Load environment variables
 load_dotenv()
@@ -94,7 +103,7 @@ load_dotenv()
 # Define Pydantic models for structured data extraction
 class Company(BaseModel):
     name: str = Field(..., description="Company name")
-    url: HttpUrl = Field(..., description="Company URL")
+    description: str = Field(..., description="Brief company description")
 
 class Companies(BaseModel):
     companies: list[Company] = Field(..., description="List of companies")
@@ -102,49 +111,49 @@ class Companies(BaseModel):
 async def main():
     # Create configuration
     config = StagehandConfig(
+        env = "BROWSERBASE", # or LOCAL
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
+        model_name="google/gemini-2.5-flash-preview-05-20",
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
     )
     
-    # Initialize async client
-    stagehand = Stagehand(
-        env=os.getenv("STAGEHAND_ENV"),
-        config=config,
-        api_url=os.getenv("STAGEHAND_SERVER_URL"),
-    )
+    stagehand = Stagehand(config)
     
     try:
-        # Initialize the client
+        print("\nInitializing 🤘 Stagehand...")
+        # Initialize Stagehand
         await stagehand.init()
+
+        if stagehand.env == "BROWSERBASE":    
+            print(f"🌐 View your live browser: https://www.browserbase.com/sessions/{stagehand.session_id}")
+
         page = stagehand.page
 
         await page.goto("https://www.aigrant.com")
         
-        # Extract companies using structured schema
-        extract_options = ExtractOptions(
-            instruction="Extract names and URLs of up to 5 companies in batch 3",
-            schema_definition=Companies
+        # Extract companies using structured schema        
+        companies_data = await page.extract(
+          "Extract names and descriptions of 5 companies in batch 3",
+          schema=Companies
         )
         
-        companies_data = await page.extract(extract_options)
-        
         # Display results
-        print("Extracted Companies:")
+        print("\nExtracted Companies:")
         for idx, company in enumerate(companies_data.companies, 1):
-            print(f"{idx}. {company.name}: {company.url}")
+            print(f"{idx}. {company.name}: {company.description}")
 
         observe = await page.observe("the link to the company Browserbase")
-        print("Observe result:", observe)
+        print("\nObserve result:", observe)
         act = await page.act("click the link to the company Browserbase")
-        print("Act result:", act)
+        print("\nAct result:", act)
             
     except Exception as e:
         print(f"Error: {str(e)}")
         raise
     finally:
         # Close the client
+        print("\nClosing 🤘 Stagehand...")
         await stagehand.close()
 
 if __name__ == "__main__":
@@ -155,7 +164,7 @@ if __name__ == "__main__":
 
 See our full documentation [here](https://docs.stagehand.dev/).
 
-## Actions caching
+## Cache Actions
 
 You can cache actions in Stagehand to avoid redundant LLM calls. This is particularly useful for actions that are expensive to run or when the underlying DOM structure is not expected to change.
 
@@ -179,62 +188,16 @@ action_preview = await page.observe("Click the quickstart link")
 await page.act(action_preview[0])
 ```
 
+If the website happens to change, `self_heal` will run the loop again to save you from constantly updating your scripts.
 
-## Configuration
-
-Stagehand can be configured via environment variables or through a `StagehandConfig` object. Available configuration options include:
-
-- `STAGEHAND_API_URL`: URL of the Stagehand API server.
-- `browserbase_api_key`: Your Browserbase API key (`BROWSERBASE_API_KEY`).
-- `browserbase_project_id`: Your Browserbase project ID (`BROWSERBASE_PROJECT_ID`).
-- `model_api_key`: Your model API key (e.g. OpenAI, Anthropic, etc.) (`MODEL_API_KEY`).
-- `verbose`: Verbosity level (default: 1).
-  - Level 0: Error logs
-  - Level 1: Basic info logs (minimal, maps to INFO level)
-  - Level 2: Medium logs including warnings (maps to WARNING level)
-  - Level 3: Detailed debug information (maps to DEBUG level)
-- `model_name`: Optional model name for the AI (e.g. "gpt-4o").
-- `dom_settle_timeout_ms`: Additional time (in ms) to have the DOM settle.
-- `debug_dom`: Enable debug mode for DOM operations.
-- `stream_response`: Whether to stream responses from the server (default: True).
-- `timeout_settings`: Custom timeout settings for HTTP requests.
-
-Example using a unified configuration:
-
-```python
-from stagehand import StagehandConfig
-import os
-
-config = StagehandConfig(
-    env="BROWSERBASE" if os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID") else "LOCAL",
-    api_key=os.getenv("BROWSERBASE_API_KEY"),
-    project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-    debug_dom=True,
-    headless=False,
-    dom_settle_timeout_ms=3000,
-    model_name="gpt-4o-mini",
-    model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
-    verbose=3  # Set verbosity level: 1=minimal, 2=medium, 3=detailed logs
-)
-```
 
 ## Contributing
 
-First, create and activate a virtual environment to keep your project dependencies isolated:
+At a high level, we're focused on improving reliability, speed, and cost in that order of priority. If you're interested in contributing, reach out on [Slack](https://stagehand.dev/slack), open an issue or start a discussion. 
 
-```bash
-# Create a virtual environment
-python -m venv stagehand-env
-
-# Activate the environment
-# On macOS/Linux:
-source stagehand-env/bin/activate
-# On Windows:
-stagehand-env\Scripts\activate
-```
+For more info, check the [Contributing Guide](https://docs.stagehand.dev/examples/contributing).
 
 **Local Development Installation:**
-
 
 ```bash
 # Clone the repository
@@ -242,7 +205,7 @@ git clone https://github.com/browserbase/stagehand-python.git
 cd stagehand-python
 
 # Install in editable mode with development dependencies
-pip install -e ".[dev]"
+pip install -r requirements.txt
 ```
 
 

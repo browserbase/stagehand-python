@@ -170,7 +170,7 @@ class Stagehand:
         self.context: Optional[StagehandContext] = None
         self.use_api = self.config.use_api
         self.experimental = self.config.experimental
-        if self.experimental:
+        if self.experimental or self.env == "LOCAL":
             self.use_api = False
         if (
             self.browserbase_session_create_params
