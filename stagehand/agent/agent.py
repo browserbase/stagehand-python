@@ -36,7 +36,7 @@ class Agent:
         self.stagehand = stagehand_client
         self.config = AgentConfig(**kwargs) if kwargs else AgentConfig()
         self.logger = self.stagehand.logger
-        if self.stagehand.env == "BROWSERBASE":
+        if self.stagehand.use_api:
             if self.config.model in MODEL_TO_PROVIDER_MAP:
                 self.provider = MODEL_TO_PROVIDER_MAP[self.config.model]
             else:
@@ -120,7 +120,7 @@ class Agent:
 
         instruction = options.instruction
 
-        if self.stagehand.env == "LOCAL":
+        if not self.stagehand.use_api:
             self.logger.info(
                 f"Agent starting execution for instruction: '{instruction}'",
                 category="agent",
