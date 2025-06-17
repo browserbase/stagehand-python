@@ -48,10 +48,9 @@ jobs:
           ruff check stagehand
           
       # TODO: add back as soon as CI is passing
-      # Commenting to cut release
-      # - name: Run tests
-      #   run: |
-      #     pytest
+      - name: Run tests
+        run: |
+          pytest
           
       - name: Calculate new version
         id: version
