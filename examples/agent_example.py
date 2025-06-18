@@ -10,6 +10,8 @@ from rich.theme import Theme
 from stagehand import Stagehand, StagehandConfig, AgentConfig, configure_logging
 from stagehand.schemas import AgentExecuteOptions, AgentProvider
 
+from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
+
 # Create a custom theme for consistent styling
 custom_theme = Theme(
     {
@@ -27,6 +29,11 @@ console = Console(theme=custom_theme)
 
 load_dotenv()
 
+browserbase_session_create_params = BrowserbaseSessionCreateParams(
+    project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+    proxies=True,
+)
+
 # Configure logging with the utility function
 configure_logging(
     level=logging.INFO,  # Set to INFO for regular logs, DEBUG for detailed
@@ -40,6 +47,7 @@ async def main():
         # env="LOCAL",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        browserbase_session_create_params=browserbase_session_create_params,
         model_name="gpt-4o",
         self_heal=True,
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
@@ -70,7 +78,7 @@ async def main():
         options={"apiKey": os.getenv("MODEL_API_KEY")}
     )
     agent_result = await agent.execute(
-        instruction="Play a game of 2048",
+        instruction="Search for the game 2048 and play one game.",
         max_steps=20,
         auto_screenshot=True,
     )
