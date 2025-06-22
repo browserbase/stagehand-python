@@ -399,7 +399,7 @@ class StagehandPage:
 
             return result
         else:
-            return await self._page.screenshot(options)
+            return await self._page.screenshot(**payload)
 
     # Method to get or initialize the persistent CDP client
     async def get_cdp_client(self) -> CDPSession:
