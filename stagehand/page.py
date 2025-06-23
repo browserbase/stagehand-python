@@ -374,33 +374,6 @@ class StagehandPage:
         )
         return result_dict
 
-    async def screenshot(self, options: Optional[dict] = None) -> str:
-        """
-        Take a screenshot of the current page via the Stagehand server.
-
-        Args:
-            options (Optional[dict]): Optional screenshot options.
-                May include:
-                - type: "png" or "jpeg" (default: "png")
-                - fullPage: whether to take a full page screenshot (default: False)
-                - quality: for jpeg only, 0-100 (default: 80)
-                - clip: viewport clip rectangle
-                - omitBackground: whether to hide default white background (default: False)
-
-        Returns:
-            str: Base64-encoded screenshot data.
-        """
-        payload = options or {}
-
-        if self._stagehand.use_api:
-            lock = self._stagehand._get_lock_for_session()
-            async with lock:
-                result = await self._stagehand._execute("screenshot", payload)
-
-            return result
-        else:
-            return await self._page.screenshot(**payload)
-
     # Method to get or initialize the persistent CDP client
     async def get_cdp_client(self) -> CDPSession:
         """Gets the persistent CDP client, initializing it if necessary."""
