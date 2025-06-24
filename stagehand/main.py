@@ -67,7 +67,7 @@ class Stagehand:
             self.config = config
 
         # Handle non-config parameters
-        self.api_url = self.config.api_url or os.getenv("STAGEHAND_API_URL")
+        self.api_url = self.config.api_url
         self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
         self.model_name = self.config.model_name
 

@@ -1,3 +1,4 @@
+import os
 from typing import Any, Callable, Literal, Optional
 
 from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
@@ -42,7 +43,7 @@ class StagehandConfig(BaseModel):
         None, alias="projectId", description="Browserbase project ID"
     )
     api_url: Optional[str] = Field(
-        "https://api.stagehand.browserbase.com/v1",
+        os.environ.get("STAGEHAND_API_URL", "https://api.stagehand.browserbase.com/v1"),
         alias="apiUrl",
         description="Stagehand API URL",
     )
