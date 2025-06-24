@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build-and-publish:
@@ -108,11 +109,68 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-      - name: Commit version bump
+      - name: Create version bump branch and PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          BRANCH_NAME="release/v${NEW_VERSION}"
+          
+          # Create and switch to new branch
+          git checkout -b "$BRANCH_NAME"
+          
+          # Commit changes
           git add pyproject.toml stagehand/__init__.py
-          git commit -m "Bump version to ${{ steps.version.outputs.new_version }}"
-          git tag "v${{ steps.version.outputs.new_version }}"
+          git commit -m "Bump version to v${NEW_VERSION}"
+          
+          # Push branch
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR
+          gh pr create \
+            --title "Release v${NEW_VERSION}" \
+            --body "Automated version bump to v${NEW_VERSION} for ${{ github.event.inputs.release_type }} release." \
+            --base main \
+            --head "$BRANCH_NAME"
+          
+      - name: Wait for PR to be merged
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          BRANCH_NAME="release/v${NEW_VERSION}"
+          
+          echo "Waiting for PR to be merged..."
+          
+          # Wait for PR to be merged (check every 30 seconds for up to 10 minutes)
+          for i in {1..20}; do
+            if gh pr view "$BRANCH_NAME" --json state --jq '.state' | grep -q "MERGED"; then
+              echo "PR has been merged!"
+              break
+            elif gh pr view "$BRANCH_NAME" --json state --jq '.state' | grep -q "CLOSED"; then
+              echo "PR was closed without merging. Exiting."
+              exit 1
+            else
+              echo "PR is still open. Waiting 30 seconds... (attempt $i/20)"
+              sleep 30
+            fi
+            
+            if [ $i -eq 20 ]; then
+              echo "Timeout waiting for PR to be merged."
+              exit 1
+            fi
+          done
+          
+      - name: Checkout main and create tag
+        run: |
+          # Switch back to main and pull latest changes
+          git checkout main
+          git pull origin main
+          
+          # Create and push tag
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          git tag "v${NEW_VERSION}"
+          git push origin "v${NEW_VERSION}"
           
       - name: Build package
         run: |
@@ -124,11 +182,6 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           twine upload dist/*
-          
-      - name: Push version bump
-        run: |
-          git push
-          git push --tags
           
       - name: Create GitHub Release
         if: ${{ github.event.inputs.create_release == 'true' }}
