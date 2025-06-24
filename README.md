@@ -179,7 +179,7 @@ action_preview = await page.observe("Click the quickstart link")
 # action_preview is a JSON-ified version of a Playwright action:
 # {
 #     "description": "The quickstart link",
-#     "action": "click",
+#     "method": "click",
 #     "selector": "/html/body/div[1]/div[1]/a",
 #     "arguments": []
 # }
