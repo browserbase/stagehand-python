@@ -213,8 +213,8 @@ insertion_flag = "<!-- version list -->"
 template_dir = "templates"
 
 [tool.semantic_release.changelog.default_templates]
-changelog_file = "CHANGELOG.md"
-output_format = "md"
+changelog_file = "CHANGELOG.rst"
+output_format = "rst"
 mask_initial_release = true
 
 [tool.semantic_release.changelog.environment]
