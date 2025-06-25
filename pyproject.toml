@@ -199,7 +199,15 @@ prerelease_token = "rc"
 prerelease = false
 
 [tool.semantic_release.changelog]
-exclude_commit_patterns = []
+exclude_commit_patterns = [
+    '''chore(?:\([^)]*?\))?: .+''',
+    '''ci(?:\([^)]*?\))?: .+''',
+    '''refactor(?:\([^)]*?\))?: .+''',
+    '''style(?:\([^)]*?\))?: .+''',
+    '''test(?:\([^)]*?\))?: .+''',
+    '''build\((?!deps\): .+)''',
+    '''Initial [Cc]ommit.*''',
+]
 mode = "update"
 insertion_flag = "<!-- version list -->"
 template_dir = "templates"
