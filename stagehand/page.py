@@ -439,11 +439,11 @@ class StagehandPage:
     async def _wait_for_settled_dom(self, timeout_ms: int = None):
         """
         Wait for the DOM to settle (stop changing) before proceeding.
-        
+
         **Definition of "settled"**
           • No in-flight network requests (except WebSocket / Server-Sent-Events).
           • That idle state lasts for at least **500 ms** (the "quiet-window").
-        
+
         **How it works**
           1. Subscribes to CDP Network and Page events for the main target and all
              out-of-process iframes (via `Target.setAutoAttach { flatten:true }`).
@@ -471,55 +471,54 @@ class StagehandPage:
         """
         import asyncio
         import time
-        
+
         timeout = timeout_ms or getattr(self._stagehand, "dom_settle_timeout_ms", 30000)
         client = await self.get_cdp_client()
-        
+
         # Check if document exists
         try:
             await self._page.title()
         except Exception:
             await self._page.wait_for_load_state("domcontentloaded")
-        
+
         # Enable CDP domains
         await client.send("Network.enable")
         await client.send("Page.enable")
-        await client.send("Target.setAutoAttach", {
-            "autoAttach": True,
-            "waitForDebuggerOnStart": False,
-            "flatten": True
-        })
-        
+        await client.send(
+            "Target.setAutoAttach",
+            {"autoAttach": True, "waitForDebuggerOnStart": False, "flatten": True},
+        )
+
         # Set up tracking structures
         inflight = set()  # Set of request IDs
         meta = {}  # Dict of request ID -> {"url": str, "start": float}
         doc_by_frame = {}  # Dict of frame ID -> request ID
-        
+
         # Event tracking
         quiet_timer = None
         stalled_request_sweep_task = None
         loop = asyncio.get_event_loop()
         done_event = asyncio.Event()
-        
+
         def clear_quiet():
             nonlocal quiet_timer
             if quiet_timer:
                 quiet_timer.cancel()
                 quiet_timer = None
-        
+
         def resolve_done():
             """Cleanup and mark as done"""
             clear_quiet()
             if stalled_request_sweep_task and not stalled_request_sweep_task.done():
                 stalled_request_sweep_task.cancel()
             done_event.set()
-        
+
         def maybe_quiet():
             """Start quiet timer if no requests are in flight"""
             nonlocal quiet_timer
             if len(inflight) == 0 and not quiet_timer:
                 quiet_timer = loop.call_later(0.5, resolve_done)
-        
+
         def finish_req(request_id: str):
             """Mark a request as finished"""
             if request_id not in inflight:
@@ -532,48 +531,45 @@ class StagehandPage:
                     doc_by_frame.pop(fid)
             clear_quiet()
             maybe_quiet()
-        
+
         # Event handlers
         def on_request(params):
             """Handle Network.requestWillBeSent"""
             if params.get("type") in ["WebSocket", "EventSource"]:
                 return
-            
+
             request_id = params["requestId"]
             inflight.add(request_id)
-            meta[request_id] = {
-                "url": params["request"]["url"],
-                "start": time.time()
-            }
-            
+            meta[request_id] = {"url": params["request"]["url"], "start": time.time()}
+
             if params.get("type") == "Document" and params.get("frameId"):
                 doc_by_frame[params["frameId"]] = request_id
-            
+
             clear_quiet()
-        
+
         def on_finish(params):
             """Handle Network.loadingFinished"""
             finish_req(params["requestId"])
-        
+
         def on_failed(params):
             """Handle Network.loadingFailed"""
             finish_req(params["requestId"])
-        
+
         def on_cached(params):
             """Handle Network.requestServedFromCache"""
             finish_req(params["requestId"])
-        
+
         def on_data_url(params):
             """Handle Network.responseReceived for data: URLs"""
             if params.get("response", {}).get("url", "").startswith("data:"):
                 finish_req(params["requestId"])
-        
+
         def on_frame_stop(params):
             """Handle Page.frameStoppedLoading"""
             frame_id = params["frameId"]
             if frame_id in doc_by_frame:
                 finish_req(doc_by_frame[frame_id])
-        
+
         # Register event handlers
         client.on("Network.requestWillBeSent", on_request)
         client.on("Network.loadingFinished", on_finish)
@@ -581,7 +577,7 @@ class StagehandPage:
         client.on("Network.requestServedFromCache", on_cached)
         client.on("Network.responseReceived", on_data_url)
         client.on("Page.frameStoppedLoading", on_frame_stop)
-        
+
         async def sweep_stalled_requests():
             """Remove stalled document requests after 2 seconds"""
             while not done_event.is_set():
@@ -593,15 +589,13 @@ class StagehandPage:
                         meta.pop(request_id, None)
                         self._stagehand.logger.debug(
                             "⏳ forcing completion of stalled iframe document",
-                            extra={
-                                "url": request_meta["url"][:120]
-                            }
+                            extra={"url": request_meta["url"][:120]},
                         )
                 maybe_quiet()
-        
+
         # Start stalled request sweeper
         stalled_request_sweep_task = asyncio.create_task(sweep_stalled_requests())
-        
+
         # Set up timeout guard
         async def timeout_guard():
             await asyncio.sleep(timeout / 1000)
@@ -609,17 +603,15 @@ class StagehandPage:
                 if len(inflight) > 0:
                     self._stagehand.logger.debug(
                         "⚠️ DOM-settle timeout reached – network requests still pending",
-                        extra={
-                            "count": len(inflight)
-                        }
+                        extra={"count": len(inflight)},
                     )
                 resolve_done()
-        
+
         timeout_task = asyncio.create_task(timeout_guard())
-        
+
         # Initial check
         maybe_quiet()
-        
+
         try:
             # Wait for completion
             await done_event.wait()
@@ -631,7 +623,7 @@ class StagehandPage:
             client.remove_listener("Network.requestServedFromCache", on_cached)
             client.remove_listener("Network.responseReceived", on_data_url)
             client.remove_listener("Page.frameStoppedLoading", on_frame_stop)
-            
+
             if quiet_timer:
                 quiet_timer.cancel()
             if stalled_request_sweep_task and not stalled_request_sweep_task.done():
