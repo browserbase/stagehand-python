@@ -1,0 +1,4 @@
+#!/bin/bash
+# Wrapper script for changeset CLI
+
+python3 .changeset/scripts/changeset.py "$@"

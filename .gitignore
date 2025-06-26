@@ -94,7 +94,7 @@ dmypy.json
 .vscode/
 
 # Local scripts
-scripts/
+/scripts/
 
 # Logs
 *.log
