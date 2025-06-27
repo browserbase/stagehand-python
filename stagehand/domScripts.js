@@ -1101,7 +1101,7 @@
             <rect x="12.5" y="13.6" transform="matrix(0.9221 -0.3871 0.3871 0.9221 -5.7605 6.5909)" width="2" height="8" fill="#000000"/>
           </svg>
         `;
-        cursor.style.position = 'absolute';
+        cursor.style.position = 'fixed';
         cursor.style.top = '0';
         cursor.style.left = '0';
         cursor.style.width = '28px';
