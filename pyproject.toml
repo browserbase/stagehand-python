@@ -1,175 +1,42 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = [ "setuptools>=61.0", "wheel",]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "stagehand"
-version = "0.0.6"
+version = "0.1.0"
 description = "Python SDK for Stagehand"
 readme = "README.md"
-license = {text = "MIT"}
-authors = [
-    {name = "Browserbase, Inc.", email = "support@browserbase.com"}
-]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+classifiers = [ "Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent",]
 requires-python = ">=3.9"
-dependencies = [
-    "httpx>=0.24.0",
-    "python-dotenv>=1.0.0",
-    "pydantic>=1.10.0",
-    "playwright>=1.42.1",
-    "requests>=2.31.0",
-    "browserbase>=1.4.0",
-    "rich>=14.0.0",
-    "openai>=1.83.0",
-    "anthropic>=0.51.0",
-    "litellm>=1.72.0",
-]
+dependencies = [ "httpx>=0.24.0", "python-dotenv>=1.0.0", "pydantic>=1.10.0", "playwright>=1.42.1", "requests>=2.31.0", "browserbase>=1.4.0", "rich>=14.0.0", "openai>=1.83.0", "anthropic>=0.51.0", "litellm>=1.72.0",]
+[[project.authors]]
+name = "Browserbase, Inc."
+email = "support@browserbase.com"
+
+[project.license]
+text = "MIT"
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.3.1",
-    "pytest-asyncio>=0.21.0",
-    "pytest-mock>=3.10.0",
-    "pytest-cov>=4.1.0",
-    "black>=23.3.0",
-    "isort>=5.12.0",
-    "mypy>=1.3.0",
-    "ruff",
-    "psutil>=5.9.0",
-]
+dev = [ "pytest>=7.3.1", "pytest-asyncio>=0.21.0", "pytest-mock>=3.10.0", "pytest-cov>=4.1.0", "black>=23.3.0", "isort>=5.12.0", "mypy>=1.3.0", "ruff", "psutil>=5.9.0",]
 
 [project.urls]
 Homepage = "https://github.com/browserbase/stagehand-python"
 Repository = "https://github.com/browserbase/stagehand-python"
 
-[tool.setuptools]
-# Omit explicit package list so we can use the nested `.packages.find` table below.
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["stagehand*"]
-
-[tool.setuptools.package-data]
-stagehand = ["domScripts.js"]
-
 [tool.ruff]
-# Same as Black
 line-length = 88
+target-version = "py39"
+exclude = [ ".git", ".ruff_cache", "__pycache__", "venv", ".venv", "dist", "tests",]
 
-# Target Python version
-target-version = "py39"  # Adjust to your version
-
-# Exclude a variety of commonly ignored directories
-exclude = [
-    ".git",
-    ".ruff_cache",
-    "__pycache__",
-    "venv",
-    ".venv",
-    "dist",
-    "tests"
-]
-
-# Define lint-specific settings here
-[tool.ruff.lint]
-select = ["E", "F", "B", "C4", "UP", "N", "I", "C"]
-# Ignore line length errors - let Black handle those
-ignore = ["E501", "C901"]
-# Allow autofix for all enabled rules (when `--fix` is provided)
-fixable = ["ALL"]
-unfixable = []
-# Allow unused variables when underscore-prefixed
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-line-ending = "auto"
-
-# Naming conventions are part of the N rules
-[tool.ruff.lint.pep8-naming]
-# Allow underscores in class names (e.g. Test_Case)
-classmethod-decorators = ["classmethod", "validator"]
-
-# Per-file ignores
-[tool.ruff.lint.per-file-ignores]
-# Ignore imported but unused in __init__.py files
-"__init__.py" = ["F401"]
-# Ignore unused imports in tests
-"tests/*" = ["F401", "F811"]
-
-# Add more customizations if needed
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-# Pytest configuration
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-asyncio_mode = "auto"
-addopts = [
-    "--cov=stagehand",
-    "--cov-report=html:htmlcov",
-    "--cov-report=term-missing",
-    "--cov-report=xml",
-    # "--cov-fail-under=75",  # Commented out for future addition
-    "--strict-markers",
-    "--strict-config",
-    "-ra",
-    "--tb=short"
-]
-markers = [
-    "unit: Unit tests for individual components",
-    "integration: Integration tests requiring multiple components",
-    "e2e: End-to-end tests with full workflows",
-    "slow: Tests that take longer to run",
-    "browserbase: Tests requiring Browserbase connection",
-    "local: Tests for local browser functionality",
-    "llm: Tests involving LLM interactions",
-    "mock: Tests using mock objects only",
-    "performance: Performance and load tests",
-    "smoke: Quick smoke tests for basic functionality"
-]
-filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::PendingDeprecationWarning",
-    "ignore::UserWarning:pytest_asyncio",
-    "ignore::RuntimeWarning"
-]
-minversion = "7.0"
-
-# Black configuration
 [tool.black]
 line-length = 88
-target-version = ["py39"]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | __pycache__
-  | python-sdk
-)/
-'''
-# Ensure Black will wrap long strings and docstrings
+target-version = [ "py39",]
+include = "\\.pyi?$"
+exclude = "/(\n    \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | _build\n  | buck-out\n  | build\n  | dist\n  | __pycache__\n  | python-sdk\n)/\n"
 skip-string-normalization = false
 preview = true
 
-# isort configuration to work with Black
 [tool.isort]
 profile = "black"
 line_length = 88
@@ -179,4 +46,44 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 skip_gitignore = true
-skip_glob = ["**/venv/**", "**/.venv/**", "**/__pycache__/**"]
+skip_glob = [ "**/venv/**", "**/.venv/**", "**/__pycache__/**",]
+
+[tool.setuptools.package-data]
+stagehand = [ "domScripts.js",]
+
+[tool.ruff.lint]
+select = [ "E", "F", "B", "C4", "UP", "N", "I", "C",]
+ignore = [ "E501", "C901",]
+fixable = [ "ALL",]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = [ "tests",]
+python_files = [ "test_*.py",]
+python_classes = [ "Test*",]
+python_functions = [ "test_*",]
+asyncio_mode = "auto"
+addopts = [ "--cov=stagehand", "--cov-report=html:htmlcov", "--cov-report=term-missing", "--cov-report=xml", "--strict-markers", "--strict-config", "-ra", "--tb=short",]
+markers = [ "unit: Unit tests for individual components", "integration: Integration tests requiring multiple components", "e2e: End-to-end tests with full workflows", "slow: Tests that take longer to run", "browserbase: Tests requiring Browserbase connection", "local: Tests for local browser functionality", "llm: Tests involving LLM interactions", "mock: Tests using mock objects only", "performance: Performance and load tests", "smoke: Quick smoke tests for basic functionality",]
+filterwarnings = [ "ignore::DeprecationWarning", "ignore::PendingDeprecationWarning", "ignore::UserWarning:pytest_asyncio", "ignore::RuntimeWarning",]
+minversion = "7.0"
+
+[tool.setuptools.packages.find]
+where = [ ".",]
+include = [ "stagehand*",]
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [ "classmethod", "validator",]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [ "F401",]
+"tests/*" = [ "F401", "F811",]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
