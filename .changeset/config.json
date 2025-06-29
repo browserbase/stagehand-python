@@ -1,0 +1,17 @@
+{
+  "changeTypes": {
+    "major": {
+      "description": "Breaking changes",
+      "emoji": "\ud83d\udca5"
+    },
+    "minor": {
+      "description": "New features",
+      "emoji": "\u2728"
+    },
+    "patch": {
+      "description": "Bug fixes and improvements",
+      "emoji": "\ud83d\udc1b"
+    }
+  },
+  "baseBranch": "main"
+}
