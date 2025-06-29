@@ -20,8 +20,9 @@ from .schemas import (
     ObserveOptions,
     ObserveResult,
 )
+from importlib.metadata import version as get_version
 
-__version__ = "0.0.1"
+__version__ = get_version("stagehand")
 
 __all__ = [
     "Stagehand",
