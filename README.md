@@ -42,6 +42,7 @@
   <a href="https://director.ai" style="display: flex; align-items: center;">
     <span>Director</span>
   </a>
+  <span> </span>
   <picture>
     <img alt="Director" src="media/director_icon.svg" width="20" style="margin-left: 5px; vertical-align: middle;" />
   </picture>
