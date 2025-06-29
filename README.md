@@ -34,12 +34,25 @@
   </a>
 </p>
 
-> Stagehand Python is now available! We're actively seeking feedback from the community and looking for contributors. Join our [Slack community](https://stagehand.dev/slack) to stay updated on the latest updates
+<p align="center">
+If you're looking for the TypeScript implementation, you can find it 
+<a href="https://github.com/browserbase/stagehand"> here</a>
+</p>
+
+<div align="center" style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 0;">
+  <b>Vibe code</b>
+  <span style="font-size: 1.05em;"> Stagehand with </span>
+  <a href="https://director.ai" style="display: flex; align-items: center;">
+    <span>Director</span>
+  </a>
+  <span> </span>
+  <picture>
+    <img alt="Director" src="media/director_icon.svg" width="25" />
+  </picture>
+</div>
 
 
 ## Why Stagehand?
-
-*Stagehand is the easiest way to build browser automations with AI-powered interactions.*
 
 Most existing browser automation tools either require you to write low-level code in a framework like Selenium, Playwright, or Puppeteer, or use high-level agents that can be unpredictable in production. By letting developers choose what to write in code vs. natural language, Stagehand is the natural choice for browser automations in production.
 
