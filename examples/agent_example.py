@@ -7,8 +7,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
 
-from stagehand import Stagehand, StagehandConfig, AgentConfig, configure_logging
-from stagehand.schemas import AgentExecuteOptions, AgentProvider
+from stagehand import Stagehand, StagehandConfig, configure_logging
 
 # Create a custom theme for consistent styling
 custom_theme = Theme(
