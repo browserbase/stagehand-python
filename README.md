@@ -34,7 +34,10 @@
   </a>
 </p>
 
-> If you're looking for the TypeScript implementation, you can find it [here](https://github.com/browserbase/stagehand)
+<p align="center">
+If you're looking for the TypeScript implementation, you can find it 
+<a href="https://github.com/browserbase/stagehand"> here</a>
+</p>
 
 <div align="center" style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 0;">
   <b>Vibe code</b>
@@ -44,7 +47,7 @@
   </a>
   <span> </span>
   <picture>
-    <img alt="Director" src="media/director_icon.svg" width="20" style="margin-left: 5px; vertical-align: middle;" />
+    <img alt="Director" src="media/director_icon.svg" width="25" />
   </picture>
 </div>
 
