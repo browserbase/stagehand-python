@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stagehand"
-version = "0.3.0"
+version = "0.4.0"
 description = "Python SDK for Stagehand"
 readme = "README.md"
 classifiers = [ "Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent",]
@@ -48,9 +48,6 @@ ensure_newline_before_comments = true
 skip_gitignore = true
 skip_glob = [ "**/venv/**", "**/.venv/**", "**/__pycache__/**",]
 
-[tool.setuptools.package-data]
-stagehand = [ "domScripts.js",]
-
 [tool.ruff.lint]
 select = [ "E", "F", "B", "C4", "UP", "N", "I", "C",]
 ignore = [ "E501", "C901",]
@@ -63,6 +60,9 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
 
+[tool.setuptools.package-data]
+stagehand = [ "domScripts.js",]
+
 [tool.pytest.ini_options]
 testpaths = [ "tests",]
 python_files = [ "test_*.py",]
@@ -74,10 +74,6 @@ markers = [ "unit: Unit tests for individual components", "integration: Integrat
 filterwarnings = [ "ignore::DeprecationWarning", "ignore::PendingDeprecationWarning", "ignore::UserWarning:pytest_asyncio", "ignore::RuntimeWarning",]
 minversion = "7.0"
 
-[tool.setuptools.packages.find]
-where = [ ".",]
-include = [ "stagehand*",]
-
 [tool.ruff.lint.pep8-naming]
 classmethod-decorators = [ "classmethod", "validator",]
 
@@ -87,3 +83,7 @@ classmethod-decorators = [ "classmethod", "validator",]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.setuptools.packages.find]
+where = [ ".",]
+include = [ "stagehand*",]
