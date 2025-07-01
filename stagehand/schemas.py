@@ -184,7 +184,6 @@ class ObserveOptions(StagehandBaseModel):
     Attributes:
         instruction (str): Instruction detailing what the AI should observe.
         model_name (Optional[str]): The model to use for processing.
-        only_visible (Optional[bool]): Whether to only consider visible elements.
         return_action (Optional[bool]): Whether to include action information in the result.
         draw_overlay (Optional[bool]): Whether to draw an overlay on observed elements.
         dom_settle_timeout_ms (Optional[int]): Additional time for DOM to settle before observation.
@@ -193,9 +192,7 @@ class ObserveOptions(StagehandBaseModel):
     instruction: str = Field(
         ..., description="Instruction detailing what the AI should observe."
     )
-    only_visible: Optional[bool] = False
     model_name: Optional[str] = None
-    return_action: Optional[bool] = None
     draw_overlay: Optional[bool] = None
     dom_settle_timeout_ms: Optional[int] = None
     model_client_options: Optional[dict[str, Any]] = None

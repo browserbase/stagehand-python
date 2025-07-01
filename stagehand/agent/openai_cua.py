@@ -37,7 +37,9 @@ class OpenAICUAClient(AgentClient):
     ):
         super().__init__(model, instructions, config, logger, handler)
         # TODO pass api key
-        self.openai_sdk_client = OpenAISDK(api_key=os.getenv("OPENAI_API_KEY"))
+        self.openai_sdk_client = OpenAISDK(
+            api_key=config.options.get("apiKey") or os.getenv("OPENAI_API_KEY")
+        )
 
         dimensions = (
             (viewport["width"], viewport["height"]) if viewport else (1024, 768)
@@ -214,7 +216,7 @@ class OpenAICUAClient(AgentClient):
                 )
                 # Ensure arguments is a dict, even if empty
                 if not isinstance(arguments, dict):
-                    self.logger.warning(
+                    self.logger.debug(
                         f"Function call arguments are not a dict: {arguments}. Using empty dict.",
                         category="agent",
                     )
@@ -464,7 +466,7 @@ class OpenAICUAClient(AgentClient):
                 )
 
             if not agent_action and not task_completed:
-                self.logger.warning(
+                self.logger.info(
                     "Model did not request an action and task not marked complete. Ending task to prevent loop.",
                     category="agent",
                 )
@@ -480,7 +482,7 @@ class OpenAICUAClient(AgentClient):
                     usage=usage_obj,
                 )
 
-        self.logger.warning("Max steps reached for OpenAI CUA task.", category="agent")
+        self.logger.info("Max steps reached for OpenAI CUA task.", category="agent")
         usage_obj = {
             "input_tokens": total_input_tokens,
             "output_tokens": total_output_tokens,

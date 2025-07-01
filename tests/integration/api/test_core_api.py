@@ -15,7 +15,7 @@ class Article(BaseModel):
 
 
 class TestStagehandAPIIntegration:
-    """Integration tests for Stagehand Python SDK in BROWSERBASE API mode."""
+    """Integration tests for Stagehand Python SDK in BROWSERBASE API mode"""
 
     @pytest.fixture(scope="class")
     def browserbase_config(self):

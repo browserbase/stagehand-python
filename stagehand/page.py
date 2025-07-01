@@ -16,6 +16,7 @@ from .schemas import (
     ObserveOptions,
     ObserveResult,
 )
+from .types import DefaultExtractSchema
 
 _INJECTION_SCRIPT = None
 
@@ -79,7 +80,7 @@ class StagehandPage:
         Returns:
             The result from the Stagehand server's navigation execution.
         """
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             await self._page.goto(
                 url, referer=referer, timeout=timeout, wait_until=wait_until
             )
@@ -125,7 +126,7 @@ class StagehandPage:
         # Check if it's an ObserveResult for direct execution
         if isinstance(action_or_result, ObserveResult):
             if kwargs:
-                self._stagehand.logger.warning(
+                self._stagehand.logger.debug(
                     "Additional keyword arguments provided to 'act' when using an ObserveResult are ignored."
                 )
             payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
@@ -133,11 +134,15 @@ class StagehandPage:
         elif isinstance(action_or_result, str):
             options = ActOptions(action=action_or_result, **kwargs)
             payload = options.model_dump(exclude_none=True, by_alias=True)
+        elif isinstance(action_or_result, ActOptions):
+            payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
         else:
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+            raise TypeError(
+                "Invalid arguments for 'act'. Expected str, ObserveResult, or ActOptions."
+            )
 
         # TODO: Temporary until we move api based logic to client
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             # TODO: revisit passing user_provided_instructions
             if not hasattr(self, "_observe_handler"):
                 # TODO: revisit handlers initialization on page creation
@@ -157,12 +162,19 @@ class StagehandPage:
             return ActResult(**result)
         return result
 
-    async def observe(self, options: Union[str, ObserveOptions]) -> list[ObserveResult]:
+    async def observe(
+        self,
+        options_or_instruction: Union[str, ObserveOptions, None] = None,
+        **kwargs,
+    ) -> list[ObserveResult]:
         """
         Make an AI observation via the Stagehand server.
 
         Args:
-            instruction (str): The observation instruction for the AI.
+            options_or_instruction (Union[str, ObserveOptions, None]):
+                - A string with the observation instruction for the AI.
+                - An ObserveOptions object.
+                - None to use default options.
             **kwargs: Additional options corresponding to fields in ObserveOptions
                       (e.g., model_name, only_visible, return_action).
 
@@ -171,17 +183,31 @@ class StagehandPage:
         """
         await self.ensure_injection()
 
-        # Convert string to ObserveOptions if needed
-        if isinstance(options, str):
-            options = ObserveOptions(instruction=options)
-        # Handle None by creating an empty options object
-        elif options is None:
-            options = ObserveOptions()
+        options_dict = {}
 
-        # Otherwise use API implementation
-        payload = options.model_dump(exclude_none=True, by_alias=True)
+        if isinstance(options_or_instruction, ObserveOptions):
+            # Already a pydantic object – take it as is.
+            options_obj = options_or_instruction
+        else:
+            if isinstance(options_or_instruction, str):
+                options_dict["instruction"] = options_or_instruction
+
+            # Merge any explicit keyword arguments (highest priority)
+            options_dict.update(kwargs)
+
+            if not options_dict:
+                raise TypeError("No instruction provided for observe.")
+
+            try:
+                options_obj = ObserveOptions(**options_dict)
+            except Exception as e:
+                raise TypeError(f"Invalid observe options: {e}") from e
+
+        # Serialized payload for server / local handlers
+        payload = options_obj.model_dump(exclude_none=True, by_alias=True)
+
         # If in LOCAL mode, use local implementation
-        if self._stagehand.env == "LOCAL":
+        if not self._stagehand.use_api:
             self._stagehand.logger.debug(
                 "observe", category="observe", auxiliary=payload
             )
@@ -192,7 +218,7 @@ class StagehandPage:
 
             # Call local observe implementation
             result = await self._observe_handler.observe(
-                options,
+                options_obj,
                 from_act=False,
             )
 
@@ -209,45 +235,96 @@ class StagehandPage:
             # If single dict, wrap in list (should ideally be list from server)
             return [ObserveResult(**result)]
         # Handle unexpected return types
-        self._stagehand.logger.warning(
+        self._stagehand.logger.info(
             f"Unexpected result type from observe: {type(result)}"
         )
         return []
 
     async def extract(
-        self, options: Union[str, ExtractOptions, None] = None
+        self,
+        options_or_instruction: Union[str, ExtractOptions, None] = None,
+        *,
+        schema: Optional[type[BaseModel]] = None,
+        **kwargs,
     ) -> ExtractResult:
-        # TODO update args
         """
         Extract data using AI via the Stagehand server.
 
         Args:
-            instruction (Optional[str]): Instruction specifying what data to extract.
-                                         If None, attempts to extract the entire page content
-                                         based on other kwargs (e.g., schema_definition).
+            options_or_instruction (Union[str, ExtractOptions, None]):
+                - A string with the instruction specifying what data to extract.
+                - An ExtractOptions object.
+                - None to extract the entire page content.
+            schema (Optional[Union[type[BaseModel], None]]):
+                A Pydantic model class that defines the structure
+                of the expected extracted data.
             **kwargs: Additional options corresponding to fields in ExtractOptions
-                      (e.g., schema_definition, model_name, use_text_extract).
+                      (e.g., model_name, use_text_extract, selector, dom_settle_timeout_ms).
 
         Returns:
             ExtractResult: Depending on the type of the schema provided, the result will be a Pydantic model or JSON representation of the extracted data.
         """
         await self.ensure_injection()
 
-        # Otherwise use API implementation
-        # Allow for no options to extract the entire page
-        if options is None:
-            payload = {}
-        # Convert string to ExtractOptions if needed
-        elif isinstance(options, str):
-            options = ExtractOptions(instruction=options)
-            payload = options.model_dump(exclude_none=True, by_alias=True)
-        # Otherwise, it should be an ExtractOptions object
-        else:
-            # Allow extraction without instruction if other options (like schema) are provided
-            payload = options.model_dump(exclude_none=True, by_alias=True)
+        options_dict = {}
 
-        # If in LOCAL mode, use local implementation
-        if self._stagehand.env == "LOCAL":
+        if isinstance(options_or_instruction, ExtractOptions):
+            options_obj = options_or_instruction
+        else:
+            if isinstance(options_or_instruction, str):
+                options_dict["instruction"] = options_or_instruction
+
+            # Merge keyword overrides (highest priority)
+            options_dict.update(kwargs)
+
+            # Ensure schema_definition is only set once (explicit arg precedence)
+            if schema is not None:
+                options_dict["schema_definition"] = schema
+
+            if options_dict:
+                try:
+                    options_obj = ExtractOptions(**options_dict)
+                except Exception as e:
+                    raise TypeError(f"Invalid extract options: {e}") from e
+            else:
+                # No options_dict provided and no ExtractOptions given: full page extract.
+                options_obj = None
+
+        # If we started with an existing ExtractOptions instance and the caller
+        # explicitly provided a schema, override it
+        if (
+            schema is not None
+            and isinstance(options_obj, ExtractOptions)
+            and options_obj.schema_definition != schema
+        ):
+            options_obj = options_obj.model_copy(update={"schema_definition": schema})
+
+        if options_obj is None:
+            payload = {}
+        else:
+            payload = options_obj.model_dump(exclude_none=True, by_alias=True)
+
+        # Determine the schema to pass to the handler
+        schema_to_validate_with = None
+        if (
+            options_obj is not None
+            and options_obj.schema_definition is not None
+            and options_obj.schema_definition != DEFAULT_EXTRACT_SCHEMA
+        ):
+            if isinstance(options_obj.schema_definition, type) and issubclass(
+                options_obj.schema_definition, BaseModel
+            ):
+                # Case 1: Pydantic model class
+                schema_to_validate_with = options_obj.schema_definition
+            elif isinstance(options_obj.schema_definition, dict):
+                # TODO: revisit this case to pass the json_schema since litellm has a bug when passing it directly
+                # Case 2: Dictionary
+                # Assume it's a direct JSON schema dictionary
+                schema_to_validate_with = options_obj.schema_definition
+        else:
+            schema_to_validate_with = DefaultExtractSchema
+
+        if not self._stagehand.use_api:
             # If we don't have an extract handler yet, create one
             if not hasattr(self, "_extract_handler"):
                 self._extract_handler = ExtractHandler(
@@ -255,7 +332,7 @@ class StagehandPage:
                 )
 
             # Allow for no options to extract the entire page
-            if options is None:
+            if options_obj is None:
                 # Call local extract implementation with no options
                 result = await self._extract_handler.extract(
                     None,
@@ -263,86 +340,39 @@ class StagehandPage:
                 )
                 return result
 
-            # Convert string to ExtractOptions if needed
-            if isinstance(options, str):
-                options = ExtractOptions(instruction=options)
-
-            # Determine the schema to pass to the handler
-            schema_to_pass_to_handler = None
-            if (
-                hasattr(options, "schema_definition")
-                and options.schema_definition != DEFAULT_EXTRACT_SCHEMA
-            ):
-                if isinstance(options.schema_definition, type) and issubclass(
-                    options.schema_definition, BaseModel
-                ):
-                    # Case 1: Pydantic model class
-                    schema_to_pass_to_handler = options.schema_definition
-                elif isinstance(options.schema_definition, dict):
-                    # TODO: revisit this case to pass the json_schema since litellm has a bug when passing it directly
-                    # Case 2: Dictionary
-                    # Assume it's a direct JSON schema dictionary
-                    schema_to_pass_to_handler = options.schema_definition
-
             # Call local extract implementation
             result = await self._extract_handler.extract(
-                options,
-                schema_to_pass_to_handler,
+                options_obj,
+                schema_to_validate_with,
             )
             return result.data
 
+        # Use API
         lock = self._stagehand._get_lock_for_session()
         async with lock:
-            result = await self._stagehand._execute("extract", payload)
+            result_dict = await self._stagehand._execute("extract", payload)
 
-        # Attempt to parse the result using the base ExtractResult,
-        # which allows extra fields based on the dynamic schema.
-        if isinstance(result, dict):
+        if isinstance(result_dict, dict):
             # Pydantic will validate against known fields + allow extras if configured
-            try:
-                # Note: We don't know the exact return structure here,
-                # ExtractResult allows extra fields.
-                # The user needs to access data based on their schema.
-                return ExtractResult(**result)
-            except Exception as e:
-                self._stagehand.logger.error(f"Failed to parse extract result: {e}")
-                # Return raw dict if parsing fails, or raise? Returning dict for now.
-                return result  # type: ignore
+            processed_data_payload = result_dict
+            if schema_to_validate_with and isinstance(processed_data_payload, dict):
+                try:
+                    validated_model = schema_to_validate_with.model_validate(
+                        processed_data_payload
+                    )
+                    processed_data_payload = (
+                        validated_model  # Payload is now the Pydantic model instance
+                    )
+                except Exception as e:
+                    self._stagehand.logger.error(
+                        f"Failed to validate extracted data against schema {schema_to_validate_with.__name__}: {e}. Keeping raw data dict in .data field."
+                    )
+            return ExtractResult(data=processed_data_payload).data
         # Handle unexpected return types
-        self._stagehand.logger.warning(
-            f"Unexpected result type from extract: {type(result)}"
+        self._stagehand.logger.info(
+            f"Unexpected result type from extract: {type(result_dict)}"
         )
-        # Return raw result if not dict or raise error
-        return result  # type: ignore
-
-    async def screenshot(self, options: Optional[dict] = None) -> str:
-        """
-        Take a screenshot of the current page via the Stagehand server.
-
-        Args:
-            options (Optional[dict]): Optional screenshot options.
-                May include:
-                - type: "png" or "jpeg" (default: "png")
-                - fullPage: whether to take a full page screenshot (default: False)
-                - quality: for jpeg only, 0-100 (default: 80)
-                - clip: viewport clip rectangle
-                - omitBackground: whether to hide default white background (default: False)
-
-        Returns:
-            str: Base64-encoded screenshot data.
-        """
-        if self._stagehand.env == "LOCAL":
-            self._stagehand.logger.warning(
-                "Local execution of screenshot is not implemented"
-            )
-            return None
-        payload = options or {}
-
-        lock = self._stagehand._get_lock_for_session()
-        async with lock:
-            result = await self._stagehand._execute("screenshot", payload)
-
-        return result
+        return result_dict
 
     # Method to get or initialize the persistent CDP client
     async def get_cdp_client(self) -> CDPSession:
@@ -365,7 +395,11 @@ class StagehandPage:
             # Type assertion might be needed depending on playwright version/typing
             result = await client.send(method, params or {})
         except Exception as e:
-            self._stagehand.logger.error(f"CDP command '{method}' failed: {e}")
+            self._stagehand.logger.debug(
+                f"CDP command '{method}' failed: {e}. Attempting to reconnect..."
+            )
+            # Try to reconnect
+            await self._ensure_cdp_session()
             # Handle specific errors if needed (e.g., session closed)
             if "Target closed" in str(e) or "Session closed" in str(e):
                 # Attempt to reset the client if the session closed unexpectedly
@@ -382,9 +416,7 @@ class StagehandPage:
         try:
             await self.send_cdp(f"{domain}.enable")
         except Exception as e:
-            self._stagehand.logger.warning(
-                f"Failed to enable CDP domain '{domain}': {e}"
-            )
+            self._stagehand.logger.debug(f"Failed to enable CDP domain '{domain}': {e}")
 
     # Method to disable a specific CDP domain
     async def disable_cdp_domain(self, domain: str):
@@ -403,7 +435,7 @@ class StagehandPage:
                 await self._cdp_client.detach()
                 self._cdp_client = None
             except Exception as e:
-                self._stagehand.logger.warning(f"Error detaching CDP client: {e}")
+                self._stagehand.logger.debug(f"Error detaching CDP client: {e}")
         self._cdp_client = None
 
     async def _wait_for_settled_dom(self, timeout_ms: int = None):
@@ -464,13 +496,13 @@ class StagehandPage:
 
                 # If the timeout was hit, log a warning
                 if timeout_task in done:
-                    self._stagehand.logger.warning(
+                    self._stagehand.logger.debug(
                         "DOM settle timeout exceeded, continuing anyway",
                         extra={"timeout_ms": timeout},
                     )
 
             except Exception as e:
-                self._stagehand.logger.warning(f"Error waiting for DOM to settle: {e}")
+                self._stagehand.logger.debug(f"Error waiting for DOM to settle: {e}")
 
         except Exception as e:
             self._stagehand.logger.error(f"Error in _wait_for_settled_dom: {e}")

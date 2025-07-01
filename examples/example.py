@@ -1,11 +1,11 @@
 import asyncio
 import logging
 import os
+
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
-import json
-from dotenv import load_dotenv
 
 from stagehand import Stagehand, StagehandConfig
 from stagehand.utils import configure_logging

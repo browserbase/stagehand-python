@@ -149,7 +149,7 @@ class CUAHandler:  # Computer Use Agent Handler
                     await self.page.go_back()
                     return {"success": True}
                 # Add other function calls like back, forward, reload if needed, similar to TS version
-                self.logger.warning(
+                self.logger.error(
                     f"Unsupported function call: {name}",
                     category=StagehandFunctionName.AGENT,
                 )
@@ -195,7 +195,7 @@ class CUAHandler:  # Computer Use Agent Handler
                 return {"success": True}
 
             else:
-                self.logger.warning(
+                self.logger.error(
                     f"Unsupported action type: {action_type}",
                     category=StagehandFunctionName.AGENT,
                 )
@@ -236,7 +236,7 @@ class CUAHandler:  # Computer Use Agent Handler
                 f"window.__stagehandUpdateCursorPosition({x}, {y})"
             )
         except Exception as e:
-            self.logger.warning(
+            self.logger.debug(
                 f"Failed to call window.__stagehandUpdateCursorPosition: {e}",
                 category=StagehandFunctionName.AGENT,
             )
@@ -246,7 +246,7 @@ class CUAHandler:  # Computer Use Agent Handler
         try:
             await self.page.evaluate(f"window.__stagehandAnimateClick({x}, {y})")
         except Exception as e:
-            self.logger.warning(
+            self.logger.debug(
                 f"Failed to call window.__stagehandAnimateClick: {e}",
                 category=StagehandFunctionName.AGENT,
             )

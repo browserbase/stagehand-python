@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING, Optional, Union
 if TYPE_CHECKING:
     from stagehand.page import StagehandPage
 
+from ..logging import StagehandLogger
 from ..types.a11y import (
     AccessibilityNode,
     AXNode,
     CDPSession,
     TreeResult,
 )
-from ..utils import StagehandLogger, format_simplified_tree
+from ..utils import format_simplified_tree
 
 
 async def _clean_structural_nodes(
@@ -80,16 +81,16 @@ async def _clean_structural_nodes(
                         node["role"] = result_value
                         node_role = result_value
                 except Exception as tag_name_error:
-                    # Use logger.warning (level 2)
-                    logger.warning(
+                    # Use logger.debug (level 2)
+                    logger.debug(
                         message=f"Could not fetch tagName for node {backend_node_id}",
                         auxiliary={
                             "error": {"value": str(tag_name_error), "type": "string"}
                         },
                     )
         except Exception as resolve_error:
-            # Use logger.warning (level 2)
-            logger.warning(
+            # Use logger.debug (level 2)
+            logger.debug(
                 message=f"Could not resolve DOM node ID {backend_node_id}",
                 auxiliary={"error": {"value": str(resolve_error), "type": "string"}},
             )
@@ -277,9 +278,8 @@ async def get_accessibility_tree(
             try:
                 await page.disable_cdp_domain("Accessibility")
             except Exception:
-                # Log if disabling fails, but don't raise further
-                if logger:
-                    logger.warning("Failed to disable Accessibility domain on cleanup.")
+                # Use logger.debug (level 2)
+                logger.debug("Failed to disable Accessibility domain on cleanup.")
 
 
 # JavaScript function to get XPath (remains JavaScript)

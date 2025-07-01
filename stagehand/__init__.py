@@ -1,6 +1,12 @@
+"""Stagehand - The AI Browser Automation Framework"""
+
+from importlib.metadata import version as get_version
+
 from .agent import Agent
 from .config import StagehandConfig, default_config
 from .handlers.observe_handler import ObserveHandler
+from .llm import LLMClient
+from .logging import LogConfig, configure_logging
 from .main import Stagehand
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
@@ -11,36 +17,33 @@ from .schemas import (
     AgentExecuteOptions,
     AgentExecuteResult,
     AgentProvider,
-    AvailableModel,
     ExtractOptions,
     ExtractResult,
     ObserveOptions,
     ObserveResult,
 )
-from .utils import configure_logging
 
-__version__ = "0.0.1"
+__version__ = get_version("stagehand")
 
 __all__ = [
     "Stagehand",
     "StagehandConfig",
-    "default_config",
     "StagehandPage",
     "Agent",
-    "configure_logging",
-    "ActOptions",
-    "ActResult",
-    "AvailableModel",
-    "ExtractOptions",
-    "ExtractResult",
-    "ObserveOptions",
-    "ObserveResult",
     "AgentConfig",
     "AgentExecuteOptions",
     "AgentExecuteResult",
     "AgentProvider",
+    "ActOptions",
+    "ActResult",
+    "ExtractOptions",
+    "ExtractResult",
+    "ObserveOptions",
+    "ObserveResult",
     "ObserveHandler",
-    "observe",
+    "LLMClient",
+    "configure_logging",
     "StagehandFunctionName",
     "StagehandMetrics",
+    "LogConfig",
 ]

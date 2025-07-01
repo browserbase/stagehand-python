@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release packages
+    # Only run when changeset PR is merged
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'changeset-release'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write  # For PyPI trusted publishing
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+      
+      - name: Build packages
+        run: |
+          # Find all packages with pyproject.toml
+          for pyproject in $(find . -name "pyproject.toml" -not -path "./.venv/*" -not -path "./node_modules/*"); do
+            dir=$(dirname "$pyproject")
+            echo "Building package in $dir"
+            (cd "$dir" && uv build)
+          done
+      
+      - name: Get version info
+        id: versions
+        run: |
+          # Extract version info from PR body
+          # This is a simplified version - you might want to make it more robust
+          echo "Extracting version information..."
+          
+          # For each package, get its version
+          RELEASE_TAGS=""
+          for pyproject in $(find . -name "pyproject.toml" -not -path "./.venv/*" -not -path "./node_modules/*"); do
+            dir=$(dirname "$pyproject")
+            # Extract package name and version
+            PACKAGE_NAME=$(python -c "import tomllib; print(tomllib.load(open('$pyproject', 'rb'))['project']['name'])")
+            PACKAGE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('$pyproject', 'rb'))['project']['version'])")
+            
+            # Add to release tags
+            TAG="${PACKAGE_NAME}-v${PACKAGE_VERSION}"
+            RELEASE_TAGS="${RELEASE_TAGS}${TAG} "
+            
+            echo "Package: $PACKAGE_NAME @ $PACKAGE_VERSION"
+          done
+          
+          echo "release_tags=$RELEASE_TAGS" >> $GITHUB_OUTPUT
+      
+      - name: Publish to PyPI
+        run: |
+          # Publish each package
+          for pyproject in $(find . -name "pyproject.toml" -not -path "./.venv/*" -not -path "./node_modules/*"); do
+            dir=$(dirname "$pyproject")
+            echo "Publishing package in $dir"
+            (cd "$dir" && uv publish)
+          done
+      
+      - name: Create git tags
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create tags for each package
+          for pyproject in $(find . -name "pyproject.toml" -not -path "./.venv/*" -not -path "./node_modules/*"); do
+            PACKAGE_NAME=$(python -c "import tomllib; print(tomllib.load(open('$pyproject', 'rb'))['project']['name'])")
+            PACKAGE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('$pyproject', 'rb'))['project']['version'])")
+            TAG="${PACKAGE_NAME}-v${PACKAGE_VERSION}"
+            
+            # Create and push tag
+            git tag -a "$TAG" -m "Release $PACKAGE_NAME v$PACKAGE_VERSION"
+            git push origin "$TAG"
+          done
+      
+      - name: Create GitHub releases
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the PR body which contains our changelog
+            const prBody = context.payload.pull_request.body;
+            
+            // Parse the PR body to extract package releases
+            const releaseRegex = /## (.+)@(.+)\n([\s\S]*?)(?=\n## |$)/g;
+            let match;
+            
+            while ((match = releaseRegex.exec(prBody)) !== null) {
+              const packageName = match[1];
+              const version = match[2];
+              const changelog = match[3].trim();
+              const tag = `${packageName}-v${version}`;
+              
+              try {
+                await github.rest.repos.createRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  tag_name: tag,
+                  name: `${packageName} v${version}`,
+                  body: changelog,
+                  draft: false,
+                  prerelease: false
+                });
+                console.log(`Created release for ${tag}`);
+              } catch (error) {
+                console.error(`Failed to create release for ${tag}:`, error);
+              }
+            }

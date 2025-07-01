@@ -163,12 +163,16 @@ class AgentExecuteOptions(BaseModel):
     Attributes:
         instruction (str): The instruction to execute.
         max_steps (Optional[int]): Maximum number of steps the agent can take. Defaults to 15.
-        auto_screenshot (Optional[bool]): Whether to automatically capture screenshots after each action. False will let the agent choose when to capture screenshots. Defaults to False.
+        auto_screenshot (Optional[bool]): Whether to automatically capture screenshots after each action. False will let the agent choose when to capture screenshots. Defaults to True.
+        wait_between_actions (Optional[int]): Milliseconds to wait between actions.
+        context (Optional[str]): Additional context for the agent.
     """
 
     instruction: str
     max_steps: Optional[int] = 15
-    auto_screenshot: Optional[bool] = False
+    auto_screenshot: Optional[bool] = True
+    wait_between_actions: Optional[int] = 1000
+    context: Optional[str] = None
 
 
 class EnvState(BaseModel):

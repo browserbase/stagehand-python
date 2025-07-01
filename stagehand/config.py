@@ -1,3 +1,4 @@
+import os
 from typing import Any, Callable, Literal, Optional
 
 from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
@@ -30,6 +31,8 @@ class StagehandConfig(BaseModel):
         headless (bool): Run browser in headless mode
         system_prompt (Optional[str]): System prompt to use for LLM interactions.
         local_browser_launch_options (Optional[dict[str, Any]]): Local browser launch options.
+        use_api (bool): Whether to use API mode.
+        experimental (bool): Enable experimental features.
     """
 
     env: Literal["BROWSERBASE", "LOCAL"] = "BROWSERBASE"
@@ -40,8 +43,10 @@ class StagehandConfig(BaseModel):
         None, alias="projectId", description="Browserbase project ID"
     )
     api_url: Optional[str] = Field(
-        None, alias="apiUrl", description="Stagehand API URL"
-    )  # might add a default value here
+        os.environ.get("STAGEHAND_API_URL", "https://api.stagehand.browserbase.com/v1"),
+        alias="apiUrl",
+        description="Stagehand API URL",
+    )
     model_api_key: Optional[str] = Field(
         None, alias="modelApiKey", description="Model API key"
     )
@@ -93,6 +98,16 @@ class StagehandConfig(BaseModel):
         {},
         alias="localBrowserLaunchOptions",
         description="Local browser launch options",
+    )
+    use_api: Optional[bool] = Field(
+        True,
+        alias=None,
+        description="Whether to use the Stagehand API",
+    )
+    experimental: Optional[bool] = Field(
+        False,
+        alias=None,
+        description="Whether to use experimental features",
     )
 
     model_config = ConfigDict(populate_by_name=True)

@@ -1,14 +1,13 @@
 """LLM client for model interactions."""
 
-import logging
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import litellm
 
 from stagehand.metrics import get_inference_time_ms, start_inference_timer
 
-# Configure logger for the module
-logger = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from ..logging import StagehandLogger
 
 
 class LLMClient:
@@ -19,6 +18,7 @@ class LLMClient:
 
     def __init__(
         self,
+        stagehand_logger: "StagehandLogger",
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
         metrics_callback: Optional[Callable[[Any, int, Optional[str]], None]] = None,
@@ -28,6 +28,7 @@ class LLMClient:
         Initializes the LiteLLMClient.
 
         Args:
+            stagehand_logger: StagehandLogger instance for centralized logging
             api_key: An API key for the default provider, if required.
                      It's often better to set provider-specific environment variables
                      (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY) which litellm reads automatically.
@@ -39,25 +40,25 @@ class LLMClient:
             **kwargs: Additional global settings for litellm (e.g., api_base).
                       See litellm documentation for available settings.
         """
+        self.logger = stagehand_logger
         self.default_model = default_model
         self.metrics_callback = metrics_callback
 
         # Warning:Prefer environment variables for specific providers.
         if api_key:
             litellm.api_key = api_key
-            logger.warning(
-                "Set global litellm.api_key. Prefer provider-specific environment variables."
-            )
 
         # Apply other global settings if provided
         for key, value in kwargs.items():
             if hasattr(litellm, key):
                 setattr(litellm, key, value)
-                logger.debug(f"Set global litellm.{key}")
+                self.logger.debug(f"Set global litellm.{key}", category="llm")
             # Handle common aliases or expected config names if necessary
             elif key == "api_base":  # Example: map api_base if needed
                 litellm.api_base = value
-                logger.debug(f"Set global litellm.api_base to {value}")
+                self.logger.debug(
+                    f"Set global litellm.api_base to {value}", category="llm"
+                )
 
     def create_response(
         self,
@@ -110,9 +111,11 @@ class LLMClient:
             k: v for k, v in params.items() if v is not None or k in kwargs
         }
 
-        logger.debug(
-            f"Calling litellm.completion with model={completion_model} and params: {filtered_params}"
+        self.logger.debug(
+            f"Calling litellm.completion with model={completion_model} and params: {filtered_params}",
+            category="llm",
         )
+
         try:
             # Start tracking inference time
             start_time = start_inference_timer()
@@ -130,6 +133,6 @@ class LLMClient:
             return response
 
         except Exception as e:
-            logger.error(f"Error calling litellm.completion: {e}")
+            self.logger.error(f"Error calling litellm.completion: {e}", category="llm")
             # Consider more specific exception handling based on litellm errors
             raise

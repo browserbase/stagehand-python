@@ -25,14 +25,10 @@ from .browser import (
 from .config import StagehandConfig, default_config
 from .context import StagehandContext
 from .llm import LLMClient
+from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
-from .schemas import AgentConfig
-from .utils import (
-    StagehandLogger,
-    default_log_handler,
-    make_serializable,
-)
+from .utils import make_serializable
 
 load_dotenv()
 
@@ -71,7 +67,7 @@ class Stagehand:
             self.config = config
 
         # Handle non-config parameters
-        self.api_url = self.config.api_url or os.getenv("STAGEHAND_API_URL")
+        self.api_url = self.config.api_url
         self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
         self.model_name = self.config.model_name
 
@@ -147,7 +143,7 @@ class Stagehand:
                     )
                 if not self.model_api_key:
                     # Model API key needed if Stagehand server creates the session
-                    self.logger.warning(
+                    self.logger.info(
                         "model_api_key is recommended when creating a new BROWSERBASE session to configure the Stagehand server's LLM."
                     )
             elif self.session_id:
@@ -164,25 +160,33 @@ class Stagehand:
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()
 
-        self._client: Optional[httpx.AsyncClient] = (
-            None  # Used for server communication in BROWSERBASE
-        )
+        self._client = httpx.AsyncClient(timeout=self.timeout_settings)
 
         self._playwright: Optional[Playwright] = None
         self._browser = None
         self._context: Optional[BrowserContext] = None
         self._playwright_page: Optional[PlaywrightPage] = None
         self.page: Optional[StagehandPage] = None
-        self.agent = None
         self.context: Optional[StagehandContext] = None
+        self.use_api = self.config.use_api
+        self.experimental = self.config.experimental
+        if self.experimental or self.env == "LOCAL":
+            self.use_api = False
+        if (
+            self.browserbase_session_create_params
+            and self.browserbase_session_create_params.get("region")
+            and self.browserbase_session_create_params.get("region") != "us-west-2"
+        ):
+            self.use_api = False
 
         self._initialized = False  # Flag to track if init() has run
         self._closed = False  # Flag to track if resources have been closed
 
         # Setup LLM client if LOCAL mode
         self.llm = None
-        if self.env == "LOCAL":
+        if not self.use_api:
             self.llm = LLMClient(
+                stagehand_logger=self.logger,
                 api_key=self.model_api_key,
                 default_model=self.model_name,
                 metrics_callback=self._handle_llm_metrics,
@@ -390,19 +394,17 @@ class Stagehand:
         self._playwright = await async_playwright().start()
 
         if self.env == "BROWSERBASE":
-            if not self._client:
-                self._client = httpx.AsyncClient(timeout=self.timeout_settings)
-
             # Create session if we don't have one
-            if not self.session_id:
-                await self._create_session()  # Uses self._client and api_url
-                self.logger.debug(
-                    f"Created new Browserbase session via Stagehand server: {self.session_id}"
-                )
-            else:
-                self.logger.debug(
-                    f"Using existing Browserbase session: {self.session_id}"
-                )
+            if self.use_api:
+                if not self.session_id:
+                    await self._create_session()  # Uses self._client and api_url
+                    self.logger.debug(
+                        f"Created new Browserbase session via Stagehand server: {self.session_id}"
+                    )
+                else:
+                    self.logger.debug(
+                        f"Using existing Browserbase session: {self.session_id}"
+                    )
 
             # Connect to remote browser
             try:
@@ -448,7 +450,7 @@ class Stagehand:
 
         self._initialized = True
 
-    def agent(self, agent_config: AgentConfig) -> Agent:
+    def agent(self, **kwargs) -> Agent:
         """
         Create an agent instance configured with the provided options.
 
@@ -464,9 +466,9 @@ class Stagehand:
                 "Stagehand must be initialized with await init() before creating an agent."
             )
 
-        self.logger.debug(f"Creating Agent instance with config: {agent_config}")
+        self.logger.debug(f"Creating Agent instance with config: {kwargs}")
         # Pass the required config directly to the Agent constructor
-        return Agent(self, agent_config=agent_config)
+        return Agent(self, **kwargs)
 
     async def close(self):
         """
@@ -479,8 +481,8 @@ class Stagehand:
 
         self.logger.debug("Closing resources...")
 
-        if self.env == "BROWSERBASE":
-            # --- BROWSERBASE Cleanup ---
+        if self.use_api:
+            # --- BROWSERBASE Cleanup (API) ---
             # End the session on the server if we have a session ID
             if self.session_id and self._client:  # Check if client was initialized
                 try:

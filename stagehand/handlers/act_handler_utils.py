@@ -458,7 +458,7 @@ async def handle_possible_page_navigation(
     try:
         await stagehand_page._wait_for_settled_dom(dom_settle_timeout_ms)
     except Exception as e:
-        logger.warning(
+        logger.debug(
             message="wait for settled DOM timeout hit",
             category="action",
             auxiliary={
