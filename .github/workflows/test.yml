@@ -206,8 +206,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
         pip install jsonschema
-        # Install temporary Google GenAI wheel
-        pip install temp/google_genai-1.14.0-py3-none-any.whl
         playwright install chromium
         playwright install-deps chromium
     
