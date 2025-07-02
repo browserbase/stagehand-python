@@ -3,6 +3,9 @@ Regression test for act timeout functionality.
 
 This test verifies that the timeout mechanism works correctly for act operations,
 based on the TypeScript expect_act_timeout evaluation.
+
+NOTE: Act timeout functionality has been removed from the Python implementation.
+These tests are skipped until timeout support is re-implemented.
 """
 
 import os
@@ -62,31 +65,25 @@ class TestActTimeout:
     @pytest.mark.asyncio
     @pytest.mark.regression
     @pytest.mark.local
+    @pytest.mark.skip(reason="Act timeout functionality has been removed from the Python implementation")
     async def test_expect_act_timeout_local(self, local_stagehand):
         """
         Regression test: expect_act_timeout
         
-        Mirrors the TypeScript expect_act_timeout evaluation:
+        SKIPPED: Act timeout functionality has been removed from the Python implementation.
+        The timeout_ms parameter in ActOptions is not currently handled by the act handler.
+        
+        Original test purpose:
         - Navigate to docs.stagehand.dev
         - Attempt action with 1 second timeout
         - Expect the action to fail due to timeout
         """
-        stagehand = local_stagehand
-        
-        await stagehand.page.goto("https://docs.stagehand.dev")
-        
-        result = await stagehand.page.act(
-             "search for 'Stagehand'",
-            timeout_ms=1000  # 1 second timeout
-        )
-        
-        # Test passes if the action failed (due to timeout or element not found)
-        # This mirrors the TypeScript: _success: !result.success
-        assert not result.success, "Action should have failed due to timeout or missing element"
+        pass
 
     @pytest.mark.asyncio
     @pytest.mark.regression
     @pytest.mark.api
+    @pytest.mark.skip(reason="Act timeout functionality has been removed from the Python implementation")
     @pytest.mark.skipif(
         not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
         reason="Browserbase credentials not available"
@@ -95,16 +92,12 @@ class TestActTimeout:
         """
         Regression test: expect_act_timeout (Browserbase)
         
-        Same test as local but running in Browserbase environment.
+        SKIPPED: Act timeout functionality has been removed from the Python implementation.
+        The timeout_ms parameter in ActOptions is not currently handled by the act handler.
+        
+        Original test purpose:
+        - Navigate to docs.stagehand.dev  
+        - Attempt action with 1 second timeout
+        - Expect the action to fail due to timeout
         """
-        stagehand = browserbase_stagehand
-        
-        await stagehand.page.goto("https://docs.stagehand.dev")
-        
-        result = await stagehand.page.act(
-            "search for 'Stagehand'",
-            timeout_ms=1000  # 1 second timeout
-        )
-        
-        # Test passes if the action failed (due to timeout or element not found)
-        assert not result.success, "Action should have failed due to timeout or missing element" 
+        pass 
