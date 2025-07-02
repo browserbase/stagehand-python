@@ -4,8 +4,8 @@ Regression test for act timeout functionality.
 This test verifies that the timeout mechanism works correctly for act operations,
 based on the TypeScript expect_act_timeout evaluation.
 
-NOTE: Act timeout functionality has been removed from the Python implementation.
-These tests are skipped until timeout support is re-implemented.
+NOTE: Act timeout functionality has been not been implemented in the Python library yet.
+These tests are skipped until timeout support is implemented.
 """
 
 import os
