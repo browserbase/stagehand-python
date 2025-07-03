@@ -181,6 +181,7 @@ async def connect_local_browser(
         # Prepare Launch Options (translate keys if needed)
         launch_options = {
             "headless": local_browser_launch_options.get("headless", False),
+            "slow_mo": local_browser_launch_options.get("slow_mo", None),
             "accept_downloads": local_browser_launch_options.get(
                 "acceptDownloads", True
             ),
