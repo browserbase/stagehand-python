@@ -128,7 +128,7 @@ async def main():
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="google/gemini-2.5-flash-preview-05-20",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+        model_api_key=os.getenv("MODEL_API_KEY"),
     )
     
     stagehand = Stagehand(config)
