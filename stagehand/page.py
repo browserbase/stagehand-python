@@ -104,7 +104,7 @@ class StagehandPage:
         return result
 
     async def act(
-        self, action_or_result: Union[str, ObserveResult], **kwargs
+        self, action_or_result: Union[str, ObserveResult, dict], **kwargs
     ) -> ActResult:
         """
         Execute an AI action or a pre-observed action via the Stagehand server.
@@ -136,6 +136,10 @@ class StagehandPage:
             payload = options.model_dump(exclude_none=True, by_alias=True)
         elif isinstance(action_or_result, ActOptions):
             payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
+        elif isinstance(action_or_result, dict):
+            payload = ObserveResult(**action_or_result).model_dump(
+                exclude_none=True, by_alias=True
+            )
         else:
             raise TypeError(
                 "Invalid arguments for 'act'. Expected str, ObserveResult, or ActOptions."
