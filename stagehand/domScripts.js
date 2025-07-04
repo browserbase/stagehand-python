@@ -291,21 +291,6 @@
     };
   
     // lib/dom/utils.ts
-    async function waitForDomSettle() {
-      return new Promise((resolve) => {
-        const createTimeout = () => {
-          return setTimeout(() => {
-            resolve();
-          }, 2e3);
-        };
-        let timeout = createTimeout();
-        const observer = new MutationObserver(() => {
-          clearTimeout(timeout);
-          timeout = createTimeout();
-        });
-        observer.observe(window.document.body, { childList: true, subtree: true });
-      });
-    }
     function calculateViewportHeight() {
       return Math.ceil(window.innerHeight * 0.75);
     }
@@ -1046,7 +1031,6 @@
       }
       return boundingBoxes;
     }
-    window.waitForDomSettle = waitForDomSettle;
     window.processDom = processDom;
     window.processAllOfDom = processAllOfDom;
     window.storeDOM = storeDOM;

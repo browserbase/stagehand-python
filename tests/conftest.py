@@ -395,10 +395,6 @@ def mock_dom_scripts():
         return ['//body', '//div[@class="content"]'];
     };
     
-    window.waitForDomSettle = function() {
-        return Promise.resolve();
-    };
-    
     window.getElementInfo = function(selector) {
         return {
             selector: selector,
