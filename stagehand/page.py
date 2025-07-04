@@ -486,7 +486,13 @@ class StagehandPage:
         await client.send("Page.enable")
         await client.send(
             "Target.setAutoAttach",
-            {"autoAttach": True, "waitForDebuggerOnStart": False, "flatten": True},
+            {"autoAttach": True,
+             "waitForDebuggerOnStart": False,
+             "flatten": True,
+             "filter": [
+                 { "type" : "worker", "exclude": True},
+                 { "type": "shared_worker", "exclude": True }
+             ]},
         )
 
         # Set up tracking structures
