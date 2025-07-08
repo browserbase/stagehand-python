@@ -339,6 +339,27 @@ async def press_key(ctx: MethodHandlerContext) -> None:
         raise e
 
 
+async def select_option(ctx: MethodHandlerContext) -> None:
+    try:
+        text = str(ctx.args[0]) if ctx.args and ctx.args[0] is not None else ""
+        await ctx.locator.select_option(text, timeout=5_000)
+    except Exception as e:
+        ctx.logger.error(
+            message="error selecting option",
+            category="action",
+            auxiliary={
+                "error": {"value": str(e), "type": "string"},
+                "trace": {
+                    "value": getattr(e, "__traceback__", ""),
+                    "type": "string",
+                },
+                "xpath": {"value": ctx.xpath, "type": "string"},
+                "args": {"value": json.dumps(ctx.args), "type": "object"},
+            },
+        )
+        raise e
+
+
 async def click_element(ctx: MethodHandlerContext) -> None:
     ctx.logger.debug(
         message=f"page URL before click {ctx.stagehand_page._page.url}",
@@ -500,4 +521,5 @@ method_handler_map: dict[
     "click": click_element,
     "nextChunk": scroll_to_next_chunk,
     "prevChunk": scroll_to_previous_chunk,
+    "selectOptionFromDropdown": select_option,
 }
