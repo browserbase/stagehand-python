@@ -169,7 +169,7 @@ class TestActIntegration:
         # We are expecting stagehand to click the dropdown to expand it, and therefore
         # the available options should now be contained in the full a11y tree.
 
-        # To test, we'll grab the full a11y tree, and make sure it contains 'Green'
+        # To test, we'll grab the full a11y tree, and make sure it contains 'Canada'
         extraction = await stagehand.page.extract()
         assert "Canada" in extraction.data
 
