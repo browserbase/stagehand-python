@@ -1,4 +1,4 @@
-from litellm.proxy.client.cli.commands.models import models<div id="toc" align="center" style="margin-bottom: 0;">
+<div id="toc" align="center" style="margin-bottom: 0;">
   <ul style="list-style: none; margin: 0; padding: 0;">
     <a href="https://stagehand.dev">
       <picture>
@@ -158,6 +158,22 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+```
+
+## LLM Customization
+If you’d like to use a custom LLM, you can do so by providing an `apiKey` and `baseUrl` in the `model_client_options` parameter of the `StagehandConfig`.   
+Most LLMs are OpenAI-compatible, and thus can be used with Stagehand as long as they support structured outputs.  
+Only supported for 'LOCAL' environment.
+
+```python
+config = StagehandConfig(
+    env="LOCAL",
+    model_name="llama3.3",
+    model_client_options={
+        "apiKey": "llama3.3",
+        "baseUrl": "http://localhost:11434/v1"
+    }
+)
 ```
 
 ## Documentation
