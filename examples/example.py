@@ -7,8 +7,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
 
-from stagehand import Stagehand, StagehandConfig
-from stagehand.utils import configure_logging
+from stagehand import Stagehand, StagehandConfig, configure_logging
 
 # Compatibility function for Panel.fit (available in Rich >= 14.0.0)
 def create_panel(content, **kwargs):
