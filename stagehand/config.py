@@ -19,6 +19,7 @@ class StagehandConfig(BaseModel):
         browserbase_session_create_params (Optional[BrowserbaseSessionCreateParams]): Browserbase session create params.
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.
+        model_api_key (Optional[str]): Model API key.
         model_client_options (Optional[dict[str, Any]]): Options for the model client.
         logger (Optional[Callable[[Any], None]]): Custom logging function.
         verbose (Optional[int]): Verbosity level for logs (1=minimal, 2=medium, 3=detailed).
@@ -46,6 +47,9 @@ class StagehandConfig(BaseModel):
         os.environ.get("STAGEHAND_API_URL", "https://api.stagehand.browserbase.com/v1"),
         alias="apiUrl",
         description="Stagehand API URL",
+    )
+    model_api_key: Optional[str] = Field(
+        None, alias="modelApiKey", description="Model API key"
     )
     model_client_options: Optional[dict[str, Any]] = Field(
         None, alias="modelClientOptions", description="Configuration options for the language model client (i.e. apiKey, baseURL)",

@@ -71,7 +71,8 @@ class Stagehand:
 
         # Handle model-related settings
         self.model_client_options = self.config.model_client_options or {}
-        self.model_api_key = self.model_client_options.get("apiKey") or os.getenv("MODEL_API_KEY")
+        self.model_api_key = self.config.model_api_key or self.model_client_options.get("apiKey") or os.getenv("MODEL_API_KEY")
+
         self.model_name = self.config.model_name
 
         # Extract frequently used values from config for convenience
