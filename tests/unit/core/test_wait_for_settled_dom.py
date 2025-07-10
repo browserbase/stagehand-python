@@ -41,7 +41,11 @@ async def test_wait_for_settled_dom_basic(mock_stagehand_client, mock_playwright
     mock_cdp_client.send.assert_any_call("Target.setAutoAttach", {
         "autoAttach": True,
         "waitForDebuggerOnStart": False,
-        "flatten": True
+        "flatten": True,
+        "filter": [
+            {"type": "worker", "exclude": True},
+            {"type": "shared_worker", "exclude": True},
+        ],
     })
     
     # Verify event handlers were registered
