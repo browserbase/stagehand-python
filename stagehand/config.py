@@ -20,6 +20,7 @@ class StagehandConfig(BaseModel):
         browserbase_session_id (Optional[str]): Session ID for resuming Browserbase sessions.
         model_name (Optional[str]): Name of the model to use.
         model_api_key (Optional[str]): Model API key.
+        model_client_options (Optional[dict[str, Any]]): Options for the model client.
         logger (Optional[Callable[[Any], None]]): Custom logging function.
         verbose (Optional[int]): Verbosity level for logs (1=minimal, 2=medium, 3=detailed).
         use_rich_logging (bool): Whether to use Rich for colorized logging.
@@ -49,6 +50,9 @@ class StagehandConfig(BaseModel):
     )
     model_api_key: Optional[str] = Field(
         None, alias="modelApiKey", description="Model API key"
+    )
+    model_client_options: Optional[dict[str, Any]] = Field(
+        None, alias="modelClientOptions", description="Configuration options for the language model client (i.e. apiKey, baseURL)",
     )
     verbose: Optional[int] = Field(
         1,

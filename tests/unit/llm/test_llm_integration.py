@@ -40,6 +40,7 @@ class TestLLMClientInitialization:
             api_key="test-key",
             default_model="gpt-4o-mini",
             stagehand_logger=StagehandLogger(),
+            api_base="https://test-api-base.com",
         )
         
         assert client.default_model == "gpt-4o-mini"
