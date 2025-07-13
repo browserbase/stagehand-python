@@ -9,16 +9,6 @@ from rich.theme import Theme
 
 from stagehand import Stagehand, StagehandConfig, configure_logging
 
-# Compatibility function for Panel.fit (available in Rich >= 14.0.0)
-def create_panel(content, **kwargs):
-    """Create a panel with fallback for older Rich versions."""
-    try:
-        # Try to use Panel.fit if available
-        return Panel.fit(content, **kwargs)
-    except AttributeError:
-        # Fallback to regular Panel for older Rich versions
-        return Panel(content, **kwargs)
-
 # Configure logging with cleaner format
 configure_logging(
     level=logging.INFO,
@@ -44,7 +34,7 @@ console = Console(theme=custom_theme)
 load_dotenv()
 
 console.print(
-    create_panel(
+    Panel(
         "[yellow]Stagehand Python SDK Example[/]\n"
         "[white]This example demonstrates basic Stagehand functionality.[/]",
         title="Welcome",
@@ -53,7 +43,7 @@ console.print(
 )
 
 console.print(
-    create_panel(
+    Panel(
         "[yellow]Logging Levels:[/]\n"
         "[white]- Set [bold]verbose=0[/] for errors (ERROR)[/]\n"
         "[white]- Set [bold]verbose=1[/] for minimal logs (INFO)[/]\n"
@@ -145,7 +135,7 @@ if __name__ == "__main__":
     # Add a fancy header
     console.print(
         "\n",
-        create_panel(
+        Panel(
             "[light_gray]Stagehand 🤘 Python Example[/]",
             border_style="green",
             padding=(1, 10),
