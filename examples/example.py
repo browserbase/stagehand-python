@@ -35,15 +35,6 @@ load_dotenv()
 
 console.print(
     Panel(
-        "[yellow]Stagehand Python SDK Example[/]\n"
-        "[white]This example demonstrates basic Stagehand functionality.[/]",
-        title="Welcome",
-        border_style="blue",
-    )
-)
-
-console.print(
-    Panel(
         "[yellow]Logging Levels:[/]\n"
         "[white]- Set [bold]verbose=0[/] for errors (ERROR)[/]\n"
         "[white]- Set [bold]verbose=1[/] for minimal logs (INFO)[/]\n"
