@@ -111,6 +111,92 @@ class TestActIntegration:
 
     @pytest.mark.asyncio
     @pytest.mark.local
+    async def test_selecting_option_local(self, local_stagehand):
+        """Test option selecting capability in LOCAL mode"""
+        stagehand = local_stagehand
+        
+        # Navigate to a page with a form containing a dropdown
+        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/nested-dropdown/")
+        
+        # Select an option from the dropdown.
+        await stagehand.page.act("Choose 'Smog Check Technician' from the 'License Type' dropdown")
+        
+        # Verify the selected option.
+        selected_option = await stagehand.page.locator(
+            "xpath=/html/body/form/div[1]/div[3]/article/div[2]/div[1]/select[2] >> option:checked"
+        ).text_content()
+
+        assert selected_option == "Smog Check Technician"
+
+    @pytest.mark.asyncio
+    @pytest.mark.browserbase
+    @pytest.mark.skipif(
+        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
+        reason="Browserbase credentials not available"
+    )
+    async def test_selecting_option_browserbase(self, browserbase_stagehand):
+        """Test option selecting capability in BROWSERBASE mode"""
+        stagehand = browserbase_stagehand
+        
+        # Navigate to a page with a form containing a dropdown
+        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/nested-dropdown/")
+        
+        # Select an option from the dropdown.
+        await stagehand.page.act("Choose 'Smog Check Technician' from the 'License Type' dropdown")
+        
+        # Verify the selected option.
+        selected_option = await stagehand.page.locator(
+            "xpath=/html/body/form/div[1]/div[3]/article/div[2]/div[1]/select[2] >> option:checked"
+        ).text_content()
+
+        assert selected_option == "Smog Check Technician"
+
+    @pytest.mark.asyncio
+    @pytest.mark.local
+    async def test_selecting_option_custom_input_local(self, local_stagehand):
+        """Test not selecting option on custom select input in LOCAL mode"""
+        stagehand = local_stagehand
+        
+        # Navigate to a page with a form containing a dropdown
+        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/expand-dropdown/")
+        
+        # Select an option from the dropdown.
+        await stagehand.page.act("Click the 'Select a Country' dropdown")
+
+        # Wait for dropdown to expand
+        await asyncio.sleep(1)
+        
+        # We are expecting stagehand to click the dropdown to expand it, and therefore
+        # the available options should now be contained in the full a11y tree.
+
+        # To test, we'll grab the full a11y tree, and make sure it contains 'Canada'
+        extraction = await stagehand.page.extract()
+        assert "Canada" in extraction.data
+
+    @pytest.mark.asyncio
+    @pytest.mark.local
+    async def test_selecting_option_hidden_input_local(self, local_stagehand):
+        """Test not selecting option on hidden input in LOCAL mode"""
+        stagehand = local_stagehand
+        
+        # Navigate to a page with a form containing a dropdown
+        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/hidden-input-dropdown/")
+        
+        # Select an option from the dropdown.
+        await stagehand.page.act("Click to expand the 'Favourite Colour' dropdown")
+        
+        # Wait for dropdown to expand
+        await asyncio.sleep(1)
+        
+        # We are expecting stagehand to click the dropdown to expand it, and therefore
+        # the available options should now be contained in the full a11y tree.
+
+        # To test, we'll grab the full a11y tree, and make sure it contains 'Green'
+        extraction = await stagehand.page.extract()
+        assert "Green" in extraction.data
+
+    @pytest.mark.asyncio
+    @pytest.mark.local
     async def test_button_clicking_local(self, local_stagehand):
         """Test button clicking functionality in LOCAL mode"""
         stagehand = local_stagehand
