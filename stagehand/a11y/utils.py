@@ -95,6 +95,11 @@ async def _clean_structural_nodes(
                 auxiliary={"error": {"value": str(resolve_error), "type": "string"}},
             )
 
+    # Rename `combobox` to `select` as they are functionally equivalent.
+    if node_role == "combobox":
+        node_role = "select"
+        node['role'] = node_role
+
     # Remove redundant StaticText children
     cleaned_children = _remove_redundant_static_text_children(node, cleaned_children)
 
