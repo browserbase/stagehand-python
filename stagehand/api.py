@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from importlib.metadata import version as get_version
 from typing import Any
 
 from .utils import convert_dict_keys_to_camel_case
@@ -70,6 +71,7 @@ async def _create_session(self):
         "Content-Type": "application/json",
         "x-sent-at": datetime.now().isoformat(),
         "x-language": "python",
+        "x-sdk-version": get_version("stagehand"),
     }
 
     # async with self._client:
