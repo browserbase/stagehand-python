@@ -68,7 +68,8 @@ async def _create_session(self):
         try:
             result = version(package_str)
         except PackageNotFoundError:
-            result = package_str + " not installed"
+            self.logger.error(package_str + " not installed")
+            result = None
         return result
 
     headers = {
