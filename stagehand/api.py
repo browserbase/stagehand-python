@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 from typing import Any
 
 from .utils import convert_dict_keys_to_camel_case
