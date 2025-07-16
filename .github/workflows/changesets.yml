@@ -69,6 +69,9 @@ jobs:
           cat pr-description.md >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           rm pr-description.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump versions
         if: steps.check_changesets.outputs.has_changesets == 'true'
