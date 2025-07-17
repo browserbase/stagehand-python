@@ -203,3 +203,92 @@ class TestClientInitialization:
         # Call _create_session and expect error
         with pytest.raises(RuntimeError, match="Invalid response format"):
             await client._create_session()
+
+    @pytest.mark.asyncio
+    @mock.patch("stagehand.main.async_playwright")
+    async def test_init_playwright_in_thread(self, mock_async_playwright):
+        """Test that playwright initialization works properly in a separate thread."""
+        # Create a mock playwright instance
+        mock_playwright_instance = mock.AsyncMock()
+        mock_playwright_instance.stop = mock.AsyncMock()
+        mock_playwright_instance.chromium = mock.MagicMock()
+        
+        # Mock the async_playwright().start() to return our mock instance
+        mock_async_playwright_start = mock.AsyncMock(return_value=mock_playwright_instance)
+        mock_async_playwright.return_value.start = mock_async_playwright_start
+        
+        # Create a Stagehand client with LOCAL env
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+        
+        # Test the threaded playwright initialization
+        result = await client._init_playwright_in_thread()
+        
+        # Verify that the playwright instance was returned
+        assert result is mock_playwright_instance
+        
+        # Verify that async_playwright().start() was called
+        mock_async_playwright_start.assert_called_once()
+        
+        # Verify the result has the expected attributes
+        assert hasattr(result, 'chromium')
+        assert hasattr(result, 'stop')
+
+    @pytest.mark.asyncio 
+    @mock.patch("stagehand.main.async_playwright")
+    async def test_init_playwright_in_thread_handles_exceptions(self, mock_async_playwright):
+        """Test that threaded playwright initialization properly handles exceptions."""
+        # Mock async_playwright().start() to raise an exception
+        mock_async_playwright.return_value.start.side_effect = Exception("Test exception")
+        
+        # Create a Stagehand client with LOCAL env
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+        
+        # Test that the method raises a RuntimeError with our exception message
+        with pytest.raises(RuntimeError, match="Failed to initialize Playwright in thread"):
+            await client._init_playwright_in_thread()
+
+    @pytest.mark.asyncio
+    @mock.patch("stagehand.main.cleanup_browser_resources")
+    @mock.patch("stagehand.main.connect_local_browser")
+    @mock.patch.object(Stagehand, "_init_playwright_in_thread")
+    async def test_init_uses_threaded_playwright(
+        self, mock_init_playwright, mock_connect_local, mock_cleanup
+    ):
+        """Test that the main init() method uses threaded playwright initialization."""
+        # Set up mocks
+        mock_playwright_instance = mock.AsyncMock()
+        mock_init_playwright.return_value = mock_playwright_instance
+        
+        # Mock the browser connection to avoid complex setup
+        mock_browser = mock.AsyncMock()
+        mock_context = mock.AsyncMock() 
+        mock_stagehand_context = mock.MagicMock()
+        mock_page = mock.MagicMock()
+        mock_page._page = mock.AsyncMock()
+        
+        mock_connect_local.return_value = (
+            mock_browser,
+            mock_context, 
+            mock_stagehand_context,
+            mock_page,
+            None  # temp_user_data_dir
+        )
+        
+        # Create a Stagehand client with LOCAL env
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+        
+        # Initialize the client
+        await client.init()
+        
+        # Verify that threaded playwright initialization was called
+        mock_init_playwright.assert_called_once()
+        
+        # Verify that the client is properly initialized
+        assert client._initialized is True
+        assert client._playwright is mock_playwright_instance
+        
+        # Clean up
+        await client.close()

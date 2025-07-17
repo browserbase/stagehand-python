@@ -391,7 +391,9 @@ class Stagehand:
         self.logger.debug("Initializing Stagehand...")
         self.logger.debug(f"Environment: {self.env}")
 
-        self._playwright = await async_playwright().start()
+        # Always initialize playwright in a thread to avoid event loop conflicts
+        # This ensures compatibility with strict event loop environments like Langgraph
+        self._playwright = await self._init_playwright_in_thread()
 
         if self.env == "BROWSERBASE":
             # Create session if we don't have one
@@ -449,6 +451,43 @@ class Stagehand:
             raise RuntimeError(f"Invalid env value: {self.env}")
 
         self._initialized = True
+
+    async def _init_playwright_in_thread(self):
+        """
+        Initialize playwright in a separate thread for compatibility with strict event loops.
+        
+        This method runs the playwright initialization in a separate thread to avoid
+        blocking operations that can conflict with strict event loop environments
+        like Langgraph when running without --allow-blocking.
+        """
+        def _start_playwright():
+            """Helper function to start playwright in a separate thread."""
+            import asyncio
+            
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                # Start playwright in this thread's event loop
+                return loop.run_until_complete(async_playwright().start())
+            finally:
+                # Clean up the loop
+                loop.close()
+        
+        self.logger.debug("Starting playwright in separate thread...")
+        
+        try:
+            # Run the playwright initialization in a thread
+            playwright_instance = await asyncio.to_thread(_start_playwright)
+            self.logger.debug("Playwright initialized successfully in thread")
+            return playwright_instance
+        except Exception as e:
+            self.logger.error(f"Failed to initialize playwright in thread: {e}")
+            raise RuntimeError(
+                "Failed to initialize Playwright in thread. This may indicate a "
+                "deeper compatibility issue with your environment."
+            ) from e
 
     def agent(self, **kwargs) -> Agent:
         """
