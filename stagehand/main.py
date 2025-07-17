@@ -391,9 +391,9 @@ class Stagehand:
         self.logger.debug("Initializing Stagehand...")
         self.logger.debug(f"Environment: {self.env}")
 
-        # Always initialize playwright in a thread to avoid event loop conflicts
+        # Always initialize playwright with timeout to avoid hanging
         # This ensures compatibility with strict event loop environments like Langgraph
-        self._playwright = await self._init_playwright_in_thread()
+        self._playwright = await self._init_playwright_with_timeout()
 
         if self.env == "BROWSERBASE":
             # Create session if we don't have one
@@ -452,42 +452,38 @@ class Stagehand:
 
         self._initialized = True
 
-    async def _init_playwright_in_thread(self):
+    async def _init_playwright_with_timeout(self):
         """
-        Initialize playwright using asyncio.to_thread to avoid blocking the main event loop.
+        Initialize playwright with a timeout to avoid hanging in strict event loop environments.
         
-        This method runs the potentially blocking async_playwright().start() in a thread
-        to avoid conflicts with strict event loop environments like Langgraph.
+        This method adds a timeout to the regular async_playwright().start() to prevent
+        hanging in environments like Langgraph that restrict blocking operations.
         """
-        self.logger.debug("Starting playwright initialization in background thread...")
-        
-        def _start_playwright_blocking():
-            """Start playwright in a blocking manner - will be run in a thread."""
-            import asyncio
-            from playwright.async_api import async_playwright
-            
-            # Create a new event loop for this thread
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            
-            try:
-                # Run the async playwright start in this loop
-                return loop.run_until_complete(async_playwright().start())
-            finally:
-                loop.close()
+        self.logger.debug("Starting playwright initialization with timeout...")
         
         try:
-            # Use asyncio.to_thread to run the blocking initialization
-            playwright_instance = await asyncio.to_thread(_start_playwright_blocking)
+            # Use asyncio.wait_for to add a timeout to prevent hanging
+            # If the environment doesn't allow blocking operations, this will fail fast
+            playwright_instance = await asyncio.wait_for(
+                async_playwright().start(),
+                timeout=30.0  # 30 second timeout
+            )
             
-            self.logger.debug("Playwright initialized successfully in background thread")
+            self.logger.debug("Playwright initialized successfully")
             return playwright_instance
             
-        except Exception as e:
-            self.logger.error(f"Failed to initialize playwright in background thread: {e}")
+        except asyncio.TimeoutError:
+            self.logger.error("Playwright initialization timed out")
             raise RuntimeError(
-                "Failed to initialize Playwright in background thread. This may indicate a "
-                "deeper compatibility issue with your environment."
+                "Playwright initialization timed out after 30 seconds. This may indicate "
+                "your environment has strict event loop restrictions. If using Langgraph, "
+                "consider using the --allow-blocking flag."
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to initialize playwright: {e}")
+            raise RuntimeError(
+                "Failed to initialize Playwright. This may indicate your environment "
+                "has restrictions on subprocess creation or event loop operations."
             ) from e
 
     def agent(self, **kwargs) -> Agent:

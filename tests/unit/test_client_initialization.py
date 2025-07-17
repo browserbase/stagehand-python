@@ -205,9 +205,9 @@ class TestClientInitialization:
             await client._create_session()
 
     @pytest.mark.asyncio
-    @mock.patch("asyncio.to_thread")
-    async def test_init_playwright_in_thread(self, mock_to_thread):
-        """Test that playwright initialization works properly using asyncio.to_thread."""
+    @mock.patch("stagehand.main.async_playwright")
+    async def test_init_playwright_with_timeout(self, mock_async_playwright):
+        """Test that playwright initialization works properly with timeout."""
         # Create a mock playwright instance
         mock_playwright_instance = mock.AsyncMock()
         mock_playwright_instance.stop = mock.AsyncMock()
@@ -215,21 +215,21 @@ class TestClientInitialization:
         mock_playwright_instance.firefox = mock.MagicMock()
         mock_playwright_instance.webkit = mock.MagicMock()
         
-        # Mock asyncio.to_thread to return our mock instance
-        mock_to_thread.return_value = mock_playwright_instance
+        # Mock async_playwright().start() to return our mock instance as an awaitable
+        async def mock_start():
+            return mock_playwright_instance
+        
+        mock_async_playwright.return_value.start = mock_start
         
         # Create a Stagehand client with LOCAL env
         config = StagehandConfig(env="LOCAL")
         client = Stagehand(config=config)
         
-        # Test the threaded playwright initialization
-        result = await client._init_playwright_in_thread()
+        # Test the playwright initialization with timeout
+        result = await client._init_playwright_with_timeout()
         
         # Verify that the playwright instance was returned
         assert result is mock_playwright_instance
-        
-        # Verify that asyncio.to_thread was called
-        mock_to_thread.assert_called_once()
         
         # Verify the result has the expected attributes
         assert hasattr(result, 'chromium')
@@ -238,28 +238,46 @@ class TestClientInitialization:
         assert hasattr(result, 'stop')
 
     @pytest.mark.asyncio 
-    @mock.patch("asyncio.to_thread")
-    async def test_init_playwright_in_thread_handles_exceptions(self, mock_to_thread):
-        """Test that threaded playwright initialization properly handles exceptions."""
-        # Mock asyncio.to_thread to raise an exception
-        mock_to_thread.side_effect = Exception("Test exception")
+    @mock.patch("stagehand.main.async_playwright")
+    async def test_init_playwright_with_timeout_handles_exceptions(self, mock_async_playwright):
+        """Test that playwright initialization properly handles exceptions."""
+        # Mock async_playwright().start() to raise an exception as an awaitable
+        async def mock_start():
+            raise Exception("Test exception")
+        
+        mock_async_playwright.return_value.start = mock_start
         
         # Create a Stagehand client with LOCAL env
         config = StagehandConfig(env="LOCAL")
         client = Stagehand(config=config)
         
         # Test that the method raises a RuntimeError with our exception message
-        with pytest.raises(RuntimeError, match="Failed to initialize Playwright in background thread"):
-            await client._init_playwright_in_thread()
+        with pytest.raises(RuntimeError, match="Failed to initialize Playwright"):
+            await client._init_playwright_with_timeout()
+
+    @pytest.mark.asyncio 
+    @mock.patch("stagehand.main.asyncio.wait_for")
+    async def test_init_playwright_with_timeout_handles_timeout(self, mock_wait_for):
+        """Test that playwright initialization properly handles timeouts."""
+        # Mock asyncio.wait_for to raise a TimeoutError
+        mock_wait_for.side_effect = asyncio.TimeoutError()
+        
+        # Create a Stagehand client with LOCAL env
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+        
+        # Test that the method raises a RuntimeError with timeout message
+        with pytest.raises(RuntimeError, match="Playwright initialization timed out"):
+            await client._init_playwright_with_timeout()
 
     @pytest.mark.asyncio
     @mock.patch("stagehand.main.cleanup_browser_resources")
     @mock.patch("stagehand.main.connect_local_browser")
-    @mock.patch.object(Stagehand, "_init_playwright_in_thread")
-    async def test_init_uses_threaded_playwright(
+    @mock.patch.object(Stagehand, "_init_playwright_with_timeout")
+    async def test_init_uses_playwright_with_timeout(
         self, mock_init_playwright, mock_connect_local, mock_cleanup
     ):
-        """Test that the main init() method uses threaded playwright initialization."""
+        """Test that the main init() method uses playwright initialization with timeout."""
         # Set up mocks
         mock_playwright_instance = mock.AsyncMock()
         mock_init_playwright.return_value = mock_playwright_instance
@@ -286,7 +304,7 @@ class TestClientInitialization:
         # Initialize the client
         await client.init()
         
-        # Verify that threaded playwright initialization was called
+        # Verify that playwright initialization with timeout was called
         mock_init_playwright.assert_called_once()
         
         # Verify that the client is properly initialized
