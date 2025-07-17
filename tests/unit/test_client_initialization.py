@@ -205,17 +205,18 @@ class TestClientInitialization:
             await client._create_session()
 
     @pytest.mark.asyncio
-    @mock.patch("stagehand.main.async_playwright")
-    async def test_init_playwright_in_thread(self, mock_async_playwright):
-        """Test that playwright initialization works properly in a separate thread."""
+    @mock.patch("asyncio.to_thread")
+    async def test_init_playwright_in_thread(self, mock_to_thread):
+        """Test that playwright initialization works properly using asyncio.to_thread."""
         # Create a mock playwright instance
         mock_playwright_instance = mock.AsyncMock()
         mock_playwright_instance.stop = mock.AsyncMock()
         mock_playwright_instance.chromium = mock.MagicMock()
+        mock_playwright_instance.firefox = mock.MagicMock()
+        mock_playwright_instance.webkit = mock.MagicMock()
         
-        # Mock the async_playwright().start() to return our mock instance
-        mock_async_playwright_start = mock.AsyncMock(return_value=mock_playwright_instance)
-        mock_async_playwright.return_value.start = mock_async_playwright_start
+        # Mock asyncio.to_thread to return our mock instance
+        mock_to_thread.return_value = mock_playwright_instance
         
         # Create a Stagehand client with LOCAL env
         config = StagehandConfig(env="LOCAL")
@@ -227,26 +228,28 @@ class TestClientInitialization:
         # Verify that the playwright instance was returned
         assert result is mock_playwright_instance
         
-        # Verify that async_playwright().start() was called
-        mock_async_playwright_start.assert_called_once()
+        # Verify that asyncio.to_thread was called
+        mock_to_thread.assert_called_once()
         
         # Verify the result has the expected attributes
         assert hasattr(result, 'chromium')
+        assert hasattr(result, 'firefox') 
+        assert hasattr(result, 'webkit')
         assert hasattr(result, 'stop')
 
     @pytest.mark.asyncio 
-    @mock.patch("stagehand.main.async_playwright")
-    async def test_init_playwright_in_thread_handles_exceptions(self, mock_async_playwright):
+    @mock.patch("asyncio.to_thread")
+    async def test_init_playwright_in_thread_handles_exceptions(self, mock_to_thread):
         """Test that threaded playwright initialization properly handles exceptions."""
-        # Mock async_playwright().start() to raise an exception
-        mock_async_playwright.return_value.start.side_effect = Exception("Test exception")
+        # Mock asyncio.to_thread to raise an exception
+        mock_to_thread.side_effect = Exception("Test exception")
         
         # Create a Stagehand client with LOCAL env
         config = StagehandConfig(env="LOCAL")
         client = Stagehand(config=config)
         
         # Test that the method raises a RuntimeError with our exception message
-        with pytest.raises(RuntimeError, match="Failed to initialize Playwright in thread"):
+        with pytest.raises(RuntimeError, match="Failed to initialize Playwright in background thread"):
             await client._init_playwright_in_thread()
 
     @pytest.mark.asyncio

@@ -454,38 +454,39 @@ class Stagehand:
 
     async def _init_playwright_in_thread(self):
         """
-        Initialize playwright in a separate thread for compatibility with strict event loops.
+        Initialize playwright using asyncio.to_thread to avoid blocking the main event loop.
         
-        This method runs the playwright initialization in a separate thread to avoid
-        blocking operations that can conflict with strict event loop environments
-        like Langgraph when running without --allow-blocking.
+        This method runs the potentially blocking async_playwright().start() in a thread
+        to avoid conflicts with strict event loop environments like Langgraph.
         """
-        def _start_playwright():
-            """Helper function to start playwright in a separate thread."""
+        self.logger.debug("Starting playwright initialization in background thread...")
+        
+        def _start_playwright_blocking():
+            """Start playwright in a blocking manner - will be run in a thread."""
             import asyncio
+            from playwright.async_api import async_playwright
             
             # Create a new event loop for this thread
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
             try:
-                # Start playwright in this thread's event loop
+                # Run the async playwright start in this loop
                 return loop.run_until_complete(async_playwright().start())
             finally:
-                # Clean up the loop
                 loop.close()
         
-        self.logger.debug("Starting playwright in separate thread...")
-        
         try:
-            # Run the playwright initialization in a thread
-            playwright_instance = await asyncio.to_thread(_start_playwright)
-            self.logger.debug("Playwright initialized successfully in thread")
+            # Use asyncio.to_thread to run the blocking initialization
+            playwright_instance = await asyncio.to_thread(_start_playwright_blocking)
+            
+            self.logger.debug("Playwright initialized successfully in background thread")
             return playwright_instance
+            
         except Exception as e:
-            self.logger.error(f"Failed to initialize playwright in thread: {e}")
+            self.logger.error(f"Failed to initialize playwright in background thread: {e}")
             raise RuntimeError(
-                "Failed to initialize Playwright in thread. This may indicate a "
+                "Failed to initialize Playwright in background thread. This may indicate a "
                 "deeper compatibility issue with your environment."
             ) from e
 
