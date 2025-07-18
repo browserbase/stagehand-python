@@ -453,7 +453,9 @@ class Stagehand:
 
         self._initialized = True
 
-    async def _connect_local_browser_threaded(self, playwright, launch_options, stagehand, logger):
+    async def _connect_local_browser_threaded(
+        self, playwright, launch_options, stagehand, logger
+    ):
         """Connect to local browser using the threaded Playwright instance."""
         return await self._playwright_runner.run_coroutine_async(
             connect_local_browser(playwright, launch_options, stagehand, logger)
