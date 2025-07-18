@@ -137,6 +137,31 @@ class TestClientInitialization:
         assert client.close is not None
 
     @pytest.mark.asyncio
+    async def test_init_playwright_timeout(self):
+        """Test that init() raises TimeoutError when playwright takes too long to start."""
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+
+        # Mock async_playwright to simulate a hanging start() method
+        mock_playwright_instance = mock.AsyncMock()
+        mock_start = mock.AsyncMock()
+        
+        # Make start() hang indefinitely
+        async def hanging_start():
+            await asyncio.sleep(100)  # Sleep longer than the 30s timeout
+        
+        mock_start.side_effect = hanging_start
+        mock_playwright_instance.start = mock_start
+
+        with mock.patch("stagehand.main.async_playwright", return_value=mock_playwright_instance):
+            # The init() method should raise TimeoutError due to the 30-second timeout
+            with pytest.raises(asyncio.TimeoutError):
+                await client.init()
+
+        # Ensure the client is not marked as initialized
+        assert client._initialized is False
+
+    @pytest.mark.asyncio
     async def test_create_session(self):
         """Test session creation."""
         client = Stagehand(
@@ -203,113 +228,3 @@ class TestClientInitialization:
         # Call _create_session and expect error
         with pytest.raises(RuntimeError, match="Invalid response format"):
             await client._create_session()
-
-    @pytest.mark.asyncio
-    @mock.patch("stagehand.main.async_playwright")
-    async def test_init_playwright_with_timeout(self, mock_async_playwright):
-        """Test that playwright initialization works properly with timeout."""
-        # Create a mock playwright instance
-        mock_playwright_instance = mock.AsyncMock()
-        mock_playwright_instance.stop = mock.AsyncMock()
-        mock_playwright_instance.chromium = mock.MagicMock()
-        mock_playwright_instance.firefox = mock.MagicMock()
-        mock_playwright_instance.webkit = mock.MagicMock()
-        
-        # Mock async_playwright().start() to return our mock instance as an awaitable
-        async def mock_start():
-            return mock_playwright_instance
-        
-        mock_async_playwright.return_value.start = mock_start
-        
-        # Create a Stagehand client with LOCAL env
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(config=config)
-        
-        # Test the playwright initialization with timeout
-        result = await client._init_playwright_with_timeout()
-        
-        # Verify that the playwright instance was returned
-        assert result is mock_playwright_instance
-        
-        # Verify the result has the expected attributes
-        assert hasattr(result, 'chromium')
-        assert hasattr(result, 'firefox') 
-        assert hasattr(result, 'webkit')
-        assert hasattr(result, 'stop')
-
-    @pytest.mark.asyncio 
-    @mock.patch("stagehand.main.async_playwright")
-    async def test_init_playwright_with_timeout_handles_exceptions(self, mock_async_playwright):
-        """Test that playwright initialization properly handles exceptions."""
-        # Mock async_playwright().start() to raise an exception as an awaitable
-        async def mock_start():
-            raise Exception("Test exception")
-        
-        mock_async_playwright.return_value.start = mock_start
-        
-        # Create a Stagehand client with LOCAL env
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(config=config)
-        
-        # Test that the method raises a RuntimeError with our exception message
-        with pytest.raises(RuntimeError, match="Failed to initialize Playwright"):
-            await client._init_playwright_with_timeout()
-
-    @pytest.mark.asyncio 
-    @mock.patch("stagehand.main.asyncio.wait_for")
-    async def test_init_playwright_with_timeout_handles_timeout(self, mock_wait_for):
-        """Test that playwright initialization properly handles timeouts."""
-        # Mock asyncio.wait_for to raise a TimeoutError
-        mock_wait_for.side_effect = asyncio.TimeoutError()
-        
-        # Create a Stagehand client with LOCAL env
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(config=config)
-        
-        # Test that the method raises a RuntimeError with timeout message
-        with pytest.raises(RuntimeError, match="Playwright initialization timed out"):
-            await client._init_playwright_with_timeout()
-
-    @pytest.mark.asyncio
-    @mock.patch("stagehand.main.cleanup_browser_resources")
-    @mock.patch("stagehand.main.connect_local_browser")
-    @mock.patch.object(Stagehand, "_init_playwright_with_timeout")
-    async def test_init_uses_playwright_with_timeout(
-        self, mock_init_playwright, mock_connect_local, mock_cleanup
-    ):
-        """Test that the main init() method uses playwright initialization with timeout."""
-        # Set up mocks
-        mock_playwright_instance = mock.AsyncMock()
-        mock_init_playwright.return_value = mock_playwright_instance
-        
-        # Mock the browser connection to avoid complex setup
-        mock_browser = mock.AsyncMock()
-        mock_context = mock.AsyncMock() 
-        mock_stagehand_context = mock.MagicMock()
-        mock_page = mock.MagicMock()
-        mock_page._page = mock.AsyncMock()
-        
-        mock_connect_local.return_value = (
-            mock_browser,
-            mock_context, 
-            mock_stagehand_context,
-            mock_page,
-            None  # temp_user_data_dir
-        )
-        
-        # Create a Stagehand client with LOCAL env
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(config=config)
-        
-        # Initialize the client
-        await client.init()
-        
-        # Verify that playwright initialization with timeout was called
-        mock_init_playwright.assert_called_once()
-        
-        # Verify that the client is properly initialized
-        assert client._initialized is True
-        assert client._playwright is mock_playwright_instance
-        
-        # Clean up
-        await client.close()
