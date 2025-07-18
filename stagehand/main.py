@@ -392,7 +392,7 @@ class Stagehand:
         self.logger.debug(f"Environment: {self.env}")
 
         # Always initialize playwright with timeout to avoid hanging
-        # This ensures compatibility with strict event loop environments like Langgraph
+        # This ensures compatibility with strict event loop environments
         self._playwright = await self._init_playwright_with_timeout()
 
         if self.env == "BROWSERBASE":
@@ -457,7 +457,7 @@ class Stagehand:
         Initialize playwright with a timeout to avoid hanging in strict event loop environments.
         
         This method adds a timeout to the regular async_playwright().start() to prevent
-        hanging in environments like Langgraph that restrict blocking operations.
+        hanging in environments that restrict blocking operations.
         """
         self.logger.debug("Starting playwright initialization with timeout...")
         
@@ -476,8 +476,7 @@ class Stagehand:
             self.logger.error("Playwright initialization timed out")
             raise RuntimeError(
                 "Playwright initialization timed out after 30 seconds. This may indicate "
-                "your environment has strict event loop restrictions. If using Langgraph, "
-                "consider using the --allow-blocking flag."
+                "your environment has strict event loop restrictions."
             )
         except Exception as e:
             self.logger.error(f"Failed to initialize playwright: {e}")
