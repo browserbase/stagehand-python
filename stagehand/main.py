@@ -391,9 +391,10 @@ class Stagehand:
         self.logger.debug("Initializing Stagehand...")
         self.logger.debug(f"Environment: {self.env}")
 
-        # Always initialize playwright with timeout to avoid hanging
-        # This ensures compatibility with strict event loop environments
-        self._playwright = await self._init_playwright_with_timeout()
+        # Initialize Playwright with timeout
+        self._playwright = await asyncio.wait_for(
+            async_playwright().start(), timeout=30.0  # 30 second timeout
+        )
 
         if self.env == "BROWSERBASE":
             # Create session if we don't have one
@@ -452,37 +453,11 @@ class Stagehand:
 
         self._initialized = True
 
-    async def _init_playwright_with_timeout(self):
-        """
-        Initialize playwright with a timeout to avoid hanging in strict event loop environments.
-
-        This method adds a timeout to the regular async_playwright().start() to prevent
-        hanging in environments that restrict blocking operations.
-        """
-        self.logger.debug("Starting playwright initialization with timeout...")
-
-        try:
-            # Use asyncio.wait_for to add a timeout to prevent hanging
-            # If the environment doesn't allow blocking operations, this will fail fast
-            playwright_instance = await asyncio.wait_for(
-                async_playwright().start(), timeout=30.0  # 30 second timeout
-            )
-
-            self.logger.debug("Playwright initialized successfully")
-            return playwright_instance
-
-        except asyncio.TimeoutError:
-            self.logger.error("Playwright initialization timed out")
-            raise RuntimeError(
-                "Playwright initialization timed out after 30 seconds. This may indicate "
-                "your environment has strict event loop restrictions."
-            ) from None
-        except Exception as e:
-            self.logger.error(f"Failed to initialize playwright: {e}")
-            raise RuntimeError(
-                "Failed to initialize Playwright. This may indicate your environment "
-                "has restrictions on subprocess creation or event loop operations."
-            ) from e
+    async def _connect_local_browser_threaded(self, playwright, launch_options, stagehand, logger):
+        """Connect to local browser using the threaded Playwright instance."""
+        return await self._playwright_runner.run_coroutine_async(
+            connect_local_browser(playwright, launch_options, stagehand, logger)
+        )
 
     def agent(self, **kwargs) -> Agent:
         """
