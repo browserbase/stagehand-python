@@ -476,7 +476,7 @@ class Stagehand:
             raise RuntimeError(
                 "Playwright initialization timed out after 30 seconds. This may indicate "
                 "your environment has strict event loop restrictions."
-            )
+            ) from None
         except Exception as e:
             self.logger.error(f"Failed to initialize playwright: {e}")
             raise RuntimeError(
