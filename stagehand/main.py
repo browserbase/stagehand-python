@@ -455,23 +455,22 @@ class Stagehand:
     async def _init_playwright_with_timeout(self):
         """
         Initialize playwright with a timeout to avoid hanging in strict event loop environments.
-        
+
         This method adds a timeout to the regular async_playwright().start() to prevent
         hanging in environments that restrict blocking operations.
         """
         self.logger.debug("Starting playwright initialization with timeout...")
-        
+
         try:
             # Use asyncio.wait_for to add a timeout to prevent hanging
             # If the environment doesn't allow blocking operations, this will fail fast
             playwright_instance = await asyncio.wait_for(
-                async_playwright().start(),
-                timeout=30.0  # 30 second timeout
+                async_playwright().start(), timeout=30.0  # 30 second timeout
             )
-            
+
             self.logger.debug("Playwright initialized successfully")
             return playwright_instance
-            
+
         except asyncio.TimeoutError:
             self.logger.error("Playwright initialization timed out")
             raise RuntimeError(
