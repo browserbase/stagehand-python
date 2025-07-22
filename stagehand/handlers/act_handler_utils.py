@@ -307,7 +307,7 @@ async def fill_or_type(ctx: MethodHandlerContext) -> None:
 async def press_key(ctx: MethodHandlerContext) -> None:
     try:
         key = str(ctx.args[0]) if ctx.args and ctx.args[0] is not None else ""
-        await ctx.locator._page.keyboard.press(key)
+        await ctx.stagehand_page._page.keyboard.press(key)
         await handle_possible_page_navigation(
             "press",
             ctx.xpath,
@@ -398,7 +398,7 @@ async def fallback_locator_method(ctx: MethodHandlerContext) -> None:
     ctx.logger.debug(
         message="page URL before action",
         category="action",
-        auxiliary={"url": {"value": ctx.locator._page.url, "type": "string"}},
+        auxiliary={"url": {"value": ctx.stagehand_page._page.url, "type": "string"}},
     )
     try:
         method_to_call = getattr(ctx.locator, ctx.method)
