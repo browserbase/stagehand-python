@@ -23,6 +23,7 @@ from .page import (
     ActOptions,
     ActResult,
     DefaultExtractSchema,
+    EmptyExtractSchema,
     ExtractOptions,
     ExtractResult,
     MetadataSchema,
@@ -56,4 +57,5 @@ __all__ = [
     "AgentConfig",
     "AgentExecuteOptions",
     "AgentResult",
+    "EmptyExtractSchema",
 ]
