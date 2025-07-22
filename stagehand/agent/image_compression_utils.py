@@ -1,7 +1,7 @@
-from typing import List, Dict, Any, Union
+from typing import Any
 
 
-def find_items_with_images(items: List[Dict[str, Any]]) -> List[int]:
+def find_items_with_images(items: list[dict[str, Any]]) -> list[int]:
     """
     Finds all items in the conversation history that contain images
 
@@ -37,8 +37,8 @@ def find_items_with_images(items: List[Dict[str, Any]]) -> List[int]:
 
 
 def compress_conversation_images(
-    items: List[Dict[str, Any]], keep_most_recent_count: int = 2
-) -> Dict[str, List[Dict[str, Any]]]:
+    items: list[dict[str, Any]], keep_most_recent_count: int = 2
+) -> dict[str, list[dict[str, Any]]]:
     """
     Compresses conversation history by removing images from older items
     while keeping the most recent images intact
