@@ -167,7 +167,7 @@ class AnthropicCUAClient(AgentClient):
             try:
                 if self.experimental:
                     compress_conversation_images(current_messages)
-                    
+
                 response = self.anthropic_sdk_client.beta.messages.create(
                     model=self.model,
                     max_tokens=self.max_tokens,
