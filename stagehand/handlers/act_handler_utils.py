@@ -307,7 +307,7 @@ async def fill_or_type(ctx: MethodHandlerContext) -> None:
 async def press_key(ctx: MethodHandlerContext) -> None:
     try:
         key = str(ctx.args[0]) if ctx.args and ctx.args[0] is not None else ""
-        await ctx.locator.press(key)
+        await ctx.stagehand_page._page.keyboard.press(key)
         await handle_possible_page_navigation(
             "press",
             ctx.xpath,
