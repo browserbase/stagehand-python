@@ -16,7 +16,7 @@ from .schemas import (
     ObserveOptions,
     ObserveResult,
 )
-from .types import DefaultExtractSchema, EmptyExtractSchema
+from .types import DefaultExtractSchema
 
 _INJECTION_SCRIPT = None
 
@@ -361,17 +361,12 @@ class StagehandPage:
             processed_data_payload = result_dict
             if schema_to_validate_with and isinstance(processed_data_payload, dict):
                 try:
-                    # For extract with no params
-                    if not options_obj:
-                        validated_model = EmptyExtractSchema.model_validate(
-                            processed_data_payload
-                        )
-                        processed_data_payload = validated_model
-                    else:
-                        validated_model = schema_to_validate_with.model_validate(
-                            processed_data_payload
-                        )
-                        processed_data_payload = validated_model
+                    validated_model = schema_to_validate_with.model_validate(
+                        processed_data_payload
+                    )
+                    processed_data_payload = (
+                        validated_model  # Payload is now the Pydantic model instance
+                    )
                 except Exception as e:
                     self._stagehand.logger.error(
                         f"Failed to validate extracted data against schema {schema_to_validate_with.__name__}: {e}. Keeping raw data dict in .data field."
@@ -606,7 +601,7 @@ class StagehandPage:
                         meta.pop(request_id, None)
                         self._stagehand.logger.debug(
                             "⏳ forcing completion of stalled iframe document",
-                            extra={"url": request_meta["url"][:120]},
+                            auxiliary={"url": request_meta["url"][:120]},
                         )
                 maybe_quiet()
 
@@ -620,7 +615,7 @@ class StagehandPage:
                 if len(inflight) > 0:
                     self._stagehand.logger.debug(
                         "⚠️ DOM-settle timeout reached – network requests still pending",
-                        extra={"count": len(inflight)},
+                        auxiliary={"count": len(inflight)},
                     )
                 resolve_done()
 
