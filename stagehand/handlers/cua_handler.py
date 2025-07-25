@@ -571,8 +571,6 @@ class CUAHandler:  # Computer Use Agent Handler
         except Exception:
             newly_opened_page = None
 
-        # Always wait for DOM settlement on the current page
-        # If a new tab was opened, it will be handled separately by the context
         await self._wait_for_settled_dom(timeout_ms=dom_settle_timeout_ms)
 
         final_url = self.page.url
