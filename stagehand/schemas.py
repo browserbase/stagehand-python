@@ -53,6 +53,7 @@ class ActOptions(StagehandBaseModel):
     dom_settle_timeout_ms: Optional[int] = None
     timeout_ms: Optional[int] = None
     model_client_options: Optional[dict[str, Any]] = None
+    iframes: Optional[bool] = None
 
 
 class ActResult(StagehandBaseModel):
@@ -98,6 +99,7 @@ class ExtractOptions(StagehandBaseModel):
     use_text_extract: Optional[bool] = None
     dom_settle_timeout_ms: Optional[int] = None
     model_client_options: Optional[dict[Any, Any]] = None
+    iframes: Optional[bool] = None
 
     @field_serializer("schema_definition")
     def serialize_schema_definition(
@@ -196,6 +198,7 @@ class ObserveOptions(StagehandBaseModel):
     draw_overlay: Optional[bool] = None
     dom_settle_timeout_ms: Optional[int] = None
     model_client_options: Optional[dict[str, Any]] = None
+    iframes: Optional[bool] = None
 
 
 class ObserveResult(StagehandBaseModel):

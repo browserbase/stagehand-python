@@ -137,9 +137,14 @@ class StagehandPage:
         elif isinstance(action_or_result, ActOptions):
             payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
         elif isinstance(action_or_result, dict):
-            payload = ObserveResult(**action_or_result).model_dump(
-                exclude_none=True, by_alias=True
-            )
+            if "description" in action_or_result:
+                payload = ObserveResult(**action_or_result).model_dump(
+                    exclude_none=True, by_alias=True
+                )
+            else:
+                payload = ActOptions(**action_or_result).model_dump(
+                    exclude_none=True, by_alias=True
+                )
         else:
             raise TypeError(
                 "Invalid arguments for 'act'. Expected str, ObserveResult, or ActOptions."
@@ -156,6 +161,10 @@ class StagehandPage:
                     self, self._stagehand, "", self._stagehand.self_heal
                 )
             self._stagehand.logger.debug("act", category="act", auxiliary=payload)
+            if payload.get("iframes"):
+                raise ValueError(
+                    "iframes is not yet supported without API (to enable make sure you set env=BROWSERBASE and use_api=true)"
+                )
             result = await self._act_handler.act(payload)
             return result
 
