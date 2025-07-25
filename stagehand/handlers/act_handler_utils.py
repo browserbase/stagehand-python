@@ -471,8 +471,6 @@ async def handle_possible_page_navigation(
             category="action",
             auxiliary={"url": {"value": new_opened_tab.url, "type": "string"}},
         )
-        # Don't close the new tab - let it remain open and be handled by the context
-        # The StagehandContext will automatically make this the active page via its event listener
 
     try:
         await stagehand_page._wait_for_settled_dom(dom_settle_timeout_ms)
