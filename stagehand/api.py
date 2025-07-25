@@ -30,6 +30,7 @@ async def _create_session(self):
         "modelName": self.model_name,
         "verbose": 2 if self.verbose == 3 else self.verbose,
         "domSettleTimeoutMs": self.dom_settle_timeout_ms,
+        "browserbaseSessionID": self.session_id,
         "browserbaseSessionCreateParams": (
             browserbase_session_create_params
             if browserbase_session_create_params
