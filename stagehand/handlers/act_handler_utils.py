@@ -471,10 +471,6 @@ async def handle_possible_page_navigation(
             category="action",
             auxiliary={"url": {"value": new_opened_tab.url, "type": "string"}},
         )
-        new_tab_url = new_opened_tab.url
-        await new_opened_tab.close()
-        await stagehand_page._page.goto(new_tab_url)
-        await stagehand_page._page.wait_for_load_state("domcontentloaded")
 
     try:
         await stagehand_page._wait_for_settled_dom(dom_settle_timeout_ms)

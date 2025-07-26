@@ -559,21 +559,19 @@ class CUAHandler:  # Computer Use Agent Handler
                 pass  # The action that might open a page has already run. We check if one was caught.
             newly_opened_page = await new_page_info.value
 
-            new_page_url = newly_opened_page.url
-            await newly_opened_page.close()
-            await self.page.goto(new_page_url, timeout=dom_settle_timeout_ms)
-            # After navigating, the DOM needs to settle on the new URL.
-            await self._wait_for_settled_dom(timeout_ms=dom_settle_timeout_ms)
+            # Don't close the new tab - let it remain open and be handled by the context
+            # The StagehandContext will automatically make this the active page via its event listener
+            self.logger.debug(
+                f"New page detected with URL: {newly_opened_page.url}",
+                category=StagehandFunctionName.AGENT,
+            )
 
         except asyncio.TimeoutError:
             newly_opened_page = None
         except Exception:
             newly_opened_page = None
 
-        # If no new tab was opened and handled by navigating, or if we are on the original page after handling a new tab,
-        # then proceed to wait for DOM settlement on the current page.
-        if not newly_opened_page:
-            await self._wait_for_settled_dom(timeout_ms=dom_settle_timeout_ms)
+        await self._wait_for_settled_dom(timeout_ms=dom_settle_timeout_ms)
 
         final_url = self.page.url
         if final_url != initial_url:
