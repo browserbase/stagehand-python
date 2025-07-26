@@ -237,9 +237,6 @@ async def connect_local_browser(
 
     # Apply stealth scripts
     await apply_stealth_scripts(context, logger)
-    
-    # Initialize StagehandContext
-    stagehand_context = await StagehandContext.init(context, stagehand_instance)
 
     # Get the initial page (usually one is created by default)
     if context.pages:

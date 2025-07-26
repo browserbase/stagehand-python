@@ -38,71 +38,71 @@ class LivePageProxy:
     A proxy object that dynamically delegates all operations to the current active page.
     This mimics the behavior of the JavaScript Proxy in the original implementation.
     """
-    
+
     def __init__(self, stagehand_instance):
         # Use object.__setattr__ to avoid infinite recursion
-        object.__setattr__(self, '_stagehand', stagehand_instance)
-    
+        object.__setattr__(self, "_stagehand", stagehand_instance)
+
     def __getattr__(self, name):
         """Delegate all attribute access to the current active page."""
-        stagehand = object.__getattribute__(self, '_stagehand')
-        
+        stagehand = object.__getattribute__(self, "_stagehand")
+
         # Get the current active page
-        if hasattr(stagehand, '_active_page') and stagehand._active_page:
+        if hasattr(stagehand, "_active_page") and stagehand._active_page:
             active_page = stagehand._active_page
-        elif hasattr(stagehand, '_original_page') and stagehand._original_page:
+        elif hasattr(stagehand, "_original_page") and stagehand._original_page:
             active_page = stagehand._original_page
         else:
             raise RuntimeError("No active page available")
-        
+
         # Get the attribute from the active page
         attr = getattr(active_page, name)
-        
+
         # If it's a method, bind it to the active page
         if callable(attr):
             return attr
-        
+
         return attr
-    
+
     def __setattr__(self, name, value):
         """Delegate all attribute setting to the current active page."""
-        if name.startswith('_'):
+        if name.startswith("_"):
             # Internal attributes are set on the proxy itself
             object.__setattr__(self, name, value)
         else:
-            stagehand = object.__getattribute__(self, '_stagehand')
-            
+            stagehand = object.__getattribute__(self, "_stagehand")
+
             # Get the current active page
-            if hasattr(stagehand, '_active_page') and stagehand._active_page:
+            if hasattr(stagehand, "_active_page") and stagehand._active_page:
                 active_page = stagehand._active_page
-            elif hasattr(stagehand, '_original_page') and stagehand._original_page:
+            elif hasattr(stagehand, "_original_page") and stagehand._original_page:
                 active_page = stagehand._original_page
             else:
                 raise RuntimeError("No active page available")
-            
+
             # Set the attribute on the active page
             setattr(active_page, name, value)
-    
+
     def __dir__(self):
         """Return attributes of the current active page."""
-        stagehand = object.__getattribute__(self, '_stagehand')
-        
-        if hasattr(stagehand, '_active_page') and stagehand._active_page:
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        if hasattr(stagehand, "_active_page") and stagehand._active_page:
             active_page = stagehand._active_page
-        elif hasattr(stagehand, '_original_page') and stagehand._original_page:
+        elif hasattr(stagehand, "_original_page") and stagehand._original_page:
             active_page = stagehand._original_page
         else:
             return []
-        
+
         return dir(active_page)
-    
+
     def __repr__(self):
         """Return representation of the current active page."""
-        stagehand = object.__getattribute__(self, '_stagehand')
-        
-        if hasattr(stagehand, '_active_page') and stagehand._active_page:
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        if hasattr(stagehand, "_active_page") and stagehand._active_page:
             return f"<LivePageProxy -> {repr(stagehand._active_page)}>"
-        elif hasattr(stagehand, '_original_page') and stagehand._original_page:
+        elif hasattr(stagehand, "_original_page") and stagehand._original_page:
             return f"<LivePageProxy -> {repr(stagehand._original_page)}>"
         else:
             return "<LivePageProxy -> No active page>"
@@ -705,29 +705,28 @@ class Stagehand:
     def _set_active_page(self, stagehand_page: StagehandPage):
         """
         Internal method called by StagehandContext to update the active page.
-        
+
         Args:
             stagehand_page: The StagehandPage to set as active
         """
         self._active_page = stagehand_page
-
 
     @property
     def page(self) -> Optional[StagehandPage]:
         """
         Get the current active page. This property returns a live proxy that
         always points to the currently focused page when multiple tabs are open.
-        
+
         Returns:
             A LivePageProxy that delegates to the active StagehandPage or None if not initialized
         """
         if not self._initialized:
             return None
-        
+
         # Create the live page proxy if it doesn't exist
         if not self._live_page_proxy:
             self._live_page_proxy = LivePageProxy(self)
-        
+
         return self._live_page_proxy
 
 

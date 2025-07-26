@@ -42,7 +42,7 @@ class StagehandContext:
             return await self.create_stagehand_page(pw_page)
         stagehand_page = self.page_map[pw_page]
         # Update active page when getting a page
-        self.set_active_page(stagehand_page)
+        # self.set_active_page(stagehand_page)
         return stagehand_page
 
     async def get_stagehand_pages(self) -> list:
@@ -60,13 +60,11 @@ class StagehandContext:
         if hasattr(self.stagehand, "_set_active_page"):
             self.stagehand._set_active_page(stagehand_page)
             self.stagehand.logger.debug(
-                f"Set active page to: {stagehand_page.url}",
-                category="context"
+                f"Set active page to: {stagehand_page.url}", category="context"
             )
         else:
             self.stagehand.logger.debug(
-                "Stagehand does not have _set_active_page method",
-                category="context"
+                "Stagehand does not have _set_active_page method", category="context"
             )
 
     def get_active_page(self) -> StagehandPage:
@@ -77,74 +75,61 @@ class StagehandContext:
         stagehand.logger.debug("StagehandContext.init() called", category="context")
         instance = cls(context, stagehand)
         # Pre-initialize StagehandPages for any existing pages
-        stagehand.logger.debug(f"Found {len(instance._context.pages)} existing pages", category="context")
+        stagehand.logger.debug(
+            f"Found {len(instance._context.pages)} existing pages", category="context"
+        )
         for pw_page in instance._context.pages:
             await instance.create_stagehand_page(pw_page)
         if instance._context.pages:
             first_page = instance._context.pages[0]
             stagehand_page = await instance.get_stagehand_page(first_page)
             instance.set_active_page(stagehand_page)
-        
+
         # Add event listener for new pages (popups, new tabs from window.open, etc.)
         def handle_page_event(pw_page):
-            instance.stagehand.logger.debug(
-                f"Page event fired for URL: {pw_page.url}",
-                category="context"
-            )
             instance._handle_new_page(pw_page)
-        
-        instance.stagehand.logger.debug(
-            f"Setting up page event listener on context (ID: {id(context)})",
-            category="context"
-        )
+
         context.on("page", handle_page_event)
-        instance.stagehand.logger.debug(
-            "Page event listener setup complete",
-            category="context"
-        )
-        
+
         return instance
-    
+
     def _handle_new_page(self, pw_page: Page):
         """
         Handle new pages created by the browser (popups, window.open, etc.).
         This runs synchronously in the event handler context.
         """
+
         async def _async_handle():
             try:
                 self.stagehand.logger.debug(
                     f"Creating StagehandPage for new page with URL: {pw_page.url}",
-                    category="context"
+                    category="context",
                 )
                 stagehand_page = await self.create_stagehand_page(pw_page)
                 self.set_active_page(stagehand_page)
-                self.stagehand.logger.log(
-                    "New page detected and initialized",
-                    level=2,
-                    category="context",
-                    auxiliary={"url": {"value": pw_page.url, "type": "string"}}
+                self.stagehand.logger.debug(
+                    "New page detected and initialized", category="context"
                 )
             except Exception as e:
                 self.stagehand.logger.error(
-                    f"Failed to initialize new page: {str(e)}",
-                    category="context"
+                    f"Failed to initialize new page: {str(e)}", category="context"
                 )
                 import traceback
+
                 self.stagehand.logger.error(
-                    f"Traceback: {traceback.format_exc()}",
-                    category="context"
+                    f"Traceback: {traceback.format_exc()}", category="context"
                 )
-        
+
         # Schedule the async work
         import asyncio
+
         try:
             loop = asyncio.get_running_loop()
             loop.create_task(_async_handle())
         except RuntimeError:
             # No event loop running, which shouldn't happen in normal operation
             self.stagehand.logger.error(
-                "No event loop available to handle new page",
-                category="context"
+                "No event loop available to handle new page", category="context"
             )
 
     def __getattr__(self, name):
