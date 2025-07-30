@@ -42,6 +42,10 @@ class TestStagehandLocalIntegration:
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
+    @pytest.mark.skipif(
+        not os.getenv("MODEL_API_KEY"),
+        reason="MODEL_API_KEY not available - skipping test that requires API access"
+    )
     async def test_local_observe_and_act_workflow(self, stagehand_local):
         """Test core observe and act workflow in LOCAL mode - extracted from e2e tests."""
         stagehand = stagehand_local
@@ -79,6 +83,10 @@ class TestStagehandLocalIntegration:
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
+    @pytest.mark.skipif(
+        not os.getenv("MODEL_API_KEY"),
+        reason="MODEL_API_KEY not available - skipping test that requires API access"
+    )
     async def test_local_basic_navigation_and_observe(self, stagehand_local):
         """Test basic navigation and observe functionality in LOCAL mode"""
         stagehand = stagehand_local
@@ -101,6 +109,10 @@ class TestStagehandLocalIntegration:
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
+    @pytest.mark.skipif(
+        not os.getenv("MODEL_API_KEY"),
+        reason="MODEL_API_KEY not available - skipping test that requires API access"
+    )
     async def test_local_extraction_functionality(self, stagehand_local):
         """Test extraction functionality in LOCAL mode"""
         stagehand = stagehand_local
