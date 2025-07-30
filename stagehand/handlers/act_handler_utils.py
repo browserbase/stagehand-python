@@ -307,7 +307,7 @@ async def fill_or_type(ctx: MethodHandlerContext) -> None:
 async def press_key(ctx: MethodHandlerContext) -> None:
     try:
         key = str(ctx.args[0]) if ctx.args and ctx.args[0] is not None else ""
-        await ctx.locator._page.keyboard.press(key)
+        await ctx.stagehand_page._page.keyboard.press(key)
         await handle_possible_page_navigation(
             "press",
             ctx.xpath,
@@ -334,6 +334,27 @@ async def press_key(ctx: MethodHandlerContext) -> None:
                     ),
                     "type": "string",
                 },
+            },
+        )
+        raise e
+
+
+async def select_option(ctx: MethodHandlerContext) -> None:
+    try:
+        text = str(ctx.args[0]) if ctx.args and ctx.args[0] is not None else ""
+        await ctx.locator.select_option(text, timeout=5_000)
+    except Exception as e:
+        ctx.logger.error(
+            message="error selecting option",
+            category="action",
+            auxiliary={
+                "error": {"value": str(e), "type": "string"},
+                "trace": {
+                    "value": getattr(e, "__traceback__", ""),
+                    "type": "string",
+                },
+                "xpath": {"value": ctx.xpath, "type": "string"},
+                "args": {"value": json.dumps(ctx.args), "type": "object"},
             },
         )
         raise e
@@ -377,7 +398,7 @@ async def fallback_locator_method(ctx: MethodHandlerContext) -> None:
     ctx.logger.debug(
         message="page URL before action",
         category="action",
-        auxiliary={"url": {"value": ctx.locator._page.url, "type": "string"}},
+        auxiliary={"url": {"value": ctx.stagehand_page._page.url, "type": "string"}},
     )
     try:
         method_to_call = getattr(ctx.locator, ctx.method)
@@ -500,4 +521,5 @@ method_handler_map: dict[
     "click": click_element,
     "nextChunk": scroll_to_next_chunk,
     "prevChunk": scroll_to_previous_chunk,
+    "selectOptionFromDropdown": select_option,
 }

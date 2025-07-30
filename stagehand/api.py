@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 from .utils import convert_dict_keys_to_camel_case
@@ -63,6 +64,14 @@ async def _create_session(self):
     if hasattr(self, "model_client_options") and self.model_client_options:
         payload["modelClientOptions"] = self.model_client_options
 
+    def get_version(package_str):
+        try:
+            result = version(package_str)
+        except PackageNotFoundError:
+            self.logger.error(package_str + " not installed")
+            result = None
+        return result
+
     headers = {
         "x-bb-api-key": self.browserbase_api_key,
         "x-bb-project-id": self.browserbase_project_id,
@@ -70,6 +79,7 @@ async def _create_session(self):
         "Content-Type": "application/json",
         "x-sent-at": datetime.now().isoformat(),
         "x-language": "python",
+        "x-sdk-version": get_version("stagehand"),
     }
 
     # async with self._client:

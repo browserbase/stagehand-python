@@ -18,6 +18,7 @@ from ..types.agent import (
     Point,
 )
 from .client import AgentClient
+from .image_compression_utils import compress_conversation_images
 
 load_dotenv()
 
@@ -51,9 +52,11 @@ class AnthropicCUAClient(AgentClient):
         logger: Optional[Any] = None,
         handler: Optional[CUAHandler] = None,
         viewport: Optional[dict[str, int]] = None,
+        experimental: bool = False,
         **kwargs,
     ):
         super().__init__(model, instructions, config, logger, handler)
+        self.experimental = experimental
         self.anthropic_sdk_client = Anthropic(
             api_key=config.options.get("apiKey") or os.getenv("ANTHROPIC_API_KEY")
         )
@@ -67,14 +70,14 @@ class AnthropicCUAClient(AgentClient):
             if hasattr(self.config, "display_height") and self.config.display_height is not None:  # type: ignore
                 dimensions[1] = self.config.display_height  # type: ignore
         computer_tool_type = (
-            "computer_20250124"
-            if model == "claude-3-7-sonnet-latest"
-            else "computer_20241022"
+            "computer_20241022"
+            if model == "claude-3-5-sonnet-latest"
+            else "computer_20250124"
         )
         self.beta_flag = (
-            ["computer-use-2025-01-24"]
-            if model == "claude-3-7-sonnet-latest"
-            else ["computer-use-2024-10-22"]
+            ["computer-use-2024-10-22"]
+            if model == "claude-3-5-sonnet-latest"
+            else ["computer-use-2025-01-24"]
         )
         self.tools = [
             {
@@ -162,6 +165,9 @@ class AnthropicCUAClient(AgentClient):
 
             start_time = asyncio.get_event_loop().time()
             try:
+                if self.experimental:
+                    compress_conversation_images(current_messages)
+
                 response = self.anthropic_sdk_client.beta.messages.create(
                     model=self.model,
                     max_tokens=self.max_tokens,

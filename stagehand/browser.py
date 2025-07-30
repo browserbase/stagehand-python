@@ -129,7 +129,9 @@ async def connect_local_browser(
     if cdp_url:
         logger.info(f"Connecting to local browser via CDP URL: {cdp_url}")
         try:
-            browser = await playwright.chromium.connect_over_cdp(cdp_url)
+            browser = await playwright.chromium.connect_over_cdp(
+                cdp_url, headers=local_browser_launch_options.get("headers")
+            )
 
             if not browser.contexts:
                 raise RuntimeError(f"No browser contexts found at CDP URL: {cdp_url}")

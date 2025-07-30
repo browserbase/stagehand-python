@@ -9,6 +9,10 @@ class DefaultExtractSchema(BaseModel):
     extraction: str
 
 
+class EmptyExtractSchema(BaseModel):
+    page_text: str
+
+
 class ObserveElementSchema(BaseModel):
     element_id: int
     description: str = Field(

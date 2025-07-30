@@ -391,7 +391,10 @@ class Stagehand:
         self.logger.debug("Initializing Stagehand...")
         self.logger.debug(f"Environment: {self.env}")
 
-        self._playwright = await async_playwright().start()
+        # Initialize Playwright with timeout
+        self._playwright = await asyncio.wait_for(
+            async_playwright().start(), timeout=30.0  # 30 second timeout
+        )
 
         if self.env == "BROWSERBASE":
             # Create session if we don't have one

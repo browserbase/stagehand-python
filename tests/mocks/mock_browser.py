@@ -72,8 +72,6 @@ class MockPlaywrightPage:
         # Return different results based on script content
         if "getScrollableElementXpaths" in script:
             return ["//body", "//div[@class='content']"]
-        elif "waitForDomSettle" in script:
-            return True
         elif "getElementInfo" in script:
             return {
                 "selector": args[0] if args else "#test",

@@ -19,11 +19,13 @@ MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
     "computer-use-preview": OpenAICUAClient,
     "claude-3-5-sonnet-latest": AnthropicCUAClient,
     "claude-3-7-sonnet-latest": AnthropicCUAClient,
+    "claude-sonnet-4-20250514": AnthropicCUAClient,
 }
 MODEL_TO_PROVIDER_MAP: dict[str, AgentProvider] = {
     "computer-use-preview": AgentProvider.OPENAI,
     "claude-3-5-sonnet-20240620": AgentProvider.ANTHROPIC,
     "claude-3-7-sonnet-20250219": AgentProvider.ANTHROPIC,
+    "claude-sonnet-4-20250514": AgentProvider.ANTHROPIC,
     # Add more mappings as needed
 }
 
@@ -84,6 +86,7 @@ class Agent:
             logger=self.logger,
             handler=self.cua_handler,
             viewport=self.viewport,
+            experimental=self.stagehand.experimental,
         )
 
     async def execute(
