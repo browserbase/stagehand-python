@@ -399,15 +399,7 @@ class Stagehand:
         if self.env == "BROWSERBASE":
             # Create session if we don't have one
             if self.use_api:
-                if not self.session_id:
-                    await self._create_session()  # Uses self._client and api_url
-                    self.logger.debug(
-                        f"Created new Browserbase session via Stagehand server: {self.session_id}"
-                    )
-                else:
-                    self.logger.debug(
-                        f"Using existing Browserbase session: {self.session_id}"
-                    )
+                await self._create_session()  # Uses self._client and api_url
 
             # Connect to remote browser
             try:
