@@ -95,35 +95,9 @@ class TestWichita:
         )
         
         result = await stagehand.page.extract(extract_options)
-        #TODO - how to unify the extract result handling between LOCAL and BROWSERBASE?
-
-        # Handle result based on the mode with better error handling
-        total_results = None
         
-        if hasattr(result, 'data') and result.data:
-            # BROWSERBASE mode format
-            try:
-                bid_data = BidResults.model_validate(result.data)
-                total_results = bid_data.total_results
-            except Exception as e:
-                # If validation fails, try to extract from raw data
-                print(f"Schema validation failed: {e}")
-                print(f"Raw result.data: {result.data}")
-                if isinstance(result.data, dict):
-                    # Try different field names
-                    total_results = (
-                        result.data.get('total_results') or 
-                        result.data.get('totalResults') or
-                        str(result.data)
-                    )
-                else:
-                    total_results = str(result.data)
-        elif hasattr(result, 'total_results'):
-            # LOCAL mode format - result is the Pydantic model instance
-            total_results = result.total_results
-        else:
-            # Fallback - try to get total_results from the result directly
-            total_results = getattr(result, 'total_results', str(result))
+        # Both LOCAL and BROWSERBASE modes return the Pydantic model instance directly
+        total_results = result.total_results
         
         # Ensure we got some result
         assert total_results is not None, f"Failed to extract total_results from the page. Result: {result}"
@@ -177,35 +151,8 @@ class TestWichita:
         
         result = await stagehand.page.extract(extract_options)
         
-        #TODO - how to unify the extract result handling between LOCAL and BROWSERBASE?
-        
-        # Handle result based on the mode with better error handling
-        total_results = None
-        
-        if hasattr(result, 'data') and result.data:
-            # BROWSERBASE mode format
-            try:
-                bid_data = BidResults.model_validate(result.data)
-                total_results = bid_data.total_results
-            except Exception as e:
-                # If validation fails, try to extract from raw data
-                print(f"Schema validation failed: {e}")
-                print(f"Raw result.data: {result.data}")
-                if isinstance(result.data, dict):
-                    # Try different field names
-                    total_results = (
-                        result.data.get('total_results') or 
-                        result.data.get('totalResults') or
-                        str(result.data)
-                    )
-                else:
-                    total_results = str(result.data)
-        elif hasattr(result, 'total_results'):
-            # LOCAL mode format - result is the Pydantic model instance
-            total_results = result.total_results
-        else:
-            # Fallback - try to get total_results from the result directly
-            total_results = getattr(result, 'total_results', str(result))
+        # Both LOCAL and BROWSERBASE modes return the Pydantic model instance directly
+        total_results = result.total_results
         
         # Ensure we got some result
         assert total_results is not None, f"Failed to extract total_results from the page. Result: {result}"

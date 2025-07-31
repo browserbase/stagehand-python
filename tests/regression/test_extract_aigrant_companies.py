@@ -101,18 +101,9 @@ class TestExtractAigrantCompanies:
         )
         
         result = await stagehand.page.extract(extract_options)
-
-        # TODO - how to unify the extract result handling between LOCAL and BROWSERBASE?
         
-        # Handle result based on the mode (LOCAL returns data directly, BROWSERBASE returns ExtractResult)
-        if hasattr(result, 'data') and result.data:
-            # BROWSERBASE mode format
-            companies_model = Companies.model_validate(result.data)
-            companies = companies_model.companies
-        else:
-            # LOCAL mode format - result is the Pydantic model instance
-            companies_model = Companies.model_validate(result.model_dump())
-            companies = companies_model.companies
+        # Both LOCAL and BROWSERBASE modes return the Pydantic model instance directly
+        companies = result.companies
         
         # Verify total count
         expected_length = 91
@@ -179,18 +170,9 @@ class TestExtractAigrantCompanies:
         )
         
         result = await stagehand.page.extract(extract_options)
-
-        # TODO - how to unify the extract result handling between LOCAL and BROWSERBASE?
         
-        # Handle result based on the mode (LOCAL returns data directly, BROWSERBASE returns ExtractResult)
-        if hasattr(result, 'data') and result.data:
-            # BROWSERBASE mode format
-            companies_model = Companies.model_validate(result.data)
-            companies = companies_model.companies
-        else:
-            # LOCAL mode format - result is the Pydantic model instance
-            companies_model = Companies.model_validate(result.model_dump())
-            companies = companies_model.companies
+        # Both LOCAL and BROWSERBASE modes return the Pydantic model instance directly
+        companies = result.companies
         
         # Verify total count
         expected_length = 91
