@@ -2,4 +2,4 @@
 "stagehand": patch
 ---
 
-fix logging param name
+added regression tests
