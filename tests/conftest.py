@@ -233,7 +233,9 @@ def mock_stagehand_client(mock_stagehand_config):
         # Mock the essential components
         client.llm = MagicMock()
         client.llm.completion = AsyncMock()
-        client.page = MagicMock()
+        # Set internal page properties instead of the read-only page property
+        client._original_page = MagicMock()
+        client._active_page = client._original_page
         client.agent = MagicMock()
         client._client = MagicMock()
         client._execute = AsyncMock()
