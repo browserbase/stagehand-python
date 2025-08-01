@@ -43,6 +43,12 @@ class LivePageProxy:
         # Use object.__setattr__ to avoid infinite recursion
         object.__setattr__(self, "_stagehand", stagehand_instance)
 
+    async def _ensure_page_stability(self):
+        """Wait for any pending page switches to complete"""
+        if hasattr(self._stagehand, '_page_switch_lock'):
+            async with self._stagehand._page_switch_lock:
+                pass  # Just wait for any ongoing switches
+
     def __getattr__(self, name):
         """Delegate all attribute access to the current active page."""
         stagehand = object.__getattribute__(self, "_stagehand")
@@ -55,13 +61,13 @@ class LivePageProxy:
         else:
             raise RuntimeError("No active page available")
 
-        # Get the attribute from the active page
+        # For async operations, make them wait for stability
         attr = getattr(active_page, name)
-
-        # If it's a method, bind it to the active page
-        if callable(attr):
-            return attr
-
+        if callable(attr) and asyncio.iscoroutinefunction(attr):
+            async def wrapped(*args, **kwargs):
+                await self._ensure_page_stability()
+                return await attr(*args, **kwargs)
+            return wrapped
         return attr
 
     def __setattr__(self, name, value):
