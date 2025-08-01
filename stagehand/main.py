@@ -64,6 +64,9 @@ class LivePageProxy:
         # For async operations, make them wait for stability
         attr = getattr(active_page, name)
         if callable(attr) and asyncio.iscoroutinefunction(attr):
+            # Don't wait for stability on navigation methods
+            if name in ["goto", "reload", "go_back", "go_forward"]:
+                return attr
 
             async def wrapped(*args, **kwargs):
                 await self._ensure_page_stability()
@@ -266,6 +269,7 @@ class Stagehand:
         self._initialized = False  # Flag to track if init() has run
         self._closed = False  # Flag to track if resources have been closed
         self._live_page_proxy = None  # Live page proxy
+        self._page_switch_lock = asyncio.Lock()  # Lock for page stability
 
         # Setup LLM client if LOCAL mode
         self.llm = None

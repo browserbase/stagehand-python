@@ -101,15 +101,16 @@ class StagehandContext:
 
         async def _async_handle():
             try:
-                self.stagehand.logger.debug(
-                    f"Creating StagehandPage for new page with URL: {pw_page.url}",
-                    category="context",
-                )
-                stagehand_page = await self.create_stagehand_page(pw_page)
-                self.set_active_page(stagehand_page)
-                self.stagehand.logger.debug(
-                    "New page detected and initialized", category="context"
-                )
+                async with self.stagehand._page_switch_lock:
+                    self.stagehand.logger.debug(
+                        f"Creating StagehandPage for new page with URL: {pw_page.url}",
+                        category="context",
+                    )
+                    stagehand_page = await self.create_stagehand_page(pw_page)
+                    self.set_active_page(stagehand_page)
+                    self.stagehand.logger.debug(
+                        "New page detected and initialized", category="context"
+                    )
             except Exception as e:
                 self.stagehand.logger.error(
                     f"Failed to initialize new page: {str(e)}", category="context"
