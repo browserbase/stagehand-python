@@ -45,7 +45,7 @@ class LivePageProxy:
 
     async def _ensure_page_stability(self):
         """Wait for any pending page switches to complete"""
-        if hasattr(self._stagehand, '_page_switch_lock'):
+        if hasattr(self._stagehand, "_page_switch_lock"):
             async with self._stagehand._page_switch_lock:
                 pass  # Just wait for any ongoing switches
 
@@ -64,9 +64,11 @@ class LivePageProxy:
         # For async operations, make them wait for stability
         attr = getattr(active_page, name)
         if callable(attr) and asyncio.iscoroutinefunction(attr):
+
             async def wrapped(*args, **kwargs):
                 await self._ensure_page_stability()
                 return await attr(*args, **kwargs)
+
             return wrapped
         return attr
 
