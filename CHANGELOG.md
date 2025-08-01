@@ -1,5 +1,11 @@
 # Stagehand Python Changelog
 
+## 0.5.1
+
+### Patch Changes
+
+[#88](https://github.com/browserbase/stagehand-python/pull/88) [`021c946`](https://github.com/browserbase/stagehand-python/commit/021c946) Thanks @filip-michalsky! - added regression tests
+
 ## 0.5.0
 
 ### Minor Changes
