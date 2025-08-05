@@ -53,16 +53,14 @@ class LivePageProxy:
         """Delegate all attribute access to the current active page."""
         stagehand = object.__getattribute__(self, "_stagehand")
 
-        # Get the current active page
-        if hasattr(stagehand, "_active_page") and stagehand._active_page:
-            active_page = stagehand._active_page
-        elif hasattr(stagehand, "_original_page") and stagehand._original_page:
-            active_page = stagehand._original_page
+        # Get the current page
+        if hasattr(stagehand, "_page") and stagehand._page:
+            page = stagehand._page
         else:
             raise RuntimeError("No active page available")
 
         # For async operations, make them wait for stability
-        attr = getattr(active_page, name)
+        attr = getattr(page, name)
         if callable(attr) and asyncio.iscoroutinefunction(attr):
             # Don't wait for stability on navigation methods
             if name in ["goto", "reload", "go_back", "go_forward"]:
@@ -83,38 +81,32 @@ class LivePageProxy:
         else:
             stagehand = object.__getattribute__(self, "_stagehand")
 
-            # Get the current active page
-            if hasattr(stagehand, "_active_page") and stagehand._active_page:
-                active_page = stagehand._active_page
-            elif hasattr(stagehand, "_original_page") and stagehand._original_page:
-                active_page = stagehand._original_page
+            # Get the current page
+            if hasattr(stagehand, "_page") and stagehand._page:
+                page = stagehand._page
             else:
                 raise RuntimeError("No active page available")
 
-            # Set the attribute on the active page
-            setattr(active_page, name, value)
+            # Set the attribute on the page
+            setattr(page, name, value)
 
     def __dir__(self):
         """Return attributes of the current active page."""
         stagehand = object.__getattribute__(self, "_stagehand")
 
-        if hasattr(stagehand, "_active_page") and stagehand._active_page:
-            active_page = stagehand._active_page
-        elif hasattr(stagehand, "_original_page") and stagehand._original_page:
-            active_page = stagehand._original_page
+        if hasattr(stagehand, "_page") and stagehand._page:
+            page = stagehand._page
         else:
             return []
 
-        return dir(active_page)
+        return dir(page)
 
     def __repr__(self):
         """Return representation of the current active page."""
         stagehand = object.__getattribute__(self, "_stagehand")
 
-        if hasattr(stagehand, "_active_page") and stagehand._active_page:
-            return f"<LivePageProxy -> {repr(stagehand._active_page)}>"
-        elif hasattr(stagehand, "_original_page") and stagehand._original_page:
-            return f"<LivePageProxy -> {repr(stagehand._original_page)}>"
+        if hasattr(stagehand, "_page") and stagehand._page:
+            return f"<LivePageProxy -> {repr(stagehand._page)}>"
         else:
             return "<LivePageProxy -> No active page>"
 
@@ -252,8 +244,7 @@ class Stagehand:
         self._browser = None
         self._context: Optional[BrowserContext] = None
         self._playwright_page: Optional[PlaywrightPage] = None
-        self._original_page: Optional[StagehandPage] = None
-        self._active_page: Optional[StagehandPage] = None
+        self._page: Optional[StagehandPage] = None
         self.context: Optional[StagehandContext] = None
         self.use_api = self.config.use_api
         self.experimental = self.config.experimental
@@ -496,7 +487,7 @@ class Stagehand:
                     self._browser,
                     self._context,
                     self.context,
-                    self._original_page,
+                    self._page,
                 ) = await connect_browserbase_browser(
                     self._playwright,
                     self.session_id,
@@ -504,8 +495,7 @@ class Stagehand:
                     self,
                     self.logger,
                 )
-                self._playwright_page = self._original_page._page
-                self._active_page = self._original_page
+                self._playwright_page = self._page._page
             except Exception:
                 await self.close()
                 raise
@@ -517,7 +507,7 @@ class Stagehand:
                     self._browser,
                     self._context,
                     self.context,
-                    self._original_page,
+                    self._page,
                     self._local_user_data_dir_temp,
                 ) = await connect_local_browser(
                     self._playwright,
@@ -525,8 +515,7 @@ class Stagehand:
                     self,
                     self.logger,
                 )
-                self._playwright_page = self._original_page._page
-                self._active_page = self._original_page
+                self._playwright_page = self._page._page
             except Exception:
                 await self.close()
                 raise
@@ -713,7 +702,7 @@ class Stagehand:
         Args:
             stagehand_page: The StagehandPage to set as active
         """
-        self._active_page = stagehand_page
+        self._page = stagehand_page
 
     @property
     def page(self) -> Optional[StagehandPage]:

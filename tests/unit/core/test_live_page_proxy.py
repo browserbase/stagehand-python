@@ -13,49 +13,40 @@ async def test_live_page_proxy_basic_delegation(mock_stagehand_config):
     # Create a Stagehand instance
     stagehand = Stagehand(config=mock_stagehand_config)
     
-    # Mock pages
-    mock_original_page = MagicMock(spec=StagehandPage)
-    mock_original_page.url = "https://original.com"
-    mock_original_page.title = AsyncMock(return_value="Original Page")
+    # Mock page
+    mock_page = MagicMock(spec=StagehandPage)
+    mock_page.url = "https://active.com"
+    mock_page.title = AsyncMock(return_value="Active Page")
     
-    mock_active_page = MagicMock(spec=StagehandPage)
-    mock_active_page.url = "https://active.com"
-    mock_active_page.title = AsyncMock(return_value="Active Page")
-    
-    # Set up the pages
-    stagehand._original_page = mock_original_page
-    stagehand._active_page = mock_active_page
+    # Set up the page
+    stagehand._page = mock_page
     stagehand._initialized = True
     
     # Get the proxy
     proxy = stagehand.page
     
-    # Test that it delegates to the active page
+    # Test that it delegates to the page
     assert proxy.url == "https://active.com"
     title = await proxy.title()
     assert title == "Active Page"
 
 
 @pytest.mark.asyncio
-async def test_live_page_proxy_falls_back_to_original(mock_stagehand_config):
-    """Test that LivePageProxy falls back to original page when no active page"""
+async def test_live_page_proxy_no_page_fallback(mock_stagehand_config):
+    """Test that LivePageProxy raises error when no page is set"""
     # Create a Stagehand instance
     stagehand = Stagehand(config=mock_stagehand_config)
     
-    # Mock original page only
-    mock_original_page = MagicMock(spec=StagehandPage)
-    mock_original_page.url = "https://original.com"
-    
-    # Set up the pages
-    stagehand._original_page = mock_original_page
-    stagehand._active_page = None
+    # No page set
+    stagehand._page = None
     stagehand._initialized = True
     
     # Get the proxy
     proxy = stagehand.page
     
-    # Test that it delegates to the original page
-    assert proxy.url == "https://original.com"
+    # Accessing attributes should raise RuntimeError
+    with pytest.raises(RuntimeError, match="No active page available"):
+        _ = proxy.url
 
 
 @pytest.mark.asyncio
@@ -85,9 +76,8 @@ async def test_live_page_proxy_page_stability(mock_stagehand_config):
     mock_page = MagicMock(spec=StagehandPage)
     mock_page.click = AsyncMock(return_value=None)
     
-    # Set up the pages
-    stagehand._original_page = mock_page
-    stagehand._active_page = mock_page
+    # Set up the page
+    stagehand._page = mock_page
     stagehand._initialized = True
     
     # Get the proxy
@@ -129,9 +119,8 @@ async def test_live_page_proxy_navigation_no_stability_check(mock_stagehand_conf
     mock_page.go_back = AsyncMock(return_value=None)
     mock_page.go_forward = AsyncMock(return_value=None)
     
-    # Set up the pages
-    stagehand._original_page = mock_page
-    stagehand._active_page = mock_page
+    # Set up the page
+    stagehand._page = mock_page
     stagehand._initialized = True
     
     # Get the proxy
@@ -167,8 +156,7 @@ async def test_live_page_proxy_dynamic_page_switching(mock_stagehand_config):
     page2.url = "https://page2.com"
     
     # Set up initial state
-    stagehand._original_page = page1
-    stagehand._active_page = page1
+    stagehand._page = page1
     stagehand._initialized = True
     
     # Get the proxy
@@ -177,8 +165,8 @@ async def test_live_page_proxy_dynamic_page_switching(mock_stagehand_config):
     # Initially points to page1
     assert proxy.url == "https://page1.com"
     
-    # Switch active page
-    stagehand._active_page = page2
+    # Switch page
+    stagehand._page = page2
     
     # Now points to page2 without creating a new proxy
     assert proxy.url == "https://page2.com"
@@ -189,9 +177,8 @@ def test_live_page_proxy_no_page_error(mock_stagehand_config):
     # Create a Stagehand instance
     stagehand = Stagehand(config=mock_stagehand_config)
     
-    # No pages set
-    stagehand._original_page = None
-    stagehand._active_page = None
+    # No page set
+    stagehand._page = None
     stagehand._initialized = True
     
     # Get the proxy
