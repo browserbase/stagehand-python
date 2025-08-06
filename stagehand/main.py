@@ -33,6 +33,84 @@ from .utils import make_serializable
 load_dotenv()
 
 
+class LivePageProxy:
+    """
+    A proxy object that dynamically delegates all operations to the current active page.
+    This mimics the behavior of the JavaScript Proxy in the original implementation.
+    """
+
+    def __init__(self, stagehand_instance):
+        # Use object.__setattr__ to avoid infinite recursion
+        object.__setattr__(self, "_stagehand", stagehand_instance)
+
+    async def _ensure_page_stability(self):
+        """Wait for any pending page switches to complete"""
+        if hasattr(self._stagehand, "_page_switch_lock"):
+            async with self._stagehand._page_switch_lock:
+                pass  # Just wait for any ongoing switches
+
+    def __getattr__(self, name):
+        """Delegate all attribute access to the current active page."""
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        # Get the current page
+        if hasattr(stagehand, "_page") and stagehand._page:
+            page = stagehand._page
+        else:
+            raise RuntimeError("No active page available")
+
+        # For async operations, make them wait for stability
+        attr = getattr(page, name)
+        if callable(attr) and asyncio.iscoroutinefunction(attr):
+            # Don't wait for stability on navigation methods
+            if name in ["goto", "reload", "go_back", "go_forward"]:
+                return attr
+
+            async def wrapped(*args, **kwargs):
+                await self._ensure_page_stability()
+                return await attr(*args, **kwargs)
+
+            return wrapped
+        return attr
+
+    def __setattr__(self, name, value):
+        """Delegate all attribute setting to the current active page."""
+        if name.startswith("_"):
+            # Internal attributes are set on the proxy itself
+            object.__setattr__(self, name, value)
+        else:
+            stagehand = object.__getattribute__(self, "_stagehand")
+
+            # Get the current page
+            if hasattr(stagehand, "_page") and stagehand._page:
+                page = stagehand._page
+            else:
+                raise RuntimeError("No active page available")
+
+            # Set the attribute on the page
+            setattr(page, name, value)
+
+    def __dir__(self):
+        """Return attributes of the current active page."""
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        if hasattr(stagehand, "_page") and stagehand._page:
+            page = stagehand._page
+        else:
+            return []
+
+        return dir(page)
+
+    def __repr__(self):
+        """Return representation of the current active page."""
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        if hasattr(stagehand, "_page") and stagehand._page:
+            return f"<LivePageProxy -> {repr(stagehand._page)}>"
+        else:
+            return "<LivePageProxy -> No active page>"
+
+
 class Stagehand:
     """
     Main Stagehand class.
@@ -166,7 +244,7 @@ class Stagehand:
         self._browser = None
         self._context: Optional[BrowserContext] = None
         self._playwright_page: Optional[PlaywrightPage] = None
-        self.page: Optional[StagehandPage] = None
+        self._page: Optional[StagehandPage] = None
         self.context: Optional[StagehandContext] = None
         self.use_api = self.config.use_api
         self.experimental = self.config.experimental
@@ -181,6 +259,8 @@ class Stagehand:
 
         self._initialized = False  # Flag to track if init() has run
         self._closed = False  # Flag to track if resources have been closed
+        self._live_page_proxy = None  # Live page proxy
+        self._page_switch_lock = asyncio.Lock()  # Lock for page stability
 
         # Setup LLM client if LOCAL mode
         self.llm = None
@@ -407,7 +487,7 @@ class Stagehand:
                     self._browser,
                     self._context,
                     self.context,
-                    self.page,
+                    self._page,
                 ) = await connect_browserbase_browser(
                     self._playwright,
                     self.session_id,
@@ -415,7 +495,7 @@ class Stagehand:
                     self,
                     self.logger,
                 )
-                self._playwright_page = self.page._page
+                self._playwright_page = self._page._page
             except Exception:
                 await self.close()
                 raise
@@ -427,7 +507,7 @@ class Stagehand:
                     self._browser,
                     self._context,
                     self.context,
-                    self.page,
+                    self._page,
                     self._local_user_data_dir_temp,
                 ) = await connect_local_browser(
                     self._playwright,
@@ -435,7 +515,7 @@ class Stagehand:
                     self,
                     self.logger,
                 )
-                self._playwright_page = self.page._page
+                self._playwright_page = self._page._page
             except Exception:
                 await self.close()
                 raise
@@ -614,6 +694,33 @@ class Stagehand:
             function_enum = function_name
 
         self.update_metrics_from_response(function_enum, response, inference_time_ms)
+
+    def _set_active_page(self, stagehand_page: StagehandPage):
+        """
+        Internal method called by StagehandContext to update the active page.
+
+        Args:
+            stagehand_page: The StagehandPage to set as active
+        """
+        self._page = stagehand_page
+
+    @property
+    def page(self) -> Optional[StagehandPage]:
+        """
+        Get the current active page. This property returns a live proxy that
+        always points to the currently focused page when multiple tabs are open.
+
+        Returns:
+            A LivePageProxy that delegates to the active StagehandPage or None if not initialized
+        """
+        if not self._initialized:
+            return None
+
+        # Create the live page proxy if it doesn't exist
+        if not self._live_page_proxy:
+            self._live_page_proxy = LivePageProxy(self)
+
+        return self._live_page_proxy
 
 
 # Bind the imported API methods to the Stagehand class

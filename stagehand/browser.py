@@ -242,11 +242,10 @@ async def connect_local_browser(
     if context.pages:
         playwright_page = context.pages[0]
         logger.debug("Using initial page from local context.")
+        page = await stagehand_context.get_stagehand_page(playwright_page)
     else:
         logger.debug("No initial page found, creating a new one.")
-        playwright_page = await context.new_page()
-
-    page = StagehandPage(playwright_page, stagehand_instance)
+        page = await stagehand_context.new_page()
 
     return browser, context, stagehand_context, page, temp_user_data_dir
 
