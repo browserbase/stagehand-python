@@ -41,8 +41,6 @@ class StagehandContext:
         if pw_page not in self.page_map:
             return await self.create_stagehand_page(pw_page)
         stagehand_page = self.page_map[pw_page]
-        # Update active page when getting a page
-        # self.set_active_page(stagehand_page)
         return stagehand_page
 
     async def get_stagehand_pages(self) -> list:
