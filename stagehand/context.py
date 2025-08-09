@@ -1,3 +1,4 @@
+import asyncio
 import os
 import weakref
 
@@ -85,20 +86,21 @@ class StagehandContext:
 
         # Add event listener for new pages (popups, new tabs from window.open, etc.)
         def handle_page_event(pw_page):
-            instance._handle_new_page(pw_page)
+            # Playwright expects sync handler, so we schedule the async work
+            asyncio.create_task(instance._handle_new_page(pw_page))
 
         context.on("page", handle_page_event)
 
         return instance
 
-    def _handle_new_page(self, pw_page: Page):
+    async def _handle_new_page(self, pw_page: Page):
         """
         Handle new pages created by the browser (popups, window.open, etc.).
-        This runs synchronously in the event handler context.
+        Uses the page switch lock to prevent race conditions with ongoing operations.
         """
-
-        async def _async_handle():
-            try:
+        try:
+            # Use timeout to prevent indefinite blocking
+            async with asyncio.timeout(30):
                 async with self.stagehand._page_switch_lock:
                     self.stagehand.logger.debug(
                         f"Creating StagehandPage for new page with URL: {pw_page.url}",
@@ -109,26 +111,14 @@ class StagehandContext:
                     self.stagehand.logger.debug(
                         "New page detected and initialized", category="context"
                     )
-            except Exception as e:
-                self.stagehand.logger.error(
-                    f"Failed to initialize new page: {str(e)}", category="context"
-                )
-                import traceback
-
-                self.stagehand.logger.error(
-                    f"Traceback: {traceback.format_exc()}", category="context"
-                )
-
-        # Schedule the async work
-        import asyncio
-
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(_async_handle())
-        except RuntimeError:
-            # No event loop running, which shouldn't happen in normal operation
+        except asyncio.TimeoutError:
             self.stagehand.logger.error(
-                "No event loop available to handle new page", category="context"
+                f"Timeout waiting for page switch lock when handling new page: {pw_page.url}",
+                category="context",
+            )
+        except Exception as e:
+            self.stagehand.logger.error(
+                f"Failed to initialize new page: {str(e)}", category="context"
             )
 
     def __getattr__(self, name):

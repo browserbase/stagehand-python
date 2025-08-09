@@ -46,8 +46,20 @@ class LivePageProxy:
     async def _ensure_page_stability(self):
         """Wait for any pending page switches to complete"""
         if hasattr(self._stagehand, "_page_switch_lock"):
-            async with self._stagehand._page_switch_lock:
-                pass  # Just wait for any ongoing switches
+            try:
+                # Use timeout to prevent indefinite blocking
+                async with asyncio.timeout(30):
+                    async with self._stagehand._page_switch_lock:
+                        pass  # Just wait for any ongoing switches
+            except asyncio.TimeoutError:
+                # Log the timeout and raise to let caller handle it
+                if hasattr(self._stagehand, "logger"):
+                    self._stagehand.logger.error(
+                        "Timeout waiting for page stability lock", category="live_proxy"
+                    )
+                raise RuntimeError from asyncio.TimeoutError(
+                    "Page stability lock timeout - possible deadlock detected"
+                )
 
     def __getattr__(self, name):
         """Delegate all attribute access to the current active page."""
