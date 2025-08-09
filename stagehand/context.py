@@ -99,8 +99,8 @@ class StagehandContext:
         Uses the page switch lock to prevent race conditions with ongoing operations.
         """
         try:
-            # Use timeout to prevent indefinite blocking
-            async with asyncio.timeout(30):
+            # Use wait_for for Python 3.10 compatibility (timeout prevents indefinite blocking)
+            async def handle_with_lock():
                 async with self.stagehand._page_switch_lock:
                     self.stagehand.logger.debug(
                         f"Creating StagehandPage for new page with URL: {pw_page.url}",
@@ -111,6 +111,8 @@ class StagehandContext:
                     self.stagehand.logger.debug(
                         "New page detected and initialized", category="context"
                     )
+
+            await asyncio.wait_for(handle_with_lock(), timeout=30)
         except asyncio.TimeoutError:
             self.stagehand.logger.error(
                 f"Timeout waiting for page switch lock when handling new page: {pw_page.url}",

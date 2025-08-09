@@ -47,10 +47,12 @@ class LivePageProxy:
         """Wait for any pending page switches to complete"""
         if hasattr(self._stagehand, "_page_switch_lock"):
             try:
-                # Use timeout to prevent indefinite blocking
-                async with asyncio.timeout(30):
+                # Use wait_for for Python 3.10 compatibility (timeout prevents indefinite blocking)
+                async def acquire_lock():
                     async with self._stagehand._page_switch_lock:
                         pass  # Just wait for any ongoing switches
+
+                await asyncio.wait_for(acquire_lock(), timeout=30)
             except asyncio.TimeoutError:
                 # Log the timeout and raise to let caller handle it
                 if hasattr(self._stagehand, "logger"):
