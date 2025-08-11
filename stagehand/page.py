@@ -46,14 +46,12 @@ class StagehandPage:
     def frame_id(self) -> Optional[str]:
         """Get the current root frame ID."""
         return self._frame_id
-    
+
     def update_root_frame_id(self, new_id: str):
         """Update the root frame ID."""
         self._frame_id = new_id
-        self._stagehand.logger.debug(
-            f"Updated frame ID to {new_id}", category="page"
-        )
-    
+        self._stagehand.logger.debug(f"Updated frame ID to {new_id}", category="page")
+
     # TODO try catch here
     async def ensure_injection(self):
         """Ensure custom injection scripts are present on the page using domScripts.js."""
@@ -114,7 +112,7 @@ class StagehandPage:
         payload = {"url": url}
         if options:
             payload["options"] = options
-        
+
         # Add frame ID if available
         if self._frame_id:
             payload["frameId"] = self._frame_id
@@ -192,7 +190,7 @@ class StagehandPage:
         # Add frame ID if available
         if self._frame_id:
             payload["frameId"] = self._frame_id
-        
+
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result = await self._stagehand._execute("act", payload)
@@ -265,7 +263,7 @@ class StagehandPage:
         # Add frame ID if available
         if self._frame_id:
             payload["frameId"] = self._frame_id
-        
+
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result = await self._stagehand._execute("observe", payload)
@@ -393,7 +391,7 @@ class StagehandPage:
         # Add frame ID if available
         if self._frame_id:
             payload["frameId"] = self._frame_id
-        
+
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result_dict = await self._stagehand._execute("extract", payload)
@@ -520,7 +518,6 @@ class StagehandPage:
             timeout_ms (int, optional): Maximum time to wait in milliseconds.
                 If None, uses the stagehand client's dom_settle_timeout_ms.
         """
-
 
         timeout = timeout_ms or getattr(self._stagehand, "dom_settle_timeout_ms", 30000)
         client = await self.get_cdp_client()
