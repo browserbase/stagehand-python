@@ -14,6 +14,8 @@ class StagehandContext:
         # Use a weak key dictionary to map Playwright Pages to our StagehandPage wrappers
         self.page_map = weakref.WeakKeyDictionary()
         self.active_stagehand_page = None
+        # Map frame IDs to StagehandPage instances
+        self.frame_id_map = {}
 
     async def new_page(self) -> StagehandPage:
         pw_page: Page = await self._context.new_page()
@@ -23,9 +25,13 @@ class StagehandContext:
 
     async def create_stagehand_page(self, pw_page: Page) -> StagehandPage:
         # Create a StagehandPage wrapper for the given Playwright page
-        stagehand_page = StagehandPage(pw_page, self.stagehand)
+        stagehand_page = StagehandPage(pw_page, self.stagehand, self)
         await self.inject_custom_scripts(pw_page)
         self.page_map[pw_page] = stagehand_page
+        
+        # Initialize frame tracking for this page
+        await self._attach_frame_navigated_listener(pw_page, stagehand_page)
+        
         return stagehand_page
 
     async def inject_custom_scripts(self, pw_page: Page):
@@ -68,6 +74,25 @@ class StagehandContext:
 
     def get_active_page(self) -> StagehandPage:
         return self.active_stagehand_page
+
+    def register_frame_id(self, frame_id: str, page: StagehandPage):
+        """Register a frame ID to StagehandPage mapping."""
+        self.frame_id_map[frame_id] = page
+        self.stagehand.logger.debug(
+            f"Registered frame ID {frame_id} to page", category="context"
+        )
+
+    def unregister_frame_id(self, frame_id: str):
+        """Unregister a frame ID from the mapping."""
+        if frame_id in self.frame_id_map:
+            del self.frame_id_map[frame_id]
+            self.stagehand.logger.debug(
+                f"Unregistered frame ID {frame_id}", category="context"
+            )
+
+    def get_stagehand_page_by_frame_id(self, frame_id: str) -> StagehandPage:
+        """Get StagehandPage by frame ID."""
+        return self.frame_id_map.get(frame_id)
 
     @classmethod
     async def init(cls, context: BrowserContext, stagehand):
@@ -150,3 +175,65 @@ class StagehandContext:
 
             return wrapped_pages
         return attr
+
+    async def _attach_frame_navigated_listener(self, pw_page: Page, stagehand_page: StagehandPage):
+        """
+        Attach CDP listener for frame navigation events to track frame IDs.
+        This mirrors the TypeScript implementation's frame tracking.
+        """
+        try:
+            # Create CDP session for the page
+            cdp_session = await self._context.new_cdp_session(pw_page)
+            await cdp_session.send("Page.enable")
+            
+            # Get the current root frame ID
+            frame_tree = await cdp_session.send("Page.getFrameTree")
+            root_frame_id = frame_tree.get("frameTree", {}).get("frame", {}).get("id")
+            
+            if root_frame_id:
+                # Initialize the page with its frame ID
+                stagehand_page.update_root_frame_id(root_frame_id)
+                self.register_frame_id(root_frame_id, stagehand_page)
+            
+            # Set up event listener for frame navigation
+            def on_frame_navigated(params):
+                """Handle Page.frameNavigated events"""
+                frame = params.get("frame", {})
+                frame_id = frame.get("id")
+                parent_id = frame.get("parentId")
+                
+                # Only track root frames (no parent)
+                if not parent_id and frame_id:
+                    # Skip if it's the same frame ID
+                    if frame_id == stagehand_page.frame_id:
+                        return
+                    
+                    # Unregister old frame ID if exists
+                    old_id = stagehand_page.frame_id
+                    if old_id:
+                        self.unregister_frame_id(old_id)
+                    
+                    # Register new frame ID
+                    self.register_frame_id(frame_id, stagehand_page)
+                    stagehand_page.update_root_frame_id(frame_id)
+                    
+                    self.stagehand.logger.debug(
+                        f"Frame navigated from {old_id} to {frame_id}",
+                        category="context"
+                    )
+            
+            # Register the event listener
+            cdp_session.on("Page.frameNavigated", on_frame_navigated)
+            
+            # Clean up frame ID when page closes
+            def on_page_close():
+                if stagehand_page.frame_id:
+                    self.unregister_frame_id(stagehand_page.frame_id)
+            
+            pw_page.once("close", on_page_close)
+            
+        except Exception as e:
+            self.stagehand.logger.error(
+                f"Failed to attach frame navigation listener: {str(e)}",
+                category="context"
+            )
