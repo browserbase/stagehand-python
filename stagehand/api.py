@@ -3,6 +3,7 @@ from datetime import datetime
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
+from .metrics import StagehandMetrics
 from .utils import convert_dict_keys_to_camel_case
 
 __all__ = ["_create_session", "_execute", "_get_replay_metrics"]
@@ -181,10 +182,8 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
 
 async def _get_replay_metrics(self):
     """
-    Fetch replay metrics from the API endpoint /sessions/:id/replay and parse them
-    into StagehandMetrics format.
+    Fetch replay metrics from the API and parse them into StagehandMetrics.
     """
-    from .metrics import StagehandMetrics
 
     if not self.session_id:
         raise ValueError("session_id is required to fetch metrics.")
