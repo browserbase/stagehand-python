@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import httpx
+import nest_asyncio
 from dotenv import load_dotenv
 from playwright.async_api import (
     BrowserContext,
@@ -16,7 +17,7 @@ from playwright.async_api import (
 from playwright.async_api import Page as PlaywrightPage
 
 from .agent import Agent
-from .api import _create_session, _execute
+from .api import _create_session, _execute, _get_replay_metrics
 from .browser import (
     cleanup_browser_resources,
     connect_browserbase_browser,
@@ -206,7 +207,7 @@ class Stagehand:
         )
 
         # Initialize metrics tracking
-        self.metrics = StagehandMetrics()
+        self._local_metrics = StagehandMetrics()  # Internal storage for local metrics
         self._inference_start_time = 0  # To track inference time
 
         # Validate env
@@ -372,26 +373,26 @@ class Stagehand:
             inference_time_ms: Time taken for inference in milliseconds
         """
         if function_name == StagehandFunctionName.ACT:
-            self.metrics.act_prompt_tokens += prompt_tokens
-            self.metrics.act_completion_tokens += completion_tokens
-            self.metrics.act_inference_time_ms += inference_time_ms
+            self._local_metrics.act_prompt_tokens += prompt_tokens
+            self._local_metrics.act_completion_tokens += completion_tokens
+            self._local_metrics.act_inference_time_ms += inference_time_ms
         elif function_name == StagehandFunctionName.EXTRACT:
-            self.metrics.extract_prompt_tokens += prompt_tokens
-            self.metrics.extract_completion_tokens += completion_tokens
-            self.metrics.extract_inference_time_ms += inference_time_ms
+            self._local_metrics.extract_prompt_tokens += prompt_tokens
+            self._local_metrics.extract_completion_tokens += completion_tokens
+            self._local_metrics.extract_inference_time_ms += inference_time_ms
         elif function_name == StagehandFunctionName.OBSERVE:
-            self.metrics.observe_prompt_tokens += prompt_tokens
-            self.metrics.observe_completion_tokens += completion_tokens
-            self.metrics.observe_inference_time_ms += inference_time_ms
+            self._local_metrics.observe_prompt_tokens += prompt_tokens
+            self._local_metrics.observe_completion_tokens += completion_tokens
+            self._local_metrics.observe_inference_time_ms += inference_time_ms
         elif function_name == StagehandFunctionName.AGENT:
-            self.metrics.agent_prompt_tokens += prompt_tokens
-            self.metrics.agent_completion_tokens += completion_tokens
-            self.metrics.agent_inference_time_ms += inference_time_ms
+            self._local_metrics.agent_prompt_tokens += prompt_tokens
+            self._local_metrics.agent_completion_tokens += completion_tokens
+            self._local_metrics.agent_inference_time_ms += inference_time_ms
 
         # Always update totals
-        self.metrics.total_prompt_tokens += prompt_tokens
-        self.metrics.total_completion_tokens += completion_tokens
-        self.metrics.total_inference_time_ms += inference_time_ms
+        self._local_metrics.total_prompt_tokens += prompt_tokens
+        self._local_metrics.total_completion_tokens += completion_tokens
+        self._local_metrics.total_inference_time_ms += inference_time_ms
 
     def update_metrics_from_response(
         self,
@@ -426,9 +427,9 @@ class Stagehand:
                     f"{completion_tokens} completion tokens, {time_ms}ms"
                 )
                 self.logger.debug(
-                    f"Total metrics: {self.metrics.total_prompt_tokens} prompt tokens, "
-                    f"{self.metrics.total_completion_tokens} completion tokens, "
-                    f"{self.metrics.total_inference_time_ms}ms"
+                    f"Total metrics: {self._local_metrics.total_prompt_tokens} prompt tokens, "
+                    f"{self._local_metrics.total_completion_tokens} completion tokens, "
+                    f"{self._local_metrics.total_inference_time_ms}ms"
                 )
             else:
                 # Try to extract from _hidden_params or other locations
@@ -736,7 +737,50 @@ class Stagehand:
 
         return self._live_page_proxy
 
+    def __getattribute__(self, name):
+        """
+        Intercept access to 'metrics' to fetch from API when use_api=True.
+        """
+        if name == "metrics":
+            use_api = (
+                object.__getattribute__(self, "use_api")
+                if hasattr(self, "use_api")
+                else False
+            )
+
+            if use_api:
+                # Need to fetch from API
+                try:
+                    # Get the _get_replay_metrics method
+                    get_replay_metrics = object.__getattribute__(
+                        self, "_get_replay_metrics"
+                    )
+
+                    # Try to get current event loop
+                    try:
+                        asyncio.get_running_loop()
+                        # We're in an async context, need to handle this carefully
+                        # Create a new task and wait for it
+                        nest_asyncio.apply()
+                        return asyncio.run(get_replay_metrics())
+                    except RuntimeError:
+                        # No event loop running, we can use asyncio.run directly
+                        return asyncio.run(get_replay_metrics())
+                except Exception as e:
+                    # Log error and return empty metrics
+                    logger = object.__getattribute__(self, "logger")
+                    if logger:
+                        logger.error(f"Failed to fetch metrics from API: {str(e)}")
+                    return StagehandMetrics()
+            else:
+                # Return local metrics
+                return object.__getattribute__(self, "_local_metrics")
+
+        # For all other attributes, use normal behavior
+        return object.__getattribute__(self, name)
+
 
 # Bind the imported API methods to the Stagehand class
 Stagehand._create_session = _create_session
 Stagehand._execute = _execute
+Stagehand._get_replay_metrics = _get_replay_metrics
