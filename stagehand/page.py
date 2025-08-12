@@ -113,8 +113,8 @@ class StagehandPage:
         if options:
             payload["options"] = options
 
-        # Add frame ID if available
-        if self._frame_id:
+        # Add frame ID if available and context exists
+        if self._context and self._frame_id:
             payload["frameId"] = self._frame_id
 
         lock = self._stagehand._get_lock_for_session()
@@ -187,8 +187,8 @@ class StagehandPage:
             result = await self._act_handler.act(payload)
             return result
 
-        # Add frame ID if available
-        if self._frame_id:
+        # Add frame ID if available and context exists
+        if self._context and self._frame_id:
             payload["frameId"] = self._frame_id
 
         lock = self._stagehand._get_lock_for_session()
@@ -260,8 +260,8 @@ class StagehandPage:
 
             return result
 
-        # Add frame ID if available
-        if self._frame_id:
+        # Add frame ID if available and context exists
+        if self._context and self._frame_id:
             payload["frameId"] = self._frame_id
 
         lock = self._stagehand._get_lock_for_session()
@@ -388,8 +388,8 @@ class StagehandPage:
             return result.data
 
         # Use API
-        # Add frame ID if available
-        if self._frame_id:
+        # Add frame ID if available and context exists
+        if self._context and self._frame_id:
             payload["frameId"] = self._frame_id
 
         lock = self._stagehand._get_lock_for_session()

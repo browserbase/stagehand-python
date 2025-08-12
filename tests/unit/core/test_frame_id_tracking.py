@@ -3,7 +3,9 @@ Unit tests for frame ID tracking functionality.
 Tests the implementation of frame ID map in StagehandContext and StagehandPage.
 """
 
+import asyncio
 import pytest
+import weakref
 from unittest.mock import AsyncMock, MagicMock, patch
 from stagehand.context import StagehandContext
 from stagehand.page import StagehandPage
@@ -50,8 +52,10 @@ class TestFrameIdTracking:
         context = StagehandContext(mock_browser_context, mock_stagehand)
         
         assert hasattr(context, 'frame_id_map')
-        assert isinstance(context.frame_id_map, dict)
+        assert isinstance(context.frame_id_map, weakref.WeakValueDictionary)
         assert len(context.frame_id_map) == 0
+        assert hasattr(context, '_frame_lock')
+        assert isinstance(context._frame_lock, asyncio.Lock)
     
     def test_register_frame_id(self, mock_browser_context, mock_stagehand, mock_page):
         """Test registering a frame ID."""
@@ -211,3 +215,153 @@ class TestFrameIdTracking:
         assert new_frame_id in context.frame_id_map
         assert stagehand_page.frame_id == new_frame_id
         assert context.frame_id_map[new_frame_id] == stagehand_page
+    
+    @pytest.mark.asyncio
+    async def test_cdp_session_failure(self, mock_browser_context, mock_stagehand, mock_page):
+        """Test handling of CDP session creation failure."""
+        context = StagehandContext(mock_browser_context, mock_stagehand)
+        stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
+        
+        # Mock CDP session creation to fail
+        mock_browser_context.new_cdp_session = AsyncMock(side_effect=Exception("CDP connection failed"))
+        
+        # Attach listener should handle the error gracefully
+        await context._attach_frame_navigated_listener(mock_page, stagehand_page)
+        
+        # Verify error was logged
+        mock_stagehand.logger.error.assert_called_with(
+            "Failed to attach frame navigation listener: CDP connection failed",
+            category="context",
+        )
+        
+        # Verify page still works without frame ID
+        assert stagehand_page.frame_id is None
+        assert len(context.frame_id_map) == 0
+    
+    @pytest.mark.asyncio
+    async def test_cdp_session_cleanup_on_failure(self, mock_browser_context, mock_stagehand, mock_page):
+        """Test that CDP session is cleaned up if attachment fails after creation."""
+        context = StagehandContext(mock_browser_context, mock_stagehand)
+        stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
+        
+        # Mock CDP session
+        mock_cdp_session = MagicMock()
+        mock_cdp_session.send = AsyncMock(side_effect=Exception("Page.enable failed"))
+        mock_cdp_session.detach = AsyncMock()
+        mock_browser_context.new_cdp_session = AsyncMock(return_value=mock_cdp_session)
+        
+        # Attach listener should handle the error
+        await context._attach_frame_navigated_listener(mock_page, stagehand_page)
+        
+        # Verify CDP session was detached after failure
+        mock_cdp_session.detach.assert_called_once()
+        
+        # Verify error was logged
+        mock_stagehand.logger.error.assert_called()
+    
+    @pytest.mark.asyncio
+    async def test_page_cleanup_with_cdp_session(self, mock_browser_context, mock_stagehand, mock_page):
+        """Test that CDP session is properly cleaned up when page closes."""
+        context = StagehandContext(mock_browser_context, mock_stagehand)
+        stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
+        
+        # Mock CDP session
+        mock_cdp_session = MagicMock()
+        mock_cdp_session.send = AsyncMock()
+        mock_cdp_session.on = MagicMock()
+        mock_cdp_session.detach = AsyncMock()
+        mock_browser_context.new_cdp_session = AsyncMock(return_value=mock_cdp_session)
+        
+        # Mock frame tree response
+        mock_cdp_session.send.return_value = {
+            "frameTree": {
+                "frame": {
+                    "id": "test-frame-id"
+                }
+            }
+        }
+        
+        # Attach listener
+        await context._attach_frame_navigated_listener(mock_page, stagehand_page)
+        
+        # Verify CDP session was stored
+        assert hasattr(stagehand_page, '_cdp_session')
+        assert stagehand_page._cdp_session == mock_cdp_session
+        
+        # Simulate page close by calling cleanup
+        await context._cleanup_page_resources(stagehand_page)
+        
+        # Verify CDP session was detached
+        mock_cdp_session.detach.assert_called_once()
+    
+    @pytest.mark.asyncio
+    async def test_frame_id_race_condition_prevention(self, mock_browser_context, mock_stagehand, mock_page):
+        """Test that frame lock prevents race conditions."""
+        context = StagehandContext(mock_browser_context, mock_stagehand)
+        stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
+        
+        # Track call order
+        call_order = []
+        
+        async def mock_register(frame_id, page):
+            call_order.append(f"register_{frame_id}")
+            # Simulate some async work
+            await asyncio.sleep(0.01)
+            context.frame_id_map[frame_id] = page
+        
+        async def mock_unregister(frame_id):
+            call_order.append(f"unregister_{frame_id}")
+            # Simulate some async work
+            await asyncio.sleep(0.01)
+            if frame_id in context.frame_id_map:
+                del context.frame_id_map[frame_id]
+        
+        # Temporarily replace methods
+        original_register = context.register_frame_id
+        original_unregister = context.unregister_frame_id
+        context.register_frame_id = mock_register
+        context.unregister_frame_id = mock_unregister
+        
+        try:
+            # Simulate multiple concurrent frame navigations
+            tasks = [
+                context._handle_frame_navigated(
+                    {"frame": {"id": f"frame-{i}", "parentId": None}},
+                    stagehand_page
+                )
+                for i in range(3)
+            ]
+            
+            await asyncio.gather(*tasks)
+            
+            # Verify operations were serialized (no interleaving)
+            # Each frame should be registered without interruption
+            assert len(call_order) == 6  # 3 unregisters + 3 registers
+            
+        finally:
+            # Restore original methods
+            context.register_frame_id = original_register
+            context.unregister_frame_id = original_unregister
+    
+    @pytest.mark.asyncio  
+    async def test_weak_reference_cleanup(self, mock_browser_context, mock_stagehand, mock_page):
+        """Test that weak references allow garbage collection."""
+        context = StagehandContext(mock_browser_context, mock_stagehand)
+        
+        # Create a page and register it
+        stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
+        frame_id = "frame-weak-ref"
+        context.register_frame_id(frame_id, stagehand_page)
+        
+        assert frame_id in context.frame_id_map
+        assert context.frame_id_map[frame_id] == stagehand_page
+        
+        # Delete the only strong reference to the page
+        del stagehand_page
+        
+        # Force garbage collection
+        import gc
+        gc.collect()
+        
+        # The weak reference should be gone
+        assert frame_id not in context.frame_id_map
