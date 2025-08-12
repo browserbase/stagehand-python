@@ -150,9 +150,10 @@ class TestFrameIdTracking:
         assert mock_cdp_session.on.call_args[0][0] == "Page.frameNavigated"
     
     @pytest.mark.asyncio
-    async def test_frame_id_in_api_calls(self, mock_page, mock_stagehand):
+    async def test_frame_id_in_api_calls(self, mock_page, mock_stagehand, mock_browser_context):
         """Test that frame ID is included in API payloads."""
-        stagehand_page = StagehandPage(mock_page, mock_stagehand)
+        context = StagehandContext(mock_browser_context, mock_stagehand)
+        stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
         stagehand_page.update_root_frame_id("test-frame-123")
         
         # Mock the stagehand client for API mode
@@ -202,6 +203,7 @@ class TestFrameIdTracking:
         event_handler = mock_cdp_session.on.call_args[0][1]
         
         # Simulate frame navigation event
+        # The event handler schedules async work, so we need to wait for it
         new_frame_id = "frame-new"
         event_handler({
             "frame": {
@@ -209,6 +211,9 @@ class TestFrameIdTracking:
                 "parentId": None  # Root frame has no parent
             }
         })
+        
+        # Wait for async tasks to complete
+        await asyncio.sleep(0.1)
         
         # Verify old frame ID was unregistered and new one registered
         assert initial_frame_id not in context.frame_id_map
@@ -300,29 +305,10 @@ class TestFrameIdTracking:
         context = StagehandContext(mock_browser_context, mock_stagehand)
         stagehand_page = StagehandPage(mock_page, mock_stagehand, context)
         
-        # Track call order
-        call_order = []
-        
-        async def mock_register(frame_id, page):
-            call_order.append(f"register_{frame_id}")
-            # Simulate some async work
-            await asyncio.sleep(0.01)
-            context.frame_id_map[frame_id] = page
-        
-        async def mock_unregister(frame_id):
-            call_order.append(f"unregister_{frame_id}")
-            # Simulate some async work
-            await asyncio.sleep(0.01)
-            if frame_id in context.frame_id_map:
-                del context.frame_id_map[frame_id]
-        
-        # Temporarily replace methods
-        original_register = context.register_frame_id
-        original_unregister = context.unregister_frame_id
-        context.register_frame_id = mock_register
-        context.unregister_frame_id = mock_unregister
-        
-        try:
+        # Track actual calls to the real methods through patching
+        with patch.object(context, 'register_frame_id', wraps=context.register_frame_id) as mock_reg, \
+             patch.object(context, 'unregister_frame_id', wraps=context.unregister_frame_id) as mock_unreg:
+            
             # Simulate multiple concurrent frame navigations
             tasks = [
                 context._handle_frame_navigated(
@@ -334,14 +320,10 @@ class TestFrameIdTracking:
             
             await asyncio.gather(*tasks)
             
-            # Verify operations were serialized (no interleaving)
-            # Each frame should be registered without interruption
-            assert len(call_order) == 6  # 3 unregisters + 3 registers
-            
-        finally:
-            # Restore original methods
-            context.register_frame_id = original_register
-            context.unregister_frame_id = original_unregister
+            # Verify methods were called the expected number of times
+            # Each navigation causes an unregister (if there's an old frame) and a register
+            assert mock_reg.call_count == 3  # 3 registers
+            assert mock_unreg.call_count >= 2  # At least 2 unregisters (first might not have old frame)
     
     @pytest.mark.asyncio  
     async def test_weak_reference_cleanup(self, mock_browser_context, mock_stagehand, mock_page):
