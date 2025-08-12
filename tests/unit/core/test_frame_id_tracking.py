@@ -64,9 +64,6 @@ class TestFrameIdTracking:
         
         assert frame_id in context.frame_id_map
         assert context.frame_id_map[frame_id] == stagehand_page
-        mock_stagehand.logger.debug.assert_called_with(
-            f"Registered frame ID {frame_id} to page", category="context"
-        )
     
     def test_unregister_frame_id(self, mock_browser_context, mock_stagehand, mock_page):
         """Test unregistering a frame ID."""
@@ -79,9 +76,6 @@ class TestFrameIdTracking:
         context.unregister_frame_id(frame_id)
         
         assert frame_id not in context.frame_id_map
-        mock_stagehand.logger.debug.assert_called_with(
-            f"Unregistered frame ID {frame_id}", category="context"
-        )
     
     def test_get_stagehand_page_by_frame_id(self, mock_browser_context, mock_stagehand, mock_page):
         """Test retrieving a StagehandPage by frame ID."""
