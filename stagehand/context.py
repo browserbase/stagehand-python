@@ -15,7 +15,10 @@ class StagehandContext:
         self.page_map = weakref.WeakKeyDictionary()
         self.active_stagehand_page = None
         # Map frame IDs to StagehandPage instances
-        self.frame_id_map = {}
+        # Using WeakValueDictionary to prevent memory leaks
+        self.frame_id_map = weakref.WeakValueDictionary()
+        # Lock for frame ID operations to prevent race conditions
+        self._frame_lock = asyncio.Lock()
 
     async def new_page(self) -> StagehandPage:
         pw_page: Page = await self._context.new_page()
@@ -176,10 +179,14 @@ class StagehandContext:
         Attach CDP listener for frame navigation events to track frame IDs.
         This mirrors the TypeScript implementation's frame tracking.
         """
+        cdp_session = None
         try:
             # Create CDP session for the page
             cdp_session = await self._context.new_cdp_session(pw_page)
             await cdp_session.send("Page.enable")
+
+            # Store CDP session reference for cleanup
+            stagehand_page._cdp_session = cdp_session
 
             # Get the current root frame ID
             frame_tree = await cdp_session.send("Page.getFrameTree")
@@ -187,18 +194,51 @@ class StagehandContext:
 
             if root_frame_id:
                 # Initialize the page with its frame ID
-                stagehand_page.update_root_frame_id(root_frame_id)
-                self.register_frame_id(root_frame_id, stagehand_page)
+                async with self._frame_lock:
+                    stagehand_page.update_root_frame_id(root_frame_id)
+                    self.register_frame_id(root_frame_id, stagehand_page)
 
             # Set up event listener for frame navigation
             def on_frame_navigated(params):
                 """Handle Page.frameNavigated events"""
-                frame = params.get("frame", {})
-                frame_id = frame.get("id")
-                parent_id = frame.get("parentId")
+                # Schedule async work to handle the event
+                asyncio.create_task(
+                    self._handle_frame_navigated(params, stagehand_page)
+                )
 
-                # Only track root frames (no parent)
-                if not parent_id and frame_id:
+            # Register the event listener
+            cdp_session.on("Page.frameNavigated", on_frame_navigated)
+
+            # Clean up frame ID and CDP session when page closes
+            def on_page_close():
+                asyncio.create_task(self._cleanup_page_resources(stagehand_page))
+
+            pw_page.once("close", on_page_close)
+
+        except Exception as e:
+            self.stagehand.logger.error(
+                f"Failed to attach frame navigation listener: {str(e)}",
+                category="context",
+            )
+            # Clean up CDP session if it was created
+            if cdp_session:
+                try:
+                    await cdp_session.detach()
+                except Exception:
+                    pass
+
+    async def _handle_frame_navigated(
+        self, params: dict, stagehand_page: StagehandPage
+    ):
+        """Async handler for frame navigation events."""
+        try:
+            frame = params.get("frame", {})
+            frame_id = frame.get("id")
+            parent_id = frame.get("parentId")
+
+            # Only track root frames (no parent)
+            if not parent_id and frame_id:
+                async with self._frame_lock:
                     # Skip if it's the same frame ID
                     if frame_id == stagehand_page.frame_id:
                         return
@@ -216,19 +256,33 @@ class StagehandContext:
                         f"Frame navigated from {old_id} to {frame_id}",
                         category="context",
                     )
+        except Exception as e:
+            self.stagehand.logger.error(
+                f"Error handling frame navigation: {str(e)}",
+                category="context",
+            )
 
-            # Register the event listener
-            cdp_session.on("Page.frameNavigated", on_frame_navigated)
-
-            # Clean up frame ID when page closes
-            def on_page_close():
+    async def _cleanup_page_resources(self, stagehand_page: StagehandPage):
+        """Clean up resources when a page closes."""
+        try:
+            async with self._frame_lock:
                 if stagehand_page.frame_id:
                     self.unregister_frame_id(stagehand_page.frame_id)
 
-            pw_page.once("close", on_page_close)
-
+                # Clean up CDP session if it exists
+                if (
+                    hasattr(stagehand_page, "_cdp_session")
+                    and stagehand_page._cdp_session
+                ):
+                    try:
+                        await stagehand_page._cdp_session.detach()
+                    except Exception as e:
+                        self.stagehand.logger.debug(
+                            f"Error detaching CDP session: {str(e)}",
+                            category="context",
+                        )
         except Exception as e:
             self.stagehand.logger.error(
-                f"Failed to attach frame navigation listener: {str(e)}",
+                f"Error cleaning up page resources: {str(e)}",
                 category="context",
             )
