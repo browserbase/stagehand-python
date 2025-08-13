@@ -114,7 +114,6 @@ class LLMClient:
         if "gpt-5" in completion_model:
             filtered_params["temperature"] = 1
 
-
         self.logger.debug(
             f"Calling litellm.completion with model={completion_model} and params: {filtered_params}",
             category="llm",
