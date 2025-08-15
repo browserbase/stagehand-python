@@ -159,7 +159,7 @@ class Stagehand:
             self.config = config
 
         # Handle non-config parameters
-        self.api_url = self.config.api_url or os.getenv("STAGEHAND_API_URL")
+        self.api_url = self.config.api_url
         if not self.api_url:
             raise ValueError(
                 "api_url is not set. Please set StagehandConfig.api_url "
