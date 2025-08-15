@@ -159,7 +159,18 @@ class Stagehand:
             self.config = config
 
         # Handle non-config parameters
-        self.api_url = self.config.api_url
+        self.api_url = self.config.api_url or os.getenv("STAGEHAND_API_URL")
+        if not self.api_url:
+            raise ValueError(
+                "api_url is not set. Please set StagehandConfig.api_url "
+                "or the STAGEHAND_API_URL environment variable."
+            )
+
+        if not self.api_url.startswith(("http://", "https://")):
+            raise ValueError(
+                f"Invalid api_url: {self.api_url}. Must start with http:// or https://"
+            )
+
         self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
         self.model_name = self.config.model_name
 
