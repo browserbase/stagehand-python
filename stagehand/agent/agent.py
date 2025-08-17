@@ -132,7 +132,7 @@ class Agent:
             try:
                 agent_result = await self.client.run_task(
                     instruction=instruction,
-                    max_steps=self.config.max_steps,
+                    max_steps=options.max_steps or self.config.max_steps,
                     options=options,
                 )
             except Exception as e:
