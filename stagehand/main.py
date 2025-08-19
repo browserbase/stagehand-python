@@ -527,13 +527,11 @@ class Stagehand:
                             "eventsEnabled": True,
                         },
                     )
-
-                    self.logger.debug(f"Set up CDP download behavior")
+                    self.logger.debug("Set up CDP download behavior")
                 except Exception as e:
                     self.logger.warning(
                         f"Failed to set up CDP download behavior: {str(e)}"
                     )
-                    # Continue without download support - non-critical feature
 
             except Exception:
                 await self.close()
