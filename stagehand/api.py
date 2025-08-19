@@ -66,6 +66,9 @@ async def _create_session(self):
     if hasattr(self, "model_client_options") and self.model_client_options:
         payload["modelClientOptions"] = self.model_client_options
 
+    if hasattr(self, "experimental") and self.experimental:
+        payload["experimental"] = self.experimental
+
     def get_version(package_str):
         try:
             result = version(package_str)
