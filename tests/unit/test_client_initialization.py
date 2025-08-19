@@ -23,7 +23,7 @@ class TestClientInitialization:
             browserbase_session_id="test-session",
             api_key="test-api-key",
             project_id="test-project-id",
-            model_api_key="test-model-api-key",
+            model_client_options={"apiKey": "test-model-api-key"},
             verbose=2,
         )
 
@@ -203,3 +203,32 @@ class TestClientInitialization:
         # Call _create_session and expect error
         with pytest.raises(RuntimeError, match="Invalid response format"):
             await client._create_session()
+
+    @mock.patch.dict(os.environ, {"MODEL_API_KEY": "test-model-api-key"}, clear=True)
+    def test_init_with_model_api_key_in_env(self):
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+        assert client.model_api_key == "test-model-api-key"
+
+    def test_init_with_custom_llm(self):
+        config = StagehandConfig(
+            env="LOCAL",
+            model_client_options={"apiKey": "custom-llm-key", "baseURL": "https://custom-llm.com"}
+        )
+        client = Stagehand(config=config)
+        assert client.model_api_key == "custom-llm-key"
+        assert client.model_client_options["apiKey"] == "custom-llm-key"
+        assert client.model_client_options["baseURL"] == "https://custom-llm.com"
+
+    def test_init_with_custom_llm_override(self):
+        config = StagehandConfig(
+            env="LOCAL",
+            model_client_options={"apiKey": "custom-llm-key", "baseURL": "https://custom-llm.com"}
+        )
+        client = Stagehand(
+            config=config,
+            model_client_options={"apiKey": "override-llm-key", "baseURL": "https://override-llm.com"}
+        )
+        assert client.model_api_key == "override-llm-key"
+        assert client.model_client_options["apiKey"] == "override-llm-key"
+        assert client.model_client_options["baseURL"] == "https://override-llm.com"

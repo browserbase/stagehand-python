@@ -54,7 +54,7 @@ class LLMClient:
                 setattr(litellm, key, value)
                 self.logger.debug(f"Set global litellm.{key}", category="llm")
             # Handle common aliases or expected config names if necessary
-            elif key == "api_base":  # Example: map api_base if needed
+            elif key == "api_base" or key == "baseURL":
                 litellm.api_base = value
                 self.logger.debug(
                     f"Set global litellm.api_base to {value}", category="llm"
