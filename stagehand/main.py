@@ -515,17 +515,24 @@ class Stagehand:
                 # Set up download behavior via CDP
                 try:
                     # Create CDP session for the page
-                    cdp_session = await self._context.new_cdp_session(self._playwright_page)
+                    cdp_session = await self._context.new_cdp_session(
+                        self._playwright_page
+                    )
                     # Enable download behavior
-                    await cdp_session.send("Browser.setDownloadBehavior", {
-                        "behavior": "allow",
-                        "downloadPath": "downloads",
-                        "eventsEnabled": True
-                    })
+                    await cdp_session.send(
+                        "Browser.setDownloadBehavior",
+                        {
+                            "behavior": "allow",
+                            "downloadPath": "downloads",
+                            "eventsEnabled": True,
+                        },
+                    )
 
                     self.logger.debug(f"Set up CDP download behavior")
                 except Exception as e:
-                    self.logger.warning(f"Failed to set up CDP download behavior: {str(e)}")
+                    self.logger.warning(
+                        f"Failed to set up CDP download behavior: {str(e)}"
+                    )
                     # Continue without download support - non-critical feature
 
             except Exception:
