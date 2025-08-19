@@ -187,6 +187,9 @@ class Stagehand:
         )
         if self.model_api_key:
             self.model_client_options["apiKey"] = self.model_api_key
+        else:
+            if "apiKey" in self.model_client_options:
+                self.model_api_key = self.model_client_options["apiKey"]
 
         # Handle browserbase session create params
         self.browserbase_session_create_params = make_serializable(
