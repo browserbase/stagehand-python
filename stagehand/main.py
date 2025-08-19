@@ -531,6 +531,30 @@ class Stagehand:
                     self.logger,
                 )
                 self._playwright_page = self._page._page
+
+                # Set up download behavior via CDP
+                try:
+                    # Check if downloadsPath is provided in launch options, otherwise use default
+                    downloads_path = self.local_browser_launch_options.get("downloadsPath")
+                    if not downloads_path:
+                        downloads_path = str(Path.cwd() / "downloads")
+                        # Create downloads directory if it doesn't exist
+                        Path(downloads_path).mkdir(parents=True, exist_ok=True)
+
+                    # Create CDP session for the page
+                    cdp_session = await self._context.new_cdp_session(self._playwright_page)
+                    # Enable download behavior
+                    await cdp_session.send("Browser.setDownloadBehavior", {
+                        "behavior": "allow",
+                        "downloadPath": downloads_path,
+                        "eventsEnabled": True
+                    })
+
+                    self.logger.debug(f"Set up CDP download behavior for local browser with path: {downloads_path}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to set up CDP download behavior for local browser: {str(e)}")
+                    # Continue without download support - non-critical feature
+
             except Exception:
                 await self.close()
                 raise
