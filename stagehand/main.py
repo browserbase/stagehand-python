@@ -185,7 +185,8 @@ class Stagehand:
         self.local_browser_launch_options = (
             self.config.local_browser_launch_options or {}
         )
-        self.model_client_options["apiKey"] = self.model_api_key
+        if self.model_api_key:
+            self.model_client_options["apiKey"] = self.model_api_key
 
         # Handle browserbase session create params
         self.browserbase_session_create_params = make_serializable(
