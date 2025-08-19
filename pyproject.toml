@@ -19,7 +19,7 @@ dependencies = [
  "rich>=13.7.0",
  "openai>=1.83.0,<1.99.6",
  "anthropic>=0.51.0",
- "litellm>=1.72.0",
+ "litellm>=1.72.0,<1.75.0",
  "nest-asyncio>=1.6.0",
 ]
 [[project.authors]]

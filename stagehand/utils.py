@@ -1,4 +1,5 @@
 import inspect
+import os
 from typing import Any, Union, get_args, get_origin
 
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl, create_model
@@ -530,3 +531,15 @@ def make_serializable(obj):
         elif isinstance(obj, dict):
             return {key: make_serializable(value) for key, value in obj.items()}
     return obj
+
+
+def get_download_path(stagehand):
+    if stagehand.env == "BROWSERBASE":
+        return "downloads"
+    else:
+        if stagehand.local_browser_launch_options.get("downloadPath"):
+            return stagehand.local_browser_launch_options["downloadPath"]
+        else:
+            path = os.path.join(os.getcwd(), "downloads")
+            os.makedirs(path, exist_ok=True)
+            return path

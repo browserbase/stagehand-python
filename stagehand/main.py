@@ -29,7 +29,7 @@ from .llm import LLMClient
 from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
-from .utils import make_serializable
+from .utils import get_download_path, make_serializable
 
 load_dotenv()
 
@@ -512,27 +512,6 @@ class Stagehand:
                 )
                 self._playwright_page = self._page._page
 
-                # Set up download behavior via CDP
-                try:
-                    # Create CDP session for the page
-                    cdp_session = await self._context.new_cdp_session(
-                        self._playwright_page
-                    )
-                    # Enable download behavior
-                    await cdp_session.send(
-                        "Browser.setDownloadBehavior",
-                        {
-                            "behavior": "allow",
-                            "downloadPath": "downloads",
-                            "eventsEnabled": True,
-                        },
-                    )
-                    self.logger.debug("Set up CDP download behavior")
-                except Exception as e:
-                    self.logger.warning(
-                        f"Failed to set up CDP download behavior: {str(e)}"
-                    )
-
             except Exception:
                 await self.close()
                 raise
@@ -560,6 +539,23 @@ class Stagehand:
         else:
             # Should not happen due to __init__ validation
             raise RuntimeError(f"Invalid env value: {self.env}")
+
+        # Set up download behavior via CDP
+        try:
+            # Create CDP session for the page
+            cdp_session = await self._context.new_cdp_session(self._playwright_page)
+            # Enable download behavior
+            await cdp_session.send(
+                "Browser.setDownloadBehavior",
+                {
+                    "behavior": "allow",
+                    "downloadPath": get_download_path(self),
+                    "eventsEnabled": True,
+                },
+            )
+            self.logger.debug("Set up CDP download behavior")
+        except Exception as e:
+            self.logger.warning(f"Failed to set up CDP download behavior: {str(e)}")
 
         self._initialized = True
 
