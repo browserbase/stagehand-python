@@ -71,7 +71,7 @@ class Stagehand:
 
         # Handle model-related settings
         self.model_client_options = self.config.model_client_options or {}
-        self.model_api_key = self.config.model_api_key or self.model_client_options.get("apiKey") or os.getenv("MODEL_API_KEY")
+        self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
 
         self.model_name = self.config.model_name
 
@@ -92,6 +92,7 @@ class Stagehand:
         self.local_browser_launch_options = (
             self.config.local_browser_launch_options or {}
         )
+        self.model_client_options["apiKey"] = self.model_api_key
 
         # Handle browserbase session create params
         self.browserbase_session_create_params = make_serializable(
