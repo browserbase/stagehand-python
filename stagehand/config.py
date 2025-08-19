@@ -52,7 +52,7 @@ class StagehandConfig(BaseModel):
         None, alias="modelApiKey", description="Model API key"
     )
     model_client_options: Optional[dict[str, Any]] = Field(
-        None, alias="modelClientOptions", description="Configuration options for the language model client (i.e. apiKey, baseURL)",
+        None, alias="modelClientOptions", description="Configuration options for the language model client (i.e. api_base)",
     )
     verbose: Optional[int] = Field(
         1,
