@@ -1,3 +1,5 @@
+import asyncio
+import time
 from typing import Optional, Union
 
 from playwright.async_api import CDPSession, Page
@@ -16,7 +18,7 @@ from .schemas import (
     ObserveOptions,
     ObserveResult,
 )
-from .types import DefaultExtractSchema
+from .types import DefaultExtractSchema, EmptyExtractSchema
 
 _INJECTION_SCRIPT = None
 
@@ -26,16 +28,29 @@ class StagehandPage:
 
     _cdp_client: Optional[CDPSession] = None
 
-    def __init__(self, page: Page, stagehand_client):
+    def __init__(self, page: Page, stagehand_client, context=None):
         """
         Initialize a StagehandPage instance.
 
         Args:
             page (Page): The underlying Playwright page.
             stagehand_client: The client used to interface with the Stagehand server.
+            context: The StagehandContext instance (optional).
         """
         self._page = page
         self._stagehand = stagehand_client
+        self._context = context
+        self._frame_id = None
+
+    @property
+    def frame_id(self) -> Optional[str]:
+        """Get the current root frame ID."""
+        return self._frame_id
+
+    def update_root_frame_id(self, new_id: str):
+        """Update the root frame ID."""
+        self._frame_id = new_id
+        self._stagehand.logger.debug(f"Updated frame ID to {new_id}", category="page")
 
     # TODO try catch here
     async def ensure_injection(self):
@@ -98,6 +113,10 @@ class StagehandPage:
         if options:
             payload["options"] = options
 
+        # Add frame ID if available
+        if self._frame_id:
+            payload["frameId"] = self._frame_id
+
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result = await self._stagehand._execute("navigate", payload)
@@ -137,9 +156,14 @@ class StagehandPage:
         elif isinstance(action_or_result, ActOptions):
             payload = action_or_result.model_dump(exclude_none=True, by_alias=True)
         elif isinstance(action_or_result, dict):
-            payload = ObserveResult(**action_or_result).model_dump(
-                exclude_none=True, by_alias=True
-            )
+            if "description" in action_or_result:
+                payload = ObserveResult(**action_or_result).model_dump(
+                    exclude_none=True, by_alias=True
+                )
+            else:
+                payload = ActOptions(**action_or_result).model_dump(
+                    exclude_none=True, by_alias=True
+                )
         else:
             raise TypeError(
                 "Invalid arguments for 'act'. Expected str, ObserveResult, or ActOptions."
@@ -156,8 +180,16 @@ class StagehandPage:
                     self, self._stagehand, "", self._stagehand.self_heal
                 )
             self._stagehand.logger.debug("act", category="act", auxiliary=payload)
+            if payload.get("iframes"):
+                raise ValueError(
+                    "iframes is not yet supported without API (to enable make sure you set env=BROWSERBASE and use_api=true)"
+                )
             result = await self._act_handler.act(payload)
             return result
+
+        # Add frame ID if available
+        if self._frame_id:
+            payload["frameId"] = self._frame_id
 
         lock = self._stagehand._get_lock_for_session()
         async with lock:
@@ -227,6 +259,10 @@ class StagehandPage:
             )
 
             return result
+
+        # Add frame ID if available
+        if self._frame_id:
+            payload["frameId"] = self._frame_id
 
         lock = self._stagehand._get_lock_for_session()
         async with lock:
@@ -352,6 +388,10 @@ class StagehandPage:
             return result.data
 
         # Use API
+        # Add frame ID if available
+        if self._frame_id:
+            payload["frameId"] = self._frame_id
+
         lock = self._stagehand._get_lock_for_session()
         async with lock:
             result_dict = await self._stagehand._execute("extract", payload)
@@ -361,12 +401,17 @@ class StagehandPage:
             processed_data_payload = result_dict
             if schema_to_validate_with and isinstance(processed_data_payload, dict):
                 try:
-                    validated_model = schema_to_validate_with.model_validate(
-                        processed_data_payload
-                    )
-                    processed_data_payload = (
-                        validated_model  # Payload is now the Pydantic model instance
-                    )
+                    # For extract with no params
+                    if not options_obj:
+                        validated_model = EmptyExtractSchema.model_validate(
+                            processed_data_payload
+                        )
+                        processed_data_payload = validated_model
+                    else:
+                        validated_model = schema_to_validate_with.model_validate(
+                            processed_data_payload
+                        )
+                        processed_data_payload = validated_model
                 except Exception as e:
                     self._stagehand.logger.error(
                         f"Failed to validate extracted data against schema {schema_to_validate_with.__name__}: {e}. Keeping raw data dict in .data field."
@@ -402,8 +447,6 @@ class StagehandPage:
             self._stagehand.logger.debug(
                 f"CDP command '{method}' failed: {e}. Attempting to reconnect..."
             )
-            # Try to reconnect
-            await self._ensure_cdp_session()
             # Handle specific errors if needed (e.g., session closed)
             if "Target closed" in str(e) or "Session closed" in str(e):
                 # Attempt to reset the client if the session closed unexpectedly
@@ -446,70 +489,210 @@ class StagehandPage:
         """
         Wait for the DOM to settle (stop changing) before proceeding.
 
+        **Definition of "settled"**
+          • No in-flight network requests (except WebSocket / Server-Sent-Events).
+          • That idle state lasts for at least **500 ms** (the "quiet-window").
+
+        **How it works**
+          1. Subscribes to CDP Network and Page events for the main target and all
+             out-of-process iframes (via `Target.setAutoAttach { flatten:true }`).
+          2. Every time `Network.requestWillBeSent` fires, the request ID is added
+             to an **`inflight`** set.
+          3. When the request finishes—`loadingFinished`, `loadingFailed`,
+             `requestServedFromCache`, or a *data:* response—the request ID is
+             removed.
+          4. *Document* requests are also mapped **frameId → requestId**; when
+             `Page.frameStoppedLoading` fires the corresponding Document request is
+             removed immediately (covers iframes whose network events never close).
+          5. A **stalled-request sweep timer** runs every 500 ms. If a *Document*
+             request has been open for ≥ 2 s it is forcibly removed; this prevents
+             ad/analytics iframes from blocking the wait forever.
+          6. When `inflight` becomes empty the helper starts a 500 ms timer.
+             If no new request appears before the timer fires, the promise
+             resolves → **DOM is considered settled**.
+          7. A global guard (`timeoutMs` or `stagehand.domSettleTimeoutMs`,
+             default ≈ 30 s) ensures we always resolve; if it fires we log how many
+             requests were still outstanding.
+
         Args:
             timeout_ms (int, optional): Maximum time to wait in milliseconds.
                 If None, uses the stagehand client's dom_settle_timeout_ms.
         """
-        try:
-            timeout = timeout_ms or getattr(
-                self._stagehand, "dom_settle_timeout_ms", 30000
-            )
-            import asyncio
 
-            # Wait for domcontentloaded first
+        timeout = timeout_ms or getattr(self._stagehand, "dom_settle_timeout_ms", 30000)
+        client = await self.get_cdp_client()
+
+        # Check if document exists
+        try:
+            await self._page.title()
+        except Exception:
             await self._page.wait_for_load_state("domcontentloaded")
 
-            # Create a timeout promise that resolves after the specified time
-            timeout_task = asyncio.create_task(asyncio.sleep(timeout / 1000))
+        # Enable CDP domains
+        await client.send("Network.enable")
+        await client.send("Page.enable")
+        await client.send(
+            "Target.setAutoAttach",
+            {
+                "autoAttach": True,
+                "waitForDebuggerOnStart": False,
+                "flatten": True,
+                "filter": [
+                    {"type": "worker", "exclude": True},
+                    {"type": "shared_worker", "exclude": True},
+                ],
+            },
+        )
 
-            # Try to check if the DOM has settled
-            try:
-                # Create a task for evaluating the DOM settling
-                eval_task = asyncio.create_task(
-                    self._page.evaluate(
-                        """
-                        () => {
-                            return new Promise((resolve) => {
-                                if (typeof window.waitForDomSettle === 'function') {
-                                    window.waitForDomSettle().then(resolve);
-                                } else {
-                                    console.warn('waitForDomSettle is not defined, considering DOM as settled');
-                                    resolve();
-                                }
-                            });
-                        }
-                    """
-                    )
-                )
+        # Set up tracking structures
+        inflight = set()  # Set of request IDs
+        meta = {}  # Dict of request ID -> {"url": str, "start": float}
+        doc_by_frame = {}  # Dict of frame ID -> request ID
 
-                # Create tasks for other ways to determine page readiness
-                dom_task = asyncio.create_task(
-                    self._page.wait_for_load_state("domcontentloaded")
-                )
-                body_task = asyncio.create_task(self._page.wait_for_selector("body"))
+        # Event tracking
+        quiet_timer = None
+        stalled_request_sweep_task = None
+        loop = asyncio.get_event_loop()
+        done_event = asyncio.Event()
 
-                # Wait for the first task to complete
-                done, pending = await asyncio.wait(
-                    [eval_task, dom_task, body_task, timeout_task],
-                    return_when=asyncio.FIRST_COMPLETED,
-                )
+        def clear_quiet():
+            nonlocal quiet_timer
+            if quiet_timer:
+                quiet_timer.cancel()
+                quiet_timer = None
 
-                # Cancel any pending tasks
-                for task in pending:
-                    task.cancel()
+        def resolve_done():
+            """Cleanup and mark as done"""
+            clear_quiet()
+            if stalled_request_sweep_task and not stalled_request_sweep_task.done():
+                stalled_request_sweep_task.cancel()
+            done_event.set()
 
-                # If the timeout was hit, log a warning
-                if timeout_task in done:
+        def maybe_quiet():
+            """Start quiet timer if no requests are in flight"""
+            nonlocal quiet_timer
+            if len(inflight) == 0 and not quiet_timer:
+                quiet_timer = loop.call_later(0.5, resolve_done)
+
+        def finish_req(request_id: str):
+            """Mark a request as finished"""
+            if request_id not in inflight:
+                return
+            inflight.remove(request_id)
+            meta.pop(request_id, None)
+            # Remove from frame mapping
+            for fid, rid in list(doc_by_frame.items()):
+                if rid == request_id:
+                    doc_by_frame.pop(fid)
+            clear_quiet()
+            maybe_quiet()
+
+        # Event handlers
+        def on_request(params):
+            """Handle Network.requestWillBeSent"""
+            if params.get("type") in ["WebSocket", "EventSource"]:
+                return
+
+            request_id = params["requestId"]
+            inflight.add(request_id)
+            meta[request_id] = {"url": params["request"]["url"], "start": time.time()}
+
+            if params.get("type") == "Document" and params.get("frameId"):
+                doc_by_frame[params["frameId"]] = request_id
+
+            clear_quiet()
+
+        def on_finish(params):
+            """Handle Network.loadingFinished"""
+            finish_req(params["requestId"])
+
+        def on_failed(params):
+            """Handle Network.loadingFailed"""
+            finish_req(params["requestId"])
+
+        def on_cached(params):
+            """Handle Network.requestServedFromCache"""
+            finish_req(params["requestId"])
+
+        def on_data_url(params):
+            """Handle Network.responseReceived for data: URLs"""
+            if params.get("response", {}).get("url", "").startswith("data:"):
+                finish_req(params["requestId"])
+
+        def on_frame_stop(params):
+            """Handle Page.frameStoppedLoading"""
+            frame_id = params["frameId"]
+            if frame_id in doc_by_frame:
+                finish_req(doc_by_frame[frame_id])
+
+        # Register event handlers
+        client.on("Network.requestWillBeSent", on_request)
+        client.on("Network.loadingFinished", on_finish)
+        client.on("Network.loadingFailed", on_failed)
+        client.on("Network.requestServedFromCache", on_cached)
+        client.on("Network.responseReceived", on_data_url)
+        client.on("Page.frameStoppedLoading", on_frame_stop)
+
+        async def sweep_stalled_requests():
+            """Remove stalled document requests after 2 seconds"""
+            while not done_event.is_set():
+                await asyncio.sleep(0.5)
+                now = time.time()
+                for request_id, request_meta in list(meta.items()):
+                    if now - request_meta["start"] > 2.0:
+                        inflight.discard(request_id)
+                        meta.pop(request_id, None)
+                        self._stagehand.logger.debug(
+                            "⏳ forcing completion of stalled iframe document",
+                            auxiliary={"url": request_meta["url"][:120]},
+                        )
+                maybe_quiet()
+
+        # Start stalled request sweeper
+        stalled_request_sweep_task = asyncio.create_task(sweep_stalled_requests())
+
+        # Set up timeout guard
+        async def timeout_guard():
+            await asyncio.sleep(timeout / 1000)
+            if not done_event.is_set():
+                if len(inflight) > 0:
                     self._stagehand.logger.debug(
-                        "DOM settle timeout exceeded, continuing anyway",
-                        extra={"timeout_ms": timeout},
+                        "⚠️ DOM-settle timeout reached – network requests still pending",
+                        auxiliary={"count": len(inflight)},
                     )
+                resolve_done()
 
-            except Exception as e:
-                self._stagehand.logger.debug(f"Error waiting for DOM to settle: {e}")
+        timeout_task = asyncio.create_task(timeout_guard())
 
-        except Exception as e:
-            self._stagehand.logger.error(f"Error in _wait_for_settled_dom: {e}")
+        # Initial check
+        maybe_quiet()
+
+        try:
+            # Wait for completion
+            await done_event.wait()
+        finally:
+            # Cleanup
+            client.remove_listener("Network.requestWillBeSent", on_request)
+            client.remove_listener("Network.loadingFinished", on_finish)
+            client.remove_listener("Network.loadingFailed", on_failed)
+            client.remove_listener("Network.requestServedFromCache", on_cached)
+            client.remove_listener("Network.responseReceived", on_data_url)
+            client.remove_listener("Page.frameStoppedLoading", on_frame_stop)
+
+            if quiet_timer:
+                quiet_timer.cancel()
+            if stalled_request_sweep_task and not stalled_request_sweep_task.done():
+                stalled_request_sweep_task.cancel()
+                try:
+                    await stalled_request_sweep_task
+                except asyncio.CancelledError:
+                    pass
+            if timeout_task and not timeout_task.done():
+                timeout_task.cancel()
+                try:
+                    await timeout_task
+                except asyncio.CancelledError:
+                    pass
 
     # Forward other Page methods to underlying Playwright page
     def __getattr__(self, name):

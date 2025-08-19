@@ -57,7 +57,7 @@ async def _clean_structural_nodes(
         page
         and logger
         and backend_node_id is not None
-        and node_role in ("generic", "none")
+        and node_role in ("generic", "combobox", "none")
     ):
         try:
             resolved_node = await page.send_cdp(
@@ -78,6 +78,8 @@ async def _clean_structural_nodes(
                     )
                     result_value = tag_name_result.get("result", {}).get("value")
                     if result_value:
+                        if node_role == "combobox" and result_value == "select":
+                            result_value = "select"
                         node["role"] = result_value
                         node_role = result_value
                 except Exception as tag_name_error:

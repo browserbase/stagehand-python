@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import httpx
+import nest_asyncio
 from dotenv import load_dotenv
 from playwright.async_api import (
     BrowserContext,
@@ -16,7 +17,7 @@ from playwright.async_api import (
 from playwright.async_api import Page as PlaywrightPage
 
 from .agent import Agent
-from .api import _create_session, _execute
+from .api import _create_session, _execute, _get_replay_metrics
 from .browser import (
     cleanup_browser_resources,
     connect_browserbase_browser,
@@ -31,6 +32,98 @@ from .page import StagehandPage
 from .utils import make_serializable
 
 load_dotenv()
+
+
+class LivePageProxy:
+    """
+    A proxy object that dynamically delegates all operations to the current active page.
+    This mimics the behavior of the JavaScript Proxy in the original implementation.
+    """
+
+    def __init__(self, stagehand_instance):
+        # Use object.__setattr__ to avoid infinite recursion
+        object.__setattr__(self, "_stagehand", stagehand_instance)
+
+    async def _ensure_page_stability(self):
+        """Wait for any pending page switches to complete"""
+        if hasattr(self._stagehand, "_page_switch_lock"):
+            try:
+                # Use wait_for for Python 3.10 compatibility (timeout prevents indefinite blocking)
+                async def acquire_lock():
+                    async with self._stagehand._page_switch_lock:
+                        pass  # Just wait for any ongoing switches
+
+                await asyncio.wait_for(acquire_lock(), timeout=30)
+            except asyncio.TimeoutError:
+                # Log the timeout and raise to let caller handle it
+                if hasattr(self._stagehand, "logger"):
+                    self._stagehand.logger.error(
+                        "Timeout waiting for page stability lock", category="live_proxy"
+                    )
+                raise RuntimeError from asyncio.TimeoutError(
+                    "Page stability lock timeout - possible deadlock detected"
+                )
+
+    def __getattr__(self, name):
+        """Delegate all attribute access to the current active page."""
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        # Get the current page
+        if hasattr(stagehand, "_page") and stagehand._page:
+            page = stagehand._page
+        else:
+            raise RuntimeError("No active page available")
+
+        # For async operations, make them wait for stability
+        attr = getattr(page, name)
+        if callable(attr) and asyncio.iscoroutinefunction(attr):
+            # Don't wait for stability on navigation methods
+            if name in ["goto", "reload", "go_back", "go_forward"]:
+                return attr
+
+            async def wrapped(*args, **kwargs):
+                await self._ensure_page_stability()
+                return await attr(*args, **kwargs)
+
+            return wrapped
+        return attr
+
+    def __setattr__(self, name, value):
+        """Delegate all attribute setting to the current active page."""
+        if name.startswith("_"):
+            # Internal attributes are set on the proxy itself
+            object.__setattr__(self, name, value)
+        else:
+            stagehand = object.__getattribute__(self, "_stagehand")
+
+            # Get the current page
+            if hasattr(stagehand, "_page") and stagehand._page:
+                page = stagehand._page
+            else:
+                raise RuntimeError("No active page available")
+
+            # Set the attribute on the page
+            setattr(page, name, value)
+
+    def __dir__(self):
+        """Return attributes of the current active page."""
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        if hasattr(stagehand, "_page") and stagehand._page:
+            page = stagehand._page
+        else:
+            return []
+
+        return dir(page)
+
+    def __repr__(self):
+        """Return representation of the current active page."""
+        stagehand = object.__getattribute__(self, "_stagehand")
+
+        if hasattr(stagehand, "_page") and stagehand._page:
+            return f"<LivePageProxy -> {repr(stagehand._page)}>"
+        else:
+            return "<LivePageProxy -> No active page>"
 
 
 class Stagehand:
@@ -114,7 +207,7 @@ class Stagehand:
         )
 
         # Initialize metrics tracking
-        self.metrics = StagehandMetrics()
+        self._local_metrics = StagehandMetrics()  # Internal storage for local metrics
         self._inference_start_time = 0  # To track inference time
 
         # Validate env
@@ -166,7 +259,7 @@ class Stagehand:
         self._browser = None
         self._context: Optional[BrowserContext] = None
         self._playwright_page: Optional[PlaywrightPage] = None
-        self.page: Optional[StagehandPage] = None
+        self._page: Optional[StagehandPage] = None
         self.context: Optional[StagehandContext] = None
         self.use_api = self.config.use_api
         self.experimental = self.config.experimental
@@ -181,6 +274,8 @@ class Stagehand:
 
         self._initialized = False  # Flag to track if init() has run
         self._closed = False  # Flag to track if resources have been closed
+        self._live_page_proxy = None  # Live page proxy
+        self._page_switch_lock = asyncio.Lock()  # Lock for page stability
 
         # Setup LLM client if LOCAL mode
         self.llm = None
@@ -278,26 +373,26 @@ class Stagehand:
             inference_time_ms: Time taken for inference in milliseconds
         """
         if function_name == StagehandFunctionName.ACT:
-            self.metrics.act_prompt_tokens += prompt_tokens
-            self.metrics.act_completion_tokens += completion_tokens
-            self.metrics.act_inference_time_ms += inference_time_ms
+            self._local_metrics.act_prompt_tokens += prompt_tokens
+            self._local_metrics.act_completion_tokens += completion_tokens
+            self._local_metrics.act_inference_time_ms += inference_time_ms
         elif function_name == StagehandFunctionName.EXTRACT:
-            self.metrics.extract_prompt_tokens += prompt_tokens
-            self.metrics.extract_completion_tokens += completion_tokens
-            self.metrics.extract_inference_time_ms += inference_time_ms
+            self._local_metrics.extract_prompt_tokens += prompt_tokens
+            self._local_metrics.extract_completion_tokens += completion_tokens
+            self._local_metrics.extract_inference_time_ms += inference_time_ms
         elif function_name == StagehandFunctionName.OBSERVE:
-            self.metrics.observe_prompt_tokens += prompt_tokens
-            self.metrics.observe_completion_tokens += completion_tokens
-            self.metrics.observe_inference_time_ms += inference_time_ms
+            self._local_metrics.observe_prompt_tokens += prompt_tokens
+            self._local_metrics.observe_completion_tokens += completion_tokens
+            self._local_metrics.observe_inference_time_ms += inference_time_ms
         elif function_name == StagehandFunctionName.AGENT:
-            self.metrics.agent_prompt_tokens += prompt_tokens
-            self.metrics.agent_completion_tokens += completion_tokens
-            self.metrics.agent_inference_time_ms += inference_time_ms
+            self._local_metrics.agent_prompt_tokens += prompt_tokens
+            self._local_metrics.agent_completion_tokens += completion_tokens
+            self._local_metrics.agent_inference_time_ms += inference_time_ms
 
         # Always update totals
-        self.metrics.total_prompt_tokens += prompt_tokens
-        self.metrics.total_completion_tokens += completion_tokens
-        self.metrics.total_inference_time_ms += inference_time_ms
+        self._local_metrics.total_prompt_tokens += prompt_tokens
+        self._local_metrics.total_completion_tokens += completion_tokens
+        self._local_metrics.total_inference_time_ms += inference_time_ms
 
     def update_metrics_from_response(
         self,
@@ -332,9 +427,9 @@ class Stagehand:
                     f"{completion_tokens} completion tokens, {time_ms}ms"
                 )
                 self.logger.debug(
-                    f"Total metrics: {self.metrics.total_prompt_tokens} prompt tokens, "
-                    f"{self.metrics.total_completion_tokens} completion tokens, "
-                    f"{self.metrics.total_inference_time_ms}ms"
+                    f"Total metrics: {self._local_metrics.total_prompt_tokens} prompt tokens, "
+                    f"{self._local_metrics.total_completion_tokens} completion tokens, "
+                    f"{self._local_metrics.total_inference_time_ms}ms"
                 )
             else:
                 # Try to extract from _hidden_params or other locations
@@ -391,20 +486,15 @@ class Stagehand:
         self.logger.debug("Initializing Stagehand...")
         self.logger.debug(f"Environment: {self.env}")
 
-        self._playwright = await async_playwright().start()
+        # Initialize Playwright with timeout
+        self._playwright = await asyncio.wait_for(
+            async_playwright().start(), timeout=30.0  # 30 second timeout
+        )
 
         if self.env == "BROWSERBASE":
             # Create session if we don't have one
             if self.use_api:
-                if not self.session_id:
-                    await self._create_session()  # Uses self._client and api_url
-                    self.logger.debug(
-                        f"Created new Browserbase session via Stagehand server: {self.session_id}"
-                    )
-                else:
-                    self.logger.debug(
-                        f"Using existing Browserbase session: {self.session_id}"
-                    )
+                await self._create_session()  # Uses self._client and api_url
 
             # Connect to remote browser
             try:
@@ -412,7 +502,7 @@ class Stagehand:
                     self._browser,
                     self._context,
                     self.context,
-                    self.page,
+                    self._page,
                 ) = await connect_browserbase_browser(
                     self._playwright,
                     self.session_id,
@@ -420,7 +510,7 @@ class Stagehand:
                     self,
                     self.logger,
                 )
-                self._playwright_page = self.page._page
+                self._playwright_page = self._page._page
             except Exception:
                 await self.close()
                 raise
@@ -432,7 +522,7 @@ class Stagehand:
                     self._browser,
                     self._context,
                     self.context,
-                    self.page,
+                    self._page,
                     self._local_user_data_dir_temp,
                 ) = await connect_local_browser(
                     self._playwright,
@@ -440,7 +530,7 @@ class Stagehand:
                     self,
                     self.logger,
                 )
-                self._playwright_page = self.page._page
+                self._playwright_page = self._page._page
             except Exception:
                 await self.close()
                 raise
@@ -620,7 +710,77 @@ class Stagehand:
 
         self.update_metrics_from_response(function_enum, response, inference_time_ms)
 
+    def _set_active_page(self, stagehand_page: StagehandPage):
+        """
+        Internal method called by StagehandContext to update the active page.
+
+        Args:
+            stagehand_page: The StagehandPage to set as active
+        """
+        self._page = stagehand_page
+
+    @property
+    def page(self) -> Optional[StagehandPage]:
+        """
+        Get the current active page. This property returns a live proxy that
+        always points to the currently focused page when multiple tabs are open.
+
+        Returns:
+            A LivePageProxy that delegates to the active StagehandPage or None if not initialized
+        """
+        if not self._initialized:
+            return None
+
+        # Create the live page proxy if it doesn't exist
+        if not self._live_page_proxy:
+            self._live_page_proxy = LivePageProxy(self)
+
+        return self._live_page_proxy
+
+    def __getattribute__(self, name):
+        """
+        Intercept access to 'metrics' to fetch from API when use_api=True.
+        """
+        if name == "metrics":
+            use_api = (
+                object.__getattribute__(self, "use_api")
+                if hasattr(self, "use_api")
+                else False
+            )
+
+            if use_api:
+                # Need to fetch from API
+                try:
+                    # Get the _get_replay_metrics method
+                    get_replay_metrics = object.__getattribute__(
+                        self, "_get_replay_metrics"
+                    )
+
+                    # Try to get current event loop
+                    try:
+                        asyncio.get_running_loop()
+                        # We're in an async context, need to handle this carefully
+                        # Create a new task and wait for it
+                        nest_asyncio.apply()
+                        return asyncio.run(get_replay_metrics())
+                    except RuntimeError:
+                        # No event loop running, we can use asyncio.run directly
+                        return asyncio.run(get_replay_metrics())
+                except Exception as e:
+                    # Log error and return empty metrics
+                    logger = object.__getattribute__(self, "logger")
+                    if logger:
+                        logger.error(f"Failed to fetch metrics from API: {str(e)}")
+                    return StagehandMetrics()
+            else:
+                # Return local metrics
+                return object.__getattribute__(self, "_local_metrics")
+
+        # For all other attributes, use normal behavior
+        return object.__getattribute__(self, name)
+
 
 # Bind the imported API methods to the Stagehand class
 Stagehand._create_session = _create_session
 Stagehand._execute = _execute
+Stagehand._get_replay_metrics = _get_replay_metrics

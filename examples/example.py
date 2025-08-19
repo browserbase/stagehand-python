@@ -7,8 +7,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
 
-from stagehand import Stagehand, StagehandConfig
-from stagehand.utils import configure_logging
+from stagehand import Stagehand, StagehandConfig, configure_logging
 
 # Configure logging with cleaner format
 configure_logging(
@@ -35,7 +34,7 @@ console = Console(theme=custom_theme)
 load_dotenv()
 
 console.print(
-    Panel.fit(
+    Panel(
         "[yellow]Logging Levels:[/]\n"
         "[white]- Set [bold]verbose=0[/] for errors (ERROR)[/]\n"
         "[white]- Set [bold]verbose=1[/] for minimal logs (INFO)[/]\n"
@@ -127,7 +126,7 @@ if __name__ == "__main__":
     # Add a fancy header
     console.print(
         "\n",
-        Panel.fit(
+        Panel(
             "[light_gray]Stagehand 🤘 Python Example[/]",
             border_style="green",
             padding=(1, 10),

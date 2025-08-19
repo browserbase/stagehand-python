@@ -129,7 +129,9 @@ async def connect_local_browser(
     if cdp_url:
         logger.info(f"Connecting to local browser via CDP URL: {cdp_url}")
         try:
-            browser = await playwright.chromium.connect_over_cdp(cdp_url)
+            browser = await playwright.chromium.connect_over_cdp(
+                cdp_url, headers=local_browser_launch_options.get("headers")
+            )
 
             if not browser.contexts:
                 raise RuntimeError(f"No browser contexts found at CDP URL: {cdp_url}")
@@ -240,11 +242,10 @@ async def connect_local_browser(
     if context.pages:
         playwright_page = context.pages[0]
         logger.debug("Using initial page from local context.")
+        page = await stagehand_context.get_stagehand_page(playwright_page)
     else:
         logger.debug("No initial page found, creating a new one.")
-        playwright_page = await context.new_page()
-
-    page = StagehandPage(playwright_page, stagehand_instance)
+        page = await stagehand_context.new_page()
 
     return browser, context, stagehand_context, page, temp_user_data_dir
 

@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # Add a fancy header
     console.print(
         "\n",
-        Panel.fit(
+        Panel(
             "[light_gray]Stagehand 🤘 Agent Example[/]",
             border_style="green",
             padding=(1, 10),

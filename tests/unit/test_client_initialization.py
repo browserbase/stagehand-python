@@ -137,6 +137,31 @@ class TestClientInitialization:
         assert client.close is not None
 
     @pytest.mark.asyncio
+    async def test_init_playwright_timeout(self):
+        """Test that init() raises TimeoutError when playwright takes too long to start."""
+        config = StagehandConfig(env="LOCAL")
+        client = Stagehand(config=config)
+
+        # Mock async_playwright to simulate a hanging start() method
+        mock_playwright_instance = mock.AsyncMock()
+        mock_start = mock.AsyncMock()
+        
+        # Make start() hang indefinitely
+        async def hanging_start():
+            await asyncio.sleep(100)  # Sleep longer than the 30s timeout
+        
+        mock_start.side_effect = hanging_start
+        mock_playwright_instance.start = mock_start
+
+        with mock.patch("stagehand.main.async_playwright", return_value=mock_playwright_instance):
+            # The init() method should raise TimeoutError due to the 30-second timeout
+            with pytest.raises(asyncio.TimeoutError):
+                await client.init()
+
+        # Ensure the client is not marked as initialized
+        assert client._initialized is False
+
+    @pytest.mark.asyncio
     async def test_create_session(self):
         """Test session creation."""
         client = Stagehand(

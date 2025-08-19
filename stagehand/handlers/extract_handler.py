@@ -7,7 +7,12 @@ from pydantic import BaseModel
 from stagehand.a11y.utils import get_accessibility_tree
 from stagehand.llm.inference import extract as extract_inference
 from stagehand.metrics import StagehandFunctionName  # Changed import location
-from stagehand.types import DefaultExtractSchema, ExtractOptions, ExtractResult
+from stagehand.types import (
+    DefaultExtractSchema,
+    EmptyExtractSchema,
+    ExtractOptions,
+    ExtractResult,
+)
 from stagehand.utils import inject_urls, transform_url_strings_to_ids
 
 T = TypeVar("T", bound=BaseModel)
@@ -166,4 +171,6 @@ class ExtractHandler:
 
         tree = await get_accessibility_tree(self.stagehand_page, self.logger)
         output_string = tree["simplified"]
-        return ExtractResult(data=output_string)
+        output_dict = {"page_text": output_string}
+        validated_model = EmptyExtractSchema.model_validate(output_dict)
+        return ExtractResult(data=validated_model).data

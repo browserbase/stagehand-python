@@ -110,6 +110,9 @@ class LLMClient:
         filtered_params = {
             k: v for k, v in params.items() if v is not None or k in kwargs
         }
+        # Fixes parameters for GPT-5 family of models
+        if "gpt-5" in completion_model:
+            filtered_params["temperature"] = 1
 
         self.logger.debug(
             f"Calling litellm.completion with model={completion_model} and params: {filtered_params}",
