@@ -23,7 +23,7 @@ class TestClientInitialization:
             browserbase_session_id="test-session",
             api_key="test-api-key",
             project_id="test-project-id",
-            model_client_options={"apiKey": "test-model-api-key"},
+            model_api_key="test-model-api-key",
             verbose=2,
         )
 
