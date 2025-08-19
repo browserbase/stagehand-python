@@ -1,5 +1,19 @@
 # Stagehand Python Changelog
 
+## 0.5.1
+
+### Patch Changes
+
+[#183](https://github.com/browserbase/stagehand-python/pull/183) [`6f72281`](https://github.com/browserbase/stagehand-python/commit/6f72281) Thanks @shubh24 and @miguelg719! - Fixing downloads behavior for use_api=false
+[#132](https://github.com/browserbase/stagehand-python/pull/132) [`edc57ac`](https://github.com/browserbase/stagehand-python/commit/edc57ac) Thanks @sanveer-osahan and @miguelg719! - Add LLM customization support (eg. api_base)
+[#179](https://github.com/browserbase/stagehand-python/pull/179) [`51ca053`](https://github.com/browserbase/stagehand-python/commit/51ca053) Thanks @miguelg719! - Fix max_steps parsing for agent execute options
+[#176](https://github.com/browserbase/stagehand-python/pull/176) [`d95974a`](https://github.com/browserbase/stagehand-python/commit/d95974a) Thanks @miguelg719! - Fix stagehand.metrics on env:BROWSERBASE
+[#88](https://github.com/browserbase/stagehand-python/pull/88) [`021c946`](https://github.com/browserbase/stagehand-python/commit/021c946) Thanks @filip-michalsky! - added regression tests
+[#161](https://github.com/browserbase/stagehand-python/pull/161) [`f68e86c`](https://github.com/browserbase/stagehand-python/commit/f68e86c) Thanks @arunpatro, @miguelg719 and Filip Michalsky! - Multi-tab support
+[#181](https://github.com/browserbase/stagehand-python/pull/181) [`1bef512`](https://github.com/browserbase/stagehand-python/commit/1bef512) Thanks @miguelg719! - Fix openai-litellm dependency bug
+[#177](https://github.com/browserbase/stagehand-python/pull/177) [`36ba981`](https://github.com/browserbase/stagehand-python/commit/36ba981) Thanks @miguelg719! - Fix temperature setting for GPT-5 family of models
+[#174](https://github.com/browserbase/stagehand-python/pull/174) [`2e3eb1a`](https://github.com/browserbase/stagehand-python/commit/2e3eb1a) Thanks @miguelg719! - Added frame_id_map to support multi-tab handling on API
+
 ## 0.5.0
 
 ### Minor Changes
