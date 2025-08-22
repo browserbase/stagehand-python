@@ -55,6 +55,46 @@ def convert_dict_keys_to_camel_case(data: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def camel_to_snake(camel_str: str) -> str:
+    """
+    Convert a camelCase or PascalCase string to snake_case.
+
+    Args:
+        camel_str: The camelCase/PascalCase string to convert
+
+    Returns:
+        The converted snake_case string
+    """
+    result_chars = []
+    for index, char in enumerate(camel_str):
+        if char.isupper() and index != 0 and (not camel_str[index - 1].isupper()):
+            result_chars.append("_")
+        result_chars.append(char.lower())
+    return "".join(result_chars)
+
+
+def convert_dict_keys_to_snake_case(data: Any) -> Any:
+    """
+    Convert all dictionary keys from camelCase/PascalCase to snake_case.
+    Works recursively for nested dictionaries and lists. Non-dict/list inputs are returned as-is.
+
+    Args:
+        data: Potentially nested structure with dictionaries/lists
+
+    Returns:
+        A new structure with all dict keys converted to snake_case
+    """
+    if isinstance(data, dict):
+        converted: dict[str, Any] = {}
+        for key, value in data.items():
+            converted_key = camel_to_snake(key) if isinstance(key, str) else key
+            converted[converted_key] = convert_dict_keys_to_snake_case(value)
+        return converted
+    if isinstance(data, list):
+        return [convert_dict_keys_to_snake_case(item) for item in data]
+    return data
+
+
 def format_simplified_tree(node: AccessibilityNode, level: int = 0) -> str:
     """Formats a node and its children into a simplified string representation."""
     indent = "  " * level
