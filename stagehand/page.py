@@ -416,11 +416,17 @@ class StagehandPage:
                 except Exception as first_error:
                     # Fallback: normalize keys to snake_case and try once more
                     try:
-                        normalized = convert_dict_keys_to_snake_case(processed_data_payload)
+                        normalized = convert_dict_keys_to_snake_case(
+                            processed_data_payload
+                        )
                         if not options_obj:
-                            validated_model = EmptyExtractSchema.model_validate(normalized)
+                            validated_model = EmptyExtractSchema.model_validate(
+                                normalized
+                            )
                         else:
-                            validated_model = schema_to_validate_with.model_validate(normalized)
+                            validated_model = schema_to_validate_with.model_validate(
+                                normalized
+                            )
                         processed_data_payload = validated_model
                     except Exception as second_error:
                         self._stagehand.logger.error(
