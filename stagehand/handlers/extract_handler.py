@@ -13,7 +13,11 @@ from stagehand.types import (
     ExtractOptions,
     ExtractResult,
 )
-from stagehand.utils import inject_urls, transform_url_strings_to_ids
+from stagehand.utils import (
+    convert_dict_keys_to_snake_case,
+    inject_urls,
+    transform_url_strings_to_ids,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -150,13 +154,21 @@ class ExtractHandler:
         if schema and isinstance(
             raw_data_dict, dict
         ):  # schema is the Pydantic model type
+            # Try direct validation first
             try:
                 validated_model_instance = schema.model_validate(raw_data_dict)
-                processed_data_payload = validated_model_instance  # Payload is now the Pydantic model instance
-            except Exception as e:
-                self.logger.error(
-                    f"Failed to validate extracted data against schema {schema.__name__}: {e}. Keeping raw data dict in .data field."
-                )
+                processed_data_payload = validated_model_instance
+            except Exception as first_error:
+                # Fallback: attempt camelCase→snake_case key normalization, then re-validate
+                try:
+                    normalized = convert_dict_keys_to_snake_case(raw_data_dict)
+                    validated_model_instance = schema.model_validate(normalized)
+                    processed_data_payload = validated_model_instance
+                except Exception as second_error:
+                    self.logger.error(
+                        f"Failed to validate extracted data against schema {schema.__name__}: {first_error}. "
+                        f"Normalization retry also failed: {second_error}. Keeping raw data dict in .data field."
+                    )
 
         # Create ExtractResult object
         result = ExtractResult(

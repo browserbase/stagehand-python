@@ -19,6 +19,7 @@ from .schemas import (
     ObserveResult,
 )
 from .types import DefaultExtractSchema, EmptyExtractSchema
+from .utils import convert_dict_keys_to_snake_case
 
 _INJECTION_SCRIPT = None
 
@@ -412,10 +413,26 @@ class StagehandPage:
                             processed_data_payload
                         )
                         processed_data_payload = validated_model
-                except Exception as e:
-                    self._stagehand.logger.error(
-                        f"Failed to validate extracted data against schema {schema_to_validate_with.__name__}: {e}. Keeping raw data dict in .data field."
-                    )
+                except Exception as first_error:
+                    # Fallback: normalize keys to snake_case and try once more
+                    try:
+                        normalized = convert_dict_keys_to_snake_case(
+                            processed_data_payload
+                        )
+                        if not options_obj:
+                            validated_model = EmptyExtractSchema.model_validate(
+                                normalized
+                            )
+                        else:
+                            validated_model = schema_to_validate_with.model_validate(
+                                normalized
+                            )
+                        processed_data_payload = validated_model
+                    except Exception as second_error:
+                        self._stagehand.logger.error(
+                            f"Failed to validate extracted data against schema {getattr(schema_to_validate_with, '__name__', str(schema_to_validate_with))}: {first_error}. "
+                            f"Normalization retry also failed: {second_error}. Keeping raw data dict in .data field."
+                        )
             return ExtractResult(data=processed_data_payload).data
         # Handle unexpected return types
         self._stagehand.logger.info(
