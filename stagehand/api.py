@@ -120,8 +120,26 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
     if self.model_api_key:
         headers["x-model-api-key"] = self.model_api_key
 
+    payload_options = payload.get("modelClientOptions", {})
+    instance_options = self.model_client_options or {}
+
+    # Clear precedence order
+    base_url = (
+        payload_options.get("baseURL")
+        or payload_options.get("api_base")
+        or instance_options.get("baseURL")
+        or instance_options.get("api_base")
+    )
+
+    if base_url:
+        if "modelClientOptions" not in payload:
+            payload["modelClientOptions"] = {}
+        payload["modelClientOptions"]["baseURL"] = base_url
+        payload["modelClientOptions"].pop("api_base", None)
+
     # Convert snake_case keys to camelCase for the API
     modified_payload = convert_dict_keys_to_camel_case(payload)
+    print(modified_payload)
 
     # async with self._client:
     try:
