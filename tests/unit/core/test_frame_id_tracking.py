@@ -146,25 +146,24 @@ class TestFrameIdTracking:
         assert mock_cdp_session.on.call_args[0][0] == "Page.frameNavigated"
     
     @pytest.mark.asyncio
-    async def test_frame_id_in_api_calls(self, mock_page, mock_stagehand):
-        """Test that frame ID is included in API payloads."""
+    async def test_frame_id_in_local_calls(self, mock_page, mock_stagehand):
+        """Test that frame ID is tracked in local mode."""
         stagehand_page = StagehandPage(mock_page, mock_stagehand)
         stagehand_page.update_root_frame_id("test-frame-123")
         
-        # Mock the stagehand client for API mode
-        mock_stagehand.use_api = True
-        mock_stagehand._get_lock_for_session = MagicMock()
-        mock_stagehand._get_lock_for_session.return_value = AsyncMock()
-        mock_stagehand._execute = AsyncMock(return_value={"success": True})
+        # Mock the page goto method to be async
+        mock_page.goto = AsyncMock()
         
         # Test goto with frame ID
         await stagehand_page.goto("https://example.com")
         
-        # Verify frame ID was included in the payload
-        call_args = mock_stagehand._execute.call_args
-        assert call_args[0][0] == "navigate"
-        assert "frameId" in call_args[0][1]
-        assert call_args[0][1]["frameId"] == "test-frame-123"
+        # Verify the page goto was called (local mode)
+        mock_page.goto.assert_called_once_with(
+            "https://example.com",
+            referer=None,
+            timeout=None,
+            wait_until=None
+        )
     
     @pytest.mark.asyncio
     async def test_frame_navigation_event_handling(self, mock_browser_context, mock_stagehand, mock_page):

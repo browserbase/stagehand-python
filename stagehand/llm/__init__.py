@@ -1,4 +1,4 @@
-from .client import LLMClient
+from .client import LLMClient, LLMProviderError
 from .inference import extract, observe
 from .prompts import (
     build_extract_system_prompt,

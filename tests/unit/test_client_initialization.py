@@ -12,52 +12,37 @@ class TestClientInitialization:
     """Tests for the Stagehand client initialization and configuration."""
 
     @pytest.mark.smoke
-    @mock.patch.dict(os.environ, {}, clear=True)
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}, clear=True)
     def test_init_with_direct_params(self):
         """Test initialization with direct parameters."""
-        # Create a config with LOCAL env to avoid BROWSERBASE validation issues
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(
-            config=config,
-            api_url="http://test-server.com",
-            browserbase_session_id="test-session",
-            api_key="test-api-key",
-            project_id="test-project-id",
+        config = StagehandConfig(
             model_api_key="test-model-api-key",
             verbose=2,
         )
+        client = Stagehand(config=config)
 
-        assert client.api_url == "http://test-server.com"
-        assert client.session_id == "test-session"
-        # In LOCAL mode, browserbase keys are not used
         assert client.model_api_key == "test-model-api-key"
         assert client.verbose == 2
         assert client._initialized is False
         assert client._closed is False
 
     @pytest.mark.smoke
-    @mock.patch.dict(os.environ, {}, clear=True)
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}, clear=True)
     def test_init_with_config(self):
         """Test initialization with a configuration object."""
         config = StagehandConfig(
-            env="LOCAL",  # Use LOCAL to avoid BROWSERBASE validation
-            api_key="config-api-key",
-            project_id="config-project-id",
-            browserbase_session_id="config-session-id",
             model_name="gpt-4",
+            model_api_key="config-model-key",
             dom_settle_timeout_ms=500,
             self_heal=True,
             wait_for_captcha_solves=True,
             system_prompt="Custom system prompt for testing",
         )
 
-        client = Stagehand(config=config, api_url="http://test-server.com")
+        client = Stagehand(config=config)
 
-        assert client.api_url == "http://test-server.com"
-        assert client.session_id == "config-session-id"
-        assert client.browserbase_api_key == "config-api-key"
-        assert client.browserbase_project_id == "config-project-id"
         assert client.model_name == "gpt-4"
+        assert client.model_api_key == "config-model-key"
         assert client.dom_settle_timeout_ms == 500
         assert hasattr(client, "self_heal")
         assert client.self_heal is True
@@ -67,56 +52,34 @@ class TestClientInitialization:
         assert hasattr(client, "system_prompt")
         assert client.system_prompt == "Custom system prompt for testing"
 
-    @mock.patch.dict(os.environ, {}, clear=True)
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}, clear=True)
     def test_config_priority_over_direct_params(self):
-        """Test that config parameters take precedence over direct parameters (except session_id)."""
+        """Test that config parameters work correctly."""
         config = StagehandConfig(
-            env="LOCAL",  # Use LOCAL to avoid BROWSERBASE validation
-            api_key="config-api-key",
-            project_id="config-project-id",
-            browserbase_session_id="config-session-id",
+            model_api_key="config-model-key",
+            model_name="gpt-4",
         )
 
-        client = Stagehand(
-            config=config,
-            api_key="direct-api-key",
-            project_id="direct-project-id",
-            browserbase_session_id="direct-session-id",
-        )
+        client = Stagehand(config=config)
 
-        # Override parameters take precedence over config parameters
-        assert client.browserbase_api_key == "direct-api-key"
-        assert client.browserbase_project_id == "direct-project-id"
-        # session_id parameter overrides config since it's passed as browserbase_session_id override
-        assert client.session_id == "direct-session-id"
+        # Config parameters should be used
+        assert client.model_api_key == "config-model-key"
+        assert client.model_name == "gpt-4"
 
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_missing_required_fields(self):
         """Test initialization with missing required fields."""
-        # No error when initialized without session_id
-        client = Stagehand(
-            api_key="test-api-key", project_id="test-project-id"
-        )
-        assert client.session_id is None
+        # Test that error is raised when no API key is provided
+        from stagehand.config import StagehandConfigError
+        
+        with pytest.raises(StagehandConfigError, match="No API key found"):
+            client = Stagehand()
 
-        # Test that error handling for missing API key is functioning
-        # by patching the ValueError that should be raised
-        with mock.patch.object(
-            Stagehand,
-            "__init__",
-            side_effect=ValueError("browserbase_api_key is required"),
-        ):
-            with pytest.raises(ValueError, match="browserbase_api_key is required"):
-                Stagehand(
-                    browserbase_session_id="test-session", project_id="test-project-id"
-                )
-
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}, clear=True)
     def test_init_as_context_manager(self):
         """Test the client as a context manager."""
         client = Stagehand(
-            api_url="http://test-server.com",
-            browserbase_session_id="test-session",
-            api_key="test-api-key",
-            project_id="test-project-id",
+            model_api_key="test-model-key",
         )
 
         # Mock the async context manager methods
@@ -137,10 +100,10 @@ class TestClientInitialization:
         assert client.close is not None
 
     @pytest.mark.asyncio
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}, clear=True)
     async def test_init_playwright_timeout(self):
         """Test that init() raises TimeoutError when playwright takes too long to start."""
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(config=config)
+        client = Stagehand(model_api_key="test-model-key")
 
         # Mock async_playwright to simulate a hanging start() method
         mock_playwright_instance = mock.AsyncMock()
@@ -162,98 +125,54 @@ class TestClientInitialization:
         assert client._initialized is False
 
     @pytest.mark.asyncio
-    async def test_create_session(self):
-        """Test session creation."""
-        client = Stagehand(
-            api_url="http://test-server.com",
-            api_key="test-api-key",
-            project_id="test-project-id",
-            model_api_key="test-model-api-key",
-        )
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-openai-key"}, clear=True)
+    async def test_local_browser_initialization(self):
+        """Test local browser initialization."""
+        client = Stagehand(model_api_key="test-model-key")
 
-        # Override the _create_session method for easier testing
-        original_create_session = client._create_session
+        # Mock the browser connection
+        with mock.patch("stagehand.main.connect_browser") as mock_connect:
+            mock_connect.return_value = (
+                mock.MagicMock(),  # browser
+                mock.MagicMock(),  # context
+                mock.MagicMock(),  # stagehand_context
+                mock.MagicMock(),  # page
+                None  # downloads_path
+            )
+            
+            with mock.patch("stagehand.main.async_playwright") as mock_playwright:
+                mock_playwright_instance = mock.AsyncMock()
+                mock_playwright.return_value = mock_playwright_instance
+                mock_playwright_instance.start.return_value = mock.MagicMock()
+                
+                await client.init()
+                
+                # Verify client is initialized
+                assert client._initialized is True
 
-        async def mock_create_session():
-            client.session_id = "new-test-session-id"
-
-        client._create_session = mock_create_session
-
-        # Call _create_session
-        await client._create_session()
-
-        # Verify session ID was set
-        assert client.session_id == "new-test-session-id"
-
-    @pytest.mark.asyncio
-    async def test_create_session_failure(self):
-        """Test session creation failure."""
-        client = Stagehand(
-            api_url="http://test-server.com",
-            api_key="test-api-key",
-            project_id="test-project-id",
-            model_api_key="test-model-api-key",
-        )
-
-        # Override the _create_session method to raise an error
-        original_create_session = client._create_session
-
-        async def mock_create_session():
-            raise RuntimeError("Failed to create session: Invalid request")
-
-        client._create_session = mock_create_session
-
-        # Call _create_session and expect error
-        with pytest.raises(RuntimeError, match="Failed to create session"):
-            await client._create_session()
-
-    @pytest.mark.asyncio
-    async def test_create_session_invalid_response(self):
-        """Test session creation with invalid response format."""
-        client = Stagehand(
-            api_url="http://test-server.com",
-            api_key="test-api-key",
-            project_id="test-project-id",
-            model_api_key="test-model-api-key",
-        )
-
-        # Override the _create_session method to raise a specific error
-        original_create_session = client._create_session
-
-        async def mock_create_session():
-            raise RuntimeError("Invalid response format: {'success': true, 'data': {}}")
-
-        client._create_session = mock_create_session
-
-        # Call _create_session and expect error
-        with pytest.raises(RuntimeError, match="Invalid response format"):
-            await client._create_session()
-
-    @mock.patch.dict(os.environ, {"MODEL_API_KEY": "test-model-api-key"}, clear=True)
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "test-model-api-key"}, clear=True)
     def test_init_with_model_api_key_in_env(self):
-        config = StagehandConfig(env="LOCAL")
-        client = Stagehand(config=config)
+        client = Stagehand()
         assert client.model_api_key == "test-model-api-key"
 
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "fallback-key"}, clear=True)
     def test_init_with_custom_llm(self):
         config = StagehandConfig(
-            env="LOCAL",
-            model_client_options={"apiKey": "custom-llm-key", "baseURL": "https://custom-llm.com"}
+            model_client_options={"api_key": "custom-llm-key", "api_base": "https://custom-llm.com"}
         )
         client = Stagehand(config=config)
         assert client.model_api_key == "custom-llm-key"
-        assert client.model_client_options["apiKey"] == "custom-llm-key"
-        assert client.model_client_options["baseURL"] == "https://custom-llm.com"
+        assert client.model_client_options["api_key"] == "custom-llm-key"
+        assert client.model_client_options["api_base"] == "https://custom-llm.com"
 
+    @mock.patch.dict(os.environ, {"OPENAI_API_KEY": "fallback-key"}, clear=True)
     def test_init_with_custom_llm_override(self):
         config = StagehandConfig(
-            env="LOCAL",
-            model_client_options={"apiKey": "custom-llm-key", "baseURL": "https://custom-llm.com"}
+            model_client_options={"api_key": "custom-llm-key", "api_base": "https://custom-llm.com"}
         )
+        # Test that direct parameter overrides config
         client = Stagehand(
             config=config,
-            model_client_options={"apiKey": "override-llm-key", "baseURL": "https://override-llm.com"}
+            model_api_key="override-llm-key"
         )
         assert client.model_api_key == "override-llm-key"
-        assert client.model_client_options["apiKey"] == "override-llm-key"
-        assert client.model_client_options["baseURL"] == "https://override-llm.com"

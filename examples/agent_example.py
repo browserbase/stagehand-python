@@ -1,11 +1,16 @@
 import asyncio
 import logging
 import os
+import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
+
+# Ensure local stagehand package is used instead of any installed version
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from stagehand import Stagehand, StagehandConfig, configure_logging
 
@@ -33,30 +38,38 @@ configure_logging(
 )
 
 async def main():
-    # Build a unified configuration object for Stagehand
+    # Build a unified configuration object for Stagehand with local browser
     config = StagehandConfig(
-        env="BROWSERBASE",
-        # env="LOCAL",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="gpt-4o",
+        model_name="qwen-turbo",
+        model_client_options={
+            "api_base": os.getenv("ALIBABA_ENDPOINT", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            "api_key": os.getenv("ALIBABA_API_KEY"),
+            "timeout": 30
+        },
         self_heal=True,
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+        local_browser_launch_options={
+            "headless": False,  # Set to True for headless mode
+            "viewport": {"width": 1280, "height": 720}
+        },
         verbose=1,
     )
 
     # Create a Stagehand client using the configuration object.
     stagehand = Stagehand(config)
 
-    # Initialize - this creates a new session automatically.
-    console.print("\n🚀 [info]Initializing Stagehand...[/]")
+    # Initialize - this creates a local browser session automatically.
+    console.print("\n🚀 [info]Initializing Stagehand with local browser...[/]")
     await stagehand.init()
-    if stagehand.env == "BROWSERBASE":    
-        console.print(f"\n[yellow]Created new session:[/] {stagehand.session_id}")
-        console.print(
-            f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
-        )
+    
+    # Validate LLM configuration
+    validation = stagehand.llm.validate_configuration()
+    if validation['valid']:
+        console.print(f"✓ [success]LLM configured:[/] {validation['configuration']['provider']} - {config.model_name}")
+    else:
+        console.print("⚠ [warning]LLM configuration issues:[/]", validation['errors'])
+    
+    console.print("🌐 [white]Local browser session initialized successfully[/]")
 
     console.print("\n▶️ [highlight] Navigating[/] to Google")
     await stagehand.page.goto("https://google.com/")
@@ -66,7 +79,7 @@ async def main():
     agent = stagehand.agent(
         model="computer-use-preview",
         instructions="You are a helpful web navigation assistant that helps users find information. You are currently on the following page: google.com. Do not ask follow up questions, the user will trust your judgement.",
-        options={"apiKey": os.getenv("MODEL_API_KEY")}
+        options={"api_key": os.getenv("ANTHROPIC_API_KEY")}
     )
     agent_result = await agent.execute(
         instruction="Play a game of 2048",

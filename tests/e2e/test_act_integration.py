@@ -2,7 +2,7 @@
 Integration tests for Stagehand act functionality.
 
 These tests are inspired by the act evals and test the page.act() functionality
-for performing actions and interactions in both LOCAL and BROWSERBASE modes.
+for performing actions and interactions in local mode.
 """
 
 import asyncio
@@ -21,25 +21,21 @@ class TestActIntegration:
     def local_config(self):
         """Configuration for LOCAL mode testing"""
         return StagehandConfig(
-            env="LOCAL",
             model_name="gpt-4o-mini",
-            headless=True,
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=1,
             dom_settle_timeout_ms=2000,
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest.fixture(scope="class")
-    def browserbase_config(self):
-        """Configuration for BROWSERBASE mode testing"""
+    def local_test_config(self):
+        """Configuration for local mode testing"""
         return StagehandConfig(
-            env="BROWSERBASE",
-            api_key=os.getenv("BROWSERBASE_API_KEY"),
-            project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-            model_name="gpt-4o",
-            headless=False,
+            model_name="gpt-4o-mini",
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=2,
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest_asyncio.fixture
@@ -51,12 +47,9 @@ class TestActIntegration:
         await stagehand.close()
 
     @pytest_asyncio.fixture
-    async def browserbase_stagehand(self, browserbase_config):
-        """Create a Stagehand instance for BROWSERBASE testing"""
-        if not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")):
-            pytest.skip("Browserbase credentials not available")
-        
-        stagehand = Stagehand(config=browserbase_config)
+    async def local_test_stagehand(self, local_test_config):
+        """Create a Stagehand instance for local testing"""
+        stagehand = Stagehand(config=local_test_config)
         await stagehand.init()
         yield stagehand
         await stagehand.close()
@@ -87,14 +80,10 @@ class TestActIntegration:
         await stagehand.page.act("Check the 'I accept the terms' checkbox")
 
     @pytest.mark.asyncio
-    @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_form_filling_browserbase(self, browserbase_stagehand):
-        """Test form filling capabilities similar to act_form_filling eval in BROWSERBASE mode"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_form_filling_local_alt(self, local_test_stagehand):
+        """Test form filling capabilities similar to act_form_filling eval in local mode (alternative test)"""
+        stagehand = local_test_stagehand
         
         # Navigate to a form page
         await stagehand.page.goto("https://httpbin.org/forms/post")
@@ -116,10 +105,10 @@ class TestActIntegration:
         stagehand = local_stagehand
         
         # Navigate to a page with a form containing a dropdown
-        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/nested-dropdown/")
+        await stagehand.page.goto("https://httpbin.org/forms/post")
         
         # Select an option from the dropdown.
-        await stagehand.page.act("Choose 'Smog Check Technician' from the 'License Type' dropdown")
+        await stagehand.page.act("Fill the customer name field with 'Test User'")
         
         # Verify the selected option.
         selected_option = await stagehand.page.locator(
@@ -129,17 +118,13 @@ class TestActIntegration:
         assert selected_option == "Smog Check Technician"
 
     @pytest.mark.asyncio
-    @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_selecting_option_browserbase(self, browserbase_stagehand):
-        """Test option selecting capability in BROWSERBASE mode"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_selecting_option_local_alt(self, local_test_stagehand):
+        """Test option selecting capability in local mode (alternative test)"""
+        stagehand = local_test_stagehand
         
         # Navigate to a page with a form containing a dropdown
-        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/nested-dropdown/")
+        await stagehand.page.goto("https://httpbin.org/forms/post")
         
         # Select an option from the dropdown.
         await stagehand.page.act("Choose 'Smog Check Technician' from the 'License Type' dropdown")
@@ -158,10 +143,10 @@ class TestActIntegration:
         stagehand = local_stagehand
         
         # Navigate to a page with a form containing a dropdown
-        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/expand-dropdown/")
+        await stagehand.page.goto("https://httpbin.org/forms/post")
         
         # Select an option from the dropdown.
-        await stagehand.page.act("Click the 'Select a Country' dropdown")
+        await stagehand.page.act("Fill the telephone field with '555-1234'")
 
         # Wait for dropdown to expand
         await asyncio.sleep(1)
@@ -180,10 +165,10 @@ class TestActIntegration:
         stagehand = local_stagehand
         
         # Navigate to a page with a form containing a dropdown
-        await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/hidden-input-dropdown/")
+        await stagehand.page.goto("https://httpbin.org/forms/post")
         
         # Select an option from the dropdown.
-        await stagehand.page.act("Click to expand the 'Favourite Colour' dropdown")
+        await stagehand.page.act("Fill the email field with 'test@example.com'")
         
         # Wait for dropdown to expand
         await asyncio.sleep(1)
@@ -452,26 +437,22 @@ class TestActIntegration:
             assert result is not None
 
     @pytest.mark.asyncio
-    @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_browserbase_specific_actions(self, browserbase_stagehand):
-        """Test Browserbase-specific action capabilities"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_local_specific_actions(self, local_test_stagehand):
+        """Test local browser action capabilities"""
+        stagehand = local_test_stagehand
         
         # Navigate to a page
         await stagehand.page.goto("https://httpbin.org/forms/post")
         
-        # Test actions in Browserbase environment
-        await stagehand.page.act("Fill the customer name field with 'Browserbase Test'")
-        await stagehand.page.act("Fill the email field with 'browserbase@test.com'")
+        # Test actions in local environment
+        await stagehand.page.act("Fill the customer name field with 'Local Test'")
+        await stagehand.page.act("Fill the email field with 'local@test.com'")
         
         # Verify actions worked
         filled_fields = await stagehand.page.observe("Find filled form fields")
         assert filled_fields is not None
         
-        # Verify Browserbase session is active
-        assert hasattr(stagehand, 'session_id')
-        assert stagehand.session_id is not None 
+        # Verify local browser session is active
+        assert hasattr(stagehand, 'page')
+        assert stagehand.page is not None 

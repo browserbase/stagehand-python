@@ -1,10 +1,16 @@
 import asyncio
 import os
+import sys
+from pathlib import Path
+
+# Add the local stagehand directory to the Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-from stagehand import Stagehand, StagehandConfig
+from stagehand.main import Stagehand
+from stagehand.config import StagehandConfig
 
 # Load environment variables
 load_dotenv()
@@ -18,24 +24,30 @@ class Companies(BaseModel):
     companies: list[Company] = Field(..., description="List of companies")
     
 async def main():
-    # Create configuration
+    # Create configuration for local browser automation with custom LLM endpoint
     config = StagehandConfig(
-        env = "BROWSERBASE", # or LOCAL
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="google/gemini-2.5-flash-preview-05-20",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+        model_name="qwen-turbo",  # Use Alibaba DashScope model for demo
+        model_client_options={
+            "api_base": os.getenv("ALIBABA_ENDPOINT", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            "api_key": os.getenv("ALIBABA_API_KEY"),
+            "timeout": 30
+        },
+        verbose=1,
+        local_browser_launch_options={
+            "headless": False,  # Set to True for headless mode
+            "viewport": {"width": 1280, "height": 720}
+        }
     )
     
-    stagehand = Stagehand(config)
-    
-    try:
-        print("\nInitializing 🤘 Stagehand...")
-        # Initialize Stagehand
-        await stagehand.init()
-
-        if stagehand.env == "BROWSERBASE":    
-            print(f"🌐 View your live browser: https://www.browserbase.com/sessions/{stagehand.session_id}")
+    async with Stagehand(config=config) as stagehand:
+        print("\nInitializing 🤘 Stagehand with local browser...")
+        
+        # Validate LLM configuration
+        validation = stagehand.llm.validate_configuration()
+        if validation['valid']:
+            print(f"✓ LLM configured: {validation['configuration']['provider']} - {config.model_name}")
+        else:
+            print("⚠ LLM configuration issues:", validation['errors'])
 
         page = stagehand.page
 
@@ -57,13 +69,7 @@ async def main():
         act = await page.act("click the link to the company Browserbase")
         print("\nAct result:", act)
             
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        raise
-    finally:
-        # Close the client
-        print("\nClosing 🤘 Stagehand...")
-        await stagehand.close()
+        print("\n🤘 Stagehand session completed successfully!")
 
 if __name__ == "__main__":
     asyncio.run(main())

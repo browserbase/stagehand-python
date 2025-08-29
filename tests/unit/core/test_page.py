@@ -72,23 +72,7 @@ class TestPageNavigation:
             wait_until=None
         )
     
-    @pytest.mark.asyncio
-    async def test_goto_browserbase_mode(self, mock_stagehand_page):
-        """Test navigation in BROWSERBASE mode"""
-        mock_stagehand_page._stagehand.env = "BROWSERBASE"
-        mock_stagehand_page._stagehand.use_api = True
-        mock_stagehand_page._stagehand._execute = AsyncMock(return_value={"success": True})
-        
-        lock = AsyncMock()
-        mock_stagehand_page._stagehand._get_lock_for_session.return_value = lock
-        
-        await mock_stagehand_page.goto("https://example.com")
-        
-        # Should call server execute method
-        mock_stagehand_page._stagehand._execute.assert_called_with(
-            "navigate",
-            {"url": "https://example.com"}
-        )
+
 
 
 class TestActFunctionality:

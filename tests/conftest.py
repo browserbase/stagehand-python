@@ -28,30 +28,30 @@ def event_loop():
 def mock_stagehand_config():
     """Provide a mock StagehandConfig for testing"""
     return StagehandConfig(
-        env="LOCAL",
         model_name="gpt-4o-mini",
+        model_api_key="test-model-api-key",
         verbose=1,  # Quiet for tests
-        api_key="test-api-key",
-        project_id="test-project-id",
         dom_settle_timeout_ms=1000,
         self_heal=True,
         wait_for_captcha_solves=False,
         system_prompt="Test system prompt",
-        use_api=False,
+        local_browser_launch_options={"headless": True},
         experimental=False,
     )
 
 
 @pytest.fixture
-def mock_browserbase_config():
-    """Provide a mock StagehandConfig for Browserbase testing"""
+def mock_local_config():
+    """Provide a mock StagehandConfig for local testing"""
     return StagehandConfig(
-        env="BROWSERBASE",
-        model_name="gpt-4o",
-        api_key="test-browserbase-api-key",
-        project_id="test-browserbase-project-id",
+        model_name="gpt-4o-mini",
+        model_api_key="test-model-api-key",
         verbose=0,
-        use_api=True,
+        dom_settle_timeout_ms=1000,
+        self_heal=True,
+        wait_for_captcha_solves=False,
+        system_prompt="Test system prompt",
+        local_browser_launch_options={"headless": True},
         experimental=False,
     )
 

@@ -22,37 +22,7 @@ def snake_to_camel(snake_str: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def convert_dict_keys_to_camel_case(data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Convert all keys in a dictionary from snake_case to camelCase.
-    Works recursively for nested dictionaries.
 
-    Args:
-        data: Dictionary with snake_case keys
-
-    Returns:
-        Dictionary with camelCase keys
-    """
-    result = {}
-
-    for key, value in data.items():
-        if isinstance(value, dict):
-            value = convert_dict_keys_to_camel_case(value)
-        elif isinstance(value, list):
-            value = [
-                (
-                    convert_dict_keys_to_camel_case(item)
-                    if isinstance(item, dict)
-                    else item
-                )
-                for item in value
-            ]
-
-        # Convert snake_case key to camelCase
-        camel_key = snake_to_camel(key)
-        result[camel_key] = value
-
-    return result
 
 
 def camel_to_snake(camel_str: str) -> str:
@@ -574,12 +544,164 @@ def make_serializable(obj):
 
 
 def get_download_path(stagehand):
-    if stagehand.env == "BROWSERBASE":
-        return "downloads"
+    """Get the download path for local browser mode."""
+    if stagehand.local_browser_launch_options.get("downloadPath"):
+        return stagehand.local_browser_launch_options["downloadPath"]
     else:
-        if stagehand.local_browser_launch_options.get("downloadPath"):
-            return stagehand.local_browser_launch_options["downloadPath"]
-        else:
-            path = os.path.join(os.getcwd(), "downloads")
-            os.makedirs(path, exist_ok=True)
-            return path
+        path = os.path.join(os.getcwd(), "downloads")
+        os.makedirs(path, exist_ok=True)
+        return path
+
+
+# Configuration validation utilities
+
+def validate_model_name(model_name: str) -> dict[str, Any]:
+    """
+    Validate a model name and provide suggestions if invalid.
+    
+    Args:
+        model_name: The model name to validate
+        
+    Returns:
+        Dictionary with validation results and suggestions
+    """
+    result = {
+        "valid": True,
+        "warnings": [],
+        "suggestions": []
+    }
+    
+    if not model_name or not isinstance(model_name, str):
+        result["valid"] = False
+        result["suggestions"].append("Model name must be a non-empty string")
+        return result
+    
+    # Common model name patterns and suggestions
+    common_models = {
+        "openai": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
+        "anthropic": ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"],
+        "together": ["meta-llama/Llama-2-70b-chat-hf", "mistralai/Mixtral-8x7B-Instruct-v0.1"],
+        "groq": ["llama2-70b-4096", "mixtral-8x7b-32768"],
+        "google": ["gemini-pro", "gemini-pro-vision"]
+    }
+    
+    model_lower = model_name.lower()
+    
+    # Check for deprecated or potentially incorrect model names
+    if "davinci" in model_lower or "curie" in model_lower or "babbage" in model_lower:
+        result["warnings"].append("This appears to be a legacy OpenAI model name. Consider using gpt-3.5-turbo or gpt-4o instead.")
+    
+    if model_lower.startswith("text-") and "openai" in model_lower:
+        result["warnings"].append("Text completion models are deprecated. Consider using chat models like gpt-3.5-turbo.")
+    
+    # Provide suggestions based on partial matches
+    if "gpt" in model_lower and not any(valid in model_lower for valid in ["gpt-3.5", "gpt-4"]):
+        result["suggestions"].extend(common_models["openai"])
+    elif "claude" in model_lower and not model_lower.startswith("claude-3"):
+        result["suggestions"].extend(common_models["anthropic"])
+    
+    return result
+
+
+def check_environment_setup() -> dict[str, Any]:
+    """
+    Check the environment setup for common configuration issues.
+    
+    Returns:
+        Dictionary with environment check results
+    """
+    result = {
+        "issues": [],
+        "warnings": [],
+        "recommendations": []
+    }
+    
+    # Check for common environment variables
+    api_keys = {
+        "OPENAI_API_KEY": "OpenAI",
+        "ANTHROPIC_API_KEY": "Anthropic", 
+        "TOGETHER_API_KEY": "Together AI",
+        "GROQ_API_KEY": "Groq",
+        "GOOGLE_API_KEY": "Google"
+    }
+    
+    found_keys = []
+    for env_var, provider in api_keys.items():
+        if os.getenv(env_var):
+            found_keys.append(provider)
+    
+    if not found_keys:
+        result["warnings"].append("No API keys found in environment variables. You'll need to provide them in configuration.")
+    else:
+        result["recommendations"].append(f"Found API keys for: {', '.join(found_keys)}")
+    
+    # Check Python version
+    import sys
+    if sys.version_info < (3, 8):
+        result["issues"].append(f"Python {sys.version_info.major}.{sys.version_info.minor} detected. Python 3.8+ is recommended.")
+    
+    # Check for required packages
+    try:
+        import playwright
+        result["recommendations"].append("Playwright is available for browser automation")
+    except ImportError:
+        result["issues"].append("Playwright not found. Install with: pip install playwright")
+    
+    try:
+        import litellm
+        result["recommendations"].append("LiteLLM is available for LLM integration")
+    except ImportError:
+        result["issues"].append("LiteLLM not found. Install with: pip install litellm")
+    
+    return result
+
+
+def suggest_configuration_fixes(validation_errors: list[str]) -> list[str]:
+    """
+    Suggest fixes for common configuration errors.
+    
+    Args:
+        validation_errors: List of validation error messages
+        
+    Returns:
+        List of suggested fixes
+    """
+    suggestions = []
+    
+    for error in validation_errors:
+        error_lower = error.lower()
+        
+        if "api key" in error_lower and "openai" in error_lower:
+            suggestions.append(
+                "Set your OpenAI API key:\n"
+                "  - Environment: export OPENAI_API_KEY=your-key\n"
+                "  - Config: model_client_options={'api_key': 'your-key'}"
+            )
+        elif "api key" in error_lower and "anthropic" in error_lower:
+            suggestions.append(
+                "Set your Anthropic API key:\n"
+                "  - Environment: export ANTHROPIC_API_KEY=your-key\n"
+                "  - Config: model_client_options={'api_key': 'your-key'}"
+            )
+        elif "api_base" in error_lower:
+            suggestions.append(
+                "Fix your API base URL:\n"
+                "  - Must start with http:// or https://\n"
+                "  - Example: 'https://api.openai.com/v1'\n"
+                "  - For local servers: 'http://localhost:8000/v1'"
+            )
+        elif "model_name" in error_lower:
+            suggestions.append(
+                "Specify a valid model name:\n"
+                "  - OpenAI: 'gpt-4o', 'gpt-3.5-turbo'\n"
+                "  - Anthropic: 'claude-3-opus-20240229'\n"
+                "  - Together: 'meta-llama/Llama-2-70b-chat-hf'"
+            )
+        elif "timeout" in error_lower:
+            suggestions.append(
+                "Fix timeout configuration:\n"
+                "  - Must be a positive number (seconds)\n"
+                "  - Example: model_client_options={'timeout': 30}"
+            )
+    
+    return suggestions

@@ -96,11 +96,11 @@ class StagehandPage:
         Returns:
             The result from the Stagehand server's navigation execution.
         """
-        if not self._stagehand.use_api:
-            await self._page.goto(
-                url, referer=referer, timeout=timeout, wait_until=wait_until
-            )
-            return
+        # Always use local browser (API mode removed)
+        await self._page.goto(
+            url, referer=referer, timeout=timeout, wait_until=wait_until
+        )
+        return
         options = {}
         if referer is not None:
             options["referer"] = referer
@@ -170,33 +170,21 @@ class StagehandPage:
                 "Invalid arguments for 'act'. Expected str, ObserveResult, or ActOptions."
             )
 
-        # TODO: Temporary until we move api based logic to client
-        if not self._stagehand.use_api:
-            # TODO: revisit passing user_provided_instructions
-            if not hasattr(self, "_observe_handler"):
-                # TODO: revisit handlers initialization on page creation
-                self._observe_handler = ObserveHandler(self, self._stagehand, "")
-            if not hasattr(self, "_act_handler"):
-                self._act_handler = ActHandler(
-                    self, self._stagehand, "", self._stagehand.self_heal
-                )
-            self._stagehand.logger.debug("act", category="act", auxiliary=payload)
-            if payload.get("iframes"):
-                raise ValueError(
-                    "iframes is not yet supported without API (to enable make sure you set env=BROWSERBASE and use_api=true)"
-                )
-            result = await self._act_handler.act(payload)
-            return result
-
-        # Add frame ID if available
-        if self._frame_id:
-            payload["frameId"] = self._frame_id
-
-        lock = self._stagehand._get_lock_for_session()
-        async with lock:
-            result = await self._stagehand._execute("act", payload)
-        if isinstance(result, dict):
-            return ActResult(**result)
+        # Always use local mode (API mode removed)
+        # TODO: revisit passing user_provided_instructions
+        if not hasattr(self, "_observe_handler"):
+            # TODO: revisit handlers initialization on page creation
+            self._observe_handler = ObserveHandler(self, self._stagehand, "")
+        if not hasattr(self, "_act_handler"):
+            self._act_handler = ActHandler(
+                self, self._stagehand, "", self._stagehand.self_heal
+            )
+        self._stagehand.logger.debug("act", category="act", auxiliary=payload)
+        if payload.get("iframes"):
+            raise ValueError(
+                "iframes is not yet supported in local mode"
+            )
+        result = await self._act_handler.act(payload)
         return result
 
     async def observe(
@@ -243,23 +231,22 @@ class StagehandPage:
         # Serialized payload for server / local handlers
         payload = options_obj.model_dump(exclude_none=True, by_alias=True)
 
-        # If in LOCAL mode, use local implementation
-        if not self._stagehand.use_api:
-            self._stagehand.logger.debug(
-                "observe", category="observe", auxiliary=payload
-            )
-            # If we don't have an observe handler yet, create one
-            # TODO: revisit passing user_provided_instructions
-            if not hasattr(self, "_observe_handler"):
-                self._observe_handler = ObserveHandler(self, self._stagehand, "")
+        # Always use local implementation (API mode removed)
+        self._stagehand.logger.debug(
+            "observe", category="observe", auxiliary=payload
+        )
+        # If we don't have an observe handler yet, create one
+        # TODO: revisit passing user_provided_instructions
+        if not hasattr(self, "_observe_handler"):
+            self._observe_handler = ObserveHandler(self, self._stagehand, "")
 
-            # Call local observe implementation
-            result = await self._observe_handler.observe(
-                options_obj,
-                from_act=False,
-            )
+        # Call local observe implementation
+        result = await self._observe_handler.observe(
+            options_obj,
+            from_act=False,
+        )
 
-            return result
+        return result
 
         # Add frame ID if available
         if self._frame_id:
@@ -365,7 +352,7 @@ class StagehandPage:
         else:
             schema_to_validate_with = DefaultExtractSchema
 
-        if not self._stagehand.use_api:
+        # Always use local implementation (API mode removed)
             # If we don't have an extract handler yet, create one
             if not hasattr(self, "_extract_handler"):
                 self._extract_handler = ExtractHandler(

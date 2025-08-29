@@ -1,7 +1,7 @@
 """
 Integration tests for Stagehand Python SDK.
 
-These tests verify the end-to-end functionality of Stagehand in both LOCAL and BROWSERBASE modes.
+These tests verify the end-to-end functionality of Stagehand in local mode.
 Inspired by the evals and examples in the project.
 """
 
@@ -47,31 +47,28 @@ class TestStagehandIntegration:
     def local_config(self):
         """Configuration for LOCAL mode testing"""
         return StagehandConfig(
-            env="LOCAL",
             model_name="gpt-4o-mini",
-            headless=True,  # Use headless mode for CI
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=1,
             dom_settle_timeout_ms=2000,
             self_heal=True,
             wait_for_captcha_solves=False,
             system_prompt="You are a browser automation assistant for testing purposes.",
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest.fixture(scope="class")
-    def browserbase_config(self):
-        """Configuration for BROWSERBASE mode testing"""
+    def local_test_config(self):
+        """Configuration for local mode testing"""
         return StagehandConfig(
-            env="BROWSERBASE",
-            api_key=os.getenv("BROWSERBASE_API_KEY"),
-            project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-            model_name="gpt-4o",
+            model_name="gpt-4o-mini",
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=2,
             dom_settle_timeout_ms=3000,
             self_heal=True,
-            wait_for_captcha_solves=True,
+            wait_for_captcha_solves=False,
             system_prompt="You are a browser automation assistant for integration testing.",
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest_asyncio.fixture
@@ -83,13 +80,9 @@ class TestStagehandIntegration:
         await stagehand.close()
 
     @pytest_asyncio.fixture
-    async def browserbase_stagehand(self, browserbase_config):
-        """Create a Stagehand instance for BROWSERBASE testing"""
-        # Skip if Browserbase credentials are not available
-        if not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")):
-            pytest.skip("Browserbase credentials not available")
-        
-        stagehand = Stagehand(config=browserbase_config)
+    async def local_test_stagehand(self, local_test_config):
+        """Create a Stagehand instance for local testing"""
+        stagehand = Stagehand(config=local_test_config)
         await stagehand.init()
         yield stagehand
         await stagehand.close()
@@ -116,14 +109,10 @@ class TestStagehandIntegration:
             assert obs.selector  # Not empty
 
     @pytest.mark.asyncio
-    @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_basic_navigation_and_observe_browserbase(self, browserbase_stagehand):
-        """Test basic navigation and observe functionality in BROWSERBASE mode"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_basic_navigation_and_observe_local_alt(self, local_test_stagehand):
+        """Test basic navigation and observe functionality in local mode (alternative test)"""
+        stagehand = local_test_stagehand
         
         # Navigate to a simple page
         await stagehand.page.goto("https://example.com")
@@ -164,14 +153,10 @@ class TestStagehandIntegration:
         assert filled_elements is not None
 
     @pytest.mark.asyncio
-    @pytest.mark.browserbase  
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_form_interaction_browserbase(self, browserbase_stagehand):
-        """Test form interaction capabilities in BROWSERBASE mode"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_form_interaction_local_alt(self, local_test_stagehand):
+        """Test form interaction capabilities in local mode (alternative test)"""
+        stagehand = local_test_stagehand
         
         # Navigate to a page with forms
         await stagehand.page.goto("https://httpbin.org/forms/post")
@@ -245,23 +230,19 @@ class TestStagehandIntegration:
         
         # Validate the extracted data structure
         if hasattr(article_data, 'data') and article_data.data:
-            # BROWSERBASE mode format
+            # Structured data format
             article = NewsArticle.model_validate(article_data.data)
             assert article.title
         elif hasattr(article_data, 'title'):
-            # LOCAL mode format  
+            # Direct model format  
             article = NewsArticle.model_validate(article_data.model_dump())
             assert article.title
 
     @pytest.mark.asyncio
-    @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_extraction_functionality_browserbase(self, browserbase_stagehand):
-        """Test extraction functionality with schema validation in BROWSERBASE mode"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_extraction_functionality_local_alt(self, local_test_stagehand):
+        """Test extraction functionality with schema validation in local mode (alternative test)"""
+        stagehand = local_test_stagehand
         
         # Navigate to a news site
         await stagehand.page.goto("https://news.ycombinator.com")
@@ -435,20 +416,15 @@ class TestStagehandIntegration:
             content = await stagehand.page.extract("Extract the main content or title from this page")
             assert content is not None
 
-    # Test Configuration and Environment Detection
-    def test_environment_detection(self):
-        """Test that environment is correctly detected based on available credentials"""
-        # Test LOCAL mode detection
-        local_config = StagehandConfig(env="LOCAL")
-        assert local_config.env == "LOCAL"
-        
-        # Test BROWSERBASE mode configuration
-        if os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID"):
-            browserbase_config = StagehandConfig(
-                env="BROWSERBASE",
-                api_key=os.getenv("BROWSERBASE_API_KEY"),
-                project_id=os.getenv("BROWSERBASE_PROJECT_ID")
-            )
-            assert browserbase_config.env == "BROWSERBASE"
-            assert browserbase_config.api_key is not None
-            assert browserbase_config.project_id is not None 
+    # Test Configuration Validation
+    def test_config_validation(self):
+        """Test that configuration is correctly validated"""
+        # Test local mode configuration
+        local_config = StagehandConfig(
+            model_name="gpt-4o-mini",
+            model_api_key="test-key",
+            local_browser_launch_options={"headless": True}
+        )
+        assert local_config.model_name == "gpt-4o-mini"
+        assert local_config.model_api_key == "test-key"
+        assert local_config.local_browser_launch_options["headless"] is True 

@@ -21,25 +21,21 @@ class TestObserveIntegration:
     def local_config(self):
         """Configuration for LOCAL mode testing"""
         return StagehandConfig(
-            env="LOCAL",
             model_name="gpt-4o-mini",
-            headless=True,
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=1,
             dom_settle_timeout_ms=2000,
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest.fixture(scope="class")
-    def browserbase_config(self):
-        """Configuration for BROWSERBASE mode testing"""
+    def local_test_config(self):
+        """Configuration for local mode testing"""
         return StagehandConfig(
-            env="BROWSERBASE",
-            api_key=os.getenv("BROWSERBASE_API_KEY"),
-            project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-            model_name="gpt-4o",
-            headless=False,
+            model_name="gpt-4o-mini",
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=2,
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest_asyncio.fixture
@@ -51,12 +47,9 @@ class TestObserveIntegration:
         await stagehand.close()
 
     @pytest_asyncio.fixture
-    async def browserbase_stagehand(self, browserbase_config):
-        """Create a Stagehand instance for BROWSERBASE testing"""
-        if not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")):
-            pytest.skip("Browserbase credentials not available")
-        
-        stagehand = Stagehand(config=browserbase_config)
+    async def local_test_stagehand(self, local_test_config):
+        """Create a Stagehand instance for local testing"""
+        stagehand = Stagehand(config=local_test_config)
         await stagehand.init()
         yield stagehand
         await stagehand.close()
@@ -88,13 +81,10 @@ class TestObserveIntegration:
 
     @pytest.mark.asyncio
     @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_observe_form_elements_browserbase(self, browserbase_stagehand):
-        """Test observing form elements similar to observe_taxes eval in BROWSERBASE mode"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_observe_form_elements_local_alt(self, local_test_stagehand):
+        """Test observing form elements similar to observe_taxes eval in local mode (alternative test)"""
+        stagehand = local_test_stagehand
         
         # Navigate to a form page
         await stagehand.page.goto("https://httpbin.org/forms/post")
@@ -309,21 +299,18 @@ class TestObserveIntegration:
 
     @pytest.mark.asyncio
     @pytest.mark.browserbase
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_observe_browserbase_specific_features(self, browserbase_stagehand):
-        """Test Browserbase-specific observe features"""
-        stagehand = browserbase_stagehand
+    @pytest.mark.local
+    async def test_observe_local_specific_features(self, local_test_stagehand):
+        """Test local browser observe features"""
+        stagehand = local_test_stagehand
         
         # Navigate to a page
         await stagehand.page.goto("https://example.com")
         
-        # Test observe with Browserbase capabilities
+        # Test observe with local browser capabilities
         observations = await stagehand.page.observe("Find all interactive elements on the page")
         assert observations is not None
         
-        # Verify we can access Browserbase session info
-        assert hasattr(stagehand, 'session_id')
-        assert stagehand.session_id is not None 
+        # Verify we can access local browser page info
+        assert hasattr(stagehand, 'page')
+        assert stagehand.page is not None 

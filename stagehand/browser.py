@@ -5,8 +5,6 @@ import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
-from browserbase import Browserbase
-from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from playwright.async_api import (
     Browser,
     BrowserContext,
@@ -18,94 +16,9 @@ from .logging import StagehandLogger
 from .page import StagehandPage
 
 
-async def connect_browserbase_browser(
+async def connect_browser(
     playwright: Playwright,
-    session_id: str,
-    browserbase_api_key: str,
-    stagehand_instance: Any,
-    logger: StagehandLogger,
-) -> tuple[Browser, BrowserContext, StagehandContext, StagehandPage]:
-    """
-    Connect to a Browserbase remote browser session.
-
-    Args:
-        playwright: The Playwright instance
-        session_id: The Browserbase session ID
-        browserbase_api_key: The Browserbase API key
-        stagehand_instance: The Stagehand instance (for context initialization)
-        logger: The logger instance
-
-    Returns:
-        tuple of (browser, context, stagehand_context, page)
-    """
-    # Connect to remote browser via Browserbase SDK and CDP
-    bb = Browserbase(api_key=browserbase_api_key)
-    try:
-        if session_id:
-            session = bb.sessions.retrieve(session_id)
-            if session.status != "RUNNING":
-                raise RuntimeError(
-                    f"Browserbase session {session_id} is not running (status: {session.status})"
-                )
-        else:
-            browserbase_session_create_params = (
-                BrowserbaseSessionCreateParams(
-                    project_id=stagehand_instance.browserbase_project_id,
-                    browser_settings={
-                        "viewport": {
-                            "width": 1024,
-                            "height": 768,
-                        },
-                    },
-                )
-                if not stagehand_instance.browserbase_session_create_params
-                else stagehand_instance.browserbase_session_create_params
-            )
-            session = bb.sessions.create(**browserbase_session_create_params)
-            if not session.id:
-                raise Exception("Could not create Browserbase session")
-            stagehand_instance.session_id = session.id
-        connect_url = session.connectUrl
-    except Exception as e:
-        logger.error(f"Error retrieving or validating Browserbase session: {str(e)}")
-        raise
-
-    logger.debug(f"Connecting to remote browser at: {connect_url}")
-    try:
-        browser = await playwright.chromium.connect_over_cdp(connect_url)
-    except Exception as e:
-        logger.error(f"Failed to connect Playwright via CDP: {str(e)}")
-        raise
-
-    existing_contexts = browser.contexts
-    logger.debug(f"Existing contexts in remote browser: {len(existing_contexts)}")
-    if existing_contexts:
-        context = existing_contexts[0]
-    else:
-        # This case might be less common with Browserbase but handle it
-        logger.warning(
-            "No existing context found in remote browser, creating a new one."
-        )
-        context = await browser.new_context()
-
-    stagehand_context = await StagehandContext.init(context, stagehand_instance)
-
-    # Access or create a page via StagehandContext
-    existing_pages = context.pages
-    logger.debug(f"Existing pages in context: {len(existing_pages)}")
-    if existing_pages:
-        logger.debug("Using existing page via StagehandContext")
-        page = await stagehand_context.get_stagehand_page(existing_pages[0])
-    else:
-        logger.debug("Creating a new page via StagehandContext")
-        page = await stagehand_context.new_page()
-
-    return browser, context, stagehand_context, page
-
-
-async def connect_local_browser(
-    playwright: Playwright,
-    local_browser_launch_options: dict[str, Any],
+    browser_launch_options: dict[str, Any],
     stagehand_instance: Any,
     logger: StagehandLogger,
 ) -> tuple[
@@ -116,21 +29,21 @@ async def connect_local_browser(
 
     Args:
         playwright: The Playwright instance
-        local_browser_launch_options: Options for launching the local browser
+        browser_launch_options: Options for launching the browser
         stagehand_instance: The Stagehand instance (for context initialization)
         logger: The logger instance
 
     Returns:
         tuple of (browser, context, stagehand_context, page, temp_user_data_dir)
     """
-    cdp_url = local_browser_launch_options.get("cdp_url")
+    cdp_url = browser_launch_options.get("cdp_url")
     temp_user_data_dir = None
 
     if cdp_url:
-        logger.info(f"Connecting to local browser via CDP URL: {cdp_url}")
+        logger.info(f"Connecting to browser via CDP URL: {cdp_url}")
         try:
             browser = await playwright.chromium.connect_over_cdp(
-                cdp_url, headers=local_browser_launch_options.get("headers")
+                cdp_url, headers=browser_launch_options.get("headers")
             )
 
             if not browser.contexts:
@@ -142,10 +55,10 @@ async def connect_local_browser(
             logger.error(f"Failed to connect via CDP URL ({cdp_url}): {str(e)}")
             raise
     else:
-        logger.info("Launching new local browser context...")
+        logger.info("Launching new browser context...")
         browser = None
 
-        user_data_dir_option = local_browser_launch_options.get("user_data_dir")
+        user_data_dir_option = browser_launch_options.get("user_data_dir")
         if user_data_dir_option:
             user_data_dir = Path(user_data_dir_option).resolve()
         else:
@@ -169,7 +82,7 @@ async def connect_local_browser(
                     f"Failed to write default preferences to {prefs_path}: {e}"
                 )
 
-        downloads_path_option = local_browser_launch_options.get("downloads_path")
+        downloads_path_option = browser_launch_options.get("downloads_path")
         if downloads_path_option:
             downloads_path = str(Path(downloads_path_option).resolve())
         else:
@@ -182,27 +95,27 @@ async def connect_local_browser(
 
         # Prepare Launch Options (translate keys if needed)
         launch_options = {
-            "headless": local_browser_launch_options.get("headless", False),
-            "accept_downloads": local_browser_launch_options.get(
+            "headless": browser_launch_options.get("headless", False),
+            "accept_downloads": browser_launch_options.get(
                 "acceptDownloads", True
             ),
             "downloads_path": downloads_path,
-            "args": local_browser_launch_options.get(
+            "args": browser_launch_options.get(
                 "args",
                 [
                     "--disable-blink-features=AutomationControlled",
                 ],
             ),
-            "viewport": local_browser_launch_options.get(
+            "viewport": browser_launch_options.get(
                 "viewport", {"width": 1024, "height": 768}
             ),
-            "locale": local_browser_launch_options.get("locale", "en-US"),
-            "timezone_id": local_browser_launch_options.get(
+            "locale": browser_launch_options.get("locale", "en-US"),
+            "timezone_id": browser_launch_options.get(
                 "timezoneId", "America/New_York"
             ),
-            "bypass_csp": local_browser_launch_options.get("bypassCSP", True),
-            "proxy": local_browser_launch_options.get("proxy"),
-            "ignore_https_errors": local_browser_launch_options.get(
+            "bypass_csp": browser_launch_options.get("bypassCSP", True),
+            "proxy": browser_launch_options.get("proxy"),
+            "ignore_https_errors": browser_launch_options.get(
                 "ignoreHTTPSErrors", True
             ),
         }
@@ -215,11 +128,11 @@ async def connect_local_browser(
                 **launch_options,
             )
             stagehand_context = await StagehandContext.init(context, stagehand_instance)
-            logger.info("Local browser context launched successfully.")
+            logger.info("Browser context launched successfully.")
             browser = context.browser
 
         except Exception as e:
-            logger.error(f"Failed to launch local browser context: {str(e)}")
+            logger.error(f"Failed to launch browser context: {str(e)}")
             if temp_user_data_dir:
                 try:
                     shutil.rmtree(temp_user_data_dir)
@@ -227,7 +140,7 @@ async def connect_local_browser(
                     pass
             raise
 
-        cookies = local_browser_launch_options.get("cookies")
+        cookies = browser_launch_options.get("cookies")
         if cookies:
             try:
                 await context.add_cookies(cookies)
@@ -241,7 +154,7 @@ async def connect_local_browser(
     # Get the initial page (usually one is created by default)
     if context.pages:
         playwright_page = context.pages[0]
-        logger.debug("Using initial page from local context.")
+        logger.debug("Using initial page from context.")
         page = await stagehand_context.get_stagehand_page(playwright_page)
     else:
         logger.debug("No initial page found, creating a new one.")

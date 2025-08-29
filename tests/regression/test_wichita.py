@@ -28,25 +28,21 @@ class TestWichita:
     def local_config(self):
         """Configuration for LOCAL mode testing"""
         return StagehandConfig(
-            env="LOCAL",
             model_name="gpt-4o-mini",
-            headless=True,
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=1,
             dom_settle_timeout_ms=2000,
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest.fixture(scope="class")
-    def browserbase_config(self):
-        """Configuration for BROWSERBASE mode testing"""
+    def local_test_config(self):
+        """Configuration for local mode testing"""
         return StagehandConfig(
-            env="BROWSERBASE",
-            api_key=os.getenv("BROWSERBASE_API_KEY"),
-            project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-            model_name="gpt-4o",
-            headless=False,
+            model_name="gpt-4o-mini",
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=2,
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")},
+            local_browser_launch_options={"headless": True},
         )
 
     @pytest_asyncio.fixture
@@ -58,12 +54,9 @@ class TestWichita:
         await stagehand.close()
 
     @pytest_asyncio.fixture
-    async def browserbase_stagehand(self, browserbase_config):
-        """Create a Stagehand instance for BROWSERBASE testing"""
-        if not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")):
-            pytest.skip("Browserbase credentials not available")
-        
-        stagehand = Stagehand(config=browserbase_config)
+    async def local_test_stagehand(self, local_test_config):
+        """Create a Stagehand instance for local testing"""
+        stagehand = Stagehand(config=local_test_config)
         await stagehand.init()
         yield stagehand
         await stagehand.close()
@@ -125,18 +118,14 @@ class TestWichita:
 
     @pytest.mark.asyncio
     @pytest.mark.regression
-    @pytest.mark.api
-    @pytest.mark.skipif(
-        not (os.getenv("BROWSERBASE_API_KEY") and os.getenv("BROWSERBASE_PROJECT_ID")),
-        reason="Browserbase credentials not available"
-    )
-    async def test_wichita_browserbase(self, browserbase_stagehand):
+    @pytest.mark.local
+    async def test_wichita_local_alt(self, local_test_stagehand):
         """
-        Regression test: wichita (Browserbase)
+        Regression test: wichita (local alternative)
         
-        Same test as local but running in Browserbase environment.
+        Same test as the main local test but using alternative configuration.
         """
-        stagehand = browserbase_stagehand
+        stagehand = local_test_stagehand
         
         await stagehand.page.goto("https://www.wichitafallstx.gov/Bids.aspx")
         

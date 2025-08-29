@@ -1,50 +1,58 @@
 import pytest
-import pytest_asyncio
 import os
 
 from stagehand import Stagehand, StagehandConfig
 
 
 class TestStagehandLocalIntegration:
-    """Integration tests for Stagehand Python SDK in LOCAL mode."""
+    """Integration tests for Stagehand Python SDK in local mode."""
 
     @pytest.fixture(scope="class")
     def local_config(self):
-        """Configuration for LOCAL mode testing"""
+        """Configuration for local mode testing"""
         return StagehandConfig(
-            env="LOCAL",
             model_name="gpt-4o-mini",
-            headless=True,  # Use headless mode for CI
+            model_api_key=os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY"),
             verbose=1,
             dom_settle_timeout_ms=2000,
             self_heal=True,
             wait_for_captcha_solves=False,
             system_prompt="You are a browser automation assistant for testing purposes.",
-            model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
-            use_api=False,
+            local_browser_launch_options={"headless": True},
         )
 
-    @pytest_asyncio.fixture
-    async def stagehand_local(self, local_config):
-        """Create a Stagehand instance for LOCAL testing"""
-        stagehand = Stagehand(config=local_config)
-        await stagehand.init()
-        yield stagehand
-        await stagehand.close()
+    @pytest.fixture
+    def stagehand_local(self, local_config):
+        """Create a Stagehand instance for local testing"""
+        return local_config
 
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
     async def test_stagehand_local_initialization(self, stagehand_local):
-        """Ensure that Stagehand initializes correctly in LOCAL mode."""
-        assert stagehand_local._initialized is True
+        """Ensure that Stagehand initializes correctly in local mode."""
+        if not (os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")):
+            pytest.skip("No API key available for testing")
+        
+        stagehand = Stagehand(config=stagehand_local)
+        await stagehand.init()
+        
+        try:
+            assert stagehand._initialized is True
+            assert stagehand.page is not None
+        finally:
+            await stagehand.close()
 
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
     async def test_local_observe_and_act_workflow(self, stagehand_local):
-        """Test core observe and act workflow in LOCAL mode - extracted from e2e tests."""
-        stagehand = stagehand_local
+        """Test core observe and act workflow in local mode."""
+        if not (os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")):
+            pytest.skip("No API key available for testing")
+        
+        stagehand = Stagehand(config=stagehand_local)
+        await stagehand.init()
         
         # Navigate to a form page for testing
         await stagehand.page.goto("https://httpbin.org/forms/post")
@@ -75,13 +83,19 @@ class TestStagehandLocalIntegration:
         customer_field = await stagehand.page.observe("Find the customer name input field")
         assert customer_field is not None
         assert len(customer_field) > 0
+        
+        await stagehand.close()
 
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
     async def test_local_basic_navigation_and_observe(self, stagehand_local):
-        """Test basic navigation and observe functionality in LOCAL mode"""
-        stagehand = stagehand_local
+        """Test basic navigation and observe functionality in local mode"""
+        if not (os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")):
+            pytest.skip("No API key available for testing")
+        
+        stagehand = Stagehand(config=stagehand_local)
+        await stagehand.init()
         
         # Navigate to a simple page
         await stagehand.page.goto("https://example.com")
@@ -97,13 +111,19 @@ class TestStagehandLocalIntegration:
         for obs in observations:
             assert hasattr(obs, "selector")
             assert obs.selector  # Not empty
+        
+        await stagehand.close()
 
     @pytest.mark.asyncio
     @pytest.mark.integration
     @pytest.mark.local
     async def test_local_extraction_functionality(self, stagehand_local):
-        """Test extraction functionality in LOCAL mode"""
-        stagehand = stagehand_local
+        """Test extraction functionality in local mode"""
+        if not (os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")):
+            pytest.skip("No API key available for testing")
+        
+        stagehand = Stagehand(config=stagehand_local)
+        await stagehand.init()
         
         # Navigate to a content-rich page
         await stagehand.page.goto("https://news.ycombinator.com")
@@ -114,4 +134,29 @@ class TestStagehandLocalIntegration:
         )
         
         # Verify extraction worked
-        assert articles_text is not None 
+        assert articles_text is not None
+        
+        await stagehand.close()
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration
+    @pytest.mark.local
+    async def test_local_agent_functionality(self, stagehand_local):
+        """Test agent functionality in local mode"""
+        if not (os.getenv("MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")):
+            pytest.skip("No API key available for testing")
+        
+        stagehand = Stagehand(config=stagehand_local)
+        await stagehand.init()
+        
+        # Navigate to a simple page for agent testing
+        await stagehand.page.goto("https://example.com")
+        
+        # Test agent execution
+        agent = stagehand.agent()
+        result = await agent.execute("Find and describe the main content of this page")
+        
+        # Verify agent execution worked
+        assert result is not None
+        
+        await stagehand.close() 

@@ -32,7 +32,6 @@ class LogConfig:
         Args:
             verbose: Verbosity level (0=error, 1=info, 2=debug)
             use_rich: Whether to use Rich for formatted output
-            env: Environment ("LOCAL" or "BROWSERBASE")
             external_logger: Optional external logging callback
             quiet_dependencies: Whether to quiet noisy dependencies
         """

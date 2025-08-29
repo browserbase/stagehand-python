@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 from typing import Any, Optional
 
-import httpx
 import nest_asyncio
 from dotenv import load_dotenv
 from playwright.async_api import (
@@ -17,19 +16,17 @@ from playwright.async_api import (
 from playwright.async_api import Page as PlaywrightPage
 
 from .agent import Agent
-from .api import _create_session, _execute, _get_replay_metrics
 from .browser import (
     cleanup_browser_resources,
-    connect_browserbase_browser,
-    connect_local_browser,
+    connect_browser,
 )
-from .config import StagehandConfig, default_config
+from .config import StagehandConfig, StagehandConfigError, default_config, validate_stagehand_config, create_helpful_error_message
 from .context import StagehandContext
 from .llm import LLMClient
 from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
-from .utils import get_download_path, make_serializable
+from .utils import get_download_path
 
 load_dotenv()
 
@@ -128,10 +125,9 @@ class LivePageProxy:
 
 class Stagehand:
     """
-    Main Stagehand class.
+    Main Stagehand class for local browser automation.
     """
 
-    _session_locks = {}
     _cleanup_called = False
 
     def __init__(
@@ -140,7 +136,7 @@ class Stagehand:
         **config_overrides,
     ):
         """
-        Initialize the Stagehand client.
+        Initialize the Stagehand client for local browser automation.
 
         Args:
             config (Optional[StagehandConfig]): Configuration object. If not provided, uses default_config.
@@ -159,9 +155,6 @@ class Stagehand:
         else:
             self.config = config
 
-        # Handle non-config parameters
-        self.api_url = self.config.api_url
-
         # Handle model-related settings
         self.model_client_options = self.config.model_client_options or {}
         self.model_api_key = self.config.model_api_key or os.getenv("MODEL_API_KEY")
@@ -169,42 +162,28 @@ class Stagehand:
         self.model_name = self.config.model_name
 
         # Extract frequently used values from config for convenience
-        self.browserbase_api_key = self.config.api_key or os.getenv(
-            "BROWSERBASE_API_KEY"
-        )
-        self.browserbase_project_id = self.config.project_id or os.getenv(
-            "BROWSERBASE_PROJECT_ID"
-        )
-        self.session_id = self.config.browserbase_session_id
         self.dom_settle_timeout_ms = self.config.dom_settle_timeout_ms
         self.self_heal = self.config.self_heal
         self.wait_for_captcha_solves = self.config.wait_for_captcha_solves
         self.system_prompt = self.config.system_prompt
         self.verbose = self.config.verbose
-        self.env = self.config.env.upper() if self.config.env else "BROWSERBASE"
         self.local_browser_launch_options = (
             self.config.local_browser_launch_options or {}
         )
+        
+        # Handle API key configuration with better validation
         if self.model_api_key:
-            self.model_client_options["apiKey"] = self.model_api_key
+            # If api_key is provided directly, use it
+            pass
         else:
+            # Try to extract API key from model_client_options
             if "apiKey" in self.model_client_options:
                 self.model_api_key = self.model_client_options["apiKey"]
-
-        # Handle browserbase session create params
-        self.browserbase_session_create_params = make_serializable(
-            self.config.browserbase_session_create_params
-        )
-
-        # Handle streaming response setting
-        self.streamed_response = True
-
-        self.timeout_settings = httpx.Timeout(
-            connect=180.0,
-            read=180.0,
-            write=180.0,
-            pool=180.0,
-        )
+            elif "api_key" in self.model_client_options:
+                self.model_api_key = self.model_client_options["api_key"]
+            else:
+                # Try to get from environment based on model type
+                self.model_api_key = self._get_api_key_from_environment()
 
         self._local_user_data_dir_temp: Optional[Path] = (
             None  # To store path if created temporarily
@@ -214,10 +193,6 @@ class Stagehand:
         self._local_metrics = StagehandMetrics()  # Internal storage for local metrics
         self._inference_start_time = 0  # To track inference time
 
-        # Validate env
-        if self.env not in ["BROWSERBASE", "LOCAL"]:
-            raise ValueError("env must be either 'BROWSERBASE' or 'LOCAL'")
-
         # Initialize the centralized logger with the specified verbosity
         self.on_log = self.config.logger or default_log_handler
         self.logger = StagehandLogger(
@@ -225,72 +200,113 @@ class Stagehand:
             external_logger=self.on_log,
             use_rich=self.config.use_rich_logging,
         )
-
-        # If using BROWSERBASE, session_id or creation params are needed
-        if self.env == "BROWSERBASE":
-            if not self.session_id:
-                # Check if BROWSERBASE keys are present for session creation
-                if not self.browserbase_api_key:
-                    raise ValueError(
-                        "browserbase_api_key is required for BROWSERBASE env when no session_id is provided (or set BROWSERBASE_API_KEY in env)."
-                    )
-                if not self.browserbase_project_id:
-                    raise ValueError(
-                        "browserbase_project_id is required for BROWSERBASE env when no session_id is provided (or set BROWSERBASE_PROJECT_ID in env)."
-                    )
-                if not self.model_api_key:
-                    # Model API key needed if Stagehand server creates the session
-                    self.logger.info(
-                        "model_api_key is recommended when creating a new BROWSERBASE session to configure the Stagehand server's LLM."
-                    )
-            elif self.session_id:
-                # Validate essential fields if session_id was provided for BROWSERBASE
-                if not self.browserbase_api_key:
-                    raise ValueError(
-                        "browserbase_api_key is required for BROWSERBASE env with existing session_id (or set BROWSERBASE_API_KEY in env)."
-                    )
-                if not self.browserbase_project_id:
-                    raise ValueError(
-                        "browserbase_project_id is required for BROWSERBASE env with existing session_id (or set BROWSERBASE_PROJECT_ID in env)."
-                    )
+        
+        # Validate configuration after logger is initialized
+        self._validate_configuration()
 
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()
 
-        self._client = httpx.AsyncClient(timeout=self.timeout_settings)
-
+        # Initialize browser-related instance variables
         self._playwright: Optional[Playwright] = None
         self._browser = None
         self._context: Optional[BrowserContext] = None
         self._playwright_page: Optional[PlaywrightPage] = None
         self._page: Optional[StagehandPage] = None
         self.context: Optional[StagehandContext] = None
-        self.use_api = self.config.use_api
         self.experimental = self.config.experimental
-        if self.env == "LOCAL":
-            self.use_api = False
-        if (
-            self.browserbase_session_create_params
-            and self.browserbase_session_create_params.get("region")
-            and self.browserbase_session_create_params.get("region") != "us-west-2"
-        ):
-            self.use_api = False
 
         self._initialized = False  # Flag to track if init() has run
         self._closed = False  # Flag to track if resources have been closed
         self._live_page_proxy = None  # Live page proxy
         self._page_switch_lock = asyncio.Lock()  # Lock for page stability
 
-        # Setup LLM client if LOCAL mode
-        self.llm = None
-        if not self.use_api:
+        # Setup enhanced LLM client with custom endpoint support
+        llm_options = self.model_client_options.copy()
+        
+        # Remove API key variants from options to avoid conflicts
+        llm_options.pop("api_key", None)
+        llm_options.pop("apiKey", None)
+        
+        try:
             self.llm = LLMClient(
                 stagehand_logger=self.logger,
                 api_key=self.model_api_key,
                 default_model=self.model_name,
                 metrics_callback=self._handle_llm_metrics,
-                **self.model_client_options,
+                **llm_options,
             )
+            
+            # Validate the LLM configuration
+            validation_result = self.llm.validate_configuration()
+            if not validation_result["valid"]:
+                for error in validation_result["errors"]:
+                    self.logger.error(f"LLM configuration error: {error}", category="llm")
+            
+            for warning in validation_result["warnings"]:
+                self.logger.info(f"LLM configuration warning: {warning}", category="llm")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to initialize LLM client: {e}", category="llm")
+            raise RuntimeError(f"Failed to initialize LLM client: {e}") from e
+
+    def _get_api_key_from_environment(self) -> Optional[str]:
+        """
+        Try to get API key from environment variables based on the model type.
+        
+        Returns:
+            API key from environment or None if not found
+        """
+        if not self.model_name:
+            return None
+            
+        model_lower = self.model_name.lower()
+        
+        # Try to infer provider and get corresponding environment variable
+        if model_lower.startswith("gpt-") or "openai" in model_lower:
+            return os.getenv("OPENAI_API_KEY")
+        elif model_lower.startswith("claude-") or "anthropic" in model_lower:
+            return os.getenv("ANTHROPIC_API_KEY")
+        elif "together" in model_lower:
+            return os.getenv("TOGETHER_API_KEY")
+        elif "groq" in model_lower:
+            return os.getenv("GROQ_API_KEY")
+        elif model_lower.startswith("gemini") or "google" in model_lower:
+            return os.getenv("GOOGLE_API_KEY")
+        
+        # Fallback to generic environment variables
+        return os.getenv("MODEL_API_KEY") or os.getenv("LLM_API_KEY")
+
+    def _validate_configuration(self):
+        """
+        Validate the Stagehand configuration and raise helpful errors if invalid.
+        
+        Raises:
+            StagehandConfigError: If configuration is invalid
+        """
+        try:
+            validation_result = validate_stagehand_config(self.config)
+            
+            if not validation_result["valid"]:
+                error_message = create_helpful_error_message(
+                    validation_result, 
+                    "Stagehand initialization"
+                )
+                raise StagehandConfigError(error_message)
+            
+            # Log warnings and recommendations
+            for warning in validation_result["warnings"]:
+                self.logger.info(f"Configuration warning: {warning}", category="config")
+            
+            for recommendation in validation_result["recommendations"]:
+                self.logger.info(f"Configuration recommendation: {recommendation}", category="config")
+                
+        except Exception as e:
+            if isinstance(e, StagehandConfigError):
+                raise
+            else:
+                # Wrap other validation errors
+                raise StagehandConfigError(f"Configuration validation failed: {e}") from e
 
     def _register_signal_handlers(self):
         """Register signal handlers for SIGINT and SIGTERM to ensure proper cleanup."""
@@ -302,7 +318,7 @@ class Stagehand:
 
             self.__class__._cleanup_called = True
             print(
-                f"\n[{signal.Signals(sig).name}] received. Ending Browserbase session..."
+                f"\n[{signal.Signals(sig).name}] received. Cleaning up browser resources..."
             )
 
             try:
@@ -342,9 +358,9 @@ class Stagehand:
         """Async cleanup method called from signal handler."""
         try:
             await self.close()
-            print(f"Session {self.session_id} ended successfully")
+            print("Browser resources cleaned up successfully")
         except Exception as e:
-            print(f"Error ending Browserbase session: {str(e)}")
+            print(f"Error cleaning up browser resources: {str(e)}")
         finally:
             # Force exit after cleanup completes (or fails)
             # Use os._exit to avoid any further Python cleanup that might hang
@@ -458,13 +474,7 @@ class Stagehand:
         except Exception as e:
             self.logger.debug(f"Failed to update metrics from response: {str(e)}")
 
-    def _get_lock_for_session(self) -> asyncio.Lock:
-        """
-        Return an asyncio.Lock for this session. If one doesn't exist yet, create it.
-        """
-        if self.session_id not in self._session_locks:
-            self._session_locks[self.session_id] = asyncio.Lock()
-        return self._session_locks[self.session_id]
+
 
     async def __aenter__(self):
         self.logger.debug("Entering Stagehand context manager (__aenter__)...")
@@ -478,71 +488,54 @@ class Stagehand:
 
     async def init(self):
         """
-        Public init() method.
-        For BROWSERBASE: Creates or resumes the server session, starts Playwright, connects to remote browser.
-        For LOCAL: Starts Playwright, launches a local persistent context or connects via CDP.
-        Sets up self.page in both cases.
+        Initialize Stagehand for local browser automation.
+        
+        This method starts Playwright, launches a local browser instance, and sets up the page.
+        Only local browser mode is supported - no remote browser connections are available.
+        
+        Raises:
+            RuntimeError: If local browser initialization fails
+            asyncio.TimeoutError: If Playwright startup times out
         """
         if self._initialized:
             self.logger.debug("Stagehand is already initialized; skipping init()")
             return
 
-        self.logger.debug("Initializing Stagehand...")
-        self.logger.debug(f"Environment: {self.env}")
+        self.logger.debug("Initializing Stagehand for local browser automation...")
 
         # Initialize Playwright with timeout
-        self._playwright = await asyncio.wait_for(
-            async_playwright().start(), timeout=30.0  # 30 second timeout
-        )
+        try:
+            self._playwright = await asyncio.wait_for(
+                async_playwright().start(), timeout=30.0  # 30 second timeout
+            )
+            self.logger.debug("Playwright initialized successfully")
+        except asyncio.TimeoutError as e:
+            self.logger.error("Playwright initialization timed out after 30 seconds")
+            raise RuntimeError("Failed to initialize Playwright: timeout after 30 seconds") from e
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Playwright: {str(e)}")
+            raise RuntimeError(f"Failed to initialize Playwright: {str(e)}") from e
 
-        if self.env == "BROWSERBASE":
-            # Create session if we don't have one
-            if self.use_api:
-                await self._create_session()  # Uses self._client and api_url
+        # Connect to local browser
+        try:
+            (
+                self._browser,
+                self._context,
+                self.context,
+                self._page,
+                self._local_user_data_dir_temp,
+            ) = await connect_browser(
+                self._playwright,
+                self.local_browser_launch_options,
+                self,
+                self.logger,
+            )
+            self._playwright_page = self._page._page
 
-            # Connect to remote browser
-            try:
-                (
-                    self._browser,
-                    self._context,
-                    self.context,
-                    self._page,
-                ) = await connect_browserbase_browser(
-                    self._playwright,
-                    self.session_id,
-                    self.browserbase_api_key,
-                    self,
-                    self.logger,
-                )
-                self._playwright_page = self._page._page
-
-            except Exception:
-                await self.close()
-                raise
-
-        elif self.env == "LOCAL":
-            # Connect to local browser
-            try:
-                (
-                    self._browser,
-                    self._context,
-                    self.context,
-                    self._page,
-                    self._local_user_data_dir_temp,
-                ) = await connect_local_browser(
-                    self._playwright,
-                    self.local_browser_launch_options,
-                    self,
-                    self.logger,
-                )
-                self._playwright_page = self._page._page
-
-            except Exception:
-                await self.close()
-                raise
-        else:
-            # Should not happen due to __init__ validation
-            raise RuntimeError(f"Invalid env value: {self.env}")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize local browser: {str(e)}")
+            await self.close()
+            raise RuntimeError(f"Failed to initialize Stagehand with local browser: {str(e)}") from e
 
         # Set up download behavior via CDP
         try:
@@ -559,7 +552,7 @@ class Stagehand:
             )
             self.logger.debug("Set up CDP download behavior")
         except Exception as e:
-            self.logger.warning(f"Failed to set up CDP download behavior: {str(e)}")
+            self.logger.info(f"Failed to set up CDP download behavior: {str(e)}")
 
         self._initialized = True
 
@@ -585,43 +578,13 @@ class Stagehand:
 
     async def close(self):
         """
-        Clean up resources.
-        For BROWSERBASE: Ends the session on the server and stops Playwright.
-        For LOCAL: Closes the local context, stops Playwright, and removes temporary directories.
+        Clean up local browser resources.
+        Closes the local browser context, stops Playwright, and removes temporary directories.
         """
         if self._closed:
             return
 
-        self.logger.debug("Closing resources...")
-
-        if self.use_api:
-            # --- BROWSERBASE Cleanup (API) ---
-            # End the session on the server if we have a session ID
-            if self.session_id and self._client:  # Check if client was initialized
-                try:
-                    self.logger.debug(
-                        f"Attempting to end server session {self.session_id}..."
-                    )
-                    # Don't use async with here as it might close the client prematurely
-                    # The _execute method will handle the request properly
-                    result = await self._execute("end", {"sessionId": self.session_id})
-                    self.logger.debug(
-                        f"Server session {self.session_id} ended successfully with result: {result}"
-                    )
-                except Exception as e:
-                    # Log error but continue cleanup
-                    self.logger.error(
-                        f"Error ending server session {self.session_id}: {str(e)}"
-                    )
-            elif self.session_id:
-                self.logger.warning(
-                    "Cannot end server session: HTTP client not available."
-                )
-
-            if self._client:
-                self.logger.debug("Closing the internal HTTPX client...")
-                await self._client.aclose()
-                self._client = None
+        self.logger.debug("Closing local browser resources...")
 
         # Use the centralized cleanup function for browser resources
         await cleanup_browser_resources(
@@ -634,62 +597,7 @@ class Stagehand:
 
         self._closed = True
 
-    async def _handle_log(self, msg: dict[str, Any]):
-        """
-        Handle a log message from the server.
-        First attempts to use the on_log callback, then falls back to formatting the log locally.
-        """
-        try:
-            log_data = msg.get("data", {})
 
-            # Call user-provided callback with original data if available
-            if self.on_log:
-                await self.on_log(log_data)
-                return  # Early return after on_log to prevent double logging
-
-            # Extract message, category, and level info
-            message = log_data.get("message", "")
-            category = log_data.get("category", "")
-            level_str = log_data.get("level", "info")
-            auxiliary = log_data.get("auxiliary", {})
-
-            # Map level strings to internal levels
-            level_map = {
-                "debug": 3,
-                "info": 1,
-                "warning": 2,
-                "error": 0,
-            }
-
-            # Convert string level to int if needed
-            if isinstance(level_str, str):
-                internal_level = level_map.get(level_str.lower(), 1)
-            else:
-                internal_level = min(level_str, 3)  # Ensure level is between 0-3
-
-            # Handle the case where message itself might be a JSON-like object
-            if isinstance(message, dict):
-                # If message is a dict, just pass it directly to the logger
-                formatted_message = message
-            elif isinstance(message, str) and (
-                message.startswith("{") and ":" in message
-            ):
-                # If message looks like JSON but isn't a dict yet, it will be handled by _format_fastify_log
-                formatted_message = message
-            else:
-                # Regular message
-                formatted_message = message
-
-            # Log using the structured logger
-            self.logger.log(
-                formatted_message,
-                level=internal_level,
-                category=category,
-                auxiliary=auxiliary,
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error processing log message: {str(e)}")
 
     def _log(
         self, message: str, level: int = 1, category: str = None, auxiliary: dict = None
@@ -760,50 +668,12 @@ class Stagehand:
 
         return self._live_page_proxy
 
-    def __getattribute__(self, name):
+    @property
+    def metrics(self) -> StagehandMetrics:
         """
-        Intercept access to 'metrics' to fetch from API when use_api=True.
+        Get the current metrics for local browser automation.
+        
+        Returns:
+            StagehandMetrics: Current metrics tracking token usage and inference times
         """
-        if name == "metrics":
-            use_api = (
-                object.__getattribute__(self, "use_api")
-                if hasattr(self, "use_api")
-                else False
-            )
-
-            if use_api:
-                # Need to fetch from API
-                try:
-                    # Get the _get_replay_metrics method
-                    get_replay_metrics = object.__getattribute__(
-                        self, "_get_replay_metrics"
-                    )
-
-                    # Try to get current event loop
-                    try:
-                        asyncio.get_running_loop()
-                        # We're in an async context, need to handle this carefully
-                        # Create a new task and wait for it
-                        nest_asyncio.apply()
-                        return asyncio.run(get_replay_metrics())
-                    except RuntimeError:
-                        # No event loop running, we can use asyncio.run directly
-                        return asyncio.run(get_replay_metrics())
-                except Exception as e:
-                    # Log error and return empty metrics
-                    logger = object.__getattribute__(self, "logger")
-                    if logger:
-                        logger.error(f"Failed to fetch metrics from API: {str(e)}")
-                    return StagehandMetrics()
-            else:
-                # Return local metrics
-                return object.__getattribute__(self, "_local_metrics")
-
-        # For all other attributes, use normal behavior
-        return object.__getattribute__(self, name)
-
-
-# Bind the imported API methods to the Stagehand class
-Stagehand._create_session = _create_session
-Stagehand._execute = _execute
-Stagehand._get_replay_metrics = _get_replay_metrics
+        return self._local_metrics

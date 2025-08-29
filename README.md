@@ -84,7 +84,7 @@ await stagehand.agent.execute("book a reservation for 2 people for a trip to the
 ```
 
 
-## Installation:
+## Installation
 
 To get started, simply:
 
@@ -96,9 +96,13 @@ pip install stagehand
 
 ```bash
 uv venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv pip install stagehand
 ```
+
+### Prerequisites
+
+Stagehand requires a local browser installation. The library uses Playwright to manage browser instances automatically. No additional browser setup is required - Playwright will download the necessary browser binaries on first use.
 
 ## Quickstart
 
@@ -111,7 +115,7 @@ from pydantic import BaseModel, Field
 from stagehand import StagehandConfig, Stagehand
 
 # Load environment variables
-load_dotenv()
+load_dotenv()  # Create a .env file or set environment variables in your shell
 
 # Define Pydantic models for structured data extraction
 class Company(BaseModel):
@@ -122,24 +126,24 @@ class Companies(BaseModel):
     companies: list[Company] = Field(..., description="List of companies")
     
 async def main():
-    # Create configuration
+    # Create configuration with Alibaba ModelScope (DashScope)
     config = StagehandConfig(
-        env = "BROWSERBASE", # or LOCAL
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        model_name="google/gemini-2.5-flash-preview-05-20",
-        model_api_key=os.getenv("MODEL_API_KEY"),
+        model_name="dashscope/qwen-turbo",
+        model_client_options={
+            "api_base": os.getenv("ALIBABA_ENDPOINT", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            "api_key": os.getenv("ALIBABA_API_KEY")
+        },
+        local_browser_launch_options={
+            "headless": False  # Set to True for headless mode
+        }
     )
     
     stagehand = Stagehand(config)
     
     try:
         print("\nInitializing 🤘 Stagehand...")
-        # Initialize Stagehand
+        # Initialize Stagehand with local browser
         await stagehand.init()
-
-        if stagehand.env == "BROWSERBASE":    
-            print(f"🌐 View your live browser: https://www.browserbase.com/sessions/{stagehand.session_id}")
 
         page = stagehand.page
 
@@ -156,9 +160,9 @@ async def main():
         for idx, company in enumerate(companies_data.companies, 1):
             print(f"{idx}. {company.name}: {company.description}")
 
-        observe = await page.observe("the link to the company Browserbase")
+        observe = await page.observe("the search bar")
         print("\nObserve result:", observe)
-        act = await page.act("click the link to the company Browserbase")
+        act = await page.act("click on the search bar")
         print("\nAct result:", act)
             
     except Exception as e:
@@ -172,6 +176,143 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+## Configuration Options
+
+### Basic Configuration
+
+```python
+# OpenAI (default)
+config = StagehandConfig(
+    model_name="gpt-4o-mini",
+    model_client_options={
+        "api_key": os.getenv("OPENAI_API_KEY")
+    }
+)
+
+# Anthropic Claude
+config = StagehandConfig(
+    model_name="claude-3-haiku-20240307",
+    model_client_options={
+        "api_base": "https://api.anthropic.com",
+        "api_key": os.getenv("ANTHROPIC_API_KEY")
+    }
+)
+```
+
+### Custom API Endpoints
+
+Stagehand supports various OpenAI/Anthropic compatible providers:
+
+```python
+# Together AI
+config = StagehandConfig(
+    model_name="meta-llama/Llama-2-7b-chat-hf",
+    model_client_options={
+        "api_base": "https://api.together.xyz/v1",
+        "api_key": os.getenv("TOGETHER_API_KEY")
+    }
+)
+
+# Groq
+config = StagehandConfig(
+    model_name="llama2-70b-4096",
+    model_client_options={
+        "api_base": "https://api.groq.com/openai/v1",
+        "api_key": os.getenv("GROQ_API_KEY")
+    }
+)
+
+# Local OpenAI-compatible server
+config = StagehandConfig(
+    model_name="local/custom-model",
+    model_client_options={
+        "api_base": "http://localhost:8000/v1",
+        "api_key": "local-key"
+    }
+)
+```
+
+### Browser Configuration
+
+```python
+config = StagehandConfig(
+    model_name="gpt-4o-mini",
+    model_client_options={"api_key": os.getenv("OPENAI_API_KEY")},
+    local_browser_launch_options={
+        "headless": True,  # Run in headless mode
+        "viewport": {"width": 1280, "height": 720},
+        "user_data_dir": "./browser_data",  # Persistent browser data
+        "args": ["--no-sandbox", "--disable-dev-shm-usage"]  # Additional Chrome args
+    }
+)
+```
+
+## Migration from Browserbase
+
+If you're upgrading from a previous version that used Browserbase, here's how to migrate your configuration:
+
+### Quick Migration Check
+
+Use our migration utility to scan your project:
+
+```bash
+# Scan current directory for files needing migration
+python docs/migration_utility.py scan .
+
+# Generate configuration examples
+python docs/migration_utility.py config openai
+```
+
+### Before (Browserbase Configuration)
+```python
+# Old Browserbase configuration
+config = StagehandConfig(
+    env="BROWSERBASE",
+    api_key="browserbase-api-key",
+    project_id="browserbase-project-id",
+    model_name="gpt-4o",
+    model_api_key="openai-api-key"
+)
+```
+
+### After (Local Configuration)
+```python
+# New local configuration
+config = StagehandConfig(
+    model_name="gpt-4o",
+    model_client_options={
+        "api_key": "openai-api-key",
+        # Optional: specify custom endpoint
+        "api_base": "https://api.openai.com/v1"
+    },
+    local_browser_launch_options={
+        "headless": False  # Configure browser options as needed
+    }
+)
+```
+
+### Key Changes
+- **Removed**: `env`, `api_key`, `project_id` parameters
+- **Replaced**: `model_api_key` with `model_client_options.api_key`
+- **Added**: `local_browser_launch_options` for browser configuration
+- **Enhanced**: Support for custom API endpoints via `model_client_options.api_base`
+
+### Environment Variables
+Update your environment variables:
+```bash
+# Remove these (no longer needed)
+# BROWSERBASE_API_KEY=your-browserbase-key
+# BROWSERBASE_PROJECT_ID=your-project-id
+
+# Keep or add these
+OPENAI_API_KEY=your-openai-key
+# Or for other providers:
+# ANTHROPIC_API_KEY=your-anthropic-key
+# TOGETHER_API_KEY=your-together-key
+```
+
+For a complete migration guide with troubleshooting, see [docs/migration_guide.md](docs/migration_guide.md).
 
 ## Documentation
 
@@ -219,7 +360,20 @@ cd stagehand-python
 
 # Install in editable mode with development dependencies
 pip install -r requirements.txt
+
+# On Windows, you may need to install Playwright browsers
+playwright install
 ```
+
+### Dependencies
+
+Stagehand has minimal dependencies and no longer requires external browser services:
+
+- **Core**: `playwright`, `pydantic`, `python-dotenv`
+- **LLM Support**: `openai`, `anthropic`, `litellm`
+- **Utilities**: `rich`, `nest-asyncio`
+
+All dependencies are automatically installed with `pip install stagehand`.
 
 
 ## License

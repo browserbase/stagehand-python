@@ -1,11 +1,16 @@
 import asyncio
 import logging
 import os
+import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
+
+# Ensure local stagehand package is used instead of any installed version
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from stagehand import Stagehand, StagehandConfig, configure_logging
 
@@ -46,32 +51,41 @@ console.print(
 )
 
 async def main():
-    # Build a unified configuration object for Stagehand
+    # Build a unified configuration object for Stagehand with local browser
     config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
-        headless=False,
+        model_name="qwen-turbo",  # Use Alibaba DashScope model for demo
+        model_client_options={
+            "api_base": os.getenv("ALIBABA_ENDPOINT", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            "api_key": os.getenv("ALIBABA_API_KEY"),
+            "timeout": 30
+        },
         dom_settle_timeout_ms=3000,
-        model_name="google/gemini-2.0-flash",
         self_heal=True,
         wait_for_captcha_solves=True,
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
-        model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+        local_browser_launch_options={
+            "headless": False,  # Set to True for headless mode
+            "viewport": {"width": 1280, "height": 720}
+        },
         # Use verbose=2 for medium-detail logs (1=minimal, 3=debug)
         verbose=2,
     )
 
     stagehand = Stagehand(config)
 
-    # Initialize - this creates a new session automatically.
-    console.print("\n🚀 [info]Initializing Stagehand...[/]")
+    # Initialize - this creates a local browser session automatically.
+    console.print("\n🚀 [info]Initializing Stagehand with local browser...[/]")
     await stagehand.init()
     page = stagehand.page
-    console.print(f"\n[yellow]Created new session:[/] {stagehand.session_id}")
-    console.print(
-        f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
-    )
+    
+    # Validate LLM configuration
+    validation = stagehand.llm.validate_configuration()
+    if validation['valid']:
+        console.print(f"✓ [success]LLM configured:[/] {validation['configuration']['provider']} - {config.model_name}")
+    else:
+        console.print("⚠ [warning]LLM configuration issues:[/]", validation['errors'])
+    
+    console.print("🌐 [white]Local browser session initialized successfully[/]")
 
     await asyncio.sleep(2)
 
