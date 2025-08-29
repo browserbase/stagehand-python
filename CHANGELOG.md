@@ -1,5 +1,12 @@
 # Stagehand Python Changelog
 
+## 0.5.2
+
+### Patch Changes
+
+[#191](https://github.com/browserbase/stagehand-python/pull/191) [`7fb6a6f`](https://github.com/browserbase/stagehand-python/commit/7fb6a6f) Thanks @miguelg719! - Add support for custom base_url on api
+[#185](https://github.com/browserbase/stagehand-python/pull/185) [`ec22cb9`](https://github.com/browserbase/stagehand-python/commit/ec22cb9) Thanks @filip-michalsky! - fix camelCase and snake_case return api extract schema mismatch
+
 ## 0.5.1
 
 ### Patch Changes
