@@ -1,5 +1,12 @@
 # Stagehand Python Changelog
 
+## 0.5.3
+
+### Patch Changes
+
+[#196](https://github.com/browserbase/stagehand-python/pull/196) [`93f5c97`](https://github.com/browserbase/stagehand-python/commit/93f5c97) Thanks @chrisreadsf, @miguelg719 and Derek Meegan! - remove duplicate project id if already passed to Stagehand
+[#198](https://github.com/browserbase/stagehand-python/pull/198) [`057b38b`](https://github.com/browserbase/stagehand-python/commit/057b38b) Thanks @Zach10za! - Fix draw_overlay on env:LOCAL
+
 ## 0.5.2
 
 ### Patch Changes
