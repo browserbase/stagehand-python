@@ -118,7 +118,10 @@ class ObserveHandler:
 
         # Draw overlay if requested
         if options.draw_overlay:
-            await draw_observe_overlay(self.stagehand_page, elements_with_selectors)
+            await draw_observe_overlay(
+                page=self.stagehand_page,
+                elements=[el.model_dump() for el in elements_with_selectors],
+            )
 
         # Return the list of results without trying to attach _llm_response
         return elements_with_selectors
