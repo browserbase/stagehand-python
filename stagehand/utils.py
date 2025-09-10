@@ -109,7 +109,7 @@ def format_simplified_tree(node: AccessibilityNode, level: int = 0) -> str:
     return result
 
 
-async def draw_observe_overlay(page, elements):
+async def draw_observe_overlay(page, elements: list[dict]):
     """
     Draw an overlay on the page highlighting the observed elements.
 
