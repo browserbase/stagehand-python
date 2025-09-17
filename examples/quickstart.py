@@ -44,7 +44,7 @@ async def main():
         # Extract companies using structured schema        
         companies_data = await page.extract(
           "Extract names and descriptions of 5 companies in batch 3",
-          schema=Companies
+          schema_definition=Companies
         )
         
         # Display results
