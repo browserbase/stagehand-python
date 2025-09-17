@@ -158,6 +158,14 @@ class ExtractOptions(StagehandBaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
+class AttrDict(dict):
+    """A dictionary that allows attribute-style access to its items."""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 class ExtractResult(StagehandBaseModel):
     """
     Result of the 'extract' command.
@@ -170,6 +178,24 @@ class ExtractResult(StagehandBaseModel):
     # any fields from the extraction result based on the schema
 
     model_config = ConfigDict(extra="allow")  # Allow any extra fields
+
+    def __init__(self, **data):
+        """Initialize and recursively convert nested dictionaries to AttrDict objects."""
+        # Convert nested dictionaries to AttrDict for attribute access
+        converted_data = self._convert_to_attr_dict(data)
+        super().__init__(**converted_data)
+
+    def _convert_to_attr_dict(self, obj):
+        """Recursively convert dictionaries to AttrDict objects."""
+        if isinstance(obj, dict):
+            # Convert dict to AttrDict and recursively convert nested objects
+            attr_dict = AttrDict()
+            for key, value in obj.items():
+                attr_dict[key] = self._convert_to_attr_dict(value)
+            return attr_dict
+        elif isinstance(obj, list):
+            return [self._convert_to_attr_dict(item) for item in obj]
+        return obj
 
     def __getitem__(self, key):
         """
