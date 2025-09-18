@@ -258,7 +258,7 @@ class MockLLMClient:
             "total_tokens": total_prompt_tokens + total_completion_tokens
         }
     
-    def create_response(
+    async def create_response(
         self,
         *,
         messages: list[dict[str, str]],
@@ -274,13 +274,13 @@ class MockLLMClient:
             # Fall back to content-based detection
             content = str(messages).lower()
             response_type = self._determine_response_type(content)
-        
+
         # Track the call
         self.call_count += 1
         self.last_messages = messages
         self.last_model = model or self.default_model
         self.last_kwargs = kwargs
-        
+
         # Store call in history
         call_info = {
             "messages": messages,
@@ -290,26 +290,26 @@ class MockLLMClient:
             "timestamp": asyncio.get_event_loop().time()
         }
         self.call_history.append(call_info)
-        
+
         # Simulate failure if configured
         if self.should_fail:
             raise Exception(self.failure_message)
-        
+
         # Check for custom responses first
         if response_type in self.custom_responses:
             response_data = self.custom_responses[response_type]
             if callable(response_data):
                 response_data = response_data(messages, **kwargs)
             return self._create_response(response_data, model=self.last_model)
-        
+
         # Use default response mapping
         response_generator = self.response_mapping.get(response_type, self._default_response)
         response_data = response_generator(messages, **kwargs)
-        
+
         response = self._create_response(response_data, model=self.last_model)
-        
+
         # Call metrics callback if set
         if self.metrics_callback:
             self.metrics_callback(response, 100, response_type)  # 100ms mock inference time
-        
+
         return response 

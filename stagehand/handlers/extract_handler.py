@@ -105,7 +105,7 @@ class ExtractHandler:
             schema = transformed_schema = DefaultExtractSchema
 
         # Use inference to call the LLM
-        extraction_response = extract_inference(
+        extraction_response = await extract_inference(
             instruction=instruction,
             tree_elements=output_string,
             schema=transformed_schema,

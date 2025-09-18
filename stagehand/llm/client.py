@@ -60,7 +60,7 @@ class LLMClient:
                     f"Set global litellm.api_base to {value}", category="llm"
                 )
 
-    def create_response(
+    async def create_response(
         self,
         *,
         messages: list[dict[str, str]],
@@ -77,7 +77,7 @@ class LLMClient:
                    Overrides the default_model if provided.
             function_name: The name of the Stagehand function calling this method (ACT, OBSERVE, etc.)
                    Used for metrics tracking.
-            **kwargs: Additional parameters to pass directly to litellm.completion
+            **kwargs: Additional parameters to pass directly to litellm.acompletion
                       (e.g., temperature, max_tokens, stream=True, specific provider arguments).
 
         Returns:
@@ -87,7 +87,7 @@ class LLMClient:
 
         Raises:
             ValueError: If no model is specified (neither default nor in the call).
-            Exception: Propagates exceptions from litellm.completion.
+            Exception: Propagates exceptions from litellm.acompletion.
         """
         completion_model = model or self.default_model
         if not completion_model:
@@ -115,7 +115,7 @@ class LLMClient:
             filtered_params["temperature"] = 1
 
         self.logger.debug(
-            f"Calling litellm.completion with model={completion_model} and params: {filtered_params}",
+            f"Calling litellm.acompletion with model={completion_model} and params: {filtered_params}",
             category="llm",
         )
 
@@ -123,8 +123,8 @@ class LLMClient:
             # Start tracking inference time
             start_time = start_inference_timer()
 
-            # Use litellm's completion function
-            response = litellm.completion(**filtered_params)
+            # Use litellm's async completion function
+            response = await litellm.acompletion(**filtered_params)
 
             # Calculate inference time
             inference_time_ms = get_inference_time_ms(start_time)
@@ -136,6 +136,6 @@ class LLMClient:
             return response
 
         except Exception as e:
-            self.logger.error(f"Error calling litellm.completion: {e}", category="llm")
+            self.logger.error(f"Error calling litellm.acompletion: {e}", category="llm")
             # Consider more specific exception handling based on litellm errors
             raise
