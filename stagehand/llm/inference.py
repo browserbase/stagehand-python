@@ -21,7 +21,7 @@ from stagehand.types import (
 
 
 # TODO: kwargs
-def observe(
+async def observe(
     instruction: str,
     tree_elements: str,
     llm_client: Any,
@@ -66,7 +66,7 @@ def observe(
     try:
         # Call the LLM
         logger.info("Calling LLM")
-        response = llm_client.create_response(
+        response = await llm_client.create_response(
             model=llm_client.default_model,
             messages=messages,
             response_format=ObserveInferenceSchema,
@@ -123,7 +123,7 @@ def observe(
         }
 
 
-def extract(
+async def extract(
     instruction: str,
     tree_elements: str,
     schema: Optional[Union[type[BaseModel], dict]] = None,
@@ -177,7 +177,7 @@ def extract(
 
     # Call the LLM with appropriate parameters
     try:
-        extract_response = llm_client.create_response(
+        extract_response = await llm_client.create_response(
             model=llm_client.default_model,
             messages=extract_messages,
             response_format=response_format,
@@ -227,7 +227,7 @@ def extract(
     # Call LLM for metadata
     try:
         metadata_start_time = time.time()
-        metadata_response = llm_client.create_response(
+        metadata_response = await llm_client.create_response(
             model=llm_client.default_model,
             messages=metadata_messages,
             response_format=metadata_schema,

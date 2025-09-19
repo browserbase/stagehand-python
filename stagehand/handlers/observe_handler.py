@@ -74,7 +74,7 @@ class ObserveHandler:
         iframes = tree.get("iframes", [])
 
         # use inference to call the llm
-        observation_response = observe_inference(
+        observation_response = await observe_inference(
             instruction=instruction,
             tree_elements=output_string,
             llm_client=self.stagehand.llm,
