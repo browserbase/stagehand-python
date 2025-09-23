@@ -1,7 +1,7 @@
 import os
-from typing import Any, Callable, Optional
-from urllib.parse import urlparse
+from typing import Any, Callable, Literal, Optional, Union
 
+from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationError
 
 from stagehand.schemas import AvailableModel
@@ -78,7 +78,14 @@ class StagehandConfig(BaseModel):
     dom_settle_timeout_ms: Optional[int] = Field(
         3000,
         alias="domSettleTimeoutMs",
-        description="Timeout in milliseconds to wait for DOM to settle after actions",
+        description="Timeout for DOM to settle (in ms)",
+    )
+    browserbase_session_create_params: Optional[
+        Union[BrowserbaseSessionCreateParams, dict[str, Any]]
+    ] = Field(
+        None,
+        alias="browserbaseSessionCreateParams",
+        description="Browserbase session create params",
     )
     enable_caching: Optional[bool] = Field(
         False, 
@@ -171,6 +178,16 @@ class StagehandConfig(BaseModel):
         """Validate DOM settle timeout is positive."""
         if v is not None and v < 0:
             raise ValueError("dom_settle_timeout_ms must be non-negative")
+
+    @field_validator("browserbase_session_create_params", mode="before")
+    @classmethod
+    def validate_browserbase_params(cls, v, info):
+        """Validate and convert browserbase session create params."""
+        if isinstance(v, dict) and "project_id" not in v:
+            values = info.data
+            project_id = values.get("project_id") or values.get("projectId")
+            if project_id:
+                v = {**v, "project_id": project_id}
         return v
 
     def with_overrides(self, **overrides) -> "StagehandConfig":
