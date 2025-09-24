@@ -177,12 +177,18 @@ Return an array of elements that match the instruction if they exist, otherwise 
 def build_observe_user_message(
     instruction: str,
     tree_elements: str,
+    variables,
 ) -> ChatMessage:
     tree_or_dom = "Accessibility Tree"
+    print("###############", variables)
     return ChatMessage(
         role="user",
         content=f"""instruction: {instruction}
-{tree_or_dom}: {tree_elements}""",
+Below are the variables that are accessible in jinja style in the instruction. 
+For the 'fill' and 'type' instructions, don't replace the variables in the response. For the rest of the actions please do. In the response in the arguments try and use the same jinja style variables that are in the instruction, if it is suitable.
+variables: {variables}
+{tree_or_dom}: {tree_elements}
+""",
     )
 
 

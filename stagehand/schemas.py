@@ -199,6 +199,8 @@ class ObserveOptions(StagehandBaseModel):
     dom_settle_timeout_ms: Optional[int] = None
     model_client_options: Optional[dict[str, Any]] = None
     iframes: Optional[bool] = None
+    variables: Optional[dict[str, str]] = None
+
 
 
 class ObserveResult(StagehandBaseModel):
