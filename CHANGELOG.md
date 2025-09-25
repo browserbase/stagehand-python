@@ -1,5 +1,11 @@
 # Stagehand Python Changelog
 
+## 0.5.4
+
+### Patch Changes
+
+[#205](https://github.com/browserbase/stagehand-python/pull/205) [`3bcdd05`](https://github.com/browserbase/stagehand-python/commit/3bcdd05) Thanks @derekmeegan! - Make litellm client async
+
 ## 0.5.3
 
 ### Patch Changes
