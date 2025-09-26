@@ -139,7 +139,6 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
 
     # Convert snake_case keys to camelCase for the API
     modified_payload = convert_dict_keys_to_camel_case(payload)
-    print(modified_payload)
 
     # async with self._client:
     try:
