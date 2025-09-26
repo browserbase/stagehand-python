@@ -82,6 +82,7 @@ class ObserveHandler:
             logger=self.logger,
             log_inference_to_file=False,  # TODO: Implement logging to file if needed
             from_act=from_act,
+            variables= options.variables
         )
 
         # Extract metrics from response
