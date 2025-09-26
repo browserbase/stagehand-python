@@ -180,7 +180,6 @@ def build_observe_user_message(
     variables,
 ) -> ChatMessage:
     tree_or_dom = "Accessibility Tree"
-    print("###############", variables)
     return ChatMessage(
         role="user",
         content=f"""instruction: {instruction}
