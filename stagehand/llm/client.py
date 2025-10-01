@@ -8,6 +8,7 @@ from stagehand.metrics import get_inference_time_ms, start_inference_timer
 
 if TYPE_CHECKING:
     from ..logging import StagehandLogger
+    from .huggingface_client import HuggingFaceLLMClient
 
 
 class LLMClient:
@@ -139,3 +140,34 @@ class LLMClient:
             self.logger.error(f"Error calling litellm.acompletion: {e}", category="llm")
             # Consider more specific exception handling based on litellm errors
             raise
+
+    @staticmethod
+    def create_huggingface_client(
+        stagehand_logger: "StagehandLogger",
+        model_name: str,
+        device: Optional[str] = None,
+        metrics_callback: Optional[Callable[[Any, int, Optional[str]], None]] = None,
+        **kwargs: Any,
+    ) -> "HuggingFaceLLMClient":
+        """
+        Create a Hugging Face LLM client for local model inference.
+        
+        Args:
+            stagehand_logger: StagehandLogger instance for centralized logging
+            model_name: The Hugging Face model name (e.g., "meta-llama/Llama-2-7b-chat-hf")
+            device: Device to run the model on ("cpu", "cuda", "auto")
+            metrics_callback: Optional callback to track metrics from responses
+            **kwargs: Additional parameters for model loading
+            
+        Returns:
+            HuggingFaceLLMClient instance
+        """
+        from .huggingface_client import HuggingFaceLLMClient
+        
+        return HuggingFaceLLMClient(
+            stagehand_logger=stagehand_logger,
+            model_name=model_name,
+            device=device,
+            metrics_callback=metrics_callback,
+            **kwargs
+        )
