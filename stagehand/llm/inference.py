@@ -200,7 +200,8 @@ async def extract(
                 logger.error(
                     f"Failed to parse JSON extraction response: {extract_content}"
                 )
-                extracted_data = {}
+                # Don't lose the content! Wrap it in proper structure
+                extracted_data = {"extraction": extract_content}
         else:
             extracted_data = extract_content
     except Exception as e:
