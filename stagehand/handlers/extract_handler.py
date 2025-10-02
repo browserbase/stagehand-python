@@ -149,6 +149,10 @@ class ExtractHandler:
                 auxiliary={"result": raw_data_dict},
             )
 
+        # Special handling for empty dict - check if we actually got content in the metadata
+        if not raw_data_dict and extraction_result.get("data"):
+            raw_data_dict = extraction_result.get("data", {})
+        
         processed_data_payload = raw_data_dict  # Default to the raw dictionary
 
         if schema and isinstance(
@@ -165,10 +169,48 @@ class ExtractHandler:
                     validated_model_instance = schema.model_validate(normalized)
                     processed_data_payload = validated_model_instance
                 except Exception as second_error:
-                    self.logger.error(
-                        f"Failed to validate extracted data against schema {schema.__name__}: {first_error}. "
-                        f"Normalization retry also failed: {second_error}. Keeping raw data dict in .data field."
-                    )
+                    # Third fallback: Try to create a minimal valid instance
+                    try:
+                        # If it's DefaultExtractSchema and we have any text data, create it
+                        if schema.__name__ == "DefaultExtractSchema":
+                            # Try to extract ANY string content from the dict or from the raw extraction
+                            extraction_content = ""
+                            
+                            # First try the dict
+                            if "extraction" in raw_data_dict:
+                                extraction_content = str(raw_data_dict["extraction"])
+                            elif raw_data_dict:
+                                # Take any string value we can find
+                                for key, value in raw_data_dict.items():
+                                    if isinstance(value, str) and value:
+                                        extraction_content = value
+                                        break
+                                # If still empty, stringify the entire dict
+                                if not extraction_content and raw_data_dict:
+                                    extraction_content = str(raw_data_dict)
+                            
+                            # If still empty, try to get from the raw extraction_result
+                            if not extraction_content and extraction_result:
+                                # Check if there's text in the metadata or other fields
+                                for key in ['data', 'content', 'text', 'result']:
+                                    if key in extraction_result and extraction_result[key]:
+                                        extraction_content = str(extraction_result[key])
+                                        break
+                            
+                            if extraction_content and extraction_content != '{}' and extraction_content != 'None':
+                                validated_model_instance = schema.model_validate({"extraction": extraction_content})
+                                processed_data_payload = validated_model_instance
+                                self.logger.info(f"Successfully created valid schema instance from fallback content")
+                            else:
+                                raise Exception("No content to extract")
+                        else:
+                            raise second_error
+                    except Exception as third_error:
+                        self.logger.error(
+                            f"Failed to validate extracted data against schema {schema.__name__}: {first_error}. "
+                            f"Normalization retry also failed: {second_error}. "
+                            f"Fallback creation also failed: {third_error}. Keeping raw data dict in .data field."
+                        )
 
         # Create ExtractResult object
         result = ExtractResult(

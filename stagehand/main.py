@@ -284,13 +284,25 @@ class Stagehand:
         # Setup LLM client if LOCAL mode
         self.llm = None
         if not self.use_api:
-            self.llm = LLMClient(
-                stagehand_logger=self.logger,
-                api_key=self.model_api_key,
-                default_model=self.model_name,
-                metrics_callback=self._handle_llm_metrics,
-                **self.model_client_options,
-            )
+            # Check if using Hugging Face model
+            if self.model_name and self.model_name.startswith("huggingface/"):
+                # Extract the actual model name (remove "huggingface/" prefix)
+                hf_model_name = self.model_name.replace("huggingface/", "")
+                self.llm = LLMClient.create_huggingface_client(
+                    stagehand_logger=self.logger,
+                    model_name=hf_model_name,
+                    metrics_callback=self._handle_llm_metrics,
+                    **self.model_client_options,
+                )
+            else:
+                # Use regular litellm client for other models
+                self.llm = LLMClient(
+                    stagehand_logger=self.logger,
+                    api_key=self.model_api_key,
+                    default_model=self.model_name,
+                    metrics_callback=self._handle_llm_metrics,
+                    **self.model_client_options,
+                )
 
     def _register_signal_handlers(self):
         """Register signal handlers for SIGINT and SIGTERM to ensure proper cleanup."""
@@ -622,6 +634,14 @@ class Stagehand:
                 self.logger.debug("Closing the internal HTTPX client...")
                 await self._client.aclose()
                 self._client = None
+
+        # Clean up LLM client if it's a Hugging Face model
+        if self.llm and hasattr(self.llm, 'cleanup'):
+            try:
+                self.logger.debug("Cleaning up Hugging Face model resources...")
+                self.llm.cleanup()
+            except Exception as e:
+                self.logger.error(f"Error cleaning up Hugging Face model: {e}")
 
         # Use the centralized cleanup function for browser resources
         await cleanup_browser_resources(

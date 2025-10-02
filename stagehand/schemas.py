@@ -19,6 +19,13 @@ class AvailableModel(str, Enum):
     CLAUDE_3_7_SONNET_LATEST = "claude-3-7-sonnet-latest"
     COMPUTER_USE_PREVIEW = "computer-use-preview"
     GEMINI_2_0_FLASH = "gemini-2.0-flash"
+    # Hugging Face models
+    #HUGGINGFACE_LLAMA_2_7B = "huggingface/meta-llama/Llama-2-7b-chat-hf"
+    #HUGGINGFACE_LLAMA_2_13B = "huggingface/meta-llama/Llama-2-13b-chat-hf"
+    #HUGGINGFACE_MISTRAL_7B = "huggingface/mistralai/Mistral-7B-Instruct-v0.1"
+    HUGGINGFACE_ZEPHYR_7B = "huggingface/HuggingFaceH4/zephyr-7b-beta"
+    #HUGGINGFACE_CODEGEN_2_5B = "huggingface/Salesforce/codegen-2B-mono"
+    #HUGGINGFACE_STARCODER_7B = "huggingface/bigcode/starcoder2-7b"
 
 
 class StagehandBaseModel(BaseModel):

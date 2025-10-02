@@ -1,4 +1,5 @@
 from .client import LLMClient
+from .huggingface_client import HuggingFaceLLMClient
 from .inference import extract, observe
 from .prompts import (
     build_extract_system_prompt,
