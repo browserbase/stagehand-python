@@ -1,5 +1,12 @@
 # Stagehand Python Changelog
 
+## 0.5.4
+
+### Patch Changes
+
+[#205](https://github.com/browserbase/stagehand-python/pull/205) [`3bcdd05`](https://github.com/browserbase/stagehand-python/commit/3bcdd05) Thanks @derekmeegan! - Make litellm client async
+[#213](https://github.com/browserbase/stagehand-python/pull/213) [`1d0577d`](https://github.com/browserbase/stagehand-python/commit/1d0577d) Thanks @miguelg719! - Added support for Gemini Computer Use models
+
 ## 0.5.3
 
 ### Patch Changes
