@@ -35,8 +35,8 @@ configure_logging(
 async def main():
     # Build a unified configuration object for Stagehand
     config = StagehandConfig(
-        # env="BROWSERBASE",
-        env="LOCAL",
+        env="BROWSERBASE",
+        # env="LOCAL",
         api_key=os.getenv("BROWSERBASE_API_KEY"),
         project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
         model_name="gpt-4o",
@@ -64,7 +64,7 @@ async def main():
     
     console.print("\n▶️ [highlight] Using Agent to perform a task[/]: playing a game of 2048")
     agent = stagehand.agent(
-        model="computer-use-preview-10-2025",
+        model="gemini-2.5-computer-use-preview-10-2025",
         instructions="You are a helpful web navigation assistant that helps users find information. You are currently on the following page: google.com. Do not ask follow up questions, the user will trust your judgement.",
         options={"apiKey": os.getenv("GEMINI_API_KEY")}
     )
