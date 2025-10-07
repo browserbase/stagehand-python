@@ -53,8 +53,8 @@ async def connect_browserbase_browser(
                     project_id=stagehand_instance.browserbase_project_id,
                     browser_settings={
                         "viewport": {
-                            "width": 1024,
-                            "height": 768,
+                            "width": 1288,
+                            "height": 711,
                         },
                     },
                 )
@@ -194,7 +194,7 @@ async def connect_local_browser(
                 ],
             ),
             "viewport": local_browser_launch_options.get(
-                "viewport", {"width": 1024, "height": 768}
+                "viewport", {"width": 1288, "height": 711}
             ),
             "locale": local_browser_launch_options.get("locale", "en-US"),
             "timezone_id": local_browser_launch_options.get(

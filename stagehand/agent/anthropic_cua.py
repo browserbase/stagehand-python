@@ -62,7 +62,7 @@ class AnthropicCUAClient(AgentClient):
         )
 
         dimensions = (
-            (viewport["width"], viewport["height"]) if viewport else (1024, 768)
+            (viewport["width"], viewport["height"]) if viewport else (1288, 711)
         )  # Default dimensions
         if self.config:
             if hasattr(self.config, "display_width") and self.config.display_width is not None:  # type: ignore

@@ -42,7 +42,7 @@ class OpenAICUAClient(AgentClient):
         )
 
         dimensions = (
-            (viewport["width"], viewport["height"]) if viewport else (1024, 768)
+            (viewport["width"], viewport["height"]) if viewport else (1288, 711)
         )  # Default or from self.config if specified
         if (
             self.config
