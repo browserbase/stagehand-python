@@ -9,7 +9,7 @@ description = "Python SDK for Stagehand"
 readme = "README.md"
 classifiers = [ "Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent",]
 requires-python = ">=3.9"
-dependencies = [ "httpx>=0.24.0", "python-dotenv>=1.0.0", "pydantic>=1.10.0", "playwright>=1.42.1", "requests>=2.31.0", "browserbase>=1.4.0", "rich>=13.7.0", "openai>=1.99.6", "anthropic>=0.51.0", "litellm>=1.72.0,<1.75.0", "nest-asyncio>=1.6.0",]
+dependencies = [ "httpx>=0.24.0", "python-dotenv>=1.0.0", "pydantic>=1.10.0", "playwright>=1.42.1", "requests>=2.31.0", "browserbase>=1.4.0", "rich>=13.7.0", "openai>=1.99.6", "anthropic>=0.51.0", "litellm>=1.72.0,<1.75.0", "nest-asyncio>=1.6.0", "google-genai>=1.40.0"]
 [[project.authors]]
 name = "Browserbase, Inc."
 email = "support@browserbase.com"

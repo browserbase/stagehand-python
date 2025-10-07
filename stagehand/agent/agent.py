@@ -13,19 +13,24 @@ from ..types.agent import (
 )
 from .anthropic_cua import AnthropicCUAClient
 from .client import AgentClient
+from .google_cua import GoogleCUAClient
 from .openai_cua import OpenAICUAClient
 
 MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
-    "computer-use-preview": OpenAICUAClient,
+    "computer-use-preview-03-11": OpenAICUAClient,
     "claude-3-5-sonnet-latest": AnthropicCUAClient,
     "claude-3-7-sonnet-latest": AnthropicCUAClient,
     "claude-sonnet-4-20250514": AnthropicCUAClient,
+    "claude-sonnet-4-5-20250929": AnthropicCUAClient,
+    "computer-use-preview-10-2025": GoogleCUAClient,
 }
 MODEL_TO_PROVIDER_MAP: dict[str, AgentProvider] = {
-    "computer-use-preview": AgentProvider.OPENAI,
+    "computer-use-preview-03-11": AgentProvider.OPENAI,
     "claude-3-5-sonnet-20240620": AgentProvider.ANTHROPIC,
     "claude-3-7-sonnet-20250219": AgentProvider.ANTHROPIC,
     "claude-sonnet-4-20250514": AgentProvider.ANTHROPIC,
+    "claude-sonnet-4-5-20250929": AgentProvider.ANTHROPIC,
+    "computer-use-preview-10-2025": AgentProvider.GOOGLE,
     # Add more mappings as needed
 }
 
