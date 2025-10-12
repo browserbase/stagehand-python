@@ -169,11 +169,12 @@ async def extract(
     start_time = time.time()
 
     # Determine if we need to use schema-based response format
-    # TODO: if schema is json, return json
     response_format = {"type": "json_object"}
     if schema:
-        # If schema is a Pydantic model, use it directly
-        response_format = schema
+        if isinstance(schema, dict):
+            response_format = {"type": "json_schema", "json_schema": {"name": "extraction_schema", "strict": False, "schema": schema}}
+        else:
+            response_format = schema
 
     # Call the LLM with appropriate parameters
     try:

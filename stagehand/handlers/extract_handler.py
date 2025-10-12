@@ -151,9 +151,7 @@ class ExtractHandler:
 
         processed_data_payload = raw_data_dict  # Default to the raw dictionary
 
-        if schema and isinstance(
-            raw_data_dict, dict
-        ):  # schema is the Pydantic model type
+        if schema and isinstance(schema, type) and issubclass(schema, BaseModel):
             # Try direct validation first
             try:
                 validated_model_instance = schema.model_validate(raw_data_dict)
