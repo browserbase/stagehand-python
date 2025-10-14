@@ -172,7 +172,14 @@ async def extract(
     response_format = {"type": "json_object"}
     if schema:
         if isinstance(schema, dict):
-            response_format = {"type": "json_schema", "json_schema": {"name": "extraction_schema", "strict": False, "schema": schema}}
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "extraction_schema",
+                    "strict": False,
+                    "schema": schema,
+                },
+            }
         else:
             response_format = schema
 
