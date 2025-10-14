@@ -1,5 +1,12 @@
 # Stagehand Python Changelog
 
+## 0.5.5
+
+### Patch Changes
+
+[#215](https://github.com/browserbase/stagehand-python/pull/215) [`cb35254`](https://github.com/browserbase/stagehand-python/commit/cb35254) Thanks @derekmeegan! - Fix ability to pass raw JSON to Extract schema
+[#218](https://github.com/browserbase/stagehand-python/pull/218) [`1a919ad`](https://github.com/browserbase/stagehand-python/commit/1a919ad) Thanks @derekmeegan! - Pass api_timeout param to Stagehand API correctly
+
 ## 0.5.4
 
 ### Patch Changes
