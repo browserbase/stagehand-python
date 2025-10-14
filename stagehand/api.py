@@ -28,8 +28,13 @@ async def _create_session(self):
     )
 
     # API requires timeout while python sdk uses api_timeout which is converted to apiTimeout
-    if browserbase_session_create_params and "apiTimeout" in browserbase_session_create_params:
-        browserbase_session_create_params["timeout"] = browserbase_session_create_params.pop("apiTimeout")
+    if (
+        browserbase_session_create_params
+        and "apiTimeout" in browserbase_session_create_params
+    ):
+        browserbase_session_create_params["timeout"] = (
+            browserbase_session_create_params.pop("apiTimeout")
+        )
 
     payload = {
         "modelName": self.model_name,
