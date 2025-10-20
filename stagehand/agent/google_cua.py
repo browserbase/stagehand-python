@@ -349,7 +349,7 @@ class GoogleCUAClient(AgentClient):
                 action_type_str = "function"
                 action_payload_dict = {
                     "type": "function",
-                    "name": "goto",
+                    "name": "search",
                     "arguments": {"url": "https://www.google.com"},
                 }
             else:
