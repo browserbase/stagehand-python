@@ -23,7 +23,6 @@ from ..types.agent import (
     AgentConfig,
     AgentExecuteOptions,
     AgentResult,
-    FunctionAction,
 )
 from .client import AgentClient
 
