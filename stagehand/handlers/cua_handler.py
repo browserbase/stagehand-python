@@ -142,7 +142,7 @@ class CUAHandler:  # Computer Use Agent Handler
                 # specific_action_model is FunctionAction
                 name = specific_action_model.name
                 args = getattr(specific_action_model, "arguments", {})
-                if name == "search" and args.url:
+                if name == "goto" and args.url:
                     await self.page.goto(args.url)
                     return {"success": True}
                 elif name == "navigate_back":
