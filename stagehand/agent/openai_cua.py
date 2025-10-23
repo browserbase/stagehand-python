@@ -7,7 +7,10 @@ from dotenv import load_dotenv
 from openai import (
     OpenAI as OpenAISDK,  # Renamed to avoid conflict with a potential class name
 )
-from pydantic import BaseModel, TypeAdapter  # Ensure BaseModel is imported for isinstance check
+from pydantic import (
+    BaseModel,
+    TypeAdapter,
+)  # Ensure BaseModel is imported for isinstance check
 
 from ..handlers.cua_handler import CUAHandler
 from ..types.agent import (

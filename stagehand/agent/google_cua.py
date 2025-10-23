@@ -368,7 +368,9 @@ class GoogleCUAClient(AgentClient):
                 try:
                     # Directly construct the AgentActionType using the payload.
                     # Pydantic will use the 'type' field in action_payload_dict to discriminate the Union.
-                    action_payload_for_agent_action_type = TypeAdapter(AgentActionType).validate_python(action_payload_dict)
+                    action_payload_for_agent_action_type = TypeAdapter(
+                        AgentActionType
+                    ).validate_python(action_payload_dict)
 
                     agent_action = AgentAction(
                         action_type=action_type_str,  # This should match the 'type' in action_payload_dict
