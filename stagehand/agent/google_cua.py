@@ -25,6 +25,7 @@ from ..types.agent import (
     AgentResult,
 )
 from .client import AgentClient
+from pydantic import TypeAdapter
 
 load_dotenv()
 
@@ -176,7 +177,7 @@ class GoogleCUAClient(AgentClient):
                 and candidate.safety_ratings
             ):
                 error_message += f" - Safety Ratings: {candidate.safety_ratings}"
-            self.logger.warning(error_message, category="agent")
+            self.logger.error(error_message, category="agent")
             return [], reasoning_text, True, error_message, []
 
         if not function_call_parts:
@@ -260,7 +261,7 @@ class GoogleCUAClient(AgentClient):
                         "keys": [self.key_to_playwright("PageDown")],
                     }
                 else:
-                    self.logger.warning(
+                    self.logger.error(
                         f"Unsupported scroll direction: {direction}", category="agent"
                     )
                     return (
@@ -282,7 +283,7 @@ class GoogleCUAClient(AgentClient):
                 elif direction in ("left", "right"):
                     magnitude = self._normalize_coordinates(magnitude, 0)[0]
                 else:
-                    self.logger.warning(
+                    self.logger.error(
                         f"Unsupported scroll direction: {direction}", category="agent"
                     )
                     return (
@@ -352,7 +353,7 @@ class GoogleCUAClient(AgentClient):
                     "arguments": {"url": "https://www.google.com"},
                 }
             else:
-                self.logger.warning(
+                self.logger.error(
                     f"Unsupported Gemini CUA function: {action_name}", category="agent"
                 )
                 return (
@@ -367,13 +368,11 @@ class GoogleCUAClient(AgentClient):
                 try:
                     # Directly construct the AgentActionType using the payload.
                     # Pydantic will use the 'type' field in action_payload_dict to discriminate the Union.
-                    action_payload_for_agent_action_type = AgentActionType(
-                        **action_payload_dict
-                    )
+                    action_payload_for_agent_action_type = TypeAdapter(AgentActionType).validate_python(action_payload_dict)
 
                     agent_action = AgentAction(
                         action_type=action_type_str,  # This should match the 'type' in action_payload_dict
-                        action=action_payload_for_agent_action_type,  # No RootModel wrapping if AgentActionType is the RootModel itself
+                        action=action_payload_for_agent_action_type,
                         reasoning=reasoning_text,
                         status="tool_code",
                     )
@@ -598,7 +597,7 @@ class GoogleCUAClient(AgentClient):
                 )
 
             if not agent_action and not task_completed:
-                self.logger.warning(
+                self.logger.debug(
                     "Model did not request an action and task not marked complete. Ending task.",
                     category="agent",
                 )
@@ -614,7 +613,7 @@ class GoogleCUAClient(AgentClient):
                     usage=usage_obj,
                 )
 
-        self.logger.warning("Max steps reached for Gemini CUA task.", category="agent")
+        self.logger.debug("Max steps reached for Gemini CUA task.", category="agent")
         usage_obj = {
             "input_tokens": total_input_tokens,
             "output_tokens": total_output_tokens,

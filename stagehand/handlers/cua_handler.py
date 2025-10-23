@@ -35,13 +35,12 @@ class CUAHandler:  # Computer Use Agent Handler
 
     async def perform_action(self, action: AgentAction) -> ActionExecutionResult:
         """Execute a single action on the page."""
+        specific_action_model = action.action
         self.logger.info(
-            f"Performing action: {action.action.root if action.action else ''}",
+            f"Performing action: {specific_action_model or ''}",
             category=StagehandFunctionName.AGENT,
         )
         action_type = action.action_type
-        # action.action is the RootModel, action.action.root is the specific action model (e.g., ClickAction)
-        specific_action_model = action.action.root if action.action else None
 
         if not specific_action_model:
             self.logger.error(

@@ -170,13 +170,10 @@ class Agent:
                 f"Agent execution finished. Success: {agent_result.completed}. Message: {agent_result.message}",
                 category="agent",
             )
-            # To clean up pydantic model output
-            actions_repr = [action.root for action in agent_result.actions]
             self.logger.debug(
-                f"Agent actions: {actions_repr}",
+                f"Agent actions: {agent_result.actions}",
                 category="agent",
             )
-            agent_result.actions = actions_repr
             return agent_result
         else:
             agent_config_payload = self.config.model_dump(
