@@ -14,6 +14,7 @@ from google.genai.types import (
     GenerateContentConfig,
     Part,
 )
+from pydantic import TypeAdapter
 
 from ..handlers.cua_handler import CUAHandler
 from ..types.agent import (
@@ -25,7 +26,6 @@ from ..types.agent import (
     AgentResult,
 )
 from .client import AgentClient
-from pydantic import TypeAdapter
 
 load_dotenv()
 
