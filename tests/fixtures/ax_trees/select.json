@@ -53,7 +53,7 @@
           "name": "url",
           "value": {
             "type": "string",
-            "value": "https://example.com/select-menu"
+            "value": "https://example.com/select.html"
           }
         }
       ],

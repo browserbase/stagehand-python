@@ -67,13 +67,13 @@ class TestGetAccessibilityTree:
 
     async def test_select_tag_included_in_simplified(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
         mock_send_cdp(
-            ax_tree=load_ax_tree("select-menu.json"),
+            ax_tree=load_ax_tree("select.json"),
             backend_nodes={12: {"object": {"objectId": "1234"}}},
             tag_names={"1234": {"result": {"value": "select"}}},
         )
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
-        expected_simplified = (
+        assert actual["simplified"] == (
 """[2] RootWebArea
   [9] generic
     [10] heading: Select Menus
@@ -85,7 +85,29 @@ class TestGetAccessibilityTree:
         [22] option: Cat
         [25] option: Hamster
 """
-            )
-        assert actual["simplified"] == expected_simplified
+        )
         assert actual["iframes"] == []
-        assert actual["idToUrl"] == {"2": "https://example.com/select-menu"}
+        assert actual["idToUrl"] == {"2": "https://example.com/select.html"}
+
+    async def test_radio_tag(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
+        mock_send_cdp(
+            ax_tree=load_ax_tree("input-radio.json"),
+            backend_nodes={12: {"object": {"objectId": "1234"}}},
+            tag_names={"1234": {"result": {"value": "select"}}},
+        )
+        actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
+
+        assert actual["simplified"] == (
+"""[2] RootWebArea
+  [8] generic
+    [9] heading: Radio Menus
+    [10] group: Select a maintenance drone:
+      [11] Legend
+        [22] StaticText: Select a maintenance drone:
+      [13] radio: Huey
+      [16] radio: Dewey
+      [19] radio: Louie
+"""
+        )
+        assert actual["iframes"] == []
+        assert actual["idToUrl"] == {"2": "https://example.com/input-radio.html"}
