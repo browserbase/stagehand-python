@@ -553,7 +553,9 @@ class AnthropicCUAClient(AgentClient):
                 # This is a read operation, not directly supported
                 # Return a no-op for now
                 action_payload_dict = {
-                    "type": "screenshot",  # Use screenshot as a way to show cursor position
+                    "type": (
+                        "screenshot"
+                    ),  # Use screenshot as a way to show cursor position
                 }
                 action_type_str = "screenshot"  # Normalize
 
