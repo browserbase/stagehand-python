@@ -38,6 +38,7 @@ async def main():
         env="LOCAL",
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
+        self_heal=True,
         verbose=2,
     )
 
