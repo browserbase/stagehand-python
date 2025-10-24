@@ -501,12 +501,13 @@ class AnthropicCUAClient(AgentClient):
                     and x is not None
                     and y is not None
                 ):
+                    path_points = [
+                        Point(x=start_x, y=start_y),
+                        Point(x=x, y=y),
+                    ]
                     action_payload_dict = {
                         "type": "drag",
-                        "path": [
-                            {"x": start_x, "y": start_y},
-                            {"x": x, "y": y},
-                        ],
+                        "path": path_points,
                     }
                     action_type_str = "drag"  # Normalize
                 else:
@@ -566,7 +567,7 @@ class AnthropicCUAClient(AgentClient):
                         action_payload_dict = {
                             "type": "function",
                             "name": "goto",
-                            "arguments": {"url": url},
+                            "arguments": FunctionArguments(url=url),
                         }
                         action_type_str = "function"
                     else:
@@ -579,7 +580,7 @@ class AnthropicCUAClient(AgentClient):
                     action_payload_dict = {
                         "type": "function",
                         "name": "navigate_back",
-                        "arguments": None,
+                        "arguments": FunctionArguments(),
                     }
                     action_type_str = "function"
             else:
