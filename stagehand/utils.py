@@ -125,7 +125,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
     (elements) => {
         // First remove any existing overlays
         document.querySelectorAll('.stagehand-observe-overlay').forEach(el => el.remove());
-        
+
         // Create container for overlays
         const container = document.createElement('div');
         container.style.position = 'fixed';
@@ -137,7 +137,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
         container.style.zIndex = '10000';
         container.className = 'stagehand-observe-overlay';
         document.body.appendChild(container);
-        
+
         // Process each element
         elements.forEach((element, index) => {
             try {
@@ -145,18 +145,18 @@ async def draw_observe_overlay(page, elements: list[dict]):
                 let selector = element.selector;
                 if (selector.startsWith('xpath=')) {
                     selector = selector.substring(6);
-                    
+
                     // Evaluate the XPath to get the element
                     const result = document.evaluate(
-                        selector, document, null, 
+                        selector, document, null,
                         XPathResult.FIRST_ORDERED_NODE_TYPE, null
                     );
-                    
+
                     if (result.singleNodeValue) {
                         // Get the element's position
                         const el = result.singleNodeValue;
                         const rect = el.getBoundingClientRect();
-                        
+
                         // Create the overlay
                         const overlay = document.createElement('div');
                         overlay.style.position = 'absolute';
@@ -168,7 +168,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         overlay.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
                         overlay.style.boxSizing = 'border-box';
                         overlay.style.pointerEvents = 'none';
-                        
+
                         // Add element ID
                         const label = document.createElement('div');
                         label.textContent = index + 1;
@@ -180,7 +180,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         label.style.padding = '2px 5px';
                         label.style.borderRadius = '3px';
                         label.style.fontSize = '12px';
-                        
+
                         overlay.appendChild(label);
                         container.appendChild(overlay);
                     }
@@ -189,7 +189,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                     const el = document.querySelector(selector);
                     if (el) {
                         const rect = el.getBoundingClientRect();
-                        
+
                         // Create the overlay (same as above)
                         const overlay = document.createElement('div');
                         overlay.style.position = 'absolute';
@@ -201,7 +201,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         overlay.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
                         overlay.style.boxSizing = 'border-box';
                         overlay.style.pointerEvents = 'none';
-                        
+
                         // Add element ID
                         const label = document.createElement('div');
                         label.textContent = index + 1;
@@ -213,7 +213,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         label.style.padding = '2px 5px';
                         label.style.borderRadius = '3px';
                         label.style.fontSize = '12px';
-                        
+
                         overlay.appendChild(label);
                         container.appendChild(overlay);
                     }
@@ -222,7 +222,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                 console.error(`Error drawing overlay for element ${index}:`, error);
             }
         });
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             document.querySelectorAll('.stagehand-observe-overlay').forEach(el => el.remove());
