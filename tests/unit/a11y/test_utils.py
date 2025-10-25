@@ -89,7 +89,7 @@ class TestGetAccessibilityTree:
         assert actual["iframes"] == []
         assert actual["idToUrl"] == {"2": "https://example.com/select.html"}
 
-    async def test_radio_tag(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
+    async def test_input_type_radio(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
         mock_send_cdp(
             ax_tree=load_ax_tree("input-radio.json"),
             backend_nodes={12: {"object": {"objectId": "1234"}}},
@@ -111,3 +111,24 @@ class TestGetAccessibilityTree:
         )
         assert actual["iframes"] == []
         assert actual["idToUrl"] == {"2": "https://example.com/input-radio.html"}
+
+    async def test_input_type_range(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
+        mock_send_cdp(
+            ax_tree=load_ax_tree("input-range.json"),
+            backend_nodes={12: {"object": {"objectId": "1234"}}},
+            tag_names={"1234": {"result": {"value": "select"}}},
+        )
+        actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
+
+        assert actual["simplified"] == (
+"""[2] RootWebArea
+  [8] generic
+    [9] heading: Range Input
+    [10] generic
+      [11] slider: Volume
+      [15] LabelText
+        [17] StaticText: Volume
+"""
+        )
+        assert actual["iframes"] == []
+        assert actual["idToUrl"] == {"2": "https://example.com/input-range.html"}
