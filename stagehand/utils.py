@@ -95,19 +95,6 @@ def convert_dict_keys_to_snake_case(data: Any) -> Any:
     return data
 
 
-INCLUDED_NODE_PROPERTY_NAMES = {
-    "selected",
-    "checked",
-    "value",
-    "valuemin",
-    "valuemax",
-    "valuetext",
-}
-"""
-AX Property names included in the simplified tree.
-"""
-
-
 def _format_ax_value(value_type: str, value: AXValue) -> Union[str, None]:
     """
     Formats the accessibility value, or returns None if the value is unsupported.
@@ -126,6 +113,20 @@ def _format_ax_value(value_type: str, value: AXValue) -> Union[str, None]:
     elif value_type == "string" and value:
         return str(value)
     return None
+
+
+INCLUDED_NODE_PROPERTY_NAMES = {
+    "selected",
+    "checked",
+    "value",
+    "valuemin",
+    "valuemax",
+    "valuetext",
+    "valuenow",
+}
+"""
+AX Property names included in the simplified tree.
+"""
 
 
 def _format_property(property: AXProperty) -> Union[str, None]:
