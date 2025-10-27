@@ -7,7 +7,10 @@ from dotenv import load_dotenv
 from openai import (
     OpenAI as OpenAISDK,  # Renamed to avoid conflict with a potential class name
 )
-from pydantic import BaseModel  # Ensure BaseModel is imported for isinstance check
+from pydantic import (
+    BaseModel,
+    TypeAdapter,
+)  # Ensure BaseModel is imported for isinstance check
 
 from ..handlers.cua_handler import CUAHandler
 from ..types.agent import (
@@ -175,8 +178,8 @@ class OpenAICUAClient(AgentClient):
                 )
 
             try:
-                action_payload = AgentActionType(
-                    **computer_call_item.action.model_dump()
+                action_payload = TypeAdapter(AgentActionType).validate_python(
+                    computer_call_item.action.model_dump()
                 )
                 agent_action = AgentAction(
                     action_type=computer_call_item.action.type,
@@ -225,7 +228,7 @@ class OpenAICUAClient(AgentClient):
                 function_action_payload = FunctionAction(type="function", name=function_call_item.name, arguments=arguments)  # type: ignore
                 agent_action = AgentAction(
                     action_type="function",  # Literal 'function'
-                    action=AgentActionType(root=function_action_payload),
+                    action=function_action_payload,
                     reasoning=reasoning_text,  # Reasoning applies to this action
                     status=(
                         function_call_item.status

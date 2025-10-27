@@ -35,9 +35,7 @@ configure_logging(
 async def main():
     # Build a unified configuration object for Stagehand
     config = StagehandConfig(
-        env="BROWSERBASE",
-        api_key=os.getenv("BROWSERBASE_API_KEY"),
-        project_id=os.getenv("BROWSERBASE_PROJECT_ID"),
+        env="LOCAL",
         system_prompt="You are a browser automation assistant that helps users navigate websites effectively.",
         model_client_options={"apiKey": os.getenv("MODEL_API_KEY")},
         self_heal=True,
@@ -49,11 +47,7 @@ async def main():
 
     # Initialize - this creates a new session automatically.
     console.print("\n🚀 [info]Initializing Stagehand...[/]")
-    await stagehand.init() 
-    console.print(f"\n[yellow]Created new session:[/] {stagehand.session_id}")
-    console.print(
-        f"🌐 [white]View your live browser:[/] [url]https://www.browserbase.com/sessions/{stagehand.session_id}[/]"
-    )
+    await stagehand.init()
 
     console.print("\n▶️ [highlight] Navigating[/] to Google")
     await stagehand.page.goto("https://google.com/")
@@ -71,8 +65,9 @@ async def main():
         auto_screenshot=True,
     )
 
+    console.print(agent_result)
+
     console.print("📊 [info]Agent execution result:[/]")
-    console.print(f"✅ Success: [bold]{'Yes' if agent_result.success else 'No'}[/]")
     console.print(f"🎯 Completed: [bold]{'Yes' if agent_result.completed else 'No'}[/]")
     if agent_result.message:
         console.print(f"💬 Message: [italic]{agent_result.message}[/]")
@@ -80,7 +75,9 @@ async def main():
     if agent_result.actions:
         console.print(f"🔄 Actions performed: [bold]{len(agent_result.actions)}[/]")
         for i, action in enumerate(agent_result.actions):
-            console.print(f"  Action {i+1}: {action.get('type', 'Unknown')} - {action.get('description', 'No description')}")
+            action_type = action.type
+
+            console.print(f"  Action {i+1}: {action_type if action_type else 'Unknown'}")
     
     # For debugging, you can also print the full JSON
     console.print("[dim]Full response JSON:[/]")

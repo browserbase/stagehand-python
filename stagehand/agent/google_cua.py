@@ -14,6 +14,7 @@ from google.genai.types import (
     GenerateContentConfig,
     Part,
 )
+from pydantic import TypeAdapter
 
 from ..handlers.cua_handler import CUAHandler
 from ..types.agent import (
@@ -23,7 +24,6 @@ from ..types.agent import (
     AgentConfig,
     AgentExecuteOptions,
     AgentResult,
-    FunctionAction,
 )
 from .client import AgentClient
 
@@ -177,7 +177,7 @@ class GoogleCUAClient(AgentClient):
                 and candidate.safety_ratings
             ):
                 error_message += f" - Safety Ratings: {candidate.safety_ratings}"
-            self.logger.warning(error_message, category="agent")
+            self.logger.error(error_message, category="agent")
             return [], reasoning_text, True, error_message, []
 
         if not function_call_parts:
@@ -261,7 +261,7 @@ class GoogleCUAClient(AgentClient):
                         "keys": [self.key_to_playwright("PageDown")],
                     }
                 else:
-                    self.logger.warning(
+                    self.logger.error(
                         f"Unsupported scroll direction: {direction}", category="agent"
                     )
                     return (
@@ -283,7 +283,7 @@ class GoogleCUAClient(AgentClient):
                 elif direction in ("left", "right"):
                     magnitude = self._normalize_coordinates(magnitude, 0)[0]
                 else:
-                    self.logger.warning(
+                    self.logger.error(
                         f"Unsupported scroll direction: {direction}", category="agent"
                     )
                     return (
@@ -353,7 +353,7 @@ class GoogleCUAClient(AgentClient):
                     "arguments": {"url": "https://www.google.com"},
                 }
             else:
-                self.logger.warning(
+                self.logger.error(
                     f"Unsupported Gemini CUA function: {action_name}", category="agent"
                 )
                 return (
@@ -368,13 +368,13 @@ class GoogleCUAClient(AgentClient):
                 try:
                     # Directly construct the AgentActionType using the payload.
                     # Pydantic will use the 'type' field in action_payload_dict to discriminate the Union.
-                    action_payload_for_agent_action_type = AgentActionType(
-                        **action_payload_dict
-                    )
+                    action_payload_for_agent_action_type = TypeAdapter(
+                        AgentActionType
+                    ).validate_python(action_payload_dict)
 
                     agent_action = AgentAction(
                         action_type=action_type_str,  # This should match the 'type' in action_payload_dict
-                        action=action_payload_for_agent_action_type,  # No RootModel wrapping if AgentActionType is the RootModel itself
+                        action=action_payload_for_agent_action_type,
                         reasoning=reasoning_text,
                         status="tool_code",
                     )
@@ -567,34 +567,19 @@ class GoogleCUAClient(AgentClient):
                         )
                         current_url = self.handler.page.url
 
-                    function_name_called_for_feedback = ""
-                    if agent_action.action_type == "function" and isinstance(
-                        agent_action.action.root, FunctionAction
-                    ):
-                        function_name_called_for_feedback = (
-                            agent_action.action.root.name
+                    if not invoked_function_name:
+                        self.logger.error(
+                            "Original Google function name not found for feedback loop (was None).",
+                            category="agent",
                         )
-                        self._format_action_feedback(
-                            function_name_called=function_name_called_for_feedback,
-                            action_result=action_result,
-                            new_screenshot_base64=current_screenshot_b64,
-                            current_url=current_url,
-                            function_call_args=function_call_args,
-                        )
-                    else:
-                        if not invoked_function_name:
-                            self.logger.error(
-                                "Original Google function name not found for feedback loop (was None).",
-                                category="agent",
-                            )
-                        else:
-                            self._format_action_feedback(
-                                function_name_called=invoked_function_name,
-                                action_result=action_result,
-                                new_screenshot_base64=current_screenshot_b64,
-                                current_url=current_url,
-                                function_call_args=function_call_args,
-                            )
+
+                    self._format_action_feedback(
+                        function_name_called=invoked_function_name,
+                        action_result=action_result,
+                        new_screenshot_base64=current_screenshot_b64,
+                        current_url=current_url,
+                        function_call_args=function_call_args,
+                    )
 
             if task_completed:
                 self.logger.info(
@@ -614,7 +599,7 @@ class GoogleCUAClient(AgentClient):
                 )
 
             if not agent_action and not task_completed:
-                self.logger.warning(
+                self.logger.debug(
                     "Model did not request an action and task not marked complete. Ending task.",
                     category="agent",
                 )
@@ -630,7 +615,7 @@ class GoogleCUAClient(AgentClient):
                     usage=usage_obj,
                 )
 
-        self.logger.warning("Max steps reached for Gemini CUA task.", category="agent")
+        self.logger.debug("Max steps reached for Gemini CUA task.", category="agent")
         usage_obj = {
             "input_tokens": total_input_tokens,
             "output_tokens": total_output_tokens,

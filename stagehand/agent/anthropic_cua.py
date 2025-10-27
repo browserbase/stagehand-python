@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from anthropic import Anthropic, AnthropicError
 from dotenv import load_dotenv
+from pydantic import TypeAdapter
 
 from ..handlers.cua_handler import CUAHandler, StagehandFunctionName
 from ..types.agent import (
@@ -362,7 +363,7 @@ class AnthropicCUAClient(AgentClient):
             )
             return None
 
-        action_model_payload: Optional[AgentActionType] = None
+        action_payload_dict: Optional[dict[str, Any]] = None
         reasoning = tool_input.get("reasoning")
 
         try:
@@ -375,52 +376,53 @@ class AnthropicCUAClient(AgentClient):
             )
 
             if action_type_str == "left_click":
-                action_model_payload = AgentActionType(
-                    type="click",
-                    x=x,
-                    y=y,
-                    button="left",
-                )
+                action_payload_dict = {
+                    "type": "click",
+                    "x": x,
+                    "y": y,
+                    "button": "left",
+                }
                 action_type_str = "click"  # Normalize
 
             elif action_type_str == "right_click":
-                action_model_payload = AgentActionType(
-                    type="click",
-                    x=x,
-                    y=y,
-                    button="right",
-                )
+                action_payload_dict = {
+                    "type": "click",
+                    "x": x,
+                    "y": y,
+                    "button": "right",
+                }
                 action_type_str = "click"  # Normalize
 
             elif action_type_str == "middle_click":
-                action_model_payload = AgentActionType(
-                    type="click",
-                    x=x,
-                    y=y,
-                    button="middle",
-                )
+                action_payload_dict = {
+                    "type": "click",
+                    "x": x,
+                    "y": y,
+                    "button": "middle",
+                }
                 action_type_str = "click"  # Normalize
 
             elif action_type_str == "double_click":
-                action_model_payload = AgentActionType(
-                    type="double_click",
-                    x=x,
-                    y=y,
-                )
+                action_payload_dict = {
+                    "type": "double_click",
+                    "x": x,
+                    "y": y,
+                }
 
             elif action_type_str == "triple_click":
                 # Handle as double_click for now since we don't have a dedicated triple click
-                action_model_payload = AgentActionType(
-                    type="double_click",
-                    x=x,
-                    y=y,
-                )
+                action_payload_dict = {
+                    "type": "double_click",
+                    "x": x,
+                    "y": y,
+                }
                 action_type_str = "double_click"  # Normalize
 
             elif action_type_str == "type":
-                action_model_payload = AgentActionType(
-                    type="type", text=tool_input.get("text", "")
-                )
+                action_payload_dict = {
+                    "type": "type",
+                    "text": tool_input.get("text", ""),
+                }
 
             elif action_type_str == "key":
                 key_text = tool_input.get("text", "")
@@ -429,10 +431,10 @@ class AnthropicCUAClient(AgentClient):
                     keys = [
                         self.key_to_playwright(k.strip()) for k in key_text.split("+")
                     ]
-                    action_model_payload = AgentActionType(
-                        type="keypress",
-                        keys=keys,
-                    )
+                    action_payload_dict = {
+                        "type": "keypress",
+                        "keys": keys,
+                    }
                     action_type_str = "keypress"  # Normalize
 
             elif action_type_str == "hold_key":
@@ -446,10 +448,10 @@ class AnthropicCUAClient(AgentClient):
                         self.key_to_playwright(k.strip()) for k in key_text.split("+")
                     ]
                     # For now, handle as a regular keypress
-                    action_model_payload = AgentActionType(
-                        type="keypress",
-                        keys=keys,
-                    )
+                    action_payload_dict = {
+                        "type": "keypress",
+                        "keys": keys,
+                    }
                     action_type_str = "keypress"  # Normalize
 
             elif action_type_str == "scroll":
@@ -469,20 +471,20 @@ class AnthropicCUAClient(AgentClient):
                 elif scroll_direction == "left":
                     scroll_x = -scroll_amount * scroll_multiplier
 
-                action_model_payload = AgentActionType(
-                    type="scroll",
-                    x=x or 0,  # Default to 0 if none
-                    y=y or 0,  # Default to 0 if none
-                    scroll_x=scroll_x,
-                    scroll_y=scroll_y,
-                )
+                action_payload_dict = {
+                    "type": "scroll",
+                    "x": x or 0,  # Default to 0 if none
+                    "y": y or 0,  # Default to 0 if none
+                    "scroll_x": scroll_x,
+                    "scroll_y": scroll_y,
+                }
 
             elif action_type_str == "mouse_move":
-                action_model_payload = AgentActionType(
-                    type="move",
-                    x=x,
-                    y=y,
-                )
+                action_payload_dict = {
+                    "type": "move",
+                    "x": x,
+                    "y": y,
+                }
                 action_type_str = "move"  # Normalize
 
             elif action_type_str == "left_click_drag":
@@ -503,10 +505,10 @@ class AnthropicCUAClient(AgentClient):
                         Point(x=start_x, y=start_y),
                         Point(x=x, y=y),
                     ]
-                    action_model_payload = AgentActionType(
-                        type="drag",
-                        path=path_points,
-                    )
+                    action_payload_dict = {
+                        "type": "drag",
+                        "path": path_points,
+                    }
                     action_type_str = "drag"  # Normalize
                 else:
                     self.logger.error(
@@ -517,54 +519,56 @@ class AnthropicCUAClient(AgentClient):
 
             elif action_type_str == "left_mouse_down":
                 # Currently not directly supported - handle as a click for now
-                action_model_payload = AgentActionType(
-                    type="click",
-                    x=x,
-                    y=y,
-                    button="left",
-                )
+                action_payload_dict = {
+                    "type": "click",
+                    "x": x,
+                    "y": y,
+                    "button": "left",
+                }
                 action_type_str = "click"  # Normalize
 
             elif action_type_str == "left_mouse_up":
                 # Currently not directly supported - handle as a click for now
-                action_model_payload = AgentActionType(
-                    type="click",
-                    x=x,
-                    y=y,
-                    button="left",
-                )
+                action_payload_dict = {
+                    "type": "click",
+                    "x": x,
+                    "y": y,
+                    "button": "left",
+                }
                 action_type_str = "click"  # Normalize
 
             elif action_type_str == "wait":
                 duration = tool_input.get("duration", 1)  # Default 1 second
                 # Convert seconds to milliseconds
-                action_model_payload = AgentActionType(
-                    type="wait",
-                    miliseconds=int(duration * 1000),
-                )
+                action_payload_dict = {
+                    "type": "wait",
+                    "miliseconds": int(duration * 1000),
+                }
 
             elif action_type_str == "screenshot":
-                action_model_payload = AgentActionType(
-                    type="screenshot",
-                )
+                action_payload_dict = {
+                    "type": "screenshot",
+                }
 
             elif action_type_str == "cursor_position":
                 # This is a read operation, not directly supported
                 # Return a no-op for now
-                action_model_payload = AgentActionType(
-                    type="screenshot",  # Use screenshot as a way to show cursor position
-                )
+                action_payload_dict = {
+                    "type": (
+                        "screenshot"
+                    ),  # Use screenshot as a way to show cursor position
+                }
                 action_type_str = "screenshot"  # Normalize
 
             elif action_type_str == "function":
                 if tool_name == "goto":
                     url = tool_input.get("url")
                     if url:
-                        action_model_payload = AgentActionType(
-                            type="function",
-                            name="goto",
-                            arguments=FunctionArguments(url=url),
-                        )
+                        action_payload_dict = {
+                            "type": "function",
+                            "name": "goto",
+                            "arguments": FunctionArguments(url=url),
+                        }
                         action_type_str = "function"
                     else:
                         self.logger.error(
@@ -573,11 +577,11 @@ class AnthropicCUAClient(AgentClient):
                         )
                         return None
                 elif tool_name == "navigate_back":
-                    action_model_payload = AgentActionType(
-                        type="function",
-                        name="navigate_back",
-                        arguments=FunctionArguments(),
-                    )
+                    action_payload_dict = {
+                        "type": "function",
+                        "name": "navigate_back",
+                        "arguments": FunctionArguments(),
+                    }
                     action_type_str = "function"
             else:
                 self.logger.error(
@@ -586,7 +590,10 @@ class AnthropicCUAClient(AgentClient):
                 )
                 return None
 
-            if action_model_payload is not None:
+            if action_payload_dict is not None:
+                action_model_payload = TypeAdapter(AgentActionType).validate_python(
+                    action_payload_dict
+                )
                 return AgentAction(
                     action_type=action_type_str,
                     action=action_model_payload,

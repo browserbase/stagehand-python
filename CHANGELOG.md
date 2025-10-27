@@ -1,5 +1,15 @@
 # Stagehand Python Changelog
 
+## 0.5.5
+
+### Patch Changes
+
+[#215](https://github.com/browserbase/stagehand-python/pull/215) [`cb35254`](https://github.com/browserbase/stagehand-python/commit/cb35254) Thanks @derekmeegan! - Fix ability to pass raw JSON to Extract schema
+[#225](https://github.com/browserbase/stagehand-python/pull/225) [`b23e005`](https://github.com/browserbase/stagehand-python/commit/b23e005) Thanks @derekmeegan! - add local cua example, remove root model from types
+[#218](https://github.com/browserbase/stagehand-python/pull/218) [`1a919ad`](https://github.com/browserbase/stagehand-python/commit/1a919ad) Thanks @derekmeegan! - Pass api_timeout param to Stagehand API correctly
+[#223](https://github.com/browserbase/stagehand-python/pull/223) [`de7d883`](https://github.com/browserbase/stagehand-python/commit/de7d883) Thanks @derekmeegan! - Fix search, navigate, go back, and go forward for gemini cua agent
+[#221](https://github.com/browserbase/stagehand-python/pull/221) [`da570a1`](https://github.com/browserbase/stagehand-python/commit/da570a1) Thanks @miguelg719! - Add support for Haiku 4.5 CUA
+
 ## 0.5.4
 
 ### Patch Changes
