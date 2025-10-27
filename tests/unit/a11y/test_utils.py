@@ -79,11 +79,11 @@ class TestGetAccessibilityTree:
     [10] heading: Select Menus
     [11] LabelText
       [29] StaticText: Choose a pet:
-    [12] select: Choose a pet:
+    [12] select: Choose a pet: value=Hamster
       [15] MenuListPopup
         [19] option: Dog
         [22] option: Cat
-        [25] option: Hamster
+        [25] option: Hamster (selected=true)
 """
         )
         assert actual["iframes"] == []
@@ -104,7 +104,7 @@ class TestGetAccessibilityTree:
     [10] group: Select a maintenance drone:
       [11] Legend
         [22] StaticText: Select a maintenance drone:
-      [13] radio: Huey
+      [13] radio: Huey (checked=true)
       [16] radio: Dewey
       [19] radio: Louie
 """
@@ -125,7 +125,7 @@ class TestGetAccessibilityTree:
   [8] generic
     [9] heading: Range Input
     [10] generic
-      [11] slider: Volume
+      [11] slider: Volume value=5 (valuemin=0, valuemax=11)
       [15] LabelText
         [17] StaticText: Volume
 """

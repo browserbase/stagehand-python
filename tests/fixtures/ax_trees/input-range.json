@@ -61,7 +61,7 @@
         "3"
       ],
       "backendDOMNodeId": 2,
-      "frameId": "EB14D1D07B8B11BC38CA8A242657286A"
+      "frameId": "4C8AFBFB04749B93F2BA71C9854C9B01"
     },
     {
       "nodeId": "3",
@@ -317,7 +317,7 @@
       },
       "value": {
         "type": "number",
-        "value": 6
+        "value": 5
       },
       "properties": [
         {

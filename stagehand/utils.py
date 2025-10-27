@@ -5,7 +5,7 @@ from typing import Any, Union, get_args, get_origin
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl, create_model
 from pydantic.fields import FieldInfo
 
-from stagehand.types.a11y import AccessibilityNode
+from stagehand.types.a11y import AccessibilityNode, AXProperty, AXValue
 
 
 def snake_to_camel(snake_str: str) -> str:
@@ -95,11 +95,85 @@ def convert_dict_keys_to_snake_case(data: Any) -> Any:
     return data
 
 
+INCLUDED_NODE_PROPERTY_NAMES = {
+    "selected",
+    "checked",
+    "value",
+    "valuemin",
+    "valuemax",
+    "valuetext",
+}
+"""
+AX Property names included in the simplified tree.
+"""
+
+
+def _format_ax_value(value_type: str, value: AXValue) -> Union[str, None]:
+    """
+    Formats the accessibility value, or returns None if the value is unsupported.
+
+    NOTE:
+        Refer to "Accessible Rich Internet Applications (WAI-ARIA) 1.2"
+        for details.
+        https://www.w3.org/TR/wai-aria-1.2/#propcharacteristic_value
+    """
+    if value_type == "tristate" and value in ["true", "mixed"]:
+        return str(value)
+    elif value_type == "booleanOrUndefined" and value in [True, "true"]:
+        return "true"
+    elif value_type == "number" and isinstance(value, (int, float)):
+        return str(value)
+    elif value_type == "string" and value:
+        return str(value)
+    return None
+
+
+def _format_property(property: AXProperty) -> Union[str, None]:
+    name = property.get("name")
+    if name is None or (value_obj := property.get("value")) is None:
+        return None
+    value_type = value_obj["type"]
+    value = value_obj["value"]
+    value_formatted: Union[str, None] = None
+
+    if (value_formatted := _format_ax_value(value_type, value)) is not None:
+        return f"{name}={value_formatted}"
+    return None
+
+
+def _format_properties(node: AccessibilityNode) -> str:
+    """Formats the properties of a node into a simplified string representation."""
+    included_properties: list[AXProperty] = [
+        property
+        for property in (node.get("properties") or [])
+        if property["name"] in INCLUDED_NODE_PROPERTY_NAMES
+    ]
+
+    formatted = ", ".join(
+        formatted
+        for property in included_properties
+        if (formatted := _format_property(property)) is not None
+    )
+
+    if formatted:
+        return f"({formatted})"
+    return ""
+
+
 def format_simplified_tree(node: AccessibilityNode, level: int = 0) -> str:
     """Formats a node and its children into a simplified string representation."""
     indent = "  " * level
     name_part = f": {node.get('name')}" if node.get("name") else ""
-    result = f"{indent}[{node.get('nodeId')}] {node.get('role')}{name_part}\n"
+    value_part = f" value={node.get('value')}" if node.get("value") else ""
+    properties_part = (
+        f" {formatted_properties}"
+        if (formatted_properties := _format_properties(node))
+        else ""
+    )
+    result = (
+        f"{indent}[{node.get('nodeId')}] {node.get('role')}{name_part}"
+        f"{value_part}{properties_part}\n"
+    )
 
     children = node.get("children", [])
     if children:
