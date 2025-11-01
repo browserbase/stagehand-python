@@ -73,8 +73,8 @@ class TestGetAccessibilityTree:
         )
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
-        assert actual["simplified"] == (
-"""[2] RootWebArea
+        assert (
+"""[2] RootWebArea (url=https://example.com/select.html)
   [9] generic
     [10] heading: Select Menus
     [11] LabelText
@@ -85,9 +85,9 @@ class TestGetAccessibilityTree:
         [22] option: Cat
         [25] option: Hamster (selected=true)
 """
-        )
-        assert actual["iframes"] == []
-        assert actual["idToUrl"] == {"2": "https://example.com/select.html"}
+        ) == actual["simplified"]
+        assert [] == actual["iframes"]
+        assert {"2": "https://example.com/select.html"} == actual["idToUrl"]
 
     async def test_input_type_radio(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
         mock_send_cdp(
@@ -97,8 +97,8 @@ class TestGetAccessibilityTree:
         )
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
-        assert actual["simplified"] == (
-"""[2] RootWebArea
+        assert (
+"""[2] RootWebArea (url=https://example.com/input-radio.html)
   [8] generic
     [9] heading: Radio Menus
     [10] group: Select a maintenance drone:
@@ -108,9 +108,9 @@ class TestGetAccessibilityTree:
       [16] radio: Dewey
       [19] radio: Louie
 """
-        )
-        assert actual["iframes"] == []
-        assert actual["idToUrl"] == {"2": "https://example.com/input-radio.html"}
+        ) == actual["simplified"]
+        assert [] == actual["iframes"]
+        assert {"2": "https://example.com/input-radio.html"} == actual["idToUrl"]
 
     async def test_input_type_range(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger: StagehandLogger, mock_send_cdp, load_ax_tree):
         mock_send_cdp(
@@ -120,8 +120,8 @@ class TestGetAccessibilityTree:
         )
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
-        assert actual["simplified"] == (
-"""[2] RootWebArea
+        assert (
+"""[2] RootWebArea (url=https://example.com/input-range.html)
   [8] generic
     [9] heading: Range Input
     [10] generic
@@ -129,6 +129,42 @@ class TestGetAccessibilityTree:
       [15] LabelText
         [17] StaticText: Volume
 """
+        ) == actual["simplified"]
+        assert [] == actual["iframes"]
+        assert {"2": "https://example.com/input-range.html"} == actual["idToUrl"]
+
+    async def test_list_links(self, mock_stagehand_page: StagehandPage, mock_stagehand_logger:StagehandLogger, mock_send_cdp, load_ax_tree):
+        mock_send_cdp(
+            ax_tree=load_ax_tree("list_links.json"),
+            backend_nodes={},
+            tag_names={},
         )
-        assert actual["iframes"] == []
-        assert actual["idToUrl"] == {"2": "https://example.com/input-range.html"}
+        actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
+
+        assert (
+"""[2] RootWebArea (url=https://example.com/list_links.html)
+  [8] generic
+    [9] heading: List Links
+    [10] list
+      [11] listitem
+        [20] ListMarker: •
+        [12] link: Google (url=https://www.google.com/)
+      [13] listitem
+        [22] ListMarker: •
+        [14] link: DuckDuckGo (url=https://duckduckgo.com/)
+      [15] listitem
+        [24] ListMarker: •
+        [16] link: Bing (url=https://www.bing.com/)
+      [17] listitem
+        [26] ListMarker: •
+        [18] link: Brave (url=https://search.brave.com/)
+"""
+        ) == actual["simplified"]
+        assert [] == actual["iframes"]
+        assert {
+            '12': 'https://www.google.com/',
+            '14': 'https://duckduckgo.com/',
+            '16': 'https://www.bing.com/',
+            '18': 'https://search.brave.com/',
+            '2': 'https://example.com/list_links.html'
+        } == actual["idToUrl"]

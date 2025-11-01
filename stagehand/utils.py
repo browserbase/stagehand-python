@@ -116,6 +116,7 @@ def _format_ax_value(value_type: str, value: AXValue) -> Union[str, None]:
 
 
 INCLUDED_NODE_PROPERTY_NAMES = {
+    "url",
     "selected",
     "checked",
     "value",
@@ -164,7 +165,7 @@ def _format_properties(node: AccessibilityNode) -> str:
 def format_simplified_tree(node: AccessibilityNode, level: int = 0) -> str:
     """Formats a node and its children into a simplified string representation."""
     indent = "  " * level
-    name_part = f": {node.get('name')}" if node.get("name") else ""
+    name_part = f": {node_name.rstrip()}" if (node_name := node.get("name")) else ""
     value_part = f" value={node.get('value')}" if node.get("value") else ""
     properties_part = (
         f" {formatted_properties}"
