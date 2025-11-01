@@ -116,7 +116,6 @@ def _format_ax_value(value_type: str, value: AXValue) -> Union[str, None]:
 
 
 INCLUDED_NODE_PROPERTY_NAMES = {
-    "url",
     "selected",
     "checked",
     "value",

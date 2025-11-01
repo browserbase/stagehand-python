@@ -74,7 +74,7 @@ class TestGetAccessibilityTree:
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
         assert (
-"""[2] RootWebArea (url=https://example.com/select.html)
+"""[2] RootWebArea
   [9] generic
     [10] heading: Select Menus
     [11] LabelText
@@ -98,7 +98,7 @@ class TestGetAccessibilityTree:
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
         assert (
-"""[2] RootWebArea (url=https://example.com/input-radio.html)
+"""[2] RootWebArea
   [8] generic
     [9] heading: Radio Menus
     [10] group: Select a maintenance drone:
@@ -121,7 +121,7 @@ class TestGetAccessibilityTree:
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
         assert (
-"""[2] RootWebArea (url=https://example.com/input-range.html)
+"""[2] RootWebArea
   [8] generic
     [9] heading: Range Input
     [10] generic
@@ -142,22 +142,22 @@ class TestGetAccessibilityTree:
         actual = await get_accessibility_tree(mock_stagehand_page, mock_stagehand_logger)
 
         assert (
-"""[2] RootWebArea (url=https://example.com/list_links.html)
+"""[2] RootWebArea
   [8] generic
     [9] heading: List Links
     [10] list
       [11] listitem
         [20] ListMarker: •
-        [12] link: Google (url=https://www.google.com/)
+        [12] link: Google
       [13] listitem
         [22] ListMarker: •
-        [14] link: DuckDuckGo (url=https://duckduckgo.com/)
+        [14] link: DuckDuckGo
       [15] listitem
         [24] ListMarker: •
-        [16] link: Bing (url=https://www.bing.com/)
+        [16] link: Bing
       [17] listitem
         [26] ListMarker: •
-        [18] link: Brave (url=https://search.brave.com/)
+        [18] link: Brave
 """
         ) == actual["simplified"]
         assert [] == actual["iframes"]
