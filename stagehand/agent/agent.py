@@ -13,19 +13,26 @@ from ..types.agent import (
 )
 from .anthropic_cua import AnthropicCUAClient
 from .client import AgentClient
+from .google_cua import GoogleCUAClient
 from .openai_cua import OpenAICUAClient
 
 MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
-    "computer-use-preview": OpenAICUAClient,
+    "computer-use-preview-2025-03-11": OpenAICUAClient,
     "claude-3-5-sonnet-latest": AnthropicCUAClient,
     "claude-3-7-sonnet-latest": AnthropicCUAClient,
+    "claude-haiku-4-5-20251001": AnthropicCUAClient,
     "claude-sonnet-4-20250514": AnthropicCUAClient,
+    "claude-sonnet-4-5-20250929": AnthropicCUAClient,
+    "gemini-2.5-computer-use-preview-10-2025": GoogleCUAClient,
 }
 MODEL_TO_PROVIDER_MAP: dict[str, AgentProvider] = {
-    "computer-use-preview": AgentProvider.OPENAI,
+    "computer-use-preview-2025-03-11": AgentProvider.OPENAI,
     "claude-3-5-sonnet-20240620": AgentProvider.ANTHROPIC,
     "claude-3-7-sonnet-20250219": AgentProvider.ANTHROPIC,
+    "claude-haiku-4-5-20251001": AgentProvider.ANTHROPIC,
     "claude-sonnet-4-20250514": AgentProvider.ANTHROPIC,
+    "claude-sonnet-4-5-20250929": AgentProvider.ANTHROPIC,
+    "gemini-2.5-computer-use-preview-10-2025": AgentProvider.GOOGLE,
     # Add more mappings as needed
 }
 
@@ -163,13 +170,10 @@ class Agent:
                 f"Agent execution finished. Success: {agent_result.completed}. Message: {agent_result.message}",
                 category="agent",
             )
-            # To clean up pydantic model output
-            actions_repr = [action.root for action in agent_result.actions]
             self.logger.debug(
-                f"Agent actions: {actions_repr}",
+                f"Agent actions: {agent_result.actions}",
                 category="agent",
             )
-            agent_result.actions = actions_repr
             return agent_result
         else:
             agent_config_payload = self.config.model_dump(

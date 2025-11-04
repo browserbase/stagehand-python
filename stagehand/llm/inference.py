@@ -21,7 +21,7 @@ from stagehand.types import (
 
 
 # TODO: kwargs
-def observe(
+async def observe(
     instruction: str,
     tree_elements: str,
     llm_client: Any,
@@ -66,7 +66,7 @@ def observe(
     try:
         # Call the LLM
         logger.info("Calling LLM")
-        response = llm_client.create_response(
+        response = await llm_client.create_response(
             model=llm_client.default_model,
             messages=messages,
             response_format=ObserveInferenceSchema,
@@ -123,7 +123,7 @@ def observe(
         }
 
 
-def extract(
+async def extract(
     instruction: str,
     tree_elements: str,
     schema: Optional[Union[type[BaseModel], dict]] = None,
@@ -169,15 +169,23 @@ def extract(
     start_time = time.time()
 
     # Determine if we need to use schema-based response format
-    # TODO: if schema is json, return json
     response_format = {"type": "json_object"}
     if schema:
-        # If schema is a Pydantic model, use it directly
-        response_format = schema
+        if isinstance(schema, dict):
+            response_format = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "extraction_schema",
+                    "strict": False,
+                    "schema": schema,
+                },
+            }
+        else:
+            response_format = schema
 
     # Call the LLM with appropriate parameters
     try:
-        extract_response = llm_client.create_response(
+        extract_response = await llm_client.create_response(
             model=llm_client.default_model,
             messages=extract_messages,
             response_format=response_format,
@@ -227,7 +235,7 @@ def extract(
     # Call LLM for metadata
     try:
         metadata_start_time = time.time()
-        metadata_response = llm_client.create_response(
+        metadata_response = await llm_client.create_response(
             model=llm_client.default_model,
             messages=metadata_messages,
             response_format=metadata_schema,

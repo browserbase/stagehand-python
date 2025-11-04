@@ -105,7 +105,7 @@ class ExtractHandler:
             schema = transformed_schema = DefaultExtractSchema
 
         # Use inference to call the LLM
-        extraction_response = extract_inference(
+        extraction_response = await extract_inference(
             instruction=instruction,
             tree_elements=output_string,
             schema=transformed_schema,
@@ -151,9 +151,7 @@ class ExtractHandler:
 
         processed_data_payload = raw_data_dict  # Default to the raw dictionary
 
-        if schema and isinstance(
-            raw_data_dict, dict
-        ):  # schema is the Pydantic model type
+        if schema and isinstance(schema, type) and issubclass(schema, BaseModel):
             # Try direct validation first
             try:
                 validated_model_instance = schema.model_validate(raw_data_dict)

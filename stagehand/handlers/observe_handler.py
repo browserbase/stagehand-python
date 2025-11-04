@@ -74,7 +74,7 @@ class ObserveHandler:
         iframes = tree.get("iframes", [])
 
         # use inference to call the llm
-        observation_response = observe_inference(
+        observation_response = await observe_inference(
             instruction=instruction,
             tree_elements=output_string,
             llm_client=self.stagehand.llm,
@@ -118,7 +118,10 @@ class ObserveHandler:
 
         # Draw overlay if requested
         if options.draw_overlay:
-            await draw_observe_overlay(self.stagehand_page, elements_with_selectors)
+            await draw_observe_overlay(
+                page=self.stagehand_page,
+                elements=[el.model_dump() for el in elements_with_selectors],
+            )
 
         # Return the list of results without trying to attach _llm_response
         return elements_with_selectors

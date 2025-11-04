@@ -1,5 +1,30 @@
 # Stagehand Python Changelog
 
+## 0.5.5
+
+### Patch Changes
+
+[#215](https://github.com/browserbase/stagehand-python/pull/215) [`cb35254`](https://github.com/browserbase/stagehand-python/commit/cb35254) Thanks @derekmeegan! - Fix ability to pass raw JSON to Extract schema
+[#225](https://github.com/browserbase/stagehand-python/pull/225) [`b23e005`](https://github.com/browserbase/stagehand-python/commit/b23e005) Thanks @derekmeegan! - add local cua example, remove root model from types
+[#218](https://github.com/browserbase/stagehand-python/pull/218) [`1a919ad`](https://github.com/browserbase/stagehand-python/commit/1a919ad) Thanks @derekmeegan! - Pass api_timeout param to Stagehand API correctly
+[#223](https://github.com/browserbase/stagehand-python/pull/223) [`de7d883`](https://github.com/browserbase/stagehand-python/commit/de7d883) Thanks @derekmeegan! - Fix search, navigate, go back, and go forward for gemini cua agent
+[#221](https://github.com/browserbase/stagehand-python/pull/221) [`da570a1`](https://github.com/browserbase/stagehand-python/commit/da570a1) Thanks @miguelg719! - Add support for Haiku 4.5 CUA
+
+## 0.5.4
+
+### Patch Changes
+
+[#205](https://github.com/browserbase/stagehand-python/pull/205) [`3bcdd05`](https://github.com/browserbase/stagehand-python/commit/3bcdd05) Thanks @derekmeegan! - Make litellm client async
+[#213](https://github.com/browserbase/stagehand-python/pull/213) [`1d0577d`](https://github.com/browserbase/stagehand-python/commit/1d0577d) Thanks @miguelg719! - Added support for Gemini Computer Use models
+
+## 0.5.3
+
+### Patch Changes
+
+[#196](https://github.com/browserbase/stagehand-python/pull/196) [`93f5c97`](https://github.com/browserbase/stagehand-python/commit/93f5c97) Thanks @chrisreadsf, @miguelg719 and Derek Meegan! - remove duplicate project id if already passed to Stagehand
+[#203](https://github.com/browserbase/stagehand-python/pull/203) [`82c6fed`](https://github.com/browserbase/stagehand-python/commit/82c6fed) Thanks @miguelg719! - Bump openai dependency version
+[#198](https://github.com/browserbase/stagehand-python/pull/198) [`057b38b`](https://github.com/browserbase/stagehand-python/commit/057b38b) Thanks @Zach10za! - Fix draw_overlay on env:LOCAL
+
 ## 0.5.2
 
 ### Patch Changes

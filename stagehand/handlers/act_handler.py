@@ -97,7 +97,7 @@ class ActHandler:
                 variables = options.get("variables", {})
                 element_to_act_on.arguments = [
                     str(arg).replace(f"%{key}%", str(value))
-                    for arg in (element_to_act_on.arguments or [])
+                    for arg in element_to_act_on.arguments or []
                     for key, value in variables.items()
                 ]
 

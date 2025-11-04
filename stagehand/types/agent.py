@@ -1,6 +1,6 @@
 from typing import Any, Literal, Optional, Union
 
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel
 
 
 class AgentConfig(BaseModel):
@@ -96,20 +96,18 @@ class KeyAction(BaseModel):  # From Anthropic
     text: str
 
 
-AgentActionType = RootModel[
-    Union[
-        ClickAction,
-        DoubleClickAction,
-        TypeAction,
-        KeyPressAction,
-        ScrollAction,
-        DragAction,
-        MoveAction,
-        WaitAction,
-        ScreenshotAction,
-        FunctionAction,
-        KeyAction,
-    ]
+AgentActionType = Union[
+    ClickAction,
+    DoubleClickAction,
+    TypeAction,
+    KeyPressAction,
+    ScrollAction,
+    DragAction,
+    MoveAction,
+    WaitAction,
+    ScreenshotAction,
+    FunctionAction,
+    KeyAction,
 ]
 
 
