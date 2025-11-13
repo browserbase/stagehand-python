@@ -1,7 +1,6 @@
 import os
-from typing import Any, Callable, Literal, Optional, Union
+from typing import Any, Callable, Literal, Optional
 
-from browserbase.types import SessionCreateParams as BrowserbaseSessionCreateParams
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from stagehand.schemas import AvailableModel
