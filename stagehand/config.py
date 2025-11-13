@@ -71,9 +71,7 @@ class StagehandConfig(BaseModel):
         alias="domSettleTimeoutMs",
         description="Timeout for DOM to settle (in ms)",
     )
-    browserbase_session_create_params: Optional[
-        Union[BrowserbaseSessionCreateParams, dict[str, Any]]
-    ] = Field(
+    browserbase_session_create_params: Optional[dict[str, Any]] = Field(
         None,
         alias="browserbaseSessionCreateParams",
         description="Browserbase session create params",
@@ -124,11 +122,25 @@ class StagehandConfig(BaseModel):
     @classmethod
     def validate_browserbase_params(cls, v, info):
         """Validate and convert browserbase session create params."""
-        if isinstance(v, dict) and "project_id" not in v:
-            values = info.data
-            project_id = values.get("project_id") or values.get("projectId")
-            if project_id:
-                v = {**v, "project_id": project_id}
+        if isinstance(v, dict):
+            # Make a copy to avoid mutating the original
+            v = dict(v)
+
+            # Add project_id if not present
+            if "project_id" not in v:
+                values = info.data
+                project_id = values.get("project_id") or values.get("projectId")
+                if project_id:
+                    v["project_id"] = project_id
+
+            # Handle browser_settings
+            if "browser_settings" in v:
+                # Make a copy of browser_settings to avoid mutating
+                v["browser_settings"] = dict(v["browser_settings"])
+
+                # Normalize 'os' key to lowercase
+                if "os" in v["browser_settings"]:
+                    v["browser_settings"]["os"] = v["browser_settings"]["os"].lower()
         return v
 
     def with_overrides(self, **overrides) -> "StagehandConfig":
