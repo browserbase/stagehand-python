@@ -84,7 +84,9 @@ class StagehandConfig(BaseModel):
         description="Session ID for resuming Browserbase sessions",
     )
     model_name: Optional[str] = Field(
-        AvailableModel.GPT_4O, alias="modelName", description="Name of the model to use"
+        AvailableModel.GPT_4_1_MINI,
+        alias="modelName",
+        description="Name of the model to use",
     )
     self_heal: Optional[bool] = Field(
         True, alias="selfHeal", description="Enable self-healing functionality"
