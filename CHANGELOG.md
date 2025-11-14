@@ -1,5 +1,11 @@
 # Stagehand Python Changelog
 
+## 0.5.6
+
+### Patch Changes
+
+[#232](https://github.com/browserbase/stagehand-python/pull/232) [`cea5af9`](https://github.com/browserbase/stagehand-python/commit/cea5af9) Thanks @miguelg719! - Properly serialize os on browserbase session create params
+
 ## 0.5.5
 
 ### Patch Changes
