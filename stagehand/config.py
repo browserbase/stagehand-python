@@ -70,6 +70,7 @@ class StagehandConfig(BaseModel):
         alias="domSettleTimeoutMs",
         description="Timeout for DOM to settle (in ms)",
     )
+    headless: bool = Field(False, description="Run browser in headless mode")
     browserbase_session_create_params: Optional[dict[str, Any]] = Field(
         None,
         alias="browserbaseSessionCreateParams",
