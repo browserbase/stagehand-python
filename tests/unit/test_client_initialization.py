@@ -235,6 +235,7 @@ class TestClientInitialization:
         client = Stagehand(config=config)
         assert client.model_api_key == "test-model-api-key"
 
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_custom_llm(self):
         config = StagehandConfig(
             env="LOCAL",
@@ -245,6 +246,7 @@ class TestClientInitialization:
         assert client.model_client_options["apiKey"] == "custom-llm-key"
         assert client.model_client_options["baseURL"] == "https://custom-llm.com"
 
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_init_with_custom_llm_override(self):
         config = StagehandConfig(
             env="LOCAL",
