@@ -219,6 +219,9 @@ cd stagehand-python
 
 # Install in editable mode with development dependencies
 pip install -r requirements.txt
+
+# Ensure that a Chromium binary exists for local testing
+python -m playwright install chromium
 ```
 
 
