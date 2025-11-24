@@ -161,17 +161,17 @@ class TestActIntegration:
         await stagehand.page.goto("https://browserbase.github.io/stagehand-eval-sites/sites/expand-dropdown/")
         
         # Select an option from the dropdown.
-        await stagehand.page.act("Click the 'Select a Country' dropdown")
+        await stagehand.page.act("Click on the text 'Select a country'")
 
         # Wait for dropdown to expand
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         
         # We are expecting stagehand to click the dropdown to expand it, and therefore
         # the available options should now be contained in the full a11y tree.
 
         # To test, we'll grab the full a11y tree, and make sure it contains 'Canada'
         extraction = await stagehand.page.extract()
-        assert "Canada" in extraction.data
+        assert "Canada" in extraction.data.page_text
 
     @pytest.mark.asyncio
     @pytest.mark.local
@@ -193,7 +193,7 @@ class TestActIntegration:
 
         # To test, we'll grab the full a11y tree, and make sure it contains 'Green'
         extraction = await stagehand.page.extract()
-        assert "Green" in extraction.data
+        assert "Green" in extraction.data.page_text
 
     @pytest.mark.asyncio
     @pytest.mark.local
