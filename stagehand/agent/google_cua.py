@@ -46,7 +46,7 @@ class GoogleCUAClient(AgentClient):
         # Match OpenAI pattern for API key handling
         api_key = None
         if config and hasattr(config, "options") and config.options:
-            api_key = config.options.get("apiKey")
+            api_key = config.options.get("api_key") or config.options.get("apiKey")
         if not api_key:
             api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
