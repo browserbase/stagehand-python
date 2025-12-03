@@ -1,5 +1,12 @@
 # Stagehand Python Changelog
 
+## 0.5.7
+
+### Patch Changes
+
+[#234](https://github.com/browserbase/stagehand-python/pull/234) [`f978db2`](https://github.com/browserbase/stagehand-python/commit/f978db2) Thanks @shrey150! - bump litellm to 1.80.0
+[#234](https://github.com/browserbase/stagehand-python/pull/234) [`f978db2`](https://github.com/browserbase/stagehand-python/commit/f978db2) Thanks @shrey150! - Allow running browser in headless mode
+
 ## 0.5.6
 
 ### Patch Changes
