@@ -51,14 +51,14 @@ class TestCompleteWorkflows:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.act = AsyncMock(return_value=ActResult(
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.act = AsyncMock(return_value=ActResult(
                 success=True,
                 message="Search executed",
                 action="search"
             ))
-            stagehand.page.extract = AsyncMock(return_value={
+            stagehand._page.extract = AsyncMock(return_value={
                 "title": "OpenAI Search Results",
                 "results": [
                     {"title": "OpenAI Official Website", "url": "https://openai.com"},
@@ -82,9 +82,9 @@ class TestCompleteWorkflows:
                 assert extracted_data["results"][0]["title"] == "OpenAI Official Website"
                 
                 # Verify calls were made
-                stagehand.page.goto.assert_called_with("https://google.com")
-                stagehand.page.act.assert_called_with("search for openai")
-                stagehand.page.extract.assert_called_with("extract search results")
+                stagehand._page.goto.assert_called_with("https://google.com")
+                stagehand._page.act.assert_called_with("search for openai")
+                stagehand._page.extract.assert_called_with("extract search results")
                 
             finally:
                 stagehand._closed = True
@@ -149,14 +149,14 @@ class TestCompleteWorkflows:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.act = AsyncMock()
-            stagehand.page.extract = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.act = AsyncMock()
+            stagehand._page.extract = AsyncMock()
             stagehand._initialized = True
-            
+
             # Mock act responses
-            stagehand.page.act.side_effect = [
+            stagehand._page.act.side_effect = [
                 ActResult(success=True, message="Username filled", action="fill"),
                 ActResult(success=True, message="Email filled", action="fill"),
                 ActResult(success=True, message="Password filled", action="fill"),
@@ -164,7 +164,7 @@ class TestCompleteWorkflows:
             ]
             
             # Mock success verification
-            stagehand.page.extract.return_value = {"success": True, "message": "Registration successful!"}
+            stagehand._page.extract.return_value = {"success": True, "message": "Registration successful!"}
             
             try:
                 # Execute form filling workflow
@@ -189,7 +189,7 @@ class TestCompleteWorkflows:
                 assert verification["success"] is True
                 
                 # Verify all steps were executed
-                assert stagehand.page.act.call_count == 4
+                assert stagehand._page.act.call_count == 4
                 
             finally:
                 stagehand._closed = True
@@ -235,10 +235,10 @@ class TestCompleteWorkflows:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.observe = AsyncMock()
-            stagehand.page.act = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.observe = AsyncMock()
+            stagehand._page.act = AsyncMock()
             stagehand._initialized = True
             
             # Mock observe results
@@ -278,8 +278,8 @@ class TestCompleteWorkflows:
                 )
             ]
             
-            stagehand.page.observe.side_effect = [nav_buttons, add_to_cart_buttons]
-            stagehand.page.act.return_value = ActResult(
+            stagehand._page.observe.side_effect = [nav_buttons, add_to_cart_buttons]
+            stagehand._page.act.return_value = ActResult(
                 success=True,
                 message="Button clicked",
                 action="click"
@@ -307,8 +307,8 @@ class TestCompleteWorkflows:
                 assert add_to_cart_result.success is True
                 
                 # Verify method calls
-                assert stagehand.page.observe.call_count == 2
-                assert stagehand.page.act.call_count == 2
+                assert stagehand._page.observe.call_count == 2
+                assert stagehand._page.act.call_count == 2
                 
             finally:
                 stagehand._closed = True
@@ -370,10 +370,10 @@ class TestCompleteWorkflows:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.extract = AsyncMock()
-            stagehand.page.act = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.extract = AsyncMock()
+            stagehand._page.act = AsyncMock()
             stagehand._initialized = True
             
             # Mock page responses
@@ -403,9 +403,9 @@ class TestCompleteWorkflows:
                 else:
                     current_page[0] = "/products"
             
-            stagehand.page.extract.side_effect = lambda inst: extract_response(inst)
-            stagehand.page.goto.side_effect = navigation_side_effect
-            stagehand.page.act.return_value = ActResult(
+            stagehand._page.extract.side_effect = lambda inst: extract_response(inst)
+            stagehand._page.goto.side_effect = navigation_side_effect
+            stagehand._page.act.return_value = ActResult(
                 success=True,
                 message="Navigation successful",
                 action="click"
@@ -434,8 +434,8 @@ class TestCompleteWorkflows:
                 assert len(details["specs"]) == 3
                 
                 # Verify navigation flow
-                assert stagehand.page.goto.call_count == 2
-                assert stagehand.page.extract.call_count == 2
+                assert stagehand._page.goto.call_count == 2
+                assert stagehand._page.extract.call_count == 2
                 
             finally:
                 stagehand._closed = True
@@ -457,9 +457,9 @@ class TestCompleteWorkflows:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.act = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.act = AsyncMock()
             stagehand._initialized = True
             
             # Simulate intermittent failures and recovery
@@ -481,7 +481,7 @@ class TestCompleteWorkflows:
                         action="click"
                     )
             
-            stagehand.page.act.side_effect = act_with_failures
+            stagehand._page.act.side_effect = act_with_failures
             
             try:
                 await stagehand.page.goto("https://example.com")
@@ -498,7 +498,7 @@ class TestCompleteWorkflows:
                 
                 assert success is True
                 assert failure_count == 3  # 2 failures + 1 success
-                assert stagehand.page.act.call_count == 3
+                assert stagehand._page.act.call_count == 3
                 
             finally:
                 stagehand._closed = True
@@ -538,10 +538,10 @@ class TestBrowserbaseIntegration:
             # Mock the browser connection parts
             stagehand._client = http_client
             stagehand.session_id = "test-bb-session"
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.act = AsyncMock()
-            stagehand.page.extract = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.act = AsyncMock()
+            stagehand._page.extract = AsyncMock()
             stagehand._initialized = True
             
             # Mock page methods to use server
@@ -561,8 +561,8 @@ class TestBrowserbaseIntegration:
                 )
                 return response.json()
             
-            stagehand.page.act = mock_act
-            stagehand.page.extract = mock_extract
+            stagehand._page.act = mock_act
+            stagehand._page.extract = mock_extract
             
             try:
                 # Execute Browserbase workflow
@@ -616,9 +616,9 @@ class TestWorkflowPydanticSchemas:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.goto = AsyncMock()
-            stagehand.page.extract = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.goto = AsyncMock()
+            stagehand._page.extract = AsyncMock()
             stagehand._initialized = True
             
             # Mock structured extraction responses
@@ -642,7 +642,7 @@ class TestWorkflowPydanticSchemas:
                 "total_count": 2
             }
             
-            stagehand.page.extract.return_value = mock_product_data
+            stagehand._page.extract.return_value = mock_product_data
             
             try:
                 await stagehand.page.goto("https://electronics-store.com")
@@ -671,7 +671,7 @@ class TestWorkflowPydanticSchemas:
                 assert product2["in_stock"] is False
                 
                 # Verify extract was called with schema
-                stagehand.page.extract.assert_called_once()
+                stagehand._page.extract.assert_called_once()
                 
             finally:
                 stagehand._closed = True
@@ -696,8 +696,8 @@ class TestPerformanceWorkflows:
             stagehand._playwright = playwright
             stagehand._browser = browser
             stagehand._context = context
-            stagehand.page = MagicMock()
-            stagehand.page.extract = AsyncMock()
+            stagehand._page = MagicMock()
+            stagehand._page.extract = AsyncMock()
             stagehand._initialized = True
             
             # Mock multiple concurrent extractions
@@ -707,7 +707,7 @@ class TestPerformanceWorkflows:
                 {"section": "footer", "content": "Footer content"}
             ]
             
-            stagehand.page.extract.side_effect = extraction_responses
+            stagehand._page.extract.side_effect = extraction_responses
             
             try:
                 # Execute concurrent extractions
@@ -727,7 +727,7 @@ class TestPerformanceWorkflows:
                 assert results[2]["section"] == "footer"
                 
                 # Verify all extractions were called
-                assert stagehand.page.extract.call_count == 3
+                assert stagehand._page.extract.call_count == 3
                 
             finally:
                 stagehand._closed = True 
