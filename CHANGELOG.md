@@ -1,5 +1,11 @@
 # Stagehand Python Changelog
 
+## 0.5.8
+
+### Patch Changes
+
+[#241](https://github.com/browserbase/stagehand-python/pull/241) [`69289b9`](https://github.com/browserbase/stagehand-python/commit/69289b9) Thanks @tkattkat! - add support for claude 4.5 opus in cua agent
+
 ## 0.5.7
 
 ### Patch Changes
