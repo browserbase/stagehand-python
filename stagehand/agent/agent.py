@@ -23,6 +23,7 @@ MODEL_TO_CLIENT_CLASS_MAP: dict[str, type[AgentClient]] = {
     "claude-haiku-4-5-20251001": AnthropicCUAClient,
     "claude-sonnet-4-20250514": AnthropicCUAClient,
     "claude-sonnet-4-5-20250929": AnthropicCUAClient,
+    "claude-opus-4-5-20251101": AnthropicCUAClient,
     "gemini-2.5-computer-use-preview-10-2025": GoogleCUAClient,
 }
 MODEL_TO_PROVIDER_MAP: dict[str, AgentProvider] = {
@@ -32,6 +33,7 @@ MODEL_TO_PROVIDER_MAP: dict[str, AgentProvider] = {
     "claude-haiku-4-5-20251001": AgentProvider.ANTHROPIC,
     "claude-sonnet-4-20250514": AgentProvider.ANTHROPIC,
     "claude-sonnet-4-5-20250929": AgentProvider.ANTHROPIC,
+    "claude-opus-4-5-20251101": AgentProvider.ANTHROPIC,
     "gemini-2.5-computer-use-preview-10-2025": AgentProvider.GOOGLE,
     # Add more mappings as needed
 }
