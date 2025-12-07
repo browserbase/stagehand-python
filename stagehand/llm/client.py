@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any, Callable, Optional
 import litellm
 
 from stagehand.metrics import get_inference_time_ms, start_inference_timer
+from pydantic import BaseModel
+from .structed_output_handler import StructuredOutputHandler
 
 if TYPE_CHECKING:
     from ..logging import StagehandLogger
@@ -119,6 +121,7 @@ class LLMClient:
             category="llm",
         )
 
+
         try:
             # Start tracking inference time
             start_time = start_inference_timer()
@@ -133,6 +136,13 @@ class LLMClient:
             if self.metrics_callback:
                 self.metrics_callback(response, inference_time_ms, function_name)
 
+            return response
+        except litellm.BadRequestError as e:
+            handler = StructuredOutputHandler(litellm)
+            response = await handler.handle_structured_inference(**filtered_params)
+            inference_time_ms = get_inference_time_ms(start_time)
+            if self.metrics_callback:
+                self.metrics_callback(response, inference_time_ms, function_name)
             return response
 
         except Exception as e:
