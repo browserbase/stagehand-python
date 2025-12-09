@@ -38,6 +38,7 @@ class TypeAction(BaseModel):
     x: Optional[int] = None
     y: Optional[int] = None
     press_enter_after: Optional[bool] = False
+    clear_before_typing: Optional[bool] = False
 
 
 class KeyPressAction(BaseModel):

@@ -238,6 +238,8 @@ class GoogleCUAClient(AgentClient):
                     "x": x,
                     "y": y,
                     "press_enter_after": action_args.get("press_enter", False),
+                    # Default to True to match TS behavior: clear field before typing
+                    "clear_before_typing": action_args.get("clear_before_typing", True),
                 }
             elif action_name == "key_combination":
                 action_type_str = "keypress"
