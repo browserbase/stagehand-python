@@ -25,6 +25,8 @@ load_dotenv()
 
 
 class AnthropicCUAClient(AgentClient):
+    ALLOWED_TOOL_USE_FIELDS = {"type", "id", "name", "input"}
+
     ANTHROPIC_KEY_MAPPING = {
         "return": "Enter",
         "enter": "Enter",
@@ -283,6 +285,15 @@ class AnthropicCUAClient(AgentClient):
         messages.append({"role": "user", "content": user_content})
         return messages
 
+    def _sanitise_content_block(self, block_data: dict[str, Any]) -> dict[str, Any]:
+        if block_data.get("type") == "tool_use":
+            return {
+                k: v
+                for k, v in block_data.items()
+                if k in self.ALLOWED_TOOL_USE_FIELDS
+            }
+        return block_data
+
     def _process_provider_response(
         self, response: Any  # Anthropic API response object
     ) -> tuple[Optional[AgentAction], Optional[str], bool, list[dict[str, Any]]]:
@@ -293,10 +304,10 @@ class AnthropicCUAClient(AgentClient):
 
         raw_assistant_content_blocks = []
         if hasattr(response, "content") and isinstance(response.content, list):
-            # Serialize Pydantic models from response.content for history
             try:
                 raw_assistant_content_blocks = [
-                    block.model_dump() for block in response.content
+                    self._sanitise_content_block(block.model_dump())
+                    for block in response.content
                 ]
             except Exception as e:
                 self.logger.error(
