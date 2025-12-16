@@ -375,12 +375,10 @@ class SessionsResource(SyncAPIResource):
     def start(
         self,
         *,
-        env: Literal["LOCAL", "BROWSERBASE"],
-        api_key: str | Omit = omit,
+        browserbase_api_key: str,
+        browserbase_project_id: str,
         dom_settle_timeout: int | Omit = omit,
-        local_browser_launch_options: session_start_params.LocalBrowserLaunchOptions | Omit = omit,
         model: str | Omit = omit,
-        project_id: str | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
         verbose: int | Omit = omit,
@@ -397,17 +395,13 @@ class SessionsResource(SyncAPIResource):
         ID that must be used for all subsequent requests.
 
         Args:
-          env: Environment to run the browser in
+          browserbase_api_key: API key for Browserbase Cloud
 
-          api_key: API key for Browserbase (required when env=BROWSERBASE)
+          browserbase_project_id: Project ID for Browserbase
 
           dom_settle_timeout: Timeout in ms to wait for DOM to settle
 
-          local_browser_launch_options: Options for local browser launch
-
-          model: AI model to use for actions
-
-          project_id: Project ID for Browserbase (required when env=BROWSERBASE)
+          model: AI model to use for actions (must be prefixed with provider/)
 
           self_heal: Enable self-healing for failed actions
 
@@ -427,12 +421,10 @@ class SessionsResource(SyncAPIResource):
             "/sessions/start",
             body=maybe_transform(
                 {
-                    "env": env,
-                    "api_key": api_key,
+                    "browserbase_api_key": browserbase_api_key,
+                    "browserbase_project_id": browserbase_project_id,
                     "dom_settle_timeout": dom_settle_timeout,
-                    "local_browser_launch_options": local_browser_launch_options,
                     "model": model,
-                    "project_id": project_id,
                     "self_heal": self_heal,
                     "system_prompt": system_prompt,
                     "verbose": verbose,
@@ -784,12 +776,10 @@ class AsyncSessionsResource(AsyncAPIResource):
     async def start(
         self,
         *,
-        env: Literal["LOCAL", "BROWSERBASE"],
-        api_key: str | Omit = omit,
+        browserbase_api_key: str,
+        browserbase_project_id: str,
         dom_settle_timeout: int | Omit = omit,
-        local_browser_launch_options: session_start_params.LocalBrowserLaunchOptions | Omit = omit,
         model: str | Omit = omit,
-        project_id: str | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
         verbose: int | Omit = omit,
@@ -806,17 +796,13 @@ class AsyncSessionsResource(AsyncAPIResource):
         ID that must be used for all subsequent requests.
 
         Args:
-          env: Environment to run the browser in
+          browserbase_api_key: API key for Browserbase Cloud
 
-          api_key: API key for Browserbase (required when env=BROWSERBASE)
+          browserbase_project_id: Project ID for Browserbase
 
           dom_settle_timeout: Timeout in ms to wait for DOM to settle
 
-          local_browser_launch_options: Options for local browser launch
-
-          model: AI model to use for actions
-
-          project_id: Project ID for Browserbase (required when env=BROWSERBASE)
+          model: AI model to use for actions (must be prefixed with provider/)
 
           self_heal: Enable self-healing for failed actions
 
@@ -836,12 +822,10 @@ class AsyncSessionsResource(AsyncAPIResource):
             "/sessions/start",
             body=await async_maybe_transform(
                 {
-                    "env": env,
-                    "api_key": api_key,
+                    "browserbase_api_key": browserbase_api_key,
+                    "browserbase_project_id": browserbase_project_id,
                     "dom_settle_timeout": dom_settle_timeout,
-                    "local_browser_launch_options": local_browser_launch_options,
                     "model": model,
-                    "project_id": project_id,
                     "self_heal": self_heal,
                     "system_prompt": system_prompt,
                     "verbose": verbose,

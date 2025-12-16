@@ -37,10 +37,11 @@ client = Stagehand(
     environment="dev",
 )
 
-response = client.sessions.start(
-    env="LOCAL",
+response = client.sessions.act(
+    session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+    input="click the first link on the page",
 )
-print(response.available)
+print(response.actions)
 ```
 
 While you can provide an `api_key` keyword argument,
@@ -65,10 +66,11 @@ client = AsyncStagehand(
 
 
 async def main() -> None:
-    response = await client.sessions.start(
-        env="LOCAL",
+    response = await client.sessions.act(
+        session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+        input="click the first link on the page",
     )
-    print(response.available)
+    print(response.actions)
 
 
 asyncio.run(main())
@@ -101,10 +103,11 @@ async def main() -> None:
         api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
-        response = await client.sessions.start(
-            env="LOCAL",
+        response = await client.sessions.act(
+            session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+            input="click the first link on the page",
         )
-        print(response.available)
+        print(response.actions)
 
 
 asyncio.run(main())
@@ -128,11 +131,12 @@ from stagehand import Stagehand
 
 client = Stagehand()
 
-response = client.sessions.start(
-    env="LOCAL",
-    local_browser_launch_options={},
+response = client.sessions.act(
+    session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+    input="click the sign in button",
+    options={},
 )
-print(response.local_browser_launch_options)
+print(response.options)
 ```
 
 ## Handling errors
@@ -152,7 +156,8 @@ client = Stagehand()
 
 try:
     client.sessions.start(
-        env="LOCAL",
+        browserbase_api_key="BROWSERBASE_API_KEY",
+        browserbase_project_id="BROWSERBASE_PROJECT_ID",
     )
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
@@ -197,7 +202,8 @@ client = Stagehand(
 
 # Or, configure per-request:
 client.with_options(max_retries=5).sessions.start(
-    env="LOCAL",
+    browserbase_api_key="BROWSERBASE_API_KEY",
+    browserbase_project_id="BROWSERBASE_PROJECT_ID",
 )
 ```
 
@@ -222,7 +228,8 @@ client = Stagehand(
 
 # Override per-request:
 client.with_options(timeout=5.0).sessions.start(
-    env="LOCAL",
+    browserbase_api_key="BROWSERBASE_API_KEY",
+    browserbase_project_id="BROWSERBASE_PROJECT_ID",
 )
 ```
 
@@ -265,7 +272,8 @@ from stagehand import Stagehand
 
 client = Stagehand()
 response = client.sessions.with_raw_response.start(
-    env="LOCAL",
+    browserbase_api_key="BROWSERBASE_API_KEY",
+    browserbase_project_id="BROWSERBASE_PROJECT_ID",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -285,7 +293,8 @@ To stream the response body, use `.with_streaming_response` instead, which requi
 
 ```python
 with client.sessions.with_streaming_response.start(
-    env="LOCAL",
+    browserbase_api_key="BROWSERBASE_API_KEY",
+    browserbase_project_id="BROWSERBASE_PROJECT_ID",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
