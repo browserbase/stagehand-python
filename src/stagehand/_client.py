@@ -50,7 +50,7 @@ class Stagehand(SyncAPIClient):
     # client options
     browserbase_api_key: str
     browserbase_project_id: str
-    model_api_key: str | None
+    model_api_key: str
 
     def __init__(
         self,
@@ -102,6 +102,10 @@ class Stagehand(SyncAPIClient):
 
         if model_api_key is None:
             model_api_key = os.environ.get("MODEL_API_KEY")
+        if model_api_key is None:
+            raise StagehandError(
+                "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
+            )
         self.model_api_key = model_api_key
 
         if base_url is None:
@@ -147,8 +151,6 @@ class Stagehand(SyncAPIClient):
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
-        if model_api_key is None:
-            return {}
         return {"x-model-api-key": model_api_key}
 
     @property
@@ -257,7 +259,7 @@ class AsyncStagehand(AsyncAPIClient):
     # client options
     browserbase_api_key: str
     browserbase_project_id: str
-    model_api_key: str | None
+    model_api_key: str
 
     def __init__(
         self,
@@ -309,6 +311,10 @@ class AsyncStagehand(AsyncAPIClient):
 
         if model_api_key is None:
             model_api_key = os.environ.get("MODEL_API_KEY")
+        if model_api_key is None:
+            raise StagehandError(
+                "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
+            )
         self.model_api_key = model_api_key
 
         if base_url is None:
@@ -354,8 +360,6 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
-        if model_api_key is None:
-            return {}
         return {"x-model-api-key": model_api_key}
 
     @property
