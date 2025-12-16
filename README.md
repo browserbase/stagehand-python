@@ -42,7 +42,7 @@ client = Stagehand(
 )
 
 response = client.sessions.act(
-    session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+    session_id="00000000-your-session-id-000000000000",
     input="click the first link on the page",
 )
 print(response.actions)
@@ -75,7 +75,7 @@ client = AsyncStagehand(
 
 async def main() -> None:
     response = await client.sessions.act(
-        session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+        session_id="00000000-your-session-id-000000000000",
         input="click the first link on the page",
     )
     print(response.actions)
@@ -118,7 +118,7 @@ async def main() -> None:
         http_client=DefaultAioHttpClient(),
     ) as client:
         response = await client.sessions.act(
-            session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
+            session_id="00000000-your-session-id-000000000000",
             input="click the first link on the page",
         )
         print(response.actions)
@@ -170,8 +170,8 @@ client = Stagehand()
 
 try:
     client.sessions.start(
-        browserbase_api_key="BROWSERBASE_API_KEY",
-        browserbase_project_id="BROWSERBASE_PROJECT_ID",
+        browserbase_api_key="<your API key here>",
+        browserbase_project_id="<your project ID here>",
     )
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
@@ -216,8 +216,8 @@ client = Stagehand(
 
 # Or, configure per-request:
 client.with_options(max_retries=5).sessions.start(
-    browserbase_api_key="BROWSERBASE_API_KEY",
-    browserbase_project_id="BROWSERBASE_PROJECT_ID",
+    browserbase_api_key="<your API key here>",
+    browserbase_project_id="<your project ID here>",
 )
 ```
 
@@ -242,8 +242,8 @@ client = Stagehand(
 
 # Override per-request:
 client.with_options(timeout=5.0).sessions.start(
-    browserbase_api_key="BROWSERBASE_API_KEY",
-    browserbase_project_id="BROWSERBASE_PROJECT_ID",
+    browserbase_api_key="<your API key here>",
+    browserbase_project_id="<your project ID here>",
 )
 ```
 
@@ -286,8 +286,8 @@ from stagehand import Stagehand
 
 client = Stagehand()
 response = client.sessions.with_raw_response.start(
-    browserbase_api_key="BROWSERBASE_API_KEY",
-    browserbase_project_id="BROWSERBASE_PROJECT_ID",
+    browserbase_api_key="<your API key here>",
+    browserbase_project_id="<your project ID here>",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -307,8 +307,8 @@ To stream the response body, use `.with_streaming_response` instead, which requi
 
 ```python
 with client.sessions.with_streaming_response.start(
-    browserbase_api_key="BROWSERBASE_API_KEY",
-    browserbase_project_id="BROWSERBASE_PROJECT_ID",
+    browserbase_api_key="<your API key here>",
+    browserbase_project_id="<your project ID here>",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
