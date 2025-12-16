@@ -14,7 +14,7 @@ def _basic_config() -> None:
 
 
 def setup_logging() -> None:
-    env = os.environ.get("STAGEHAND_LOG")
+    env = os.environ.get("BROWSERBASE_LOG")
     if env == "debug":
         _basic_config()
         logger.setLevel(logging.DEBUG)

@@ -10,7 +10,7 @@ import httpx
 import pytest
 from pytest_asyncio import is_async_test
 
-from stagehand import Stagehand, AsyncStagehand, DefaultAioHttpClient
+from stagehand import Browserbase, AsyncBrowserbase, DefaultAioHttpClient
 from stagehand._utils import is_dict
 
 if TYPE_CHECKING:
@@ -49,17 +49,17 @@ api_key = "My API Key"
 
 
 @pytest.fixture(scope="session")
-def client(request: FixtureRequest) -> Iterator[Stagehand]:
+def client(request: FixtureRequest) -> Iterator[Browserbase]:
     strict = getattr(request, "param", True)
     if not isinstance(strict, bool):
         raise TypeError(f"Unexpected fixture parameter type {type(strict)}, expected {bool}")
 
-    with Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=strict) as client:
+    with Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=strict) as client:
         yield client
 
 
 @pytest.fixture(scope="session")
-async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncStagehand]:
+async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncBrowserbase]:
     param = getattr(request, "param", True)
 
     # defaults
@@ -78,7 +78,7 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncStagehand]
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")
 
-    async with AsyncStagehand(
+    async with AsyncBrowserbase(
         base_url=base_url, api_key=api_key, _strict_response_validation=strict, http_client=http_client
     ) as client:
         yield client

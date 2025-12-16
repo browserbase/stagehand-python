@@ -1,11 +1,11 @@
 [project]
 name = "stagehand"
 version = "0.0.1"
-description = "The official Python library for the stagehand API"
+description = "The official Python library for the browserbase API"
 dynamic = ["readme"]
 license = "Apache-2.0"
 authors = [
-{ name = "Stagehand", email = "" },
+{ name = "Browserbase", email = "" },
 ]
 
 dependencies = [
