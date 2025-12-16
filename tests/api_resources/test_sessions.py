@@ -394,7 +394,8 @@ class TestSessions:
     @parametrize
     def test_method_start(self, client: Stagehand) -> None:
         session = client.sessions.start(
-            env="LOCAL",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
@@ -402,12 +403,10 @@ class TestSessions:
     @parametrize
     def test_method_start_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.start(
-            env="LOCAL",
-            api_key="apiKey",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
             dom_settle_timeout=0,
-            local_browser_launch_options={"headless": True},
             model="openai/gpt-4o",
-            project_id="projectId",
             self_heal=True,
             system_prompt="systemPrompt",
             verbose=1,
@@ -418,7 +417,8 @@ class TestSessions:
     @parametrize
     def test_raw_response_start(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.start(
-            env="LOCAL",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
         )
 
         assert response.is_closed is True
@@ -430,7 +430,8 @@ class TestSessions:
     @parametrize
     def test_streaming_response_start(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.start(
-            env="LOCAL",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -815,7 +816,8 @@ class TestAsyncSessions:
     @parametrize
     async def test_method_start(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
-            env="LOCAL",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
@@ -823,12 +825,10 @@ class TestAsyncSessions:
     @parametrize
     async def test_method_start_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
-            env="LOCAL",
-            api_key="apiKey",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
             dom_settle_timeout=0,
-            local_browser_launch_options={"headless": True},
             model="openai/gpt-4o",
-            project_id="projectId",
             self_heal=True,
             system_prompt="systemPrompt",
             verbose=1,
@@ -839,7 +839,8 @@ class TestAsyncSessions:
     @parametrize
     async def test_raw_response_start(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.start(
-            env="LOCAL",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
         )
 
         assert response.is_closed is True
@@ -851,7 +852,8 @@ class TestAsyncSessions:
     @parametrize
     async def test_streaming_response_start(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.start(
-            env="LOCAL",
+            browserbase_api_key="BROWSERBASE_API_KEY",
+            browserbase_project_id="BROWSERBASE_PROJECT_ID",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
