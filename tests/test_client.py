@@ -37,7 +37,9 @@ from stagehand._base_client import (
 from .utils import update_env
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
+browserbase_api_key = "My Browserbase API Key"
+browserbase_project_id = "My Browserbase Project ID"
+model_api_key = "My Model API Key"
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -83,9 +85,17 @@ class TestStagehand:
         copied = client.copy()
         assert id(copied) != id(client)
 
-        copied = client.copy(api_key="another My API Key")
-        assert copied.api_key == "another My API Key"
-        assert client.api_key == "My API Key"
+        copied = client.copy(browserbase_api_key="another My Browserbase API Key")
+        assert copied.browserbase_api_key == "another My Browserbase API Key"
+        assert client.browserbase_api_key == "My Browserbase API Key"
+
+        copied = client.copy(browserbase_project_id="another My Browserbase Project ID")
+        assert copied.browserbase_project_id == "another My Browserbase Project ID"
+        assert client.browserbase_project_id == "My Browserbase Project ID"
+
+        copied = client.copy(model_api_key="another My Model API Key")
+        assert copied.model_api_key == "another My Model API Key"
+        assert client.model_api_key == "My Model API Key"
 
     def test_copy_default_options(self, client: Stagehand) -> None:
         # options that have a default are overridden correctly
@@ -105,7 +115,12 @@ class TestStagehand:
 
     def test_copy_default_headers(self) -> None:
         client = Stagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         assert client.default_headers["X-Foo"] == "bar"
 
@@ -140,7 +155,12 @@ class TestStagehand:
 
     def test_copy_default_query(self) -> None:
         client = Stagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"foo": "bar"},
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -266,7 +286,12 @@ class TestStagehand:
 
     def test_client_timeout_option(self) -> None:
         client = Stagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            timeout=httpx.Timeout(0),
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -279,7 +304,12 @@ class TestStagehand:
         # custom timeout given to the httpx client should be used
         with httpx.Client(timeout=None) as http_client:
             client = Stagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -291,7 +321,12 @@ class TestStagehand:
         # no timeout given to the httpx client should not use the httpx default
         with httpx.Client() as http_client:
             client = Stagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -303,7 +338,12 @@ class TestStagehand:
         # explicitly passing the default timeout currently results in it being ignored
         with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
             client = Stagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -317,14 +357,21 @@ class TestStagehand:
             async with httpx.AsyncClient() as http_client:
                 Stagehand(
                     base_url=base_url,
-                    api_key=api_key,
+                    browserbase_api_key=browserbase_api_key,
+                    browserbase_project_id=browserbase_project_id,
+                    model_api_key=model_api_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     def test_default_headers_option(self) -> None:
         test_client = Stagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
@@ -332,7 +379,9 @@ class TestStagehand:
 
         test_client2 = Stagehand(
             base_url=base_url,
-            api_key=api_key,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -347,18 +396,45 @@ class TestStagehand:
         test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+        assert request.headers.get("x-bb-api-key") == browserbase_api_key
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-bb-project-id") == browserbase_project_id
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-model-api-key") == model_api_key
 
         with pytest.raises(StagehandError):
-            with update_env(**{"STAGEHAND_API_KEY": Omit()}):
-                client2 = Stagehand(base_url=base_url, api_key=None, _strict_response_validation=True)
+            with update_env(
+                **{
+                    "BROWSERBASE_API_KEY": Omit(),
+                    "BROWSERBASE_PROJECT_ID": Omit(),
+                    "MODEL_API_KEY": Omit(),
+                }
+            ):
+                client2 = Stagehand(
+                    base_url=base_url,
+                    browserbase_api_key=None,
+                    browserbase_project_id=None,
+                    model_api_key=None,
+                    _strict_response_validation=True,
+                )
             _ = client2
 
     def test_default_query_option(self) -> None:
         client = Stagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"query_param": "bar"},
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         url = httpx.URL(request.url)
@@ -560,7 +636,13 @@ class TestStagehand:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = Stagehand(base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True)
+        client = Stagehand(
+            base_url="https://example.com/from_init",
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         assert client.base_url == "https://example.com/from_init/"
 
         client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
@@ -571,28 +653,29 @@ class TestStagehand:
 
     def test_base_url_env(self) -> None:
         with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
-            client = Stagehand(api_key=api_key, _strict_response_validation=True)
-            assert client.base_url == "http://localhost:5000/from/env/"
-
-        # explicit environment arg requires explicitness
-        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
-            with pytest.raises(ValueError, match=r"you must pass base_url=None"):
-                Stagehand(api_key=api_key, _strict_response_validation=True, environment="production")
-
             client = Stagehand(
-                base_url=None, api_key=api_key, _strict_response_validation=True, environment="production"
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
             )
-            assert str(client.base_url).startswith("https://api.stagehand.browserbase.com/v1")
-
-            client.close()
+            assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            Stagehand(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
             Stagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            Stagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
@@ -613,10 +696,18 @@ class TestStagehand:
     @pytest.mark.parametrize(
         "client",
         [
-            Stagehand(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
             Stagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            Stagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
@@ -637,10 +728,18 @@ class TestStagehand:
     @pytest.mark.parametrize(
         "client",
         [
-            Stagehand(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
             Stagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            Stagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
@@ -659,7 +758,13 @@ class TestStagehand:
         client.close()
 
     def test_copied_client_does_not_close_http(self) -> None:
-        test_client = Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -670,7 +775,13 @@ class TestStagehand:
         assert not test_client.is_closed()
 
     def test_client_context_manager(self) -> None:
-        test_client = Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -691,7 +802,14 @@ class TestStagehand:
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None))
+            Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                max_retries=cast(Any, None),
+            )
 
     @pytest.mark.respx(base_url=base_url)
     def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
@@ -700,12 +818,24 @@ class TestStagehand:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
 
         with pytest.raises(APIResponseValidationError):
             strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = Stagehand(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=False,
+        )
 
         response = non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -926,9 +1056,17 @@ class TestAsyncStagehand:
         copied = async_client.copy()
         assert id(copied) != id(async_client)
 
-        copied = async_client.copy(api_key="another My API Key")
-        assert copied.api_key == "another My API Key"
-        assert async_client.api_key == "My API Key"
+        copied = async_client.copy(browserbase_api_key="another My Browserbase API Key")
+        assert copied.browserbase_api_key == "another My Browserbase API Key"
+        assert async_client.browserbase_api_key == "My Browserbase API Key"
+
+        copied = async_client.copy(browserbase_project_id="another My Browserbase Project ID")
+        assert copied.browserbase_project_id == "another My Browserbase Project ID"
+        assert async_client.browserbase_project_id == "My Browserbase Project ID"
+
+        copied = async_client.copy(model_api_key="another My Model API Key")
+        assert copied.model_api_key == "another My Model API Key"
+        assert async_client.model_api_key == "My Model API Key"
 
     def test_copy_default_options(self, async_client: AsyncStagehand) -> None:
         # options that have a default are overridden correctly
@@ -948,7 +1086,12 @@ class TestAsyncStagehand:
 
     async def test_copy_default_headers(self) -> None:
         client = AsyncStagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         assert client.default_headers["X-Foo"] == "bar"
 
@@ -983,7 +1126,12 @@ class TestAsyncStagehand:
 
     async def test_copy_default_query(self) -> None:
         client = AsyncStagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"foo": "bar"},
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -1111,7 +1259,12 @@ class TestAsyncStagehand:
 
     async def test_client_timeout_option(self) -> None:
         client = AsyncStagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            timeout=httpx.Timeout(0),
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1124,7 +1277,12 @@ class TestAsyncStagehand:
         # custom timeout given to the httpx client should be used
         async with httpx.AsyncClient(timeout=None) as http_client:
             client = AsyncStagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1136,7 +1294,12 @@ class TestAsyncStagehand:
         # no timeout given to the httpx client should not use the httpx default
         async with httpx.AsyncClient() as http_client:
             client = AsyncStagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1148,7 +1311,12 @@ class TestAsyncStagehand:
         # explicitly passing the default timeout currently results in it being ignored
         async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
             client = AsyncStagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1162,14 +1330,21 @@ class TestAsyncStagehand:
             with httpx.Client() as http_client:
                 AsyncStagehand(
                     base_url=base_url,
-                    api_key=api_key,
+                    browserbase_api_key=browserbase_api_key,
+                    browserbase_project_id=browserbase_project_id,
+                    model_api_key=model_api_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     async def test_default_headers_option(self) -> None:
         test_client = AsyncStagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
@@ -1177,7 +1352,9 @@ class TestAsyncStagehand:
 
         test_client2 = AsyncStagehand(
             base_url=base_url,
-            api_key=api_key,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -1192,18 +1369,45 @@ class TestAsyncStagehand:
         await test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = AsyncStagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+        assert request.headers.get("x-bb-api-key") == browserbase_api_key
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-bb-project-id") == browserbase_project_id
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-model-api-key") == model_api_key
 
         with pytest.raises(StagehandError):
-            with update_env(**{"STAGEHAND_API_KEY": Omit()}):
-                client2 = AsyncStagehand(base_url=base_url, api_key=None, _strict_response_validation=True)
+            with update_env(
+                **{
+                    "BROWSERBASE_API_KEY": Omit(),
+                    "BROWSERBASE_PROJECT_ID": Omit(),
+                    "MODEL_API_KEY": Omit(),
+                }
+            ):
+                client2 = AsyncStagehand(
+                    base_url=base_url,
+                    browserbase_api_key=None,
+                    browserbase_project_id=None,
+                    model_api_key=None,
+                    _strict_response_validation=True,
+                )
             _ = client2
 
     async def test_default_query_option(self) -> None:
         client = AsyncStagehand(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"query_param": "bar"},
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         url = httpx.URL(request.url)
@@ -1408,7 +1612,11 @@ class TestAsyncStagehand:
 
     async def test_base_url_setter(self) -> None:
         client = AsyncStagehand(
-            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
+            base_url="https://example.com/from_init",
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
         )
         assert client.base_url == "https://example.com/from_init/"
 
@@ -1420,30 +1628,29 @@ class TestAsyncStagehand:
 
     async def test_base_url_env(self) -> None:
         with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
-            client = AsyncStagehand(api_key=api_key, _strict_response_validation=True)
-            assert client.base_url == "http://localhost:5000/from/env/"
-
-        # explicit environment arg requires explicitness
-        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
-            with pytest.raises(ValueError, match=r"you must pass base_url=None"):
-                AsyncStagehand(api_key=api_key, _strict_response_validation=True, environment="production")
-
             client = AsyncStagehand(
-                base_url=None, api_key=api_key, _strict_response_validation=True, environment="production"
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
             )
-            assert str(client.base_url).startswith("https://api.stagehand.browserbase.com/v1")
-
-            await client.close()
+            assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
             AsyncStagehand(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
             ),
             AsyncStagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
@@ -1465,11 +1672,17 @@ class TestAsyncStagehand:
         "client",
         [
             AsyncStagehand(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
             ),
             AsyncStagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
@@ -1491,11 +1704,17 @@ class TestAsyncStagehand:
         "client",
         [
             AsyncStagehand(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
             ),
             AsyncStagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
@@ -1514,7 +1733,13 @@ class TestAsyncStagehand:
         await client.close()
 
     async def test_copied_client_does_not_close_http(self) -> None:
-        test_client = AsyncStagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -1526,7 +1751,13 @@ class TestAsyncStagehand:
         assert not test_client.is_closed()
 
     async def test_client_context_manager(self) -> None:
-        test_client = AsyncStagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         async with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -1548,7 +1779,12 @@ class TestAsyncStagehand:
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
             AsyncStagehand(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                max_retries=cast(Any, None),
             )
 
     @pytest.mark.respx(base_url=base_url)
@@ -1558,12 +1794,24 @@ class TestAsyncStagehand:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = AsyncStagehand(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
 
         with pytest.raises(APIResponseValidationError):
             await strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = AsyncStagehand(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=False,
+        )
 
         response = await non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]

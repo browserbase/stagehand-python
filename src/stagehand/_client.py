@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Mapping, cast
-from typing_extensions import Self, Literal, override
+from typing import Any, Mapping
+from typing_extensions import Self, override
 
 import httpx
 
@@ -31,7 +31,6 @@ from ._base_client import (
 )
 
 __all__ = [
-    "ENVIRONMENTS",
     "Timeout",
     "Transport",
     "ProxiesTypes",
@@ -42,12 +41,6 @@ __all__ = [
     "AsyncClient",
 ]
 
-ENVIRONMENTS: Dict[str, str] = {
-    "production": "https://api.stagehand.browserbase.com/v1",
-    "dev": "https://api.stagehand.dev.browserbase.com/v1",
-    "local": "http://localhost:5000/v1",
-}
-
 
 class Stagehand(SyncAPIClient):
     sessions: sessions.SessionsResource
@@ -55,16 +48,17 @@ class Stagehand(SyncAPIClient):
     with_streaming_response: StagehandWithStreamedResponse
 
     # client options
-    api_key: str
-
-    _environment: Literal["production", "dev", "local"] | NotGiven
+    browserbase_api_key: str
+    browserbase_project_id: str
+    model_api_key: str | None
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
-        environment: Literal["production", "dev", "local"] | NotGiven = not_given,
-        base_url: str | httpx.URL | None | NotGiven = not_given,
+        browserbase_api_key: str | None = None,
+        browserbase_project_id: str | None = None,
+        model_api_key: str | None = None,
+        base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -85,41 +79,35 @@ class Stagehand(SyncAPIClient):
     ) -> None:
         """Construct a new synchronous Stagehand client instance.
 
-        This automatically infers the `api_key` argument from the `STAGEHAND_API_KEY` environment variable if it is not provided.
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `browserbase_api_key` from `BROWSERBASE_API_KEY`
+        - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
+        - `model_api_key` from `MODEL_API_KEY`
         """
-        if api_key is None:
-            api_key = os.environ.get("STAGEHAND_API_KEY")
-        if api_key is None:
+        if browserbase_api_key is None:
+            browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
+        if browserbase_api_key is None:
             raise StagehandError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the STAGEHAND_API_KEY environment variable"
+                "The browserbase_api_key client option must be set either by passing browserbase_api_key to the client or by setting the BROWSERBASE_API_KEY environment variable"
             )
-        self.api_key = api_key
+        self.browserbase_api_key = browserbase_api_key
 
-        self._environment = environment
+        if browserbase_project_id is None:
+            browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
+        if browserbase_project_id is None:
+            raise StagehandError(
+                "The browserbase_project_id client option must be set either by passing browserbase_project_id to the client or by setting the BROWSERBASE_PROJECT_ID environment variable"
+            )
+        self.browserbase_project_id = browserbase_project_id
 
-        base_url_env = os.environ.get("STAGEHAND_BASE_URL")
-        if is_given(base_url) and base_url is not None:
-            # cast required because mypy doesn't understand the type narrowing
-            base_url = cast("str | httpx.URL", base_url)  # pyright: ignore[reportUnnecessaryCast]
-        elif is_given(environment):
-            if base_url_env and base_url is not None:
-                raise ValueError(
-                    "Ambiguous URL; The `STAGEHAND_BASE_URL` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None",
-                )
+        if model_api_key is None:
+            model_api_key = os.environ.get("MODEL_API_KEY")
+        self.model_api_key = model_api_key
 
-            try:
-                base_url = ENVIRONMENTS[environment]
-            except KeyError as exc:
-                raise ValueError(f"Unknown environment: {environment}") from exc
-        elif base_url_env is not None:
-            base_url = base_url_env
-        else:
-            self._environment = environment = "production"
-
-            try:
-                base_url = ENVIRONMENTS[environment]
-            except KeyError as exc:
-                raise ValueError(f"Unknown environment: {environment}") from exc
+        if base_url is None:
+            base_url = os.environ.get("STAGEHAND_BASE_URL")
+        if base_url is None:
+            base_url = f"https://api.stagehand.browserbase.com/v1"
 
         super().__init__(
             version=__version__,
@@ -144,8 +132,24 @@ class Stagehand(SyncAPIClient):
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        api_key = self.api_key
-        return {"Authorization": f"Bearer {api_key}"}
+        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
+
+    @property
+    def _bb_api_key_auth(self) -> dict[str, str]:
+        browserbase_api_key = self.browserbase_api_key
+        return {"x-bb-api-key": browserbase_api_key}
+
+    @property
+    def _bb_project_id_auth(self) -> dict[str, str]:
+        browserbase_project_id = self.browserbase_project_id
+        return {"x-bb-project-id": browserbase_project_id}
+
+    @property
+    def _llm_model_api_key_auth(self) -> dict[str, str]:
+        model_api_key = self.model_api_key
+        if model_api_key is None:
+            return {}
+        return {"x-model-api-key": model_api_key}
 
     @property
     @override
@@ -159,8 +163,9 @@ class Stagehand(SyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
-        environment: Literal["production", "dev", "local"] | None = None,
+        browserbase_api_key: str | None = None,
+        browserbase_project_id: str | None = None,
+        model_api_key: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
@@ -194,9 +199,10 @@ class Stagehand(SyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
+            browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
+            model_api_key=model_api_key or self.model_api_key,
             base_url=base_url or self.base_url,
-            environment=environment or self._environment,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -249,16 +255,17 @@ class AsyncStagehand(AsyncAPIClient):
     with_streaming_response: AsyncStagehandWithStreamedResponse
 
     # client options
-    api_key: str
-
-    _environment: Literal["production", "dev", "local"] | NotGiven
+    browserbase_api_key: str
+    browserbase_project_id: str
+    model_api_key: str | None
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
-        environment: Literal["production", "dev", "local"] | NotGiven = not_given,
-        base_url: str | httpx.URL | None | NotGiven = not_given,
+        browserbase_api_key: str | None = None,
+        browserbase_project_id: str | None = None,
+        model_api_key: str | None = None,
+        base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -279,41 +286,35 @@ class AsyncStagehand(AsyncAPIClient):
     ) -> None:
         """Construct a new async AsyncStagehand client instance.
 
-        This automatically infers the `api_key` argument from the `STAGEHAND_API_KEY` environment variable if it is not provided.
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `browserbase_api_key` from `BROWSERBASE_API_KEY`
+        - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
+        - `model_api_key` from `MODEL_API_KEY`
         """
-        if api_key is None:
-            api_key = os.environ.get("STAGEHAND_API_KEY")
-        if api_key is None:
+        if browserbase_api_key is None:
+            browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
+        if browserbase_api_key is None:
             raise StagehandError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the STAGEHAND_API_KEY environment variable"
+                "The browserbase_api_key client option must be set either by passing browserbase_api_key to the client or by setting the BROWSERBASE_API_KEY environment variable"
             )
-        self.api_key = api_key
+        self.browserbase_api_key = browserbase_api_key
 
-        self._environment = environment
+        if browserbase_project_id is None:
+            browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
+        if browserbase_project_id is None:
+            raise StagehandError(
+                "The browserbase_project_id client option must be set either by passing browserbase_project_id to the client or by setting the BROWSERBASE_PROJECT_ID environment variable"
+            )
+        self.browserbase_project_id = browserbase_project_id
 
-        base_url_env = os.environ.get("STAGEHAND_BASE_URL")
-        if is_given(base_url) and base_url is not None:
-            # cast required because mypy doesn't understand the type narrowing
-            base_url = cast("str | httpx.URL", base_url)  # pyright: ignore[reportUnnecessaryCast]
-        elif is_given(environment):
-            if base_url_env and base_url is not None:
-                raise ValueError(
-                    "Ambiguous URL; The `STAGEHAND_BASE_URL` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None",
-                )
+        if model_api_key is None:
+            model_api_key = os.environ.get("MODEL_API_KEY")
+        self.model_api_key = model_api_key
 
-            try:
-                base_url = ENVIRONMENTS[environment]
-            except KeyError as exc:
-                raise ValueError(f"Unknown environment: {environment}") from exc
-        elif base_url_env is not None:
-            base_url = base_url_env
-        else:
-            self._environment = environment = "production"
-
-            try:
-                base_url = ENVIRONMENTS[environment]
-            except KeyError as exc:
-                raise ValueError(f"Unknown environment: {environment}") from exc
+        if base_url is None:
+            base_url = os.environ.get("STAGEHAND_BASE_URL")
+        if base_url is None:
+            base_url = f"https://api.stagehand.browserbase.com/v1"
 
         super().__init__(
             version=__version__,
@@ -338,8 +339,24 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        api_key = self.api_key
-        return {"Authorization": f"Bearer {api_key}"}
+        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
+
+    @property
+    def _bb_api_key_auth(self) -> dict[str, str]:
+        browserbase_api_key = self.browserbase_api_key
+        return {"x-bb-api-key": browserbase_api_key}
+
+    @property
+    def _bb_project_id_auth(self) -> dict[str, str]:
+        browserbase_project_id = self.browserbase_project_id
+        return {"x-bb-project-id": browserbase_project_id}
+
+    @property
+    def _llm_model_api_key_auth(self) -> dict[str, str]:
+        model_api_key = self.model_api_key
+        if model_api_key is None:
+            return {}
+        return {"x-model-api-key": model_api_key}
 
     @property
     @override
@@ -353,8 +370,9 @@ class AsyncStagehand(AsyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
-        environment: Literal["production", "dev", "local"] | None = None,
+        browserbase_api_key: str | None = None,
+        browserbase_project_id: str | None = None,
+        model_api_key: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
@@ -388,9 +406,10 @@ class AsyncStagehand(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
+            browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
+            model_api_key=model_api_key or self.model_api_key,
             base_url=base_url or self.base_url,
-            environment=environment or self._environment,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
