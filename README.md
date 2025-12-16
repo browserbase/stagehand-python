@@ -1,9 +1,9 @@
-# Browserbase Python API library
+# Stagehand Python API library
 
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/stagehand.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand/)
 
-The Browserbase Python library provides convenient access to the Browserbase REST API from any Python 3.9+
+The Stagehand Python library provides convenient access to the Stagehand REST API from any Python 3.9+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -11,7 +11,7 @@ It is generated with [Stainless](https://www.stainless.com/).
 
 ## Documentation
 
-The REST API documentation can be found on [browserbase.com](https://browserbase.com). The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [docs.stagehand.dev](https://docs.stagehand.dev). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
 
@@ -29,9 +29,9 @@ The full API of this library can be found in [api.md](api.md).
 
 ```python
 import os
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase(
+client = Stagehand(
     api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
     # or 'production' | 'local'; defaults to "production".
     environment="dev",
@@ -50,14 +50,14 @@ so that your API Key is not stored in source control.
 
 ## Async usage
 
-Simply import `AsyncBrowserbase` instead of `Browserbase` and use `await` with each API call:
+Simply import `AsyncStagehand` instead of `Stagehand` and use `await` with each API call:
 
 ```python
 import os
 import asyncio
-from stagehand import AsyncBrowserbase
+from stagehand import AsyncStagehand
 
-client = AsyncBrowserbase(
+client = AsyncStagehand(
     api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
     # or 'production' | 'local'; defaults to "production".
     environment="dev",
@@ -93,11 +93,11 @@ Then you can enable it by instantiating the client with `http_client=DefaultAioH
 import os
 import asyncio
 from stagehand import DefaultAioHttpClient
-from stagehand import AsyncBrowserbase
+from stagehand import AsyncStagehand
 
 
 async def main() -> None:
-    async with AsyncBrowserbase(
+    async with AsyncStagehand(
         api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
@@ -124,9 +124,9 @@ Typed requests and responses provide autocomplete and documentation within your 
 Nested parameters are dictionaries, typed using `TypedDict`, for example:
 
 ```python
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase()
+client = Stagehand()
 
 response = client.sessions.start(
     env="LOCAL",
@@ -146,9 +146,9 @@ All errors inherit from `stagehand.APIError`.
 
 ```python
 import stagehand
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase()
+client = Stagehand()
 
 try:
     client.sessions.start(
@@ -187,10 +187,10 @@ Connection errors (for example, due to a network connectivity problem), 408 Requ
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
-from stagehand import Browserbase
+from stagehand import Stagehand
 
 # Configure the default for all requests:
-client = Browserbase(
+client = Stagehand(
     # default is 2
     max_retries=0,
 )
@@ -207,16 +207,16 @@ By default requests time out after 1 minute. You can configure this with a `time
 which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:
 
 ```python
-from stagehand import Browserbase
+from stagehand import Stagehand
 
 # Configure the default for all requests:
-client = Browserbase(
+client = Stagehand(
     # 20 seconds (default is 1 minute)
     timeout=20.0,
 )
 
 # More granular control:
-client = Browserbase(
+client = Stagehand(
     timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
 )
 
@@ -236,10 +236,10 @@ Note that requests that time out are [retried twice by default](#retries).
 
 We use the standard library [`logging`](https://docs.python.org/3/library/logging.html) module.
 
-You can enable logging by setting the environment variable `BROWSERBASE_LOG` to `info`.
+You can enable logging by setting the environment variable `STAGEHAND_LOG` to `info`.
 
 ```shell
-$ export BROWSERBASE_LOG=info
+$ export STAGEHAND_LOG=info
 ```
 
 Or to `debug` for more verbose logging.
@@ -261,9 +261,9 @@ if response.my_field is None:
 The "raw" Response object can be accessed by prefixing `.with_raw_response.` to any HTTP method call, e.g.,
 
 ```py
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase()
+client = Stagehand()
 response = client.sessions.with_raw_response.start(
     env="LOCAL",
 )
@@ -339,10 +339,10 @@ You can directly override the [httpx client](https://www.python-httpx.org/api/#c
 
 ```python
 import httpx
-from stagehand import Browserbase, DefaultHttpxClient
+from stagehand import Stagehand, DefaultHttpxClient
 
-client = Browserbase(
-    # Or use the `BROWSERBASE_BASE_URL` env var
+client = Stagehand(
+    # Or use the `STAGEHAND_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",
@@ -362,9 +362,9 @@ client.with_options(http_client=DefaultHttpxClient(...))
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
 
 ```py
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-with Browserbase() as client:
+with Stagehand() as client:
   # make requests here
   ...
 
