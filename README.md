@@ -32,9 +32,13 @@ import os
 from stagehand import Stagehand
 
 client = Stagehand(
-    api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
-    # or 'production' | 'local'; defaults to "production".
-    environment="dev",
+    browserbase_api_key=os.environ.get(
+        "BROWSERBASE_API_KEY"
+    ),  # This is the default and can be omitted
+    browserbase_project_id=os.environ.get(
+        "BROWSERBASE_PROJECT_ID"
+    ),  # This is the default and can be omitted
+    model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
 )
 
 response = client.sessions.act(
@@ -44,10 +48,10 @@ response = client.sessions.act(
 print(response.actions)
 ```
 
-While you can provide an `api_key` keyword argument,
+While you can provide a `browserbase_api_key` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
-to add `STAGEHAND_API_KEY="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+to add `BROWSERBASE_API_KEY="My Browserbase API Key"` to your `.env` file
+so that your Browserbase API Key is not stored in source control.
 
 ## Async usage
 
@@ -59,9 +63,13 @@ import asyncio
 from stagehand import AsyncStagehand
 
 client = AsyncStagehand(
-    api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
-    # or 'production' | 'local'; defaults to "production".
-    environment="dev",
+    browserbase_api_key=os.environ.get(
+        "BROWSERBASE_API_KEY"
+    ),  # This is the default and can be omitted
+    browserbase_project_id=os.environ.get(
+        "BROWSERBASE_PROJECT_ID"
+    ),  # This is the default and can be omitted
+    model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
 )
 
 
@@ -100,7 +108,13 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     async with AsyncStagehand(
-        api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
+        browserbase_api_key=os.environ.get(
+            "BROWSERBASE_API_KEY"
+        ),  # This is the default and can be omitted
+        browserbase_project_id=os.environ.get(
+            "BROWSERBASE_PROJECT_ID"
+        ),  # This is the default and can be omitted
+        model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
         response = await client.sessions.act(
