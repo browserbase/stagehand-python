@@ -12,7 +12,6 @@ from . import _exceptions
 from ._qs import Querystring
 from ._types import (
     Omit,
-    Headers,
     Timeout,
     NotGiven,
     Transport,
@@ -24,7 +23,7 @@ from ._utils import is_given, get_async_library
 from ._version import __version__
 from .resources import sessions
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import APIStatusError
+from ._exceptions import APIStatusError, BrowserbaseError
 from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
@@ -37,33 +36,34 @@ __all__ = [
     "Transport",
     "ProxiesTypes",
     "RequestOptions",
-    "Stagehand",
-    "AsyncStagehand",
+    "Browserbase",
+    "AsyncBrowserbase",
     "Client",
     "AsyncClient",
 ]
 
 ENVIRONMENTS: Dict[str, str] = {
-    "production": "http://localhost:3000/v1",
-    "environment_1": "https://api.stagehand.browserbase.com/v1",
+    "production": "https://api.stagehand.browserbase.com/v1",
+    "dev": "https://api.stagehand.dev.browserbase.com/v1",
+    "local": "http://localhost:5000/v1",
 }
 
 
-class Stagehand(SyncAPIClient):
+class Browserbase(SyncAPIClient):
     sessions: sessions.SessionsResource
-    with_raw_response: StagehandWithRawResponse
-    with_streaming_response: StagehandWithStreamedResponse
+    with_raw_response: BrowserbaseWithRawResponse
+    with_streaming_response: BrowserbaseWithStreamedResponse
 
     # client options
-    api_key: str | None
+    api_key: str
 
-    _environment: Literal["production", "environment_1"] | NotGiven
+    _environment: Literal["production", "dev", "local"] | NotGiven
 
     def __init__(
         self,
         *,
         api_key: str | None = None,
-        environment: Literal["production", "environment_1"] | NotGiven = not_given,
+        environment: Literal["production", "dev", "local"] | NotGiven = not_given,
         base_url: str | httpx.URL | None | NotGiven = not_given,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -83,24 +83,28 @@ class Stagehand(SyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new synchronous Stagehand client instance.
+        """Construct a new synchronous Browserbase client instance.
 
         This automatically infers the `api_key` argument from the `STAGEHAND_API_KEY` environment variable if it is not provided.
         """
         if api_key is None:
             api_key = os.environ.get("STAGEHAND_API_KEY")
+        if api_key is None:
+            raise BrowserbaseError(
+                "The api_key client option must be set either by passing api_key to the client or by setting the STAGEHAND_API_KEY environment variable"
+            )
         self.api_key = api_key
 
         self._environment = environment
 
-        base_url_env = os.environ.get("STAGEHAND_BASE_URL")
+        base_url_env = os.environ.get("BROWSERBASE_BASE_URL")
         if is_given(base_url) and base_url is not None:
             # cast required because mypy doesn't understand the type narrowing
             base_url = cast("str | httpx.URL", base_url)  # pyright: ignore[reportUnnecessaryCast]
         elif is_given(environment):
             if base_url_env and base_url is not None:
                 raise ValueError(
-                    "Ambiguous URL; The `STAGEHAND_BASE_URL` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None",
+                    "Ambiguous URL; The `BROWSERBASE_BASE_URL` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None",
                 )
 
             try:
@@ -129,8 +133,8 @@ class Stagehand(SyncAPIClient):
         )
 
         self.sessions = sessions.SessionsResource(self)
-        self.with_raw_response = StagehandWithRawResponse(self)
-        self.with_streaming_response = StagehandWithStreamedResponse(self)
+        self.with_raw_response = BrowserbaseWithRawResponse(self)
+        self.with_streaming_response = BrowserbaseWithStreamedResponse(self)
 
     @property
     @override
@@ -141,8 +145,6 @@ class Stagehand(SyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        if api_key is None:
-            return {}
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
@@ -154,22 +156,11 @@ class Stagehand(SyncAPIClient):
             **self._custom_headers,
         }
 
-    @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
-        if self.api_key and headers.get("Authorization"):
-            return
-        if isinstance(custom_headers.get("Authorization"), Omit):
-            return
-
-        raise TypeError(
-            '"Could not resolve authentication method. Expected the api_key to be set. Or for the `Authorization` headers to be explicitly omitted"'
-        )
-
     def copy(
         self,
         *,
         api_key: str | None = None,
-        environment: Literal["production", "environment_1"] | None = None,
+        environment: Literal["production", "dev", "local"] | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
@@ -252,21 +243,21 @@ class Stagehand(SyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class AsyncStagehand(AsyncAPIClient):
+class AsyncBrowserbase(AsyncAPIClient):
     sessions: sessions.AsyncSessionsResource
-    with_raw_response: AsyncStagehandWithRawResponse
-    with_streaming_response: AsyncStagehandWithStreamedResponse
+    with_raw_response: AsyncBrowserbaseWithRawResponse
+    with_streaming_response: AsyncBrowserbaseWithStreamedResponse
 
     # client options
-    api_key: str | None
+    api_key: str
 
-    _environment: Literal["production", "environment_1"] | NotGiven
+    _environment: Literal["production", "dev", "local"] | NotGiven
 
     def __init__(
         self,
         *,
         api_key: str | None = None,
-        environment: Literal["production", "environment_1"] | NotGiven = not_given,
+        environment: Literal["production", "dev", "local"] | NotGiven = not_given,
         base_url: str | httpx.URL | None | NotGiven = not_given,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -286,24 +277,28 @@ class AsyncStagehand(AsyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new async AsyncStagehand client instance.
+        """Construct a new async AsyncBrowserbase client instance.
 
         This automatically infers the `api_key` argument from the `STAGEHAND_API_KEY` environment variable if it is not provided.
         """
         if api_key is None:
             api_key = os.environ.get("STAGEHAND_API_KEY")
+        if api_key is None:
+            raise BrowserbaseError(
+                "The api_key client option must be set either by passing api_key to the client or by setting the STAGEHAND_API_KEY environment variable"
+            )
         self.api_key = api_key
 
         self._environment = environment
 
-        base_url_env = os.environ.get("STAGEHAND_BASE_URL")
+        base_url_env = os.environ.get("BROWSERBASE_BASE_URL")
         if is_given(base_url) and base_url is not None:
             # cast required because mypy doesn't understand the type narrowing
             base_url = cast("str | httpx.URL", base_url)  # pyright: ignore[reportUnnecessaryCast]
         elif is_given(environment):
             if base_url_env and base_url is not None:
                 raise ValueError(
-                    "Ambiguous URL; The `STAGEHAND_BASE_URL` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None",
+                    "Ambiguous URL; The `BROWSERBASE_BASE_URL` env var and the `environment` argument are given. If you want to use the environment, you must pass base_url=None",
                 )
 
             try:
@@ -332,8 +327,8 @@ class AsyncStagehand(AsyncAPIClient):
         )
 
         self.sessions = sessions.AsyncSessionsResource(self)
-        self.with_raw_response = AsyncStagehandWithRawResponse(self)
-        self.with_streaming_response = AsyncStagehandWithStreamedResponse(self)
+        self.with_raw_response = AsyncBrowserbaseWithRawResponse(self)
+        self.with_streaming_response = AsyncBrowserbaseWithStreamedResponse(self)
 
     @property
     @override
@@ -344,8 +339,6 @@ class AsyncStagehand(AsyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        if api_key is None:
-            return {}
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
@@ -357,22 +350,11 @@ class AsyncStagehand(AsyncAPIClient):
             **self._custom_headers,
         }
 
-    @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
-        if self.api_key and headers.get("Authorization"):
-            return
-        if isinstance(custom_headers.get("Authorization"), Omit):
-            return
-
-        raise TypeError(
-            '"Could not resolve authentication method. Expected the api_key to be set. Or for the `Authorization` headers to be explicitly omitted"'
-        )
-
     def copy(
         self,
         *,
         api_key: str | None = None,
-        environment: Literal["production", "environment_1"] | None = None,
+        environment: Literal["production", "dev", "local"] | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
@@ -455,26 +437,26 @@ class AsyncStagehand(AsyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class StagehandWithRawResponse:
-    def __init__(self, client: Stagehand) -> None:
+class BrowserbaseWithRawResponse:
+    def __init__(self, client: Browserbase) -> None:
         self.sessions = sessions.SessionsResourceWithRawResponse(client.sessions)
 
 
-class AsyncStagehandWithRawResponse:
-    def __init__(self, client: AsyncStagehand) -> None:
+class AsyncBrowserbaseWithRawResponse:
+    def __init__(self, client: AsyncBrowserbase) -> None:
         self.sessions = sessions.AsyncSessionsResourceWithRawResponse(client.sessions)
 
 
-class StagehandWithStreamedResponse:
-    def __init__(self, client: Stagehand) -> None:
+class BrowserbaseWithStreamedResponse:
+    def __init__(self, client: Browserbase) -> None:
         self.sessions = sessions.SessionsResourceWithStreamingResponse(client.sessions)
 
 
-class AsyncStagehandWithStreamedResponse:
-    def __init__(self, client: AsyncStagehand) -> None:
+class AsyncBrowserbaseWithStreamedResponse:
+    def __init__(self, client: AsyncBrowserbase) -> None:
         self.sessions = sessions.AsyncSessionsResourceWithStreamingResponse(client.sessions)
 
 
-Client = Stagehand
+Client = Browserbase
 
-AsyncClient = AsyncStagehand
+AsyncClient = AsyncBrowserbase

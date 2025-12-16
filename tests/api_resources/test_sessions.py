@@ -7,7 +7,7 @@ from typing import Any, Optional, cast
 
 import pytest
 
-from stagehand import Stagehand, AsyncStagehand
+from stagehand import Browserbase, AsyncBrowserbase
 from tests.utils import assert_matches_type
 from stagehand.types import (
     SessionActResponse,
@@ -27,7 +27,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_act(self, client: Stagehand) -> None:
+    def test_method_act(self, client: Browserbase) -> None:
         session = client.sessions.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -36,7 +36,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_act_with_all_params(self, client: Stagehand) -> None:
+    def test_method_act_with_all_params(self, client: Browserbase) -> None:
         session = client.sessions.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -57,7 +57,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_act(self, client: Stagehand) -> None:
+    def test_raw_response_act(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -70,7 +70,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_act(self, client: Stagehand) -> None:
+    def test_streaming_response_act(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -85,7 +85,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_act(self, client: Stagehand) -> None:
+    def test_path_params_act(self, client: Browserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.sessions.with_raw_response.act(
                 session_id="",
@@ -94,7 +94,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_end(self, client: Stagehand) -> None:
+    def test_method_end(self, client: Browserbase) -> None:
         session = client.sessions.end(
             "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -102,7 +102,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_end(self, client: Stagehand) -> None:
+    def test_raw_response_end(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.end(
             "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -114,7 +114,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_end(self, client: Stagehand) -> None:
+    def test_streaming_response_end(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.end(
             "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         ) as response:
@@ -128,7 +128,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_end(self, client: Stagehand) -> None:
+    def test_path_params_end(self, client: Browserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.sessions.with_raw_response.end(
                 "",
@@ -136,7 +136,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_execute_agent(self, client: Stagehand) -> None:
+    def test_method_execute_agent(self, client: Browserbase) -> None:
         session = client.sessions.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={},
@@ -146,7 +146,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_execute_agent_with_all_params(self, client: Stagehand) -> None:
+    def test_method_execute_agent_with_all_params(self, client: Browserbase) -> None:
         session = client.sessions.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={
@@ -167,7 +167,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_execute_agent(self, client: Stagehand) -> None:
+    def test_raw_response_execute_agent(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={},
@@ -181,7 +181,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_execute_agent(self, client: Stagehand) -> None:
+    def test_streaming_response_execute_agent(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={},
@@ -197,7 +197,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_execute_agent(self, client: Stagehand) -> None:
+    def test_path_params_execute_agent(self, client: Browserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.sessions.with_raw_response.execute_agent(
                 session_id="",
@@ -207,7 +207,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_extract(self, client: Stagehand) -> None:
+    def test_method_extract(self, client: Browserbase) -> None:
         session = client.sessions.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -215,7 +215,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_extract_with_all_params(self, client: Stagehand) -> None:
+    def test_method_extract_with_all_params(self, client: Browserbase) -> None:
         session = client.sessions.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             frame_id="frameId",
@@ -237,7 +237,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_extract(self, client: Stagehand) -> None:
+    def test_raw_response_extract(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -249,7 +249,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_extract(self, client: Stagehand) -> None:
+    def test_streaming_response_extract(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         ) as response:
@@ -263,7 +263,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_extract(self, client: Stagehand) -> None:
+    def test_path_params_extract(self, client: Browserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.sessions.with_raw_response.extract(
                 session_id="",
@@ -271,7 +271,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_navigate(self, client: Stagehand) -> None:
+    def test_method_navigate(self, client: Browserbase) -> None:
         session = client.sessions.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -280,7 +280,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_navigate_with_all_params(self, client: Stagehand) -> None:
+    def test_method_navigate_with_all_params(self, client: Browserbase) -> None:
         session = client.sessions.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -292,7 +292,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_navigate(self, client: Stagehand) -> None:
+    def test_raw_response_navigate(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -305,7 +305,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_navigate(self, client: Stagehand) -> None:
+    def test_streaming_response_navigate(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -320,7 +320,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_navigate(self, client: Stagehand) -> None:
+    def test_path_params_navigate(self, client: Browserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.sessions.with_raw_response.navigate(
                 session_id="",
@@ -329,7 +329,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_observe(self, client: Stagehand) -> None:
+    def test_method_observe(self, client: Browserbase) -> None:
         session = client.sessions.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -337,7 +337,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_observe_with_all_params(self, client: Stagehand) -> None:
+    def test_method_observe_with_all_params(self, client: Browserbase) -> None:
         session = client.sessions.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             frame_id="frameId",
@@ -358,7 +358,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_observe(self, client: Stagehand) -> None:
+    def test_raw_response_observe(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -370,7 +370,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_observe(self, client: Stagehand) -> None:
+    def test_streaming_response_observe(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         ) as response:
@@ -384,7 +384,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_observe(self, client: Stagehand) -> None:
+    def test_path_params_observe(self, client: Browserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             client.sessions.with_raw_response.observe(
                 session_id="",
@@ -392,7 +392,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_start(self, client: Stagehand) -> None:
+    def test_method_start(self, client: Browserbase) -> None:
         session = client.sessions.start(
             env="LOCAL",
         )
@@ -400,7 +400,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_start_with_all_params(self, client: Stagehand) -> None:
+    def test_method_start_with_all_params(self, client: Browserbase) -> None:
         session = client.sessions.start(
             env="LOCAL",
             api_key="apiKey",
@@ -416,7 +416,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_start(self, client: Stagehand) -> None:
+    def test_raw_response_start(self, client: Browserbase) -> None:
         response = client.sessions.with_raw_response.start(
             env="LOCAL",
         )
@@ -428,7 +428,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_start(self, client: Stagehand) -> None:
+    def test_streaming_response_start(self, client: Browserbase) -> None:
         with client.sessions.with_streaming_response.start(
             env="LOCAL",
         ) as response:
@@ -448,7 +448,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_act(self, async_client: AsyncStagehand) -> None:
+    async def test_method_act(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -457,7 +457,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_act_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_act_with_all_params(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -478,7 +478,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_act(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_act(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -491,7 +491,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_act(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_act(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.act(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             input="click the sign in button",
@@ -506,7 +506,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_act(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_act(self, async_client: AsyncBrowserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.sessions.with_raw_response.act(
                 session_id="",
@@ -515,7 +515,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_end(self, async_client: AsyncStagehand) -> None:
+    async def test_method_end(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.end(
             "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -523,7 +523,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_end(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_end(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.end(
             "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -535,7 +535,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_end(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_end(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.end(
             "182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         ) as response:
@@ -549,7 +549,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_end(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_end(self, async_client: AsyncBrowserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.sessions.with_raw_response.end(
                 "",
@@ -557,7 +557,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_execute_agent(self, async_client: AsyncStagehand) -> None:
+    async def test_method_execute_agent(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={},
@@ -567,7 +567,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_execute_agent_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_execute_agent_with_all_params(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={
@@ -588,7 +588,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_execute_agent(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_execute_agent(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={},
@@ -602,7 +602,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_execute_agent(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_execute_agent(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.execute_agent(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             agent_config={},
@@ -618,7 +618,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_execute_agent(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_execute_agent(self, async_client: AsyncBrowserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.sessions.with_raw_response.execute_agent(
                 session_id="",
@@ -628,7 +628,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_method_extract(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -636,7 +636,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_extract_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_extract_with_all_params(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             frame_id="frameId",
@@ -658,7 +658,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_extract(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -670,7 +670,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_extract(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.extract(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         ) as response:
@@ -684,7 +684,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_extract(self, async_client: AsyncBrowserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.sessions.with_raw_response.extract(
                 session_id="",
@@ -692,7 +692,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_navigate(self, async_client: AsyncStagehand) -> None:
+    async def test_method_navigate(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -701,7 +701,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_navigate_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_navigate_with_all_params(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -713,7 +713,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_navigate(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_navigate(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -726,7 +726,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_navigate(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_navigate(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.navigate(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             url="https://example.com",
@@ -741,7 +741,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_navigate(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_navigate(self, async_client: AsyncBrowserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.sessions.with_raw_response.navigate(
                 session_id="",
@@ -750,7 +750,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_method_observe(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -758,7 +758,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_observe_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_observe_with_all_params(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
             frame_id="frameId",
@@ -779,7 +779,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_observe(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         )
@@ -791,7 +791,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_observe(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.observe(
             session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
         ) as response:
@@ -805,7 +805,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_observe(self, async_client: AsyncBrowserbase) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `session_id` but received ''"):
             await async_client.sessions.with_raw_response.observe(
                 session_id="",
@@ -813,7 +813,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_start(self, async_client: AsyncStagehand) -> None:
+    async def test_method_start(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.start(
             env="LOCAL",
         )
@@ -821,7 +821,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_start_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_start_with_all_params(self, async_client: AsyncBrowserbase) -> None:
         session = await async_client.sessions.start(
             env="LOCAL",
             api_key="apiKey",
@@ -837,7 +837,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_start(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_start(self, async_client: AsyncBrowserbase) -> None:
         response = await async_client.sessions.with_raw_response.start(
             env="LOCAL",
         )
@@ -849,7 +849,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_start(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_start(self, async_client: AsyncBrowserbase) -> None:
         async with async_client.sessions.with_streaming_response.start(
             env="LOCAL",
         ) as response:
