@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 from typing_extensions import Self, override
 
 import httpx
@@ -20,8 +20,8 @@ from ._types import (
     not_given,
 )
 from ._utils import is_given, get_async_library
+from ._compat import cached_property
 from ._version import __version__
-from .resources import sessions
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import APIStatusError, StagehandError
 from ._base_client import (
@@ -29,6 +29,10 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
+
+if TYPE_CHECKING:
+    from .resources import sessions
+    from .resources.sessions import SessionsResource, AsyncSessionsResource
 
 __all__ = [
     "Timeout",
@@ -43,10 +47,6 @@ __all__ = [
 
 
 class Stagehand(SyncAPIClient):
-    sessions: sessions.SessionsResource
-    with_raw_response: StagehandWithRawResponse
-    with_streaming_response: StagehandWithStreamedResponse
-
     # client options
     browserbase_api_key: str
     browserbase_project_id: str
@@ -124,9 +124,19 @@ class Stagehand(SyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.sessions = sessions.SessionsResource(self)
-        self.with_raw_response = StagehandWithRawResponse(self)
-        self.with_streaming_response = StagehandWithStreamedResponse(self)
+    @cached_property
+    def sessions(self) -> SessionsResource:
+        from .resources.sessions import SessionsResource
+
+        return SessionsResource(self)
+
+    @cached_property
+    def with_raw_response(self) -> StagehandWithRawResponse:
+        return StagehandWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> StagehandWithStreamedResponse:
+        return StagehandWithStreamedResponse(self)
 
     @property
     @override
@@ -252,10 +262,6 @@ class Stagehand(SyncAPIClient):
 
 
 class AsyncStagehand(AsyncAPIClient):
-    sessions: sessions.AsyncSessionsResource
-    with_raw_response: AsyncStagehandWithRawResponse
-    with_streaming_response: AsyncStagehandWithStreamedResponse
-
     # client options
     browserbase_api_key: str
     browserbase_project_id: str
@@ -333,9 +339,19 @@ class AsyncStagehand(AsyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
-        self.sessions = sessions.AsyncSessionsResource(self)
-        self.with_raw_response = AsyncStagehandWithRawResponse(self)
-        self.with_streaming_response = AsyncStagehandWithStreamedResponse(self)
+    @cached_property
+    def sessions(self) -> AsyncSessionsResource:
+        from .resources.sessions import AsyncSessionsResource
+
+        return AsyncSessionsResource(self)
+
+    @cached_property
+    def with_raw_response(self) -> AsyncStagehandWithRawResponse:
+        return AsyncStagehandWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncStagehandWithStreamedResponse:
+        return AsyncStagehandWithStreamedResponse(self)
 
     @property
     @override
@@ -461,23 +477,55 @@ class AsyncStagehand(AsyncAPIClient):
 
 
 class StagehandWithRawResponse:
+    _client: Stagehand
+
     def __init__(self, client: Stagehand) -> None:
-        self.sessions = sessions.SessionsResourceWithRawResponse(client.sessions)
+        self._client = client
+
+    @cached_property
+    def sessions(self) -> sessions.SessionsResourceWithRawResponse:
+        from .resources.sessions import SessionsResourceWithRawResponse
+
+        return SessionsResourceWithRawResponse(self._client.sessions)
 
 
 class AsyncStagehandWithRawResponse:
+    _client: AsyncStagehand
+
     def __init__(self, client: AsyncStagehand) -> None:
-        self.sessions = sessions.AsyncSessionsResourceWithRawResponse(client.sessions)
+        self._client = client
+
+    @cached_property
+    def sessions(self) -> sessions.AsyncSessionsResourceWithRawResponse:
+        from .resources.sessions import AsyncSessionsResourceWithRawResponse
+
+        return AsyncSessionsResourceWithRawResponse(self._client.sessions)
 
 
 class StagehandWithStreamedResponse:
+    _client: Stagehand
+
     def __init__(self, client: Stagehand) -> None:
-        self.sessions = sessions.SessionsResourceWithStreamingResponse(client.sessions)
+        self._client = client
+
+    @cached_property
+    def sessions(self) -> sessions.SessionsResourceWithStreamingResponse:
+        from .resources.sessions import SessionsResourceWithStreamingResponse
+
+        return SessionsResourceWithStreamingResponse(self._client.sessions)
 
 
 class AsyncStagehandWithStreamedResponse:
+    _client: AsyncStagehand
+
     def __init__(self, client: AsyncStagehand) -> None:
-        self.sessions = sessions.AsyncSessionsResourceWithStreamingResponse(client.sessions)
+        self._client = client
+
+    @cached_property
+    def sessions(self) -> sessions.AsyncSessionsResourceWithStreamingResponse:
+        from .resources.sessions import AsyncSessionsResourceWithStreamingResponse
+
+        return AsyncSessionsResourceWithStreamingResponse(self._client.sessions)
 
 
 Client = Stagehand
