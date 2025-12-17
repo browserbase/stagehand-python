@@ -21,10 +21,10 @@ __all__ = [
     "BrowserbaseSessionCreateParamsBrowserSettingsFingerprint",
     "BrowserbaseSessionCreateParamsBrowserSettingsFingerprintScreen",
     "BrowserbaseSessionCreateParamsBrowserSettingsViewport",
-    "BrowserbaseSessionCreateParamsProxiesUnionMember1",
-    "BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfig",
-    "BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfigGeolocation",
-    "BrowserbaseSessionCreateParamsProxiesUnionMember1ExternalProxyConfig",
+    "BrowserbaseSessionCreateParamsProxiesProxyConfigList",
+    "BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfig",
+    "BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfigGeolocation",
+    "BrowserbaseSessionCreateParamsProxiesProxyConfigListExternalProxyConfig",
 ]
 
 
@@ -57,7 +57,7 @@ class SessionStartParams(TypedDict, total=False):
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]
     """Custom system prompt for AI operations"""
 
-    verbose: Literal[0, 1, 2]
+    verbose: int
     """Logging verbosity level (0=quiet, 1=normal, 2=debug)"""
 
     wait_for_captcha_solves: Annotated[bool, PropertyInfo(alias="waitForCaptchaSolves")]
@@ -197,7 +197,7 @@ class BrowserbaseSessionCreateParamsBrowserSettings(TypedDict, total=False):
     viewport: BrowserbaseSessionCreateParamsBrowserSettingsViewport
 
 
-class BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfigGeolocation(TypedDict, total=False):
+class BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfigGeolocation(TypedDict, total=False):
     country: Required[str]
 
     city: str
@@ -205,15 +205,15 @@ class BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfigGeo
     state: str
 
 
-class BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfig(TypedDict, total=False):
+class BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfig(TypedDict, total=False):
     type: Required[Literal["browserbase"]]
 
     domain_pattern: Annotated[str, PropertyInfo(alias="domainPattern")]
 
-    geolocation: BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfigGeolocation
+    geolocation: BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfigGeolocation
 
 
-class BrowserbaseSessionCreateParamsProxiesUnionMember1ExternalProxyConfig(TypedDict, total=False):
+class BrowserbaseSessionCreateParamsProxiesProxyConfigListExternalProxyConfig(TypedDict, total=False):
     server: Required[str]
 
     type: Required[Literal["external"]]
@@ -225,9 +225,9 @@ class BrowserbaseSessionCreateParamsProxiesUnionMember1ExternalProxyConfig(Typed
     username: str
 
 
-BrowserbaseSessionCreateParamsProxiesUnionMember1: TypeAlias = Union[
-    BrowserbaseSessionCreateParamsProxiesUnionMember1BrowserbaseProxyConfig,
-    BrowserbaseSessionCreateParamsProxiesUnionMember1ExternalProxyConfig,
+BrowserbaseSessionCreateParamsProxiesProxyConfigList: TypeAlias = Union[
+    BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfig,
+    BrowserbaseSessionCreateParamsProxiesProxyConfigListExternalProxyConfig,
 ]
 
 
@@ -240,7 +240,7 @@ class BrowserbaseSessionCreateParams(TypedDict, total=False):
 
     project_id: Annotated[str, PropertyInfo(alias="projectId")]
 
-    proxies: Union[bool, Iterable[BrowserbaseSessionCreateParamsProxiesUnionMember1]]
+    proxies: Union[bool, Iterable[BrowserbaseSessionCreateParamsProxiesProxyConfigList]]
 
     region: Literal["us-west-2", "us-east-1", "eu-central-1", "ap-southeast-1"]
 

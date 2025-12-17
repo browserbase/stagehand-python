@@ -49,7 +49,7 @@ class TestSessions:
             },
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
@@ -106,7 +106,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -175,7 +175,7 @@ class TestSessions:
             frame_id="frameId",
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
@@ -249,7 +249,7 @@ class TestSessions:
             schema={"foo": "bar"},
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
@@ -311,7 +311,7 @@ class TestSessions:
             },
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
@@ -375,7 +375,7 @@ class TestSessions:
             },
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
@@ -508,7 +508,7 @@ class TestSessions:
             wait_for_captcha_solves=True,
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
@@ -568,7 +568,7 @@ class TestAsyncSessions:
             },
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
@@ -625,7 +625,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -694,7 +694,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
@@ -768,7 +768,7 @@ class TestAsyncSessions:
             schema={"foo": "bar"},
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
@@ -830,7 +830,7 @@ class TestAsyncSessions:
             },
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
@@ -894,7 +894,7 @@ class TestAsyncSessions:
             },
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
@@ -1027,7 +1027,7 @@ class TestAsyncSessions:
             wait_for_captcha_solves=True,
             x_language="typescript",
             x_sdk_version="3.0.6",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00.000Z"),
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
