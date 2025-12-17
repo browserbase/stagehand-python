@@ -41,11 +41,7 @@ client = Stagehand(
     model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
 )
 
-response = client.sessions.act(
-    session_id="00000000-your-session-id-000000000000",
-    input="click the first link on the page",
-)
-print(response.actions)
+response = client.sessions.start()
 ```
 
 While you can provide a `browserbase_api_key` keyword argument,
@@ -74,11 +70,7 @@ client = AsyncStagehand(
 
 
 async def main() -> None:
-    response = await client.sessions.act(
-        session_id="00000000-your-session-id-000000000000",
-        input="click the first link on the page",
-    )
-    print(response.actions)
+    response = await client.sessions.start()
 
 
 asyncio.run(main())
@@ -117,11 +109,7 @@ async def main() -> None:
         model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
-        response = await client.sessions.act(
-            session_id="00000000-your-session-id-000000000000",
-            input="click the first link on the page",
-        )
-        print(response.actions)
+        response = await client.sessions.start()
 
 
 asyncio.run(main())
@@ -135,23 +123,6 @@ Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typ
 - Converting to a dictionary, `model.to_dict()`
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
-
-## Nested params
-
-Nested parameters are dictionaries, typed using `TypedDict`, for example:
-
-```python
-from stagehand import Stagehand
-
-client = Stagehand()
-
-response = client.sessions.act(
-    session_id="182bd5e5-6e1a-4fe4-a799-aa6d9a6ab26e",
-    input="click the sign in button",
-    options={},
-)
-print(response.options)
-```
 
 ## Handling errors
 
@@ -169,10 +140,7 @@ from stagehand import Stagehand
 client = Stagehand()
 
 try:
-    client.sessions.start(
-        browserbase_api_key="your Browserbase API key",
-        browserbase_project_id="your Browserbase Project ID",
-    )
+    client.sessions.start()
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
     print(e.__cause__)  # an underlying Exception, likely raised within httpx.
@@ -215,10 +183,7 @@ client = Stagehand(
 )
 
 # Or, configure per-request:
-client.with_options(max_retries=5).sessions.start(
-    browserbase_api_key="your Browserbase API key",
-    browserbase_project_id="your Browserbase Project ID",
-)
+client.with_options(max_retries=5).sessions.start()
 ```
 
 ### Timeouts
@@ -241,10 +206,7 @@ client = Stagehand(
 )
 
 # Override per-request:
-client.with_options(timeout=5.0).sessions.start(
-    browserbase_api_key="your Browserbase API key",
-    browserbase_project_id="your Browserbase Project ID",
-)
+client.with_options(timeout=5.0).sessions.start()
 ```
 
 On timeout, an `APITimeoutError` is thrown.
@@ -285,14 +247,11 @@ The "raw" Response object can be accessed by prefixing `.with_raw_response.` to 
 from stagehand import Stagehand
 
 client = Stagehand()
-response = client.sessions.with_raw_response.start(
-    browserbase_api_key="your Browserbase API key",
-    browserbase_project_id="your Browserbase Project ID",
-)
+response = client.sessions.with_raw_response.start()
 print(response.headers.get('X-My-Header'))
 
 session = response.parse()  # get the object that `sessions.start()` would have returned
-print(session.available)
+print(session)
 ```
 
 These methods return an [`APIResponse`](https://github.com/browserbase/stagehand-python/tree/stainless/src/stagehand/_response.py) object.
@@ -306,10 +265,7 @@ The above interface eagerly reads the full response body when you make the reque
 To stream the response body, use `.with_streaming_response` instead, which requires a context manager and only reads the response body once you call `.read()`, `.text()`, `.json()`, `.iter_bytes()`, `.iter_text()`, `.iter_lines()` or `.parse()`. In the async client, these are async methods.
 
 ```python
-with client.sessions.with_streaming_response.start(
-    browserbase_api_key="your Browserbase API key",
-    browserbase_project_id="your Browserbase Project ID",
-) as response:
+with client.sessions.with_streaming_response.start() as response:
     print(response.headers.get("X-My-Header"))
 
     for line in response.iter_lines():
