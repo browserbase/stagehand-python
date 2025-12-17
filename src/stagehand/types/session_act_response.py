@@ -1,7 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
-from typing_extensions import Literal
 
 from pydantic import Field as FieldInfo
 
@@ -35,4 +34,5 @@ class Data(BaseModel):
 class SessionActResponse(BaseModel):
     data: Data
 
-    success: Literal[True]
+    success: bool
+    """Indicates whether the request was successful"""
