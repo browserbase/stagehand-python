@@ -41,7 +41,11 @@ client = Stagehand(
     model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
 )
 
-response = client.sessions.start()
+response = client.sessions.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+)
+print(response.data)
 ```
 
 While you can provide a `browserbase_api_key` keyword argument,
@@ -70,7 +74,11 @@ client = AsyncStagehand(
 
 
 async def main() -> None:
-    response = await client.sessions.start()
+    response = await client.sessions.act(
+        id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        input="Click the login button",
+    )
+    print(response.data)
 
 
 asyncio.run(main())
@@ -109,7 +117,11 @@ async def main() -> None:
         model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
-        response = await client.sessions.start()
+        response = await client.sessions.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+        )
+        print(response.data)
 
 
 asyncio.run(main())
@@ -123,6 +135,23 @@ Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typ
 - Converting to a dictionary, `model.to_dict()`
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
+
+## Nested params
+
+Nested parameters are dictionaries, typed using `TypedDict`, for example:
+
+```python
+from stagehand import Stagehand
+
+client = Stagehand()
+
+response = client.sessions.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+    options={},
+)
+print(response.options)
+```
 
 ## Handling errors
 
@@ -140,7 +169,10 @@ from stagehand import Stagehand
 client = Stagehand()
 
 try:
-    client.sessions.start()
+    client.sessions.act(
+        id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        input="Click the login button",
+    )
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
     print(e.__cause__)  # an underlying Exception, likely raised within httpx.
@@ -183,7 +215,10 @@ client = Stagehand(
 )
 
 # Or, configure per-request:
-client.with_options(max_retries=5).sessions.start()
+client.with_options(max_retries=5).sessions.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+)
 ```
 
 ### Timeouts
@@ -206,7 +241,10 @@ client = Stagehand(
 )
 
 # Override per-request:
-client.with_options(timeout=5.0).sessions.start()
+client.with_options(timeout=5.0).sessions.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+)
 ```
 
 On timeout, an `APITimeoutError` is thrown.
@@ -247,11 +285,14 @@ The "raw" Response object can be accessed by prefixing `.with_raw_response.` to 
 from stagehand import Stagehand
 
 client = Stagehand()
-response = client.sessions.with_raw_response.start()
+response = client.sessions.with_raw_response.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+)
 print(response.headers.get('X-My-Header'))
 
-session = response.parse()  # get the object that `sessions.start()` would have returned
-print(session)
+session = response.parse()  # get the object that `sessions.act()` would have returned
+print(session.data)
 ```
 
 These methods return an [`APIResponse`](https://github.com/browserbase/stagehand-python/tree/stainless/src/stagehand/_response.py) object.
@@ -265,7 +306,10 @@ The above interface eagerly reads the full response body when you make the reque
 To stream the response body, use `.with_streaming_response` instead, which requires a context manager and only reads the response body once you call `.read()`, `.text()`, `.json()`, `.iter_bytes()`, `.iter_text()`, `.iter_lines()` or `.parse()`. In the async client, these are async methods.
 
 ```python
-with client.sessions.with_streaming_response.start() as response:
+with client.sessions.with_streaming_response.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+) as response:
     print(response.headers.get("X-My-Header"))
 
     for line in response.iter_lines():
