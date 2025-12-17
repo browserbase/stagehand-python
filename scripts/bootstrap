@@ -19,9 +19,12 @@ if [ -f "Brewfile" ] && [ "$(uname -s)" = "Darwin" ] && [ "$SKIP_BREW" != "1" ] 
   }
 fi
 
+echo "==> Installing Python…"
+uv python install
+
 echo "==> Installing Python dependencies…"
+uv sync --all-extras
 
-# experimental uv support makes installations significantly faster
-rye config --set-bool behavior.use-uv=true
-
-rye sync --all-features
+echo "==> Exporting Python dependencies…"
+# note: `--no-hashes` is required because of https://github.com/pypa/pip/issues/4995
+uv export -o requirements-dev.lock --no-hashes
