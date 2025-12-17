@@ -54,8 +54,31 @@ fi
 
 export DEFER_PYDANTIC_BUILD=false
 
-echo "==> Running tests"
-rye run pytest "$@"
+# Note that we need to specify the patch version here so that uv
+# won't use unstable (alpha, beta, rc) releases for the tests
+PY_VERSION_MIN=">=3.9.0"
+PY_VERSION_MAX=">=3.14.0"
 
-echo "==> Running Pydantic v1 tests"
-rye run nox -s test-pydantic-v1 -- "$@"
+function run_tests() {
+    echo "==> Running tests with Pydantic v2"
+    uv run --isolated --all-extras pytest "$@"
+
+    # Skip Pydantic v1 tests on latest Python (not supported)
+    if [[ "$UV_PYTHON" != "$PY_VERSION_MAX" ]]; then
+        echo "==> Running tests with Pydantic v1"
+        uv run --isolated --all-extras --group=pydantic-v1 pytest "$@"
+    fi
+}
+
+# If UV_PYTHON is already set in the environment, just run the command once
+if [[ -n "$UV_PYTHON" ]]; then
+  run_tests "$@"
+else
+  # If UV_PYTHON is not set, run the command for min and max versions
+
+  echo "==> Running tests for Python $PY_VERSION_MIN"
+  UV_PYTHON="$PY_VERSION_MIN" run_tests "$@"
+
+  echo "==> Running tests for Python $PY_VERSION_MAX"
+  UV_PYTHON="$PY_VERSION_MAX" run_tests "$@"
+fi
