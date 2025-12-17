@@ -42,7 +42,7 @@ client = Stagehand(
 )
 
 response = client.sessions.act(
-    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    id="00000000-your-session-id-000000000000",
     input="click the first link on the page",
 )
 print(response.data)
@@ -75,7 +75,7 @@ client = AsyncStagehand(
 
 async def main() -> None:
     response = await client.sessions.act(
-        id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        id="00000000-your-session-id-000000000000",
         input="click the first link on the page",
     )
     print(response.data)
@@ -118,7 +118,7 @@ async def main() -> None:
         http_client=DefaultAioHttpClient(),
     ) as client:
         response = await client.sessions.act(
-            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            id="00000000-your-session-id-000000000000",
             input="click the first link on the page",
         )
         print(response.data)
