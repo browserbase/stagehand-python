@@ -43,7 +43,7 @@ client = Stagehand(
 
 response = client.sessions.act(
     id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-    input="Click the login button",
+    input="click the first link on the page",
 )
 print(response.data)
 ```
@@ -76,7 +76,7 @@ client = AsyncStagehand(
 async def main() -> None:
     response = await client.sessions.act(
         id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-        input="Click the login button",
+        input="click the first link on the page",
     )
     print(response.data)
 
@@ -119,7 +119,7 @@ async def main() -> None:
     ) as client:
         response = await client.sessions.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            input="Click the login button",
+            input="click the first link on the page",
         )
         print(response.data)
 
@@ -169,9 +169,8 @@ from stagehand import Stagehand
 client = Stagehand()
 
 try:
-    client.sessions.act(
-        id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-        input="Click the login button",
+    client.sessions.start(
+        model_name="gpt-4o",
     )
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
@@ -215,9 +214,8 @@ client = Stagehand(
 )
 
 # Or, configure per-request:
-client.with_options(max_retries=5).sessions.act(
-    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-    input="Click the login button",
+client.with_options(max_retries=5).sessions.start(
+    model_name="gpt-4o",
 )
 ```
 
@@ -241,9 +239,8 @@ client = Stagehand(
 )
 
 # Override per-request:
-client.with_options(timeout=5.0).sessions.act(
-    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-    input="Click the login button",
+client.with_options(timeout=5.0).sessions.start(
+    model_name="gpt-4o",
 )
 ```
 
@@ -285,13 +282,12 @@ The "raw" Response object can be accessed by prefixing `.with_raw_response.` to 
 from stagehand import Stagehand
 
 client = Stagehand()
-response = client.sessions.with_raw_response.act(
-    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-    input="Click the login button",
+response = client.sessions.with_raw_response.start(
+    model_name="gpt-4o",
 )
 print(response.headers.get('X-My-Header'))
 
-session = response.parse()  # get the object that `sessions.act()` would have returned
+session = response.parse()  # get the object that `sessions.start()` would have returned
 print(session.data)
 ```
 
@@ -306,9 +302,8 @@ The above interface eagerly reads the full response body when you make the reque
 To stream the response body, use `.with_streaming_response` instead, which requires a context manager and only reads the response body once you call `.read()`, `.text()`, `.json()`, `.iter_bytes()`, `.iter_text()`, `.iter_lines()` or `.parse()`. In the async client, these are async methods.
 
 ```python
-with client.sessions.with_streaming_response.act(
-    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-    input="Click the login button",
+with client.sessions.with_streaming_response.start(
+    model_name="gpt-4o",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
