@@ -43,7 +43,7 @@ class TestSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -164,7 +164,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "system_prompt": "systemPrompt",
             },
             execute_options={
@@ -242,7 +242,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -369,7 +369,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -562,7 +562,7 @@ class TestAsyncSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -683,7 +683,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "system_prompt": "systemPrompt",
             },
             execute_options={
@@ -761,7 +761,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -888,7 +888,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "string",
+                "model": "openai/gpt-5-nano",
                 "selector": "nav",
                 "timeout": 30000,
             },

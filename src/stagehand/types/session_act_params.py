@@ -56,6 +56,10 @@ Input: TypeAlias = Union[str, InputActionInput]
 
 class Options(TypedDict, total=False):
     model: ModelConfigParam
+    """
+    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
+    'anthropic/claude-4.5-opus')
+    """
 
     timeout: float
     """Timeout in ms for the action"""

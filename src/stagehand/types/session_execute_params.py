@@ -38,6 +38,10 @@ class AgentConfig(TypedDict, total=False):
     """Enable Computer Use Agent mode"""
 
     model: ModelConfigParam
+    """
+    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
+    'anthropic/claude-4.5-opus')
+    """
 
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]
     """Custom system prompt for the agent"""

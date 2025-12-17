@@ -36,6 +36,10 @@ class SessionObserveParams(TypedDict, total=False):
 
 class Options(TypedDict, total=False):
     model: ModelConfigParam
+    """
+    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
+    'anthropic/claude-4.5-opus')
+    """
 
     selector: str
     """CSS selector to scope observation to a specific element"""
