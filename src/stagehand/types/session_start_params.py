@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing_extensions import Required, Annotated, TypedDict
+from typing_extensions import Annotated, TypedDict
 
 from .._utils import PropertyInfo
 
@@ -10,23 +10,12 @@ __all__ = ["SessionStartParams"]
 
 
 class SessionStartParams(TypedDict, total=False):
-    browserbase_api_key: Required[Annotated[str, PropertyInfo(alias="BROWSERBASE_API_KEY")]]
-    """API key for Browserbase Cloud"""
+    body: object
 
-    browserbase_project_id: Required[Annotated[str, PropertyInfo(alias="BROWSERBASE_PROJECT_ID")]]
-    """Project ID for Browserbase"""
+    x_language: Annotated[object, PropertyInfo(alias="x-language")]
 
-    dom_settle_timeout: Annotated[int, PropertyInfo(alias="domSettleTimeout")]
-    """Timeout in ms to wait for DOM to settle"""
+    x_sdk_version: Annotated[object, PropertyInfo(alias="x-sdk-version")]
 
-    model: str
-    """AI model to use for actions (must be prefixed with provider/)"""
+    x_sent_at: Annotated[object, PropertyInfo(alias="x-sent-at")]
 
-    self_heal: Annotated[bool, PropertyInfo(alias="selfHeal")]
-    """Enable self-healing for failed actions"""
-
-    system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]
-    """Custom system prompt for AI actions"""
-
-    verbose: int
-    """Logging verbosity level"""
+    x_stream_response: Annotated[object, PropertyInfo(alias="x-stream-response")]
