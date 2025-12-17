@@ -2,20 +2,63 @@
 
 from __future__ import annotations
 
-from typing_extensions import Annotated, TypedDict
+from typing import Dict, Union
+from datetime import datetime
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
+from .._types import SequenceNotStr
 from .._utils import PropertyInfo
+from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionActParams"]
+__all__ = ["SessionActParams", "Input", "InputActionInput", "Options"]
 
 
 class SessionActParams(TypedDict, total=False):
-    body: object
+    input: Required[Input]
+    """Natural language instruction or Action object"""
 
-    x_language: Annotated[object, PropertyInfo(alias="x-language")]
+    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    """Target frame ID for the action"""
 
-    x_sdk_version: Annotated[object, PropertyInfo(alias="x-sdk-version")]
+    options: Options
 
-    x_sent_at: Annotated[object, PropertyInfo(alias="x-sent-at")]
+    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
+    """Client SDK language"""
 
-    x_stream_response: Annotated[object, PropertyInfo(alias="x-stream-response")]
+    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
+    """Version of the Stagehand SDK"""
+
+    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
+    """ISO timestamp when request was sent"""
+
+    x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
+    """Whether to stream the response via SSE"""
+
+
+class InputActionInput(TypedDict, total=False):
+    """Action object returned by observe and used by act"""
+
+    description: Required[str]
+    """Human-readable description of the action"""
+
+    selector: Required[str]
+    """CSS selector or XPath for the element"""
+
+    arguments: SequenceNotStr[str]
+    """Arguments to pass to the method"""
+
+    method: str
+    """The method to execute (click, fill, etc.)"""
+
+
+Input: TypeAlias = Union[str, InputActionInput]
+
+
+class Options(TypedDict, total=False):
+    model: ModelConfigParam
+
+    timeout: float
+    """Timeout in ms for the action"""
+
+    variables: Dict[str, str]
+    """Variables to substitute in the action instruction"""

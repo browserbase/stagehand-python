@@ -876,20 +876,26 @@ class TestStagehand:
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: Stagehand) -> None:
-        respx_mock.post("/sessions/start").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(
+            side_effect=httpx.TimeoutException("Test timeout error")
+        )
 
         with pytest.raises(APITimeoutError):
-            client.sessions.with_streaming_response.start().__enter__()
+            client.sessions.with_streaming_response.act(
+                id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123", input="Click the login button"
+            ).__enter__()
 
         assert _get_open_connections(client) == 0
 
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: Stagehand) -> None:
-        respx_mock.post("/sessions/start").mock(return_value=httpx.Response(500))
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            client.sessions.with_streaming_response.start().__enter__()
+            client.sessions.with_streaming_response.act(
+                id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123", input="Click the login button"
+            ).__enter__()
         assert _get_open_connections(client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -916,9 +922,11 @@ class TestStagehand:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(side_effect=retry_handler)
 
-        response = client.sessions.with_raw_response.start()
+        response = client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123", input="Click the login button"
+        )
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -940,9 +948,13 @@ class TestStagehand:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(side_effect=retry_handler)
 
-        response = client.sessions.with_raw_response.start(extra_headers={"x-stainless-retry-count": Omit()})
+        response = client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            extra_headers={"x-stainless-retry-count": Omit()},
+        )
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
@@ -963,9 +975,13 @@ class TestStagehand:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(side_effect=retry_handler)
 
-        response = client.sessions.with_raw_response.start(extra_headers={"x-stainless-retry-count": "42"})
+        response = client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            extra_headers={"x-stainless-retry-count": "42"},
+        )
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
@@ -1840,10 +1856,14 @@ class TestAsyncStagehand:
     async def test_retrying_timeout_errors_doesnt_leak(
         self, respx_mock: MockRouter, async_client: AsyncStagehand
     ) -> None:
-        respx_mock.post("/sessions/start").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(
+            side_effect=httpx.TimeoutException("Test timeout error")
+        )
 
         with pytest.raises(APITimeoutError):
-            await async_client.sessions.with_streaming_response.start().__aenter__()
+            await async_client.sessions.with_streaming_response.act(
+                id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123", input="Click the login button"
+            ).__aenter__()
 
         assert _get_open_connections(async_client) == 0
 
@@ -1852,10 +1872,12 @@ class TestAsyncStagehand:
     async def test_retrying_status_errors_doesnt_leak(
         self, respx_mock: MockRouter, async_client: AsyncStagehand
     ) -> None:
-        respx_mock.post("/sessions/start").mock(return_value=httpx.Response(500))
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            await async_client.sessions.with_streaming_response.start().__aenter__()
+            await async_client.sessions.with_streaming_response.act(
+                id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123", input="Click the login button"
+            ).__aenter__()
         assert _get_open_connections(async_client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -1882,9 +1904,11 @@ class TestAsyncStagehand:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(side_effect=retry_handler)
 
-        response = await client.sessions.with_raw_response.start()
+        response = await client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123", input="Click the login button"
+        )
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -1906,9 +1930,13 @@ class TestAsyncStagehand:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(side_effect=retry_handler)
 
-        response = await client.sessions.with_raw_response.start(extra_headers={"x-stainless-retry-count": Omit()})
+        response = await client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            extra_headers={"x-stainless-retry-count": Omit()},
+        )
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
@@ -1929,9 +1957,13 @@ class TestAsyncStagehand:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123/act").mock(side_effect=retry_handler)
 
-        response = await client.sessions.with_raw_response.start(extra_headers={"x-stainless-retry-count": "42"})
+        response = await client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            extra_headers={"x-stainless-retry-count": "42"},
+        )
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 

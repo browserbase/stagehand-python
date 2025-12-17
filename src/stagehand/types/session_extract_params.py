@@ -2,20 +2,46 @@
 
 from __future__ import annotations
 
-from typing_extensions import Annotated, TypedDict
+from typing import Dict, Union
+from datetime import datetime
+from typing_extensions import Literal, Annotated, TypedDict
 
 from .._utils import PropertyInfo
+from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionExtractParams"]
+__all__ = ["SessionExtractParams", "Options"]
 
 
 class SessionExtractParams(TypedDict, total=False):
-    body: object
+    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    """Target frame ID for the extraction"""
 
-    x_language: Annotated[object, PropertyInfo(alias="x-language")]
+    instruction: str
+    """Natural language instruction for what to extract"""
 
-    x_sdk_version: Annotated[object, PropertyInfo(alias="x-sdk-version")]
+    options: Options
 
-    x_sent_at: Annotated[object, PropertyInfo(alias="x-sent-at")]
+    schema: Dict[str, object]
+    """JSON Schema defining the structure of data to extract"""
 
-    x_stream_response: Annotated[object, PropertyInfo(alias="x-stream-response")]
+    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
+    """Client SDK language"""
+
+    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
+    """Version of the Stagehand SDK"""
+
+    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
+    """ISO timestamp when request was sent"""
+
+    x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
+    """Whether to stream the response via SSE"""
+
+
+class Options(TypedDict, total=False):
+    model: ModelConfigParam
+
+    selector: str
+    """CSS selector to scope extraction to a specific element"""
+
+    timeout: float
+    """Timeout in ms for the extraction"""

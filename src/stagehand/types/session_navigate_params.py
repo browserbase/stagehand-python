@@ -2,20 +2,43 @@
 
 from __future__ import annotations
 
-from typing_extensions import Annotated, TypedDict
+from typing import Union
+from datetime import datetime
+from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
 
-__all__ = ["SessionNavigateParams"]
+__all__ = ["SessionNavigateParams", "Options"]
 
 
 class SessionNavigateParams(TypedDict, total=False):
-    body: object
+    url: Required[str]
+    """URL to navigate to"""
 
-    x_language: Annotated[object, PropertyInfo(alias="x-language")]
+    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    """Target frame ID for the navigation"""
 
-    x_sdk_version: Annotated[object, PropertyInfo(alias="x-sdk-version")]
+    options: Options
 
-    x_sent_at: Annotated[object, PropertyInfo(alias="x-sent-at")]
+    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
+    """Client SDK language"""
 
-    x_stream_response: Annotated[object, PropertyInfo(alias="x-stream-response")]
+    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
+    """Version of the Stagehand SDK"""
+
+    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
+    """ISO timestamp when request was sent"""
+
+    x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
+    """Whether to stream the response via SSE"""
+
+
+class Options(TypedDict, total=False):
+    referer: str
+    """Referer header to send with the request"""
+
+    timeout: float
+    """Timeout in ms for the navigation"""
+
+    wait_until: Annotated[Literal["load", "domcontentloaded", "networkidle"], PropertyInfo(alias="waitUntil")]
+    """When to consider navigation complete"""
