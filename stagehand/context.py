@@ -141,6 +141,50 @@ class StagehandContext:
                 f"Failed to initialize new page: {str(e)}", category="context"
             )
 
+    async def _handle_page_close(self, closing_page: StagehandPage):
+        """
+        Handle page close events and update the active page if needed.
+        Uses the page switch lock to prevent race conditions with ongoing operations.
+        """
+        try:
+            async def handle_with_lock():
+                async with self.stagehand._page_switch_lock:
+                    if self.active_stagehand_page is not closing_page:
+                        return
+
+                    remaining_pages = self._context.pages
+                    if remaining_pages:
+                        first_remaining = remaining_pages[0]
+                        new_active = self.page_map.get(first_remaining)
+                        if new_active:
+                            self.set_active_page(new_active)
+                            self.stagehand.logger.debug(
+                                f"Active page closed, switching to: {first_remaining.url}",
+                                category="context",
+                            )
+                        else:
+                            self.stagehand.logger.warning(
+                                "Could not find StagehandPage wrapper for remaining page",
+                                category="context",
+                            )
+                    else:
+                        self.active_stagehand_page = None
+                        self.stagehand.logger.debug(
+                            "Active page closed and no pages remaining",
+                            category="context",
+                        )
+
+            await asyncio.wait_for(handle_with_lock(), timeout=30)
+        except asyncio.TimeoutError:
+            self.stagehand.logger.error(
+                "Timeout waiting for page switch lock when handling page close",
+                category="context",
+            )
+        except Exception as e:
+            self.stagehand.logger.error(
+                f"Failed to handle page close: {str(e)}", category="context"
+            )
+
     def __getattr__(self, name):
         # Forward attribute lookups to the underlying BrowserContext
         attr = getattr(self._context, name)
@@ -220,10 +264,12 @@ class StagehandContext:
             # Register the event listener
             cdp_session.on("Page.frameNavigated", on_frame_navigated)
 
-            # Clean up frame ID when page closes
             def on_page_close():
                 if stagehand_page.frame_id:
                     self.unregister_frame_id(stagehand_page.frame_id)
+
+                if self.active_stagehand_page is stagehand_page:
+                    asyncio.create_task(self._handle_page_close(stagehand_page))
 
             pw_page.once("close", on_page_close)
 
