@@ -9,10 +9,16 @@ from typing_extensions import Literal, Required, Annotated, TypedDict
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionExecuteParams", "AgentConfig", "ExecuteOptions"]
+__all__ = [
+    "SessionExecuteParamsBase",
+    "AgentConfig",
+    "ExecuteOptions",
+    "SessionExecuteParamsNonStreaming",
+    "SessionExecuteParamsStreaming",
+]
 
 
-class SessionExecuteParams(TypedDict, total=False):
+class SessionExecuteParamsBase(TypedDict, total=False):
     agent_config: Required[Annotated[AgentConfig, PropertyInfo(alias="agentConfig")]]
 
     execute_options: Required[Annotated[ExecuteOptions, PropertyInfo(alias="executeOptions")]]
@@ -56,3 +62,16 @@ class ExecuteOptions(TypedDict, total=False):
 
     max_steps: Annotated[float, PropertyInfo(alias="maxSteps")]
     """Maximum number of steps the agent can take"""
+
+
+class SessionExecuteParamsNonStreaming(SessionExecuteParamsBase, total=False):
+    stream_response: Annotated[Literal[False], PropertyInfo(alias="streamResponse")]
+    """Whether to stream the response via SSE"""
+
+
+class SessionExecuteParamsStreaming(SessionExecuteParamsBase):
+    stream_response: Required[Annotated[Literal[True], PropertyInfo(alias="streamResponse")]]
+    """Whether to stream the response via SSE"""
+
+
+SessionExecuteParams = Union[SessionExecuteParamsNonStreaming, SessionExecuteParamsStreaming]

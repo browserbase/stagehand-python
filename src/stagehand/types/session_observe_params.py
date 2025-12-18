@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import Union
 from datetime import datetime
-from typing_extensions import Literal, Annotated, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionObserveParams", "Options"]
+__all__ = ["SessionObserveParamsBase", "Options", "SessionObserveParamsNonStreaming", "SessionObserveParamsStreaming"]
 
 
-class SessionObserveParams(TypedDict, total=False):
+class SessionObserveParamsBase(TypedDict, total=False):
     frame_id: Annotated[str, PropertyInfo(alias="frameId")]
     """Target frame ID for the observation"""
 
@@ -46,3 +46,16 @@ class Options(TypedDict, total=False):
 
     timeout: float
     """Timeout in ms for the observation"""
+
+
+class SessionObserveParamsNonStreaming(SessionObserveParamsBase, total=False):
+    stream_response: Annotated[Literal[False], PropertyInfo(alias="streamResponse")]
+    """Whether to stream the response via SSE"""
+
+
+class SessionObserveParamsStreaming(SessionObserveParamsBase):
+    stream_response: Required[Annotated[Literal[True], PropertyInfo(alias="streamResponse")]]
+    """Whether to stream the response via SSE"""
+
+
+SessionObserveParams = Union[SessionObserveParamsNonStreaming, SessionObserveParamsStreaming]

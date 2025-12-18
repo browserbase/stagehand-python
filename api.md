@@ -6,6 +6,7 @@ Types:
 from stagehand.types import (
     Action,
     ModelConfig,
+    StreamEvent,
     SessionActResponse,
     SessionEndResponse,
     SessionExecuteResponse,

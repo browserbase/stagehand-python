@@ -56,7 +56,26 @@ class Stream(Generic[_T]):
 
         try:
             for sse in iterator:
-                yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                if sse.data.startswith("finished"):
+                    break
+
+                if sse.data.startswith("error"):
+                    body = sse.data
+
+                    try:
+                        body = sse.json()
+                        err_msg = f"{body}"
+                    except Exception:
+                        err_msg = sse.data or f"Error code: {response.status_code}"
+
+                    raise self._client._make_status_error(
+                        err_msg,
+                        body=body,
+                        response=self.response,
+                    )
+
+                if sse.event is None:
+                    yield process_data(data=sse.json(), cast_to=cast_to, response=response)
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -120,7 +139,26 @@ class AsyncStream(Generic[_T]):
 
         try:
             async for sse in iterator:
-                yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                if sse.data.startswith("finished"):
+                    break
+
+                if sse.data.startswith("error"):
+                    body = sse.data
+
+                    try:
+                        body = sse.json()
+                        err_msg = f"{body}"
+                    except Exception:
+                        err_msg = sse.data or f"Error code: {response.status_code}"
+
+                    raise self._client._make_status_error(
+                        err_msg,
+                        body=body,
+                        response=self.response,
+                    )
+
+                if sse.event is None:
+                    yield process_data(data=sse.json(), cast_to=cast_to, response=response)
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()

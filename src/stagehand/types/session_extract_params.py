@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import Dict, Union
 from datetime import datetime
-from typing_extensions import Literal, Annotated, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionExtractParams", "Options"]
+__all__ = ["SessionExtractParamsBase", "Options", "SessionExtractParamsNonStreaming", "SessionExtractParamsStreaming"]
 
 
-class SessionExtractParams(TypedDict, total=False):
+class SessionExtractParamsBase(TypedDict, total=False):
     frame_id: Annotated[str, PropertyInfo(alias="frameId")]
     """Target frame ID for the extraction"""
 
@@ -49,3 +49,16 @@ class Options(TypedDict, total=False):
 
     timeout: float
     """Timeout in ms for the extraction"""
+
+
+class SessionExtractParamsNonStreaming(SessionExtractParamsBase, total=False):
+    stream_response: Annotated[Literal[False], PropertyInfo(alias="streamResponse")]
+    """Whether to stream the response via SSE"""
+
+
+class SessionExtractParamsStreaming(SessionExtractParamsBase):
+    stream_response: Required[Annotated[Literal[True], PropertyInfo(alias="streamResponse")]]
+    """Whether to stream the response via SSE"""
+
+
+SessionExtractParams = Union[SessionExtractParamsNonStreaming, SessionExtractParamsStreaming]

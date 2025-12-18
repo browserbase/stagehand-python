@@ -6,14 +6,14 @@ from typing import Dict, Union
 from datetime import datetime
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
-from .._types import SequenceNotStr
 from .._utils import PropertyInfo
+from .action_param import ActionParam
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionActParams", "Input", "InputActionInput", "Options"]
+__all__ = ["SessionActParamsBase", "Input", "Options", "SessionActParamsNonStreaming", "SessionActParamsStreaming"]
 
 
-class SessionActParams(TypedDict, total=False):
+class SessionActParamsBase(TypedDict, total=False):
     input: Required[Input]
     """Natural language instruction or Action object"""
 
@@ -35,23 +35,7 @@ class SessionActParams(TypedDict, total=False):
     """Whether to stream the response via SSE"""
 
 
-class InputActionInput(TypedDict, total=False):
-    """Action object returned by observe and used by act"""
-
-    description: Required[str]
-    """Human-readable description of the action"""
-
-    selector: Required[str]
-    """CSS selector or XPath for the element"""
-
-    arguments: SequenceNotStr[str]
-    """Arguments to pass to the method"""
-
-    method: str
-    """The method to execute (click, fill, etc.)"""
-
-
-Input: TypeAlias = Union[str, InputActionInput]
+Input: TypeAlias = Union[str, ActionParam]
 
 
 class Options(TypedDict, total=False):
@@ -66,3 +50,16 @@ class Options(TypedDict, total=False):
 
     variables: Dict[str, str]
     """Variables to substitute in the action instruction"""
+
+
+class SessionActParamsNonStreaming(SessionActParamsBase, total=False):
+    stream_response: Annotated[Literal[False], PropertyInfo(alias="streamResponse")]
+    """Whether to stream the response via SSE"""
+
+
+class SessionActParamsStreaming(SessionActParamsBase):
+    stream_response: Required[Annotated[Literal[True], PropertyInfo(alias="streamResponse")]]
+    """Whether to stream the response via SSE"""
+
+
+SessionActParams = Union[SessionActParamsNonStreaming, SessionActParamsStreaming]
