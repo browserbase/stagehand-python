@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, Union
 from datetime import datetime
-from typing_extensions import Literal
+from typing_extensions import Literal, overload
 
 import httpx
 
@@ -17,7 +17,7 @@ from ..types import (
     session_navigate_params,
 )
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from .._utils import is_given, maybe_transform, strip_not_given, async_maybe_transform
+from .._utils import is_given, required_args, maybe_transform, strip_not_given, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -26,7 +26,9 @@ from .._response import (
     async_to_raw_response_wrapper,
     async_to_streamed_response_wrapper,
 )
+from .._streaming import Stream, AsyncStream
 from .._base_client import make_request_options
+from ..types.stream_event import StreamEvent
 from ..types.session_act_response import SessionActResponse
 from ..types.session_end_response import SessionEndResponse
 from ..types.session_start_response import SessionStartResponse
@@ -58,6 +60,7 @@ class SessionsResource(SyncAPIResource):
         """
         return SessionsResourceWithStreamingResponse(self)
 
+    @overload
     def act(
         self,
         id: str,
@@ -65,6 +68,7 @@ class SessionsResource(SyncAPIResource):
         input: session_act_params.Input,
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -87,6 +91,8 @@ class SessionsResource(SyncAPIResource):
 
           frame_id: Target frame ID for the action
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -103,6 +109,130 @@ class SessionsResource(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def act(
+        self,
+        id: str,
+        *,
+        input: session_act_params.Input,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        options: session_act_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Stream[StreamEvent]:
+        """
+        Executes a browser action using natural language instructions or a predefined
+        Action object.
+
+        Args:
+          id: Unique session identifier
+
+          input: Natural language instruction or Action object
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the action
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    def act(
+        self,
+        id: str,
+        *,
+        input: session_act_params.Input,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        options: session_act_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionActResponse | Stream[StreamEvent]:
+        """
+        Executes a browser action using natural language instructions or a predefined
+        Action object.
+
+        Args:
+          id: Unique session identifier
+
+          input: Natural language instruction or Action object
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the action
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["input"], ["input", "stream_response"])
+    def act(
+        self,
+        id: str,
+        *,
+        input: session_act_params.Input,
+        frame_id: str | Omit = omit,
+        options: session_act_params.Options | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionActResponse | Stream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -123,13 +253,18 @@ class SessionsResource(SyncAPIResource):
                     "input": input,
                     "frame_id": frame_id,
                     "options": options,
+                    "stream_response": stream_response,
                 },
-                session_act_params.SessionActParams,
+                session_act_params.SessionActParamsStreaming
+                if stream_response
+                else session_act_params.SessionActParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionActResponse,
+            stream=stream_response or False,
+            stream_cls=Stream[StreamEvent],
         )
 
     def end(
@@ -190,6 +325,7 @@ class SessionsResource(SyncAPIResource):
             cast_to=SessionEndResponse,
         )
 
+    @overload
     def execute(
         self,
         id: str,
@@ -197,6 +333,7 @@ class SessionsResource(SyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: str | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -216,6 +353,8 @@ class SessionsResource(SyncAPIResource):
 
           frame_id: Target frame ID for the agent
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -232,6 +371,124 @@ class SessionsResource(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def execute(
+        self,
+        id: str,
+        *,
+        agent_config: session_execute_params.AgentConfig,
+        execute_options: session_execute_params.ExecuteOptions,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Stream[StreamEvent]:
+        """
+        Runs an autonomous AI agent that can perform complex multi-step browser tasks.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the agent
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    def execute(
+        self,
+        id: str,
+        *,
+        agent_config: session_execute_params.AgentConfig,
+        execute_options: session_execute_params.ExecuteOptions,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExecuteResponse | Stream[StreamEvent]:
+        """
+        Runs an autonomous AI agent that can perform complex multi-step browser tasks.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the agent
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["agent_config", "execute_options"], ["agent_config", "execute_options", "stream_response"])
+    def execute(
+        self,
+        id: str,
+        *,
+        agent_config: session_execute_params.AgentConfig,
+        execute_options: session_execute_params.ExecuteOptions,
+        frame_id: str | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExecuteResponse | Stream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -252,15 +509,21 @@ class SessionsResource(SyncAPIResource):
                     "agent_config": agent_config,
                     "execute_options": execute_options,
                     "frame_id": frame_id,
+                    "stream_response": stream_response,
                 },
-                session_execute_params.SessionExecuteParams,
+                session_execute_params.SessionExecuteParamsStreaming
+                if stream_response
+                else session_execute_params.SessionExecuteParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionExecuteResponse,
+            stream=stream_response or False,
+            stream_cls=Stream[StreamEvent],
         )
 
+    @overload
     def extract(
         self,
         id: str,
@@ -269,6 +532,7 @@ class SessionsResource(SyncAPIResource):
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -292,6 +556,8 @@ class SessionsResource(SyncAPIResource):
 
           schema: JSON Schema defining the structure of data to extract
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -308,6 +574,134 @@ class SessionsResource(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def extract(
+        self,
+        id: str,
+        *,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_extract_params.Options | Omit = omit,
+        schema: Dict[str, object] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Stream[StreamEvent]:
+        """
+        Extracts structured data from the current page using AI-powered analysis.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the extraction
+
+          instruction: Natural language instruction for what to extract
+
+          schema: JSON Schema defining the structure of data to extract
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    def extract(
+        self,
+        id: str,
+        *,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_extract_params.Options | Omit = omit,
+        schema: Dict[str, object] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExtractResponse | Stream[StreamEvent]:
+        """
+        Extracts structured data from the current page using AI-powered analysis.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the extraction
+
+          instruction: Natural language instruction for what to extract
+
+          schema: JSON Schema defining the structure of data to extract
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    def extract(
+        self,
+        id: str,
+        *,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_extract_params.Options | Omit = omit,
+        schema: Dict[str, object] | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExtractResponse | Stream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -329,13 +723,18 @@ class SessionsResource(SyncAPIResource):
                     "instruction": instruction,
                     "options": options,
                     "schema": schema,
+                    "stream_response": stream_response,
                 },
-                session_extract_params.SessionExtractParams,
+                session_extract_params.SessionExtractParamsStreaming
+                if stream_response
+                else session_extract_params.SessionExtractParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionExtractResponse,
+            stream=stream_response or False,
+            stream_cls=Stream[StreamEvent],
         )
 
     def navigate(
@@ -345,6 +744,7 @@ class SessionsResource(SyncAPIResource):
         url: str,
         frame_id: str | Omit = omit,
         options: session_navigate_params.Options | Omit = omit,
+        stream_response: bool | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -365,6 +765,8 @@ class SessionsResource(SyncAPIResource):
           url: URL to navigate to
 
           frame_id: Target frame ID for the navigation
+
+          stream_response: Whether to stream the response via SSE
 
           x_language: Client SDK language
 
@@ -402,6 +804,7 @@ class SessionsResource(SyncAPIResource):
                     "url": url,
                     "frame_id": frame_id,
                     "options": options,
+                    "stream_response": stream_response,
                 },
                 session_navigate_params.SessionNavigateParams,
             ),
@@ -411,6 +814,7 @@ class SessionsResource(SyncAPIResource):
             cast_to=SessionNavigateResponse,
         )
 
+    @overload
     def observe(
         self,
         id: str,
@@ -418,6 +822,7 @@ class SessionsResource(SyncAPIResource):
         frame_id: str | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -440,6 +845,8 @@ class SessionsResource(SyncAPIResource):
 
           instruction: Natural language instruction for what actions to find
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -456,6 +863,129 @@ class SessionsResource(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def observe(
+        self,
+        id: str,
+        *,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_observe_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Stream[StreamEvent]:
+        """
+        Identifies and returns available actions on the current page that match the
+        given instruction.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the observation
+
+          instruction: Natural language instruction for what actions to find
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    def observe(
+        self,
+        id: str,
+        *,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_observe_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionObserveResponse | Stream[StreamEvent]:
+        """
+        Identifies and returns available actions on the current page that match the
+        given instruction.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the observation
+
+          instruction: Natural language instruction for what actions to find
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    def observe(
+        self,
+        id: str,
+        *,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_observe_params.Options | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionObserveResponse | Stream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -476,13 +1006,18 @@ class SessionsResource(SyncAPIResource):
                     "frame_id": frame_id,
                     "instruction": instruction,
                     "options": options,
+                    "stream_response": stream_response,
                 },
-                session_observe_params.SessionObserveParams,
+                session_observe_params.SessionObserveParamsStreaming
+                if stream_response
+                else session_observe_params.SessionObserveParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionObserveResponse,
+            stream=stream_response or False,
+            stream_cls=Stream[StreamEvent],
         )
 
     def start(
@@ -604,6 +1139,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         """
         return AsyncSessionsResourceWithStreamingResponse(self)
 
+    @overload
     async def act(
         self,
         id: str,
@@ -611,6 +1147,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         input: session_act_params.Input,
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -633,6 +1170,8 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           frame_id: Target frame ID for the action
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -649,6 +1188,130 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def act(
+        self,
+        id: str,
+        *,
+        input: session_act_params.Input,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        options: session_act_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> AsyncStream[StreamEvent]:
+        """
+        Executes a browser action using natural language instructions or a predefined
+        Action object.
+
+        Args:
+          id: Unique session identifier
+
+          input: Natural language instruction or Action object
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the action
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def act(
+        self,
+        id: str,
+        *,
+        input: session_act_params.Input,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        options: session_act_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionActResponse | AsyncStream[StreamEvent]:
+        """
+        Executes a browser action using natural language instructions or a predefined
+        Action object.
+
+        Args:
+          id: Unique session identifier
+
+          input: Natural language instruction or Action object
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the action
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["input"], ["input", "stream_response"])
+    async def act(
+        self,
+        id: str,
+        *,
+        input: session_act_params.Input,
+        frame_id: str | Omit = omit,
+        options: session_act_params.Options | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionActResponse | AsyncStream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -669,13 +1332,18 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "input": input,
                     "frame_id": frame_id,
                     "options": options,
+                    "stream_response": stream_response,
                 },
-                session_act_params.SessionActParams,
+                session_act_params.SessionActParamsStreaming
+                if stream_response
+                else session_act_params.SessionActParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionActResponse,
+            stream=stream_response or False,
+            stream_cls=AsyncStream[StreamEvent],
         )
 
     async def end(
@@ -736,6 +1404,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             cast_to=SessionEndResponse,
         )
 
+    @overload
     async def execute(
         self,
         id: str,
@@ -743,6 +1412,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: str | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -762,6 +1432,8 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           frame_id: Target frame ID for the agent
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -778,6 +1450,124 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def execute(
+        self,
+        id: str,
+        *,
+        agent_config: session_execute_params.AgentConfig,
+        execute_options: session_execute_params.ExecuteOptions,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> AsyncStream[StreamEvent]:
+        """
+        Runs an autonomous AI agent that can perform complex multi-step browser tasks.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the agent
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def execute(
+        self,
+        id: str,
+        *,
+        agent_config: session_execute_params.AgentConfig,
+        execute_options: session_execute_params.ExecuteOptions,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExecuteResponse | AsyncStream[StreamEvent]:
+        """
+        Runs an autonomous AI agent that can perform complex multi-step browser tasks.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the agent
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["agent_config", "execute_options"], ["agent_config", "execute_options", "stream_response"])
+    async def execute(
+        self,
+        id: str,
+        *,
+        agent_config: session_execute_params.AgentConfig,
+        execute_options: session_execute_params.ExecuteOptions,
+        frame_id: str | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExecuteResponse | AsyncStream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -798,15 +1588,21 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "agent_config": agent_config,
                     "execute_options": execute_options,
                     "frame_id": frame_id,
+                    "stream_response": stream_response,
                 },
-                session_execute_params.SessionExecuteParams,
+                session_execute_params.SessionExecuteParamsStreaming
+                if stream_response
+                else session_execute_params.SessionExecuteParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionExecuteResponse,
+            stream=stream_response or False,
+            stream_cls=AsyncStream[StreamEvent],
         )
 
+    @overload
     async def extract(
         self,
         id: str,
@@ -815,6 +1611,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -838,6 +1635,8 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           schema: JSON Schema defining the structure of data to extract
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -854,6 +1653,134 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def extract(
+        self,
+        id: str,
+        *,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_extract_params.Options | Omit = omit,
+        schema: Dict[str, object] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> AsyncStream[StreamEvent]:
+        """
+        Extracts structured data from the current page using AI-powered analysis.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the extraction
+
+          instruction: Natural language instruction for what to extract
+
+          schema: JSON Schema defining the structure of data to extract
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def extract(
+        self,
+        id: str,
+        *,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_extract_params.Options | Omit = omit,
+        schema: Dict[str, object] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExtractResponse | AsyncStream[StreamEvent]:
+        """
+        Extracts structured data from the current page using AI-powered analysis.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the extraction
+
+          instruction: Natural language instruction for what to extract
+
+          schema: JSON Schema defining the structure of data to extract
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    async def extract(
+        self,
+        id: str,
+        *,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_extract_params.Options | Omit = omit,
+        schema: Dict[str, object] | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionExtractResponse | AsyncStream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -875,13 +1802,18 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "instruction": instruction,
                     "options": options,
                     "schema": schema,
+                    "stream_response": stream_response,
                 },
-                session_extract_params.SessionExtractParams,
+                session_extract_params.SessionExtractParamsStreaming
+                if stream_response
+                else session_extract_params.SessionExtractParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionExtractResponse,
+            stream=stream_response or False,
+            stream_cls=AsyncStream[StreamEvent],
         )
 
     async def navigate(
@@ -891,6 +1823,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         url: str,
         frame_id: str | Omit = omit,
         options: session_navigate_params.Options | Omit = omit,
+        stream_response: bool | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -911,6 +1844,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           url: URL to navigate to
 
           frame_id: Target frame ID for the navigation
+
+          stream_response: Whether to stream the response via SSE
 
           x_language: Client SDK language
 
@@ -948,6 +1883,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "url": url,
                     "frame_id": frame_id,
                     "options": options,
+                    "stream_response": stream_response,
                 },
                 session_navigate_params.SessionNavigateParams,
             ),
@@ -957,6 +1893,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             cast_to=SessionNavigateResponse,
         )
 
+    @overload
     async def observe(
         self,
         id: str,
@@ -964,6 +1901,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         frame_id: str | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
+        stream_response: Literal[False] | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
@@ -986,6 +1924,8 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           instruction: Natural language instruction for what actions to find
 
+          stream_response: Whether to stream the response via SSE
+
           x_language: Client SDK language
 
           x_sdk_version: Version of the Stagehand SDK
@@ -1002,6 +1942,129 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def observe(
+        self,
+        id: str,
+        *,
+        stream_response: Literal[True],
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_observe_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> AsyncStream[StreamEvent]:
+        """
+        Identifies and returns available actions on the current page that match the
+        given instruction.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the observation
+
+          instruction: Natural language instruction for what actions to find
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def observe(
+        self,
+        id: str,
+        *,
+        stream_response: bool,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_observe_params.Options | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionObserveResponse | AsyncStream[StreamEvent]:
+        """
+        Identifies and returns available actions on the current page that match the
+        given instruction.
+
+        Args:
+          id: Unique session identifier
+
+          stream_response: Whether to stream the response via SSE
+
+          frame_id: Target frame ID for the observation
+
+          instruction: Natural language instruction for what actions to find
+
+          x_language: Client SDK language
+
+          x_sdk_version: Version of the Stagehand SDK
+
+          x_sent_at: ISO timestamp when request was sent
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    async def observe(
+        self,
+        id: str,
+        *,
+        frame_id: str | Omit = omit,
+        instruction: str | Omit = omit,
+        options: session_observe_params.Options | Omit = omit,
+        stream_response: Literal[False] | Literal[True] | Omit = omit,
+        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
+        x_sdk_version: str | Omit = omit,
+        x_sent_at: Union[str, datetime] | Omit = omit,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionObserveResponse | AsyncStream[StreamEvent]:
         if not id:
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
@@ -1022,13 +2085,18 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "frame_id": frame_id,
                     "instruction": instruction,
                     "options": options,
+                    "stream_response": stream_response,
                 },
-                session_observe_params.SessionObserveParams,
+                session_observe_params.SessionObserveParamsStreaming
+                if stream_response
+                else session_observe_params.SessionObserveParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionObserveResponse,
+            stream=stream_response or False,
+            stream_cls=AsyncStream[StreamEvent],
         )
 
     async def start(

@@ -28,7 +28,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_act(self, client: Stagehand) -> None:
+    def test_method_act_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -37,7 +37,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_act_with_all_params(self, client: Stagehand) -> None:
+    def test_method_act_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -47,6 +47,7 @@ class TestSessions:
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -56,7 +57,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_act(self, client: Stagehand) -> None:
+    def test_raw_response_act_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -69,7 +70,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_act(self, client: Stagehand) -> None:
+    def test_streaming_response_act_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -84,11 +85,80 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_act(self, client: Stagehand) -> None:
+    def test_path_params_act_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             client.sessions.with_raw_response.act(
                 id="",
                 input="Click the login button",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_act_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_act_with_all_params_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+            frame_id="frameId",
+            options={
+                "model": "openai/gpt-5-nano",
+                "timeout": 30000,
+                "variables": {"username": "john_doe"},
+            },
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_raw_response_act_overload_2(self, client: Stagehand) -> None:
+        response = client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_streaming_response_act_overload_2(self, client: Stagehand) -> None:
+        with client.sessions.with_streaming_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_path_params_act_overload_2(self, client: Stagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.sessions.with_raw_response.act(
+                id="",
+                input="Click the login button",
+                stream_response=True,
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
@@ -147,7 +217,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_execute(self, client: Stagehand) -> None:
+    def test_method_execute_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={},
@@ -159,7 +229,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_execute_with_all_params(self, client: Stagehand) -> None:
+    def test_method_execute_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
@@ -173,6 +243,7 @@ class TestSessions:
                 "max_steps": 20,
             },
             frame_id="frameId",
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -182,7 +253,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_execute(self, client: Stagehand) -> None:
+    def test_raw_response_execute_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={},
@@ -198,7 +269,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_execute(self, client: Stagehand) -> None:
+    def test_streaming_response_execute_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={},
@@ -216,7 +287,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_execute(self, client: Stagehand) -> None:
+    def test_path_params_execute_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             client.sessions.with_raw_response.execute(
                 id="",
@@ -228,7 +299,92 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_extract(self, client: Stagehand) -> None:
+    def test_method_execute_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={},
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+            },
+            stream_response=True,
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_execute_with_all_params_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={
+                "cua": True,
+                "model": "openai/gpt-5-nano",
+                "system_prompt": "systemPrompt",
+            },
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings",
+                "highlight_cursor": True,
+                "max_steps": 20,
+            },
+            stream_response=True,
+            frame_id="frameId",
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_raw_response_execute_overload_2(self, client: Stagehand) -> None:
+        response = client.sessions.with_raw_response.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={},
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+            },
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_streaming_response_execute_overload_2(self, client: Stagehand) -> None:
+        with client.sessions.with_streaming_response.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={},
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+            },
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_path_params_execute_overload_2(self, client: Stagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.sessions.with_raw_response.execute(
+                id="",
+                agent_config={},
+                execute_options={
+                    "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+                },
+                stream_response=True,
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_extract_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -236,7 +392,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_extract_with_all_params(self, client: Stagehand) -> None:
+    def test_method_extract_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             frame_id="frameId",
@@ -247,6 +403,7 @@ class TestSessions:
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -256,7 +413,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_extract(self, client: Stagehand) -> None:
+    def test_raw_response_extract_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -268,7 +425,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_extract(self, client: Stagehand) -> None:
+    def test_streaming_response_extract_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         ) as response:
@@ -282,10 +439,76 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_extract(self, client: Stagehand) -> None:
+    def test_path_params_extract_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             client.sessions.with_raw_response.extract(
                 id="",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_extract_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_extract_with_all_params_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+            frame_id="frameId",
+            instruction="Extract all product names and prices from the page",
+            options={
+                "model": "openai/gpt-5-nano",
+                "selector": "#main-content",
+                "timeout": 30000,
+            },
+            schema={"foo": "bar"},
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_raw_response_extract_overload_2(self, client: Stagehand) -> None:
+        response = client.sessions.with_raw_response.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_streaming_response_extract_overload_2(self, client: Stagehand) -> None:
+        with client.sessions.with_streaming_response.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_path_params_extract_overload_2(self, client: Stagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.sessions.with_raw_response.extract(
+                id="",
+                stream_response=True,
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
@@ -309,6 +532,7 @@ class TestSessions:
                 "timeout": 30000,
                 "wait_until": "networkidle",
             },
+            stream_response=True,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -355,7 +579,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_observe(self, client: Stagehand) -> None:
+    def test_method_observe_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -363,7 +587,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_observe_with_all_params(self, client: Stagehand) -> None:
+    def test_method_observe_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             frame_id="frameId",
@@ -373,6 +597,7 @@ class TestSessions:
                 "selector": "nav",
                 "timeout": 30000,
             },
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -382,7 +607,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_observe(self, client: Stagehand) -> None:
+    def test_raw_response_observe_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -394,7 +619,7 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_observe(self, client: Stagehand) -> None:
+    def test_streaming_response_observe_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         ) as response:
@@ -408,10 +633,75 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_path_params_observe(self, client: Stagehand) -> None:
+    def test_path_params_observe_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             client.sessions.with_raw_response.observe(
                 id="",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_observe_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_observe_with_all_params_overload_2(self, client: Stagehand) -> None:
+        session_stream = client.sessions.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+            frame_id="frameId",
+            instruction="Find all clickable navigation links",
+            options={
+                "model": "openai/gpt-5-nano",
+                "selector": "nav",
+                "timeout": 30000,
+            },
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        session_stream.response.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_raw_response_observe_overload_2(self, client: Stagehand) -> None:
+        response = client.sessions.with_raw_response.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_streaming_response_observe_overload_2(self, client: Stagehand) -> None:
+        with client.sessions.with_streaming_response.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_path_params_observe_overload_2(self, client: Stagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.sessions.with_raw_response.observe(
+                id="",
+                stream_response=True,
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
@@ -547,7 +837,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_act(self, async_client: AsyncStagehand) -> None:
+    async def test_method_act_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -556,7 +846,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_act_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_act_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -566,6 +856,7 @@ class TestAsyncSessions:
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -575,7 +866,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_act(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_act_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -588,7 +879,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_act(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_act_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.act(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             input="Click the login button",
@@ -603,11 +894,80 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_act(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_act_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             await async_client.sessions.with_raw_response.act(
                 id="",
                 input="Click the login button",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_act_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_act_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+            frame_id="frameId",
+            options={
+                "model": "openai/gpt-5-nano",
+                "timeout": 30000,
+                "variables": {"username": "john_doe"},
+            },
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_raw_response_act_overload_2(self, async_client: AsyncStagehand) -> None:
+        response = await async_client.sessions.with_raw_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = await response.parse()
+        await stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_streaming_response_act_overload_2(self, async_client: AsyncStagehand) -> None:
+        async with async_client.sessions.with_streaming_response.act(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            input="Click the login button",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_path_params_act_overload_2(self, async_client: AsyncStagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            await async_client.sessions.with_raw_response.act(
+                id="",
+                input="Click the login button",
+                stream_response=True,
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
@@ -666,7 +1026,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_execute(self, async_client: AsyncStagehand) -> None:
+    async def test_method_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={},
@@ -678,7 +1038,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_execute_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_execute_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
@@ -692,6 +1052,7 @@ class TestAsyncSessions:
                 "max_steps": 20,
             },
             frame_id="frameId",
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -701,7 +1062,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_execute(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={},
@@ -717,7 +1078,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_execute(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.execute(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={},
@@ -735,7 +1096,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_execute(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             await async_client.sessions.with_raw_response.execute(
                 id="",
@@ -747,7 +1108,92 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_method_execute_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={},
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+            },
+            stream_response=True,
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_execute_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={
+                "cua": True,
+                "model": "openai/gpt-5-nano",
+                "system_prompt": "systemPrompt",
+            },
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings",
+                "highlight_cursor": True,
+                "max_steps": 20,
+            },
+            stream_response=True,
+            frame_id="frameId",
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_raw_response_execute_overload_2(self, async_client: AsyncStagehand) -> None:
+        response = await async_client.sessions.with_raw_response.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={},
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+            },
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = await response.parse()
+        await stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_streaming_response_execute_overload_2(self, async_client: AsyncStagehand) -> None:
+        async with async_client.sessions.with_streaming_response.execute(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            agent_config={},
+            execute_options={
+                "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+            },
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_path_params_execute_overload_2(self, async_client: AsyncStagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            await async_client.sessions.with_raw_response.execute(
+                id="",
+                agent_config={},
+                execute_options={
+                    "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings"
+                },
+                stream_response=True,
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -755,7 +1201,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_extract_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_extract_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             frame_id="frameId",
@@ -766,6 +1212,7 @@ class TestAsyncSessions:
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -775,7 +1222,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -787,7 +1234,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.extract(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         ) as response:
@@ -801,10 +1248,76 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_extract(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             await async_client.sessions.with_raw_response.extract(
                 id="",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_extract_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_extract_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+            frame_id="frameId",
+            instruction="Extract all product names and prices from the page",
+            options={
+                "model": "openai/gpt-5-nano",
+                "selector": "#main-content",
+                "timeout": 30000,
+            },
+            schema={"foo": "bar"},
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_raw_response_extract_overload_2(self, async_client: AsyncStagehand) -> None:
+        response = await async_client.sessions.with_raw_response.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = await response.parse()
+        await stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_streaming_response_extract_overload_2(self, async_client: AsyncStagehand) -> None:
+        async with async_client.sessions.with_streaming_response.extract(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_path_params_extract_overload_2(self, async_client: AsyncStagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            await async_client.sessions.with_raw_response.extract(
+                id="",
+                stream_response=True,
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
@@ -828,6 +1341,7 @@ class TestAsyncSessions:
                 "timeout": 30000,
                 "wait_until": "networkidle",
             },
+            stream_response=True,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -874,7 +1388,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_method_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -882,7 +1396,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_observe_with_all_params(self, async_client: AsyncStagehand) -> None:
+    async def test_method_observe_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             frame_id="frameId",
@@ -892,6 +1406,7 @@ class TestAsyncSessions:
                 "selector": "nav",
                 "timeout": 30000,
             },
+            stream_response=False,
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -901,7 +1416,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_raw_response_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         )
@@ -913,7 +1428,7 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_streaming_response_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.observe(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
         ) as response:
@@ -927,10 +1442,75 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_path_params_observe(self, async_client: AsyncStagehand) -> None:
+    async def test_path_params_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
             await async_client.sessions.with_raw_response.observe(
                 id="",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_observe_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_observe_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
+        session_stream = await async_client.sessions.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+            frame_id="frameId",
+            instruction="Find all clickable navigation links",
+            options={
+                "model": "openai/gpt-5-nano",
+                "selector": "nav",
+                "timeout": 30000,
+            },
+            x_language="typescript",
+            x_sdk_version="3.0.6",
+            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            x_stream_response="true",
+        )
+        await session_stream.response.aclose()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_raw_response_observe_overload_2(self, async_client: AsyncStagehand) -> None:
+        response = await async_client.sessions.with_raw_response.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = await response.parse()
+        await stream.close()
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_streaming_response_observe_overload_2(self, async_client: AsyncStagehand) -> None:
+        async with async_client.sessions.with_streaming_response.observe(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            stream_response=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_path_params_observe_overload_2(self, async_client: AsyncStagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            await async_client.sessions.with_raw_response.observe(
+                id="",
+                stream_response=True,
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")

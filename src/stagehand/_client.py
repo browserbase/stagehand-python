@@ -124,6 +124,8 @@ class Stagehand(SyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
+        self._default_stream_cls = Stream
+
     @cached_property
     def sessions(self) -> SessionsResource:
         from .resources.sessions import SessionsResource
@@ -338,6 +340,8 @@ class AsyncStagehand(AsyncAPIClient):
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
         )
+
+        self._default_stream_cls = AsyncStream
 
     @cached_property
     def sessions(self) -> AsyncSessionsResource:

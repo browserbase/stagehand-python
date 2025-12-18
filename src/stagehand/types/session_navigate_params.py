@@ -20,6 +20,9 @@ class SessionNavigateParams(TypedDict, total=False):
 
     options: Options
 
+    stream_response: Annotated[bool, PropertyInfo(alias="streamResponse")]
+    """Whether to stream the response via SSE"""
+
     x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
     """Client SDK language"""
 

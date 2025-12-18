@@ -10,8 +10,11 @@ __all__ = ["SessionStartResponse", "Data"]
 class Data(BaseModel):
     available: bool
 
+    connect_url: str = FieldInfo(alias="connectUrl")
+    """CDP WebSocket URL for connecting to the Browserbase cloud browser"""
+
     session_id: str = FieldInfo(alias="sessionId")
-    """Unique session identifier"""
+    """Unique Browserbase session identifier"""
 
 
 class SessionStartResponse(BaseModel):
