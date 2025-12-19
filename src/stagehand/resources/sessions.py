@@ -1028,12 +1028,11 @@ class SessionsResource(SyncAPIResource):
         browser: session_start_params.Browser | Omit = omit,
         browserbase_session_create_params: session_start_params.BrowserbaseSessionCreateParams | Omit = omit,
         browserbase_session_id: str | Omit = omit,
-        debug_dom: bool | Omit = omit,
         dom_settle_timeout_ms: float | Omit = omit,
         experimental: bool | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
-        verbose: int | Omit = omit,
+        verbose: Literal["0", "1", "2"] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
@@ -1054,7 +1053,7 @@ class SessionsResource(SyncAPIResource):
         Args:
           model_name: Model name to use for AI operations
 
-          act_timeout_ms: Timeout in ms for act operations
+          act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
 
           browserbase_session_id: Existing Browserbase session ID to resume
 
@@ -1065,6 +1064,8 @@ class SessionsResource(SyncAPIResource):
           system_prompt: Custom system prompt for AI operations
 
           verbose: Logging verbosity level (0=quiet, 1=normal, 2=debug)
+
+          wait_for_captcha_solves: Wait for captcha solves (deprecated, v2 only)
 
           x_language: Client SDK language
 
@@ -1102,7 +1103,6 @@ class SessionsResource(SyncAPIResource):
                     "browser": browser,
                     "browserbase_session_create_params": browserbase_session_create_params,
                     "browserbase_session_id": browserbase_session_id,
-                    "debug_dom": debug_dom,
                     "dom_settle_timeout_ms": dom_settle_timeout_ms,
                     "experimental": experimental,
                     "self_heal": self_heal,
@@ -2107,12 +2107,11 @@ class AsyncSessionsResource(AsyncAPIResource):
         browser: session_start_params.Browser | Omit = omit,
         browserbase_session_create_params: session_start_params.BrowserbaseSessionCreateParams | Omit = omit,
         browserbase_session_id: str | Omit = omit,
-        debug_dom: bool | Omit = omit,
         dom_settle_timeout_ms: float | Omit = omit,
         experimental: bool | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
-        verbose: int | Omit = omit,
+        verbose: Literal["0", "1", "2"] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
         x_language: Literal["typescript", "python", "playground"] | Omit = omit,
         x_sdk_version: str | Omit = omit,
@@ -2133,7 +2132,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         Args:
           model_name: Model name to use for AI operations
 
-          act_timeout_ms: Timeout in ms for act operations
+          act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
 
           browserbase_session_id: Existing Browserbase session ID to resume
 
@@ -2144,6 +2143,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           system_prompt: Custom system prompt for AI operations
 
           verbose: Logging verbosity level (0=quiet, 1=normal, 2=debug)
+
+          wait_for_captcha_solves: Wait for captcha solves (deprecated, v2 only)
 
           x_language: Client SDK language
 
@@ -2181,7 +2182,6 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "browser": browser,
                     "browserbase_session_create_params": browserbase_session_create_params,
                     "browserbase_session_id": browserbase_session_id,
-                    "debug_dom": debug_dom,
                     "dom_settle_timeout_ms": dom_settle_timeout_ms,
                     "experimental": experimental,
                     "self_heal": self_heal,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Required, Annotated, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 
@@ -19,6 +19,9 @@ class ModelConfigObject(TypedDict, total=False):
 
     base_url: Annotated[str, PropertyInfo(alias="baseURL")]
     """Base URL for the model provider"""
+
+    provider: Literal["openai", "anthropic", "google", "microsoft"]
+    """AI provider for the model (or provide a baseURL endpoint instead)"""
 
 
 ModelConfigParam: TypeAlias = Union[str, ModelConfigObject]

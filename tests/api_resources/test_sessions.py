@@ -235,6 +235,7 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "model": "openai/gpt-5-nano",
+                "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
             execute_options={
@@ -318,6 +319,7 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "model": "openai/gpt-5-nano",
+                "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
             execute_options={
@@ -717,7 +719,7 @@ class TestSessions:
     def test_method_start_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.start(
             model_name="gpt-4o",
-            act_timeout_ms=30000,
+            act_timeout_ms=0,
             browser={
                 "cdp_url": "ws://localhost:9222",
                 "launch_options": {
@@ -789,12 +791,11 @@ class TestSessions:
                 "user_metadata": {"foo": "bar"},
             },
             browserbase_session_id="browserbaseSessionID",
-            debug_dom=True,
             dom_settle_timeout_ms=5000,
             experimental=True,
             self_heal=True,
             system_prompt="systemPrompt",
-            verbose=1,
+            verbose="1",
             wait_for_captcha_solves=True,
             x_language="typescript",
             x_sdk_version="3.0.6",
@@ -1044,6 +1045,7 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "model": "openai/gpt-5-nano",
+                "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
             execute_options={
@@ -1127,6 +1129,7 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "model": "openai/gpt-5-nano",
+                "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
             execute_options={
@@ -1526,7 +1529,7 @@ class TestAsyncSessions:
     async def test_method_start_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
             model_name="gpt-4o",
-            act_timeout_ms=30000,
+            act_timeout_ms=0,
             browser={
                 "cdp_url": "ws://localhost:9222",
                 "launch_options": {
@@ -1598,12 +1601,11 @@ class TestAsyncSessions:
                 "user_metadata": {"foo": "bar"},
             },
             browserbase_session_id="browserbaseSessionID",
-            debug_dom=True,
             dom_settle_timeout_ms=5000,
             experimental=True,
             self_heal=True,
             system_prompt="systemPrompt",
-            verbose=1,
+            verbose="1",
             wait_for_captcha_solves=True,
             x_language="typescript",
             x_sdk_version="3.0.6",

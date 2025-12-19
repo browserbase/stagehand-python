@@ -32,7 +32,7 @@ Data: TypeAlias = Union[DataStreamEventSystemDataOutput, DataStreamEventLogDataO
 class StreamEvent(BaseModel):
     """Server-Sent Event emitted during streaming responses.
 
-    Events are sent as `data: <JSON>\n\n`.
+    Events are sent as `data: <JSON>\n\n`. Key order: data (with status first), type, id.
     """
 
     id: str
