@@ -4,14 +4,32 @@ from typing import List, Optional
 
 from pydantic import Field as FieldInfo
 
-from .action import Action
 from .._models import BaseModel
 
-__all__ = ["SessionObserveResponse", "Data"]
+__all__ = ["SessionObserveResponse", "Data", "DataResult"]
+
+
+class DataResult(BaseModel):
+    """Action object returned by observe and used by act"""
+
+    description: str
+    """Human-readable description of the action"""
+
+    selector: str
+    """CSS selector or XPath for the element"""
+
+    arguments: Optional[List[str]] = None
+    """Arguments to pass to the method"""
+
+    backend_node_id: Optional[float] = FieldInfo(alias="backendNodeId", default=None)
+    """Backend node ID for the element"""
+
+    method: Optional[str] = None
+    """The method to execute (click, fill, etc.)"""
 
 
 class Data(BaseModel):
-    result: List[Action]
+    result: List[DataResult]
 
     action_id: Optional[str] = FieldInfo(alias="actionId", default=None)
     """Action ID for tracking"""

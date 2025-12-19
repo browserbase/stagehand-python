@@ -33,7 +33,7 @@ class SessionStartParams(TypedDict, total=False):
     """Model name to use for AI operations"""
 
     act_timeout_ms: Annotated[float, PropertyInfo(alias="actTimeoutMs")]
-    """Timeout in ms for act operations"""
+    """Timeout in ms for act operations (deprecated, v2 only)"""
 
     browser: Browser
 
@@ -43,8 +43,6 @@ class SessionStartParams(TypedDict, total=False):
 
     browserbase_session_id: Annotated[str, PropertyInfo(alias="browserbaseSessionID")]
     """Existing Browserbase session ID to resume"""
-
-    debug_dom: Annotated[bool, PropertyInfo(alias="debugDom")]
 
     dom_settle_timeout_ms: Annotated[float, PropertyInfo(alias="domSettleTimeoutMs")]
     """Timeout in ms to wait for DOM to settle"""
@@ -57,10 +55,11 @@ class SessionStartParams(TypedDict, total=False):
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]
     """Custom system prompt for AI operations"""
 
-    verbose: int
+    verbose: Literal["0", "1", "2"]
     """Logging verbosity level (0=quiet, 1=normal, 2=debug)"""
 
     wait_for_captcha_solves: Annotated[bool, PropertyInfo(alias="waitForCaptchaSolves")]
+    """Wait for captcha solves (deprecated, v2 only)"""
 
     x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
     """Client SDK language"""

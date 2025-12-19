@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing_extensions import Required, TypedDict
+from typing_extensions import Required, Annotated, TypedDict
 
 from .._types import SequenceNotStr
+from .._utils import PropertyInfo
 
 __all__ = ["ActionParam"]
 
@@ -20,6 +21,9 @@ class ActionParam(TypedDict, total=False):
 
     arguments: SequenceNotStr[str]
     """Arguments to pass to the method"""
+
+    backend_node_id: Annotated[float, PropertyInfo(alias="backendNodeId")]
+    """Backend node ID for the element"""
 
     method: str
     """The method to execute (click, fill, etc.)"""

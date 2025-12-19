@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from .action import Action as Action
 from .action_param import ActionParam as ActionParam
 from .stream_event import StreamEvent as StreamEvent
 from .model_config_param import ModelConfigParam as ModelConfigParam
