@@ -127,6 +127,40 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+## Streaming responses
+
+We provide support for streaming responses using Server Side Events (SSE).
+
+```python
+from stagehand import Stagehand
+
+client = Stagehand()
+
+stream = client.sessions.act(
+    id="00000000-your-session-id-000000000000",
+    input="click the first link on the page",
+    stream_response=True,
+)
+for response in stream:
+    print(response.data)
+```
+
+The async client uses the exact same interface.
+
+```python
+from stagehand import AsyncStagehand
+
+client = AsyncStagehand()
+
+stream = await client.sessions.act(
+    id="00000000-your-session-id-000000000000",
+    input="click the first link on the page",
+    stream_response=True,
+)
+async for response in stream:
+    print(response.data)
+```
+
 ## Using types
 
 Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:
