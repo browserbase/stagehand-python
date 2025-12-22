@@ -180,8 +180,11 @@ async def connect_local_browser(
         except Exception as e:
             logger.error(f"Failed to create downloads_path {downloads_path}: {e}")
 
+        executable_path_option = local_browser_launch_options.get("executablePath")
+
         # Prepare Launch Options (translate keys if needed)
         launch_options = {
+            "executable_path": executable_path_option,
             "headless": local_browser_launch_options.get(
                 "headless", stagehand_instance.config.headless
             ),
@@ -208,6 +211,8 @@ async def connect_local_browser(
                 "ignoreHTTPSErrors", True
             ),
         }
+        if executable_path_option:
+            launch_options["executable_path"] = executable_path_option
         launch_options = {k: v for k, v in launch_options.items() if v is not None}
 
         # Launch Context

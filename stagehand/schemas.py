@@ -20,6 +20,10 @@ class AvailableModel(str, Enum):
     CLAUDE_3_7_SONNET_LATEST = "claude-3-7-sonnet-latest"
     COMPUTER_USE_PREVIEW = "computer-use-preview"
     GEMINI_2_0_FLASH = "gemini-2.0-flash"
+    # 添加通义千问模型
+    QWEN_TURBO = "qwen-turbo"
+    QWEN_PLUS = "qwen-plus"
+    QWEN_MAX = "qwen-max"
 
 
 class StagehandBaseModel(BaseModel):
