@@ -57,7 +57,7 @@ class QwenClient(LLMClient):
         # 2. 构建请求头（修复：自定义 headers，而非引用 litellm 模块）
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.model_api_key}"
+            "Authorization": f"Bearer {self.api_key}"
         }
 
         # 3. 处理 response_format + 自动追加 JSON 格式提示
