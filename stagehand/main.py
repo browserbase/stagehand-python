@@ -30,7 +30,7 @@ from .logging import StagehandLogger, default_log_handler
 from .metrics import StagehandFunctionName, StagehandMetrics
 from .page import StagehandPage
 from .utils import get_download_path, make_serializable
-from stagehand.llm.qwen_client import QwenClient  # 导入千问客户端
+from .llm.qwenclient import QwenClient  # 导入千问客户端
 
 load_dotenv()
 
@@ -289,7 +289,7 @@ class Stagehand:
             if self.model_name in ["qwen-turbo", "qwen-plus", "qwen-max"]:
                 self.llm = QwenClient(
                     stagehand_logger=self.logger,
-                    model_api_key=self.model_api_key,
+                    api_key=self.api_key,
                     model_name=self.model_name,
                     metrics_callback=self._handle_llm_metrics,
                     **self.model_client_options,

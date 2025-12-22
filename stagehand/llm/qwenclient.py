@@ -31,14 +31,14 @@ class HybridDict(dict):
 
 
 class QwenClient(LLMClient):
-    def __init__(self, stagehand_logger, model_api_key: str, model_name: str = "qwen-turbo", **kwargs):
+    def __init__(self, stagehand_logger, api_key: str, model_name: str = "qwen-turbo", **kwargs):
         # 调用父类构造函数，符合现有 LLMClient 的初始化方式
         super().__init__(
             stagehand_logger=stagehand_logger,
-            model_api_key=model_api_key,
+            api_key=api_key,
             default_model=model_name, **kwargs
         )
-        self.model_api_key = model_api_key
+        self.api_key = api_key
         self.api_base = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 
     async def create_response(
