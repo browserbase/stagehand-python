@@ -55,7 +55,7 @@ class SessionStartParams(TypedDict, total=False):
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]
     """Custom system prompt for AI operations"""
 
-    verbose: Literal["0", "1", "2"]
+    verbose: Literal[0, 1, 2]
     """Logging verbosity level (0=quiet, 1=normal, 2=debug)"""
 
     wait_for_captcha_solves: Annotated[bool, PropertyInfo(alias="waitForCaptchaSolves")]
