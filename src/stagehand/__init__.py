@@ -6,16 +6,15 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import (
-    ENVIRONMENTS,
     Client,
     Stream,
     Timeout,
+    Stagehand,
     Transport,
     AsyncClient,
     AsyncStream,
-    Browserbase,
+    AsyncStagehand,
     RequestOptions,
-    AsyncBrowserbase,
 )
 from ._models import BaseModel
 from ._version import __title__, __version__
@@ -27,9 +26,9 @@ from ._exceptions import (
     NotFoundError,
     APIStatusError,
     RateLimitError,
+    StagehandError,
     APITimeoutError,
     BadRequestError,
-    BrowserbaseError,
     APIConnectionError,
     AuthenticationError,
     InternalServerError,
@@ -52,7 +51,7 @@ __all__ = [
     "not_given",
     "Omit",
     "omit",
-    "BrowserbaseError",
+    "StagehandError",
     "APIError",
     "APIStatusError",
     "APITimeoutError",
@@ -72,9 +71,8 @@ __all__ = [
     "AsyncClient",
     "Stream",
     "AsyncStream",
-    "Browserbase",
-    "AsyncBrowserbase",
-    "ENVIRONMENTS",
+    "Stagehand",
+    "AsyncStagehand",
     "file_from_path",
     "BaseModel",
     "DEFAULT_TIMEOUT",

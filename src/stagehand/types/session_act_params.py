@@ -3,25 +3,36 @@
 from __future__ import annotations
 
 from typing import Dict, Union
+from datetime import datetime
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 from .action_param import ActionParam
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionActParams", "Input", "Options"]
+__all__ = ["SessionActParamsBase", "Input", "Options", "SessionActParamsNonStreaming", "SessionActParamsStreaming"]
 
 
-class SessionActParams(TypedDict, total=False):
+class SessionActParamsBase(TypedDict, total=False):
     input: Required[Input]
-    """Natural language instruction"""
+    """Natural language instruction or Action object"""
 
     frame_id: Annotated[str, PropertyInfo(alias="frameId")]
-    """Frame ID to act on (optional)"""
+    """Target frame ID for the action"""
 
     options: Options
 
+    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
+    """Client SDK language"""
+
+    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
+    """Version of the Stagehand SDK"""
+
+    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
+    """ISO timestamp when request was sent"""
+
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
+    """Whether to stream the response via SSE"""
 
 
 Input: TypeAlias = Union[str, ActionParam]
@@ -29,9 +40,26 @@ Input: TypeAlias = Union[str, ActionParam]
 
 class Options(TypedDict, total=False):
     model: ModelConfigParam
+    """
+    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
+    'anthropic/claude-4.5-opus')
+    """
 
-    timeout: int
-    """Timeout in milliseconds"""
+    timeout: float
+    """Timeout in ms for the action"""
 
     variables: Dict[str, str]
-    """Template variables for instruction"""
+    """Variables to substitute in the action instruction"""
+
+
+class SessionActParamsNonStreaming(SessionActParamsBase, total=False):
+    stream_response: Annotated[Literal[False], PropertyInfo(alias="streamResponse")]
+    """Whether to stream the response via SSE"""
+
+
+class SessionActParamsStreaming(SessionActParamsBase):
+    stream_response: Required[Annotated[Literal[True], PropertyInfo(alias="streamResponse")]]
+    """Whether to stream the response via SSE"""
+
+
+SessionActParams = Union[SessionActParamsNonStreaming, SessionActParamsStreaming]

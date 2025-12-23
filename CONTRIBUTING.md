@@ -1,32 +1,32 @@
 ## Setting up the environment
 
-### With Rye
+### With `uv`
 
-We use [Rye](https://rye.astral.sh/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:
+We use [uv](https://docs.astral.sh/uv/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:
 
 ```sh
 $ ./scripts/bootstrap
 ```
 
-Or [install Rye manually](https://rye.astral.sh/guide/installation/) and run:
+Or [install uv manually](https://docs.astral.sh/uv/getting-started/installation/) and run:
 
 ```sh
-$ rye sync --all-features
+$ uv sync --all-extras
 ```
 
-You can then run scripts using `rye run python script.py` or by activating the virtual environment:
+You can then run scripts using `uv run python script.py` or by manually activating the virtual environment:
 
 ```sh
-# Activate the virtual environment - https://docs.python.org/3/library/venv.html#how-venvs-work
+# manually activate - https://docs.python.org/3/library/venv.html#how-venvs-work
 $ source .venv/bin/activate
 
-# now you can omit the `rye run` prefix
+# now you can omit the `uv run` prefix
 $ python script.py
 ```
 
-### Without Rye
+### Without `uv`
 
-Alternatively if you don't want to install `Rye`, you can stick with the standard `pip` setup by ensuring you have the Python version specified in `.python-version`, create a virtual environment however you desire and then install dependencies using this command:
+Alternatively if you don't want to install `uv`, you can stick with the standard `pip` setup by ensuring you have the Python version specified in `.python-version`, create a virtual environment however you desire and then install dependencies using this command:
 
 ```sh
 $ pip install -r requirements-dev.lock
@@ -45,7 +45,7 @@ All files in the `examples/` directory are not modified by the generator and can
 ```py
 # add an example to examples/<your-example>.py
 
-#!/usr/bin/env -S rye run python
+#!/usr/bin/env -S uv run python
 …
 ```
 
@@ -62,7 +62,7 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```sh
-$ pip install git+ssh://git@github.com/stainless-sdks/stagehand-python.git
+$ pip install git+ssh://git@github.com/browserbase/stagehand-python#stainless.git
 ```
 
 Alternatively, you can build from source and install the wheel file:
@@ -72,7 +72,7 @@ Building this package will create two files in the `dist/` directory, a `.tar.gz
 To create a distributable version of the library, all you have to do is run this command:
 
 ```sh
-$ rye build
+$ uv build
 # or
 $ python -m build
 ```
@@ -120,7 +120,7 @@ the changes aren't made through the automated pipeline, you may want to make rel
 
 ### Publish with a GitHub workflow
 
-You can release to package managers by using [the `Publish PyPI` GitHub action](https://www.github.com/stainless-sdks/stagehand-python/actions/workflows/publish-pypi.yml). This requires a setup organization or repository secret to be set up.
+You can release to package managers by using [the `Publish PyPI` GitHub action](https://www.github.com/browserbase/stagehand-python/actions/workflows/publish-pypi.yml). This requires a setup organization or repository secret to be set up.
 
 ### Publish manually
 

@@ -4,8 +4,19 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-echo "==> Running lints"
-rye run lint
+if [ "$1" = "--fix" ]; then
+  echo "==> Running ruff with --fix"
+  uv run ruff check . --fix
+else
+  echo "==> Running ruff"
+  uv run ruff check .
+fi
+
+echo "==> Running pyright"
+uv run pyright
+
+echo "==> Running mypy"
+uv run mypy .
 
 echo "==> Making sure it imports"
-rye run python -c 'import stagehand'
+uv run python -c 'import stagehand'

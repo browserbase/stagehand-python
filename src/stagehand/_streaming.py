@@ -12,7 +12,7 @@ import httpx
 from ._utils import extract_type_var_from_base
 
 if TYPE_CHECKING:
-    from ._client import Browserbase, AsyncBrowserbase
+    from ._client import Stagehand, AsyncStagehand
 
 
 _T = TypeVar("_T")
@@ -30,7 +30,7 @@ class Stream(Generic[_T]):
         *,
         cast_to: type[_T],
         response: httpx.Response,
-        client: Browserbase,
+        client: Stagehand,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
@@ -56,7 +56,26 @@ class Stream(Generic[_T]):
 
         try:
             for sse in iterator:
-                yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                if sse.data.startswith("finished"):
+                    break
+
+                if sse.data.startswith("error"):
+                    body = sse.data
+
+                    try:
+                        body = sse.json()
+                        err_msg = f"{body}"
+                    except Exception:
+                        err_msg = sse.data or f"Error code: {response.status_code}"
+
+                    raise self._client._make_status_error(
+                        err_msg,
+                        body=body,
+                        response=self.response,
+                    )
+
+                if sse.event is None:
+                    yield process_data(data=sse.json(), cast_to=cast_to, response=response)
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -93,7 +112,7 @@ class AsyncStream(Generic[_T]):
         *,
         cast_to: type[_T],
         response: httpx.Response,
-        client: AsyncBrowserbase,
+        client: AsyncStagehand,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
@@ -120,7 +139,26 @@ class AsyncStream(Generic[_T]):
 
         try:
             async for sse in iterator:
-                yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                if sse.data.startswith("finished"):
+                    break
+
+                if sse.data.startswith("error"):
+                    body = sse.data
+
+                    try:
+                        body = sse.json()
+                        err_msg = f"{body}"
+                    except Exception:
+                        err_msg = sse.data or f"Error code: {response.status_code}"
+
+                    raise self._client._make_status_error(
+                        err_msg,
+                        body=body,
+                        response=self.response,
+                    )
+
+                if sse.event is None:
+                    yield process_data(data=sse.json(), cast_to=cast_to, response=response)
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()

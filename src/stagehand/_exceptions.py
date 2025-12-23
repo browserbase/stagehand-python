@@ -18,11 +18,11 @@ __all__ = [
 ]
 
 
-class BrowserbaseError(Exception):
+class StagehandError(Exception):
     pass
 
 
-class APIError(BrowserbaseError):
+class APIError(StagehandError):
     message: str
     request: httpx.Request
 

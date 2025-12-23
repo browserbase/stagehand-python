@@ -18,11 +18,12 @@ import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from stagehand import Browserbase, AsyncBrowserbase, APIResponseValidationError
+from stagehand import Stagehand, AsyncStagehand, APIResponseValidationError
 from stagehand._types import Omit
 from stagehand._utils import asyncify
 from stagehand._models import BaseModel, FinalRequestOptions
-from stagehand._exceptions import APIStatusError, APITimeoutError, BrowserbaseError, APIResponseValidationError
+from stagehand._streaming import Stream, AsyncStream
+from stagehand._exceptions import APIStatusError, StagehandError, APITimeoutError, APIResponseValidationError
 from stagehand._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -37,7 +38,9 @@ from stagehand._base_client import (
 from .utils import update_env
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
+browserbase_api_key = "My Browserbase API Key"
+browserbase_project_id = "My Browserbase Project ID"
+model_api_key = "My Model API Key"
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -50,7 +53,7 @@ def _low_retry_timeout(*_args: Any, **_kwargs: Any) -> float:
     return 0.1
 
 
-def _get_open_connections(client: Browserbase | AsyncBrowserbase) -> int:
+def _get_open_connections(client: Stagehand | AsyncStagehand) -> int:
     transport = client._client._transport
     assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
 
@@ -58,9 +61,9 @@ def _get_open_connections(client: Browserbase | AsyncBrowserbase) -> int:
     return len(pool._requests)
 
 
-class TestBrowserbase:
+class TestStagehand:
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_raw_response(self, respx_mock: MockRouter, client: Stagehand) -> None:
         respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
         response = client.post("/foo", cast_to=httpx.Response)
@@ -69,7 +72,7 @@ class TestBrowserbase:
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_for_binary(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_raw_response_for_binary(self, respx_mock: MockRouter, client: Stagehand) -> None:
         respx_mock.post("/foo").mock(
             return_value=httpx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
         )
@@ -79,15 +82,23 @@ class TestBrowserbase:
         assert isinstance(response, httpx.Response)
         assert response.json() == {"foo": "bar"}
 
-    def test_copy(self, client: Browserbase) -> None:
+    def test_copy(self, client: Stagehand) -> None:
         copied = client.copy()
         assert id(copied) != id(client)
 
-        copied = client.copy(api_key="another My API Key")
-        assert copied.api_key == "another My API Key"
-        assert client.api_key == "My API Key"
+        copied = client.copy(browserbase_api_key="another My Browserbase API Key")
+        assert copied.browserbase_api_key == "another My Browserbase API Key"
+        assert client.browserbase_api_key == "My Browserbase API Key"
 
-    def test_copy_default_options(self, client: Browserbase) -> None:
+        copied = client.copy(browserbase_project_id="another My Browserbase Project ID")
+        assert copied.browserbase_project_id == "another My Browserbase Project ID"
+        assert client.browserbase_project_id == "My Browserbase Project ID"
+
+        copied = client.copy(model_api_key="another My Model API Key")
+        assert copied.model_api_key == "another My Model API Key"
+        assert client.model_api_key == "My Model API Key"
+
+    def test_copy_default_options(self, client: Stagehand) -> None:
         # options that have a default are overridden correctly
         copied = client.copy(max_retries=7)
         assert copied.max_retries == 7
@@ -104,8 +115,13 @@ class TestBrowserbase:
         assert isinstance(client.timeout, httpx.Timeout)
 
     def test_copy_default_headers(self) -> None:
-        client = Browserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+        client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         assert client.default_headers["X-Foo"] == "bar"
 
@@ -139,8 +155,13 @@ class TestBrowserbase:
         client.close()
 
     def test_copy_default_query(self) -> None:
-        client = Browserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
+        client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"foo": "bar"},
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -176,7 +197,7 @@ class TestBrowserbase:
 
         client.close()
 
-    def test_copy_signature(self, client: Browserbase) -> None:
+    def test_copy_signature(self, client: Stagehand) -> None:
         # ensure the same parameters that can be passed to the client are defined in the `.copy()` method
         init_signature = inspect.signature(
             # mypy doesn't like that we access the `__init__` property.
@@ -193,7 +214,7 @@ class TestBrowserbase:
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
     @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
-    def test_copy_build_request(self, client: Browserbase) -> None:
+    def test_copy_build_request(self, client: Stagehand) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
         def build_request(options: FinalRequestOptions) -> None:
@@ -255,7 +276,7 @@ class TestBrowserbase:
                     print(frame)
             raise AssertionError()
 
-    def test_request_timeout(self, client: Browserbase) -> None:
+    def test_request_timeout(self, client: Stagehand) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
         assert timeout == DEFAULT_TIMEOUT
@@ -265,8 +286,13 @@ class TestBrowserbase:
         assert timeout == httpx.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
-        client = Browserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+        client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            timeout=httpx.Timeout(0),
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -278,8 +304,13 @@ class TestBrowserbase:
     def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         with httpx.Client(timeout=None) as http_client:
-            client = Browserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            client = Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -290,8 +321,13 @@ class TestBrowserbase:
 
         # no timeout given to the httpx client should not use the httpx default
         with httpx.Client() as http_client:
-            client = Browserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            client = Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -302,8 +338,13 @@ class TestBrowserbase:
 
         # explicitly passing the default timeout currently results in it being ignored
         with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = Browserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            client = Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -315,24 +356,33 @@ class TestBrowserbase:
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             async with httpx.AsyncClient() as http_client:
-                Browserbase(
+                Stagehand(
                     base_url=base_url,
-                    api_key=api_key,
+                    browserbase_api_key=browserbase_api_key,
+                    browserbase_project_id=browserbase_project_id,
+                    model_api_key=model_api_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     def test_default_headers_option(self) -> None:
-        test_client = Browserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+        test_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        test_client2 = Browserbase(
+        test_client2 = Stagehand(
             base_url=base_url,
-            api_key=api_key,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -347,18 +397,45 @@ class TestBrowserbase:
         test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+        assert request.headers.get("x-bb-api-key") == browserbase_api_key
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-bb-project-id") == browserbase_project_id
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-model-api-key") == model_api_key
 
-        with pytest.raises(BrowserbaseError):
-            with update_env(**{"STAGEHAND_API_KEY": Omit()}):
-                client2 = Browserbase(base_url=base_url, api_key=None, _strict_response_validation=True)
+        with pytest.raises(StagehandError):
+            with update_env(
+                **{
+                    "BROWSERBASE_API_KEY": Omit(),
+                    "BROWSERBASE_PROJECT_ID": Omit(),
+                    "MODEL_API_KEY": Omit(),
+                }
+            ):
+                client2 = Stagehand(
+                    base_url=base_url,
+                    browserbase_api_key=None,
+                    browserbase_project_id=None,
+                    model_api_key=None,
+                    _strict_response_validation=True,
+                )
             _ = client2
 
     def test_default_query_option(self) -> None:
-        client = Browserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
+        client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"query_param": "bar"},
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         url = httpx.URL(request.url)
@@ -376,7 +453,7 @@ class TestBrowserbase:
 
         client.close()
 
-    def test_request_extra_json(self, client: Browserbase) -> None:
+    def test_request_extra_json(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -410,7 +487,7 @@ class TestBrowserbase:
         data = json.loads(request.content.decode("utf-8"))
         assert data == {"foo": "bar", "baz": None}
 
-    def test_request_extra_headers(self, client: Browserbase) -> None:
+    def test_request_extra_headers(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -432,7 +509,7 @@ class TestBrowserbase:
         )
         assert request.headers.get("X-Bar") == "false"
 
-    def test_request_extra_query(self, client: Browserbase) -> None:
+    def test_request_extra_query(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -473,7 +550,7 @@ class TestBrowserbase:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, client: Browserbase) -> None:
+    def test_multipart_repeating_array(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions.construct(
                 method="post",
@@ -503,7 +580,7 @@ class TestBrowserbase:
         ]
 
     @pytest.mark.respx(base_url=base_url)
-    def test_basic_union_response(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_basic_union_response(self, respx_mock: MockRouter, client: Stagehand) -> None:
         class Model1(BaseModel):
             name: str
 
@@ -517,7 +594,7 @@ class TestBrowserbase:
         assert response.foo == "bar"
 
     @pytest.mark.respx(base_url=base_url)
-    def test_union_response_different_types(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_union_response_different_types(self, respx_mock: MockRouter, client: Stagehand) -> None:
         """Union of objects with the same field name using a different type"""
 
         class Model1(BaseModel):
@@ -539,7 +616,7 @@ class TestBrowserbase:
         assert response.foo == 1
 
     @pytest.mark.respx(base_url=base_url)
-    def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter, client: Stagehand) -> None:
         """
         Response that sets Content-Type to something other than application/json but returns json data
         """
@@ -560,8 +637,12 @@ class TestBrowserbase:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = Browserbase(
-            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
+        client = Stagehand(
+            base_url="https://example.com/from_init",
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
         )
         assert client.base_url == "https://example.com/from_init/"
 
@@ -572,38 +653,37 @@ class TestBrowserbase:
         client.close()
 
     def test_base_url_env(self) -> None:
-        with update_env(BROWSERBASE_BASE_URL="http://localhost:5000/from/env"):
-            client = Browserbase(api_key=api_key, _strict_response_validation=True)
+        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
+            client = Stagehand(
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            )
             assert client.base_url == "http://localhost:5000/from/env/"
 
-        # explicit environment arg requires explicitness
-        with update_env(BROWSERBASE_BASE_URL="http://localhost:5000/from/env"):
-            with pytest.raises(ValueError, match=r"you must pass base_url=None"):
-                Browserbase(api_key=api_key, _strict_response_validation=True, environment="production")
-
-            client = Browserbase(
-                base_url=None, api_key=api_key, _strict_response_validation=True, environment="production"
-            )
-            assert str(client.base_url).startswith("https://api.stagehand.browserbase.com/v1")
-
-            client.close()
-
     @pytest.mark.parametrize(
         "client",
         [
-            Browserbase(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            Browserbase(
+            Stagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            Stagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_trailing_slash(self, client: Browserbase) -> None:
+    def test_base_url_trailing_slash(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -617,19 +697,25 @@ class TestBrowserbase:
     @pytest.mark.parametrize(
         "client",
         [
-            Browserbase(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            Browserbase(
+            Stagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            Stagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_no_trailing_slash(self, client: Browserbase) -> None:
+    def test_base_url_no_trailing_slash(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -643,19 +729,25 @@ class TestBrowserbase:
     @pytest.mark.parametrize(
         "client",
         [
-            Browserbase(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            Browserbase(
+            Stagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            Stagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_absolute_request_url(self, client: Browserbase) -> None:
+    def test_absolute_request_url(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -667,7 +759,13 @@ class TestBrowserbase:
         client.close()
 
     def test_copied_client_does_not_close_http(self) -> None:
-        test_client = Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -678,7 +776,13 @@ class TestBrowserbase:
         assert not test_client.is_closed()
 
     def test_client_context_manager(self) -> None:
-        test_client = Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -686,7 +790,7 @@ class TestBrowserbase:
         assert test_client.is_closed()
 
     @pytest.mark.respx(base_url=base_url)
-    def test_client_response_validation_error(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_client_response_validation_error(self, respx_mock: MockRouter, client: Stagehand) -> None:
         class Model(BaseModel):
             foo: str
 
@@ -699,9 +803,25 @@ class TestBrowserbase:
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            Browserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
+            Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                max_retries=cast(Any, None),
             )
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_default_stream_cls(self, respx_mock: MockRouter, client: Stagehand) -> None:
+        class Model(BaseModel):
+            name: str
+
+        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+        stream = client.post("/foo", cast_to=Model, stream=True, stream_cls=Stream[Model])
+        assert isinstance(stream, Stream)
+        stream.response.close()
 
     @pytest.mark.respx(base_url=base_url)
     def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
@@ -710,12 +830,24 @@ class TestBrowserbase:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
 
         with pytest.raises(APIResponseValidationError):
             strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = Stagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=False,
+        )
 
         response = non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -746,7 +878,7 @@ class TestBrowserbase:
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     def test_parse_retry_after_header(
-        self, remaining_retries: int, retry_after: str, timeout: float, client: Browserbase
+        self, remaining_retries: int, retry_after: str, timeout: float, client: Stagehand
     ) -> None:
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
@@ -755,21 +887,21 @@ class TestBrowserbase:
 
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: Browserbase) -> None:
-        respx_mock.post("/sessions/start").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: Stagehand) -> None:
+        respx_mock.post("/v1/sessions/start").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            client.sessions.with_streaming_response.start(env="LOCAL").__enter__()
+            client.sessions.with_streaming_response.start(model_name="gpt-4o").__enter__()
 
         assert _get_open_connections(client) == 0
 
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: Browserbase) -> None:
-        respx_mock.post("/sessions/start").mock(return_value=httpx.Response(500))
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: Stagehand) -> None:
+        respx_mock.post("/v1/sessions/start").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            client.sessions.with_streaming_response.start(env="LOCAL").__enter__()
+            client.sessions.with_streaming_response.start(model_name="gpt-4o").__enter__()
         assert _get_open_connections(client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -778,7 +910,7 @@ class TestBrowserbase:
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     def test_retries_taken(
         self,
-        client: Browserbase,
+        client: Stagehand,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -796,9 +928,9 @@ class TestBrowserbase:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/start").mock(side_effect=retry_handler)
 
-        response = client.sessions.with_raw_response.start(env="LOCAL")
+        response = client.sessions.with_raw_response.start(model_name="gpt-4o")
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -807,7 +939,7 @@ class TestBrowserbase:
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_omit_retry_count_header(
-        self, client: Browserbase, failures_before_success: int, respx_mock: MockRouter
+        self, client: Stagehand, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -820,10 +952,10 @@ class TestBrowserbase:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/start").mock(side_effect=retry_handler)
 
         response = client.sessions.with_raw_response.start(
-            env="LOCAL", extra_headers={"x-stainless-retry-count": Omit()}
+            model_name="gpt-4o", extra_headers={"x-stainless-retry-count": Omit()}
         )
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
@@ -832,7 +964,7 @@ class TestBrowserbase:
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_overwrite_retry_count_header(
-        self, client: Browserbase, failures_before_success: int, respx_mock: MockRouter
+        self, client: Stagehand, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -845,9 +977,11 @@ class TestBrowserbase:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/start").mock(side_effect=retry_handler)
 
-        response = client.sessions.with_raw_response.start(env="LOCAL", extra_headers={"x-stainless-retry-count": "42"})
+        response = client.sessions.with_raw_response.start(
+            model_name="gpt-4o", extra_headers={"x-stainless-retry-count": "42"}
+        )
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
@@ -874,7 +1008,7 @@ class TestBrowserbase:
         )
 
     @pytest.mark.respx(base_url=base_url)
-    def test_follow_redirects(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_follow_redirects(self, respx_mock: MockRouter, client: Stagehand) -> None:
         # Test that the default follow_redirects=True allows following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
@@ -886,7 +1020,7 @@ class TestBrowserbase:
         assert response.json() == {"status": "ok"}
 
     @pytest.mark.respx(base_url=base_url)
-    def test_follow_redirects_disabled(self, respx_mock: MockRouter, client: Browserbase) -> None:
+    def test_follow_redirects_disabled(self, respx_mock: MockRouter, client: Stagehand) -> None:
         # Test that follow_redirects=False prevents following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
@@ -899,9 +1033,9 @@ class TestBrowserbase:
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
 
-class TestAsyncBrowserbase:
+class TestAsyncStagehand:
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response(self, respx_mock: MockRouter, async_client: AsyncBrowserbase) -> None:
+    async def test_raw_response(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
         response = await async_client.post("/foo", cast_to=httpx.Response)
@@ -910,7 +1044,7 @@ class TestAsyncBrowserbase:
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_for_binary(self, respx_mock: MockRouter, async_client: AsyncBrowserbase) -> None:
+    async def test_raw_response_for_binary(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         respx_mock.post("/foo").mock(
             return_value=httpx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
         )
@@ -920,15 +1054,23 @@ class TestAsyncBrowserbase:
         assert isinstance(response, httpx.Response)
         assert response.json() == {"foo": "bar"}
 
-    def test_copy(self, async_client: AsyncBrowserbase) -> None:
+    def test_copy(self, async_client: AsyncStagehand) -> None:
         copied = async_client.copy()
         assert id(copied) != id(async_client)
 
-        copied = async_client.copy(api_key="another My API Key")
-        assert copied.api_key == "another My API Key"
-        assert async_client.api_key == "My API Key"
+        copied = async_client.copy(browserbase_api_key="another My Browserbase API Key")
+        assert copied.browserbase_api_key == "another My Browserbase API Key"
+        assert async_client.browserbase_api_key == "My Browserbase API Key"
 
-    def test_copy_default_options(self, async_client: AsyncBrowserbase) -> None:
+        copied = async_client.copy(browserbase_project_id="another My Browserbase Project ID")
+        assert copied.browserbase_project_id == "another My Browserbase Project ID"
+        assert async_client.browserbase_project_id == "My Browserbase Project ID"
+
+        copied = async_client.copy(model_api_key="another My Model API Key")
+        assert copied.model_api_key == "another My Model API Key"
+        assert async_client.model_api_key == "My Model API Key"
+
+    def test_copy_default_options(self, async_client: AsyncStagehand) -> None:
         # options that have a default are overridden correctly
         copied = async_client.copy(max_retries=7)
         assert copied.max_retries == 7
@@ -945,8 +1087,13 @@ class TestAsyncBrowserbase:
         assert isinstance(async_client.timeout, httpx.Timeout)
 
     async def test_copy_default_headers(self) -> None:
-        client = AsyncBrowserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+        client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         assert client.default_headers["X-Foo"] == "bar"
 
@@ -980,8 +1127,13 @@ class TestAsyncBrowserbase:
         await client.close()
 
     async def test_copy_default_query(self) -> None:
-        client = AsyncBrowserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
+        client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"foo": "bar"},
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -1017,7 +1169,7 @@ class TestAsyncBrowserbase:
 
         await client.close()
 
-    def test_copy_signature(self, async_client: AsyncBrowserbase) -> None:
+    def test_copy_signature(self, async_client: AsyncStagehand) -> None:
         # ensure the same parameters that can be passed to the client are defined in the `.copy()` method
         init_signature = inspect.signature(
             # mypy doesn't like that we access the `__init__` property.
@@ -1034,7 +1186,7 @@ class TestAsyncBrowserbase:
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
     @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
-    def test_copy_build_request(self, async_client: AsyncBrowserbase) -> None:
+    def test_copy_build_request(self, async_client: AsyncStagehand) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
         def build_request(options: FinalRequestOptions) -> None:
@@ -1096,7 +1248,7 @@ class TestAsyncBrowserbase:
                     print(frame)
             raise AssertionError()
 
-    async def test_request_timeout(self, async_client: AsyncBrowserbase) -> None:
+    async def test_request_timeout(self, async_client: AsyncStagehand) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
         assert timeout == DEFAULT_TIMEOUT
@@ -1108,8 +1260,13 @@ class TestAsyncBrowserbase:
         assert timeout == httpx.Timeout(100.0)
 
     async def test_client_timeout_option(self) -> None:
-        client = AsyncBrowserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+        client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            timeout=httpx.Timeout(0),
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1121,8 +1278,13 @@ class TestAsyncBrowserbase:
     async def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         async with httpx.AsyncClient(timeout=None) as http_client:
-            client = AsyncBrowserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            client = AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1133,8 +1295,13 @@ class TestAsyncBrowserbase:
 
         # no timeout given to the httpx client should not use the httpx default
         async with httpx.AsyncClient() as http_client:
-            client = AsyncBrowserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            client = AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1145,8 +1312,13 @@ class TestAsyncBrowserbase:
 
         # explicitly passing the default timeout currently results in it being ignored
         async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = AsyncBrowserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            client = AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1158,24 +1330,33 @@ class TestAsyncBrowserbase:
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             with httpx.Client() as http_client:
-                AsyncBrowserbase(
+                AsyncStagehand(
                     base_url=base_url,
-                    api_key=api_key,
+                    browserbase_api_key=browserbase_api_key,
+                    browserbase_project_id=browserbase_project_id,
+                    model_api_key=model_api_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     async def test_default_headers_option(self) -> None:
-        test_client = AsyncBrowserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+        test_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        test_client2 = AsyncBrowserbase(
+        test_client2 = AsyncStagehand(
             base_url=base_url,
-            api_key=api_key,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -1190,18 +1371,45 @@ class TestAsyncBrowserbase:
         await test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = AsyncBrowserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+        assert request.headers.get("x-bb-api-key") == browserbase_api_key
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-bb-project-id") == browserbase_project_id
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("x-model-api-key") == model_api_key
 
-        with pytest.raises(BrowserbaseError):
-            with update_env(**{"STAGEHAND_API_KEY": Omit()}):
-                client2 = AsyncBrowserbase(base_url=base_url, api_key=None, _strict_response_validation=True)
+        with pytest.raises(StagehandError):
+            with update_env(
+                **{
+                    "BROWSERBASE_API_KEY": Omit(),
+                    "BROWSERBASE_PROJECT_ID": Omit(),
+                    "MODEL_API_KEY": Omit(),
+                }
+            ):
+                client2 = AsyncStagehand(
+                    base_url=base_url,
+                    browserbase_api_key=None,
+                    browserbase_project_id=None,
+                    model_api_key=None,
+                    _strict_response_validation=True,
+                )
             _ = client2
 
     async def test_default_query_option(self) -> None:
-        client = AsyncBrowserbase(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
+        client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+            default_query={"query_param": "bar"},
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         url = httpx.URL(request.url)
@@ -1219,7 +1427,7 @@ class TestAsyncBrowserbase:
 
         await client.close()
 
-    def test_request_extra_json(self, client: Browserbase) -> None:
+    def test_request_extra_json(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1253,7 +1461,7 @@ class TestAsyncBrowserbase:
         data = json.loads(request.content.decode("utf-8"))
         assert data == {"foo": "bar", "baz": None}
 
-    def test_request_extra_headers(self, client: Browserbase) -> None:
+    def test_request_extra_headers(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1275,7 +1483,7 @@ class TestAsyncBrowserbase:
         )
         assert request.headers.get("X-Bar") == "false"
 
-    def test_request_extra_query(self, client: Browserbase) -> None:
+    def test_request_extra_query(self, client: Stagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1316,7 +1524,7 @@ class TestAsyncBrowserbase:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, async_client: AsyncBrowserbase) -> None:
+    def test_multipart_repeating_array(self, async_client: AsyncStagehand) -> None:
         request = async_client._build_request(
             FinalRequestOptions.construct(
                 method="post",
@@ -1346,7 +1554,7 @@ class TestAsyncBrowserbase:
         ]
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_basic_union_response(self, respx_mock: MockRouter, async_client: AsyncBrowserbase) -> None:
+    async def test_basic_union_response(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         class Model1(BaseModel):
             name: str
 
@@ -1360,7 +1568,7 @@ class TestAsyncBrowserbase:
         assert response.foo == "bar"
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_union_response_different_types(self, respx_mock: MockRouter, async_client: AsyncBrowserbase) -> None:
+    async def test_union_response_different_types(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         """Union of objects with the same field name using a different type"""
 
         class Model1(BaseModel):
@@ -1383,7 +1591,7 @@ class TestAsyncBrowserbase:
 
     @pytest.mark.respx(base_url=base_url)
     async def test_non_application_json_content_type_for_json_data(
-        self, respx_mock: MockRouter, async_client: AsyncBrowserbase
+        self, respx_mock: MockRouter, async_client: AsyncStagehand
     ) -> None:
         """
         Response that sets Content-Type to something other than application/json but returns json data
@@ -1405,8 +1613,12 @@ class TestAsyncBrowserbase:
         assert response.foo == 2
 
     async def test_base_url_setter(self) -> None:
-        client = AsyncBrowserbase(
-            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
+        client = AsyncStagehand(
+            base_url="https://example.com/from_init",
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
         )
         assert client.base_url == "https://example.com/from_init/"
 
@@ -1417,38 +1629,37 @@ class TestAsyncBrowserbase:
         await client.close()
 
     async def test_base_url_env(self) -> None:
-        with update_env(BROWSERBASE_BASE_URL="http://localhost:5000/from/env"):
-            client = AsyncBrowserbase(api_key=api_key, _strict_response_validation=True)
+        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
+            client = AsyncStagehand(
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            )
             assert client.base_url == "http://localhost:5000/from/env/"
 
-        # explicit environment arg requires explicitness
-        with update_env(BROWSERBASE_BASE_URL="http://localhost:5000/from/env"):
-            with pytest.raises(ValueError, match=r"you must pass base_url=None"):
-                AsyncBrowserbase(api_key=api_key, _strict_response_validation=True, environment="production")
-
-            client = AsyncBrowserbase(
-                base_url=None, api_key=api_key, _strict_response_validation=True, environment="production"
-            )
-            assert str(client.base_url).startswith("https://api.stagehand.browserbase.com/v1")
-
-            await client.close()
-
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncBrowserbase(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            AsyncBrowserbase(
+            AsyncStagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            AsyncStagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    async def test_base_url_trailing_slash(self, client: AsyncBrowserbase) -> None:
+    async def test_base_url_trailing_slash(self, client: AsyncStagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1462,19 +1673,25 @@ class TestAsyncBrowserbase:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncBrowserbase(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            AsyncBrowserbase(
+            AsyncStagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            AsyncStagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    async def test_base_url_no_trailing_slash(self, client: AsyncBrowserbase) -> None:
+    async def test_base_url_no_trailing_slash(self, client: AsyncStagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1488,19 +1705,25 @@ class TestAsyncBrowserbase:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncBrowserbase(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-            ),
-            AsyncBrowserbase(
+            AsyncStagehand(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            ),
+            AsyncStagehand(
+                base_url="http://localhost:5000/custom/path/",
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    async def test_absolute_request_url(self, client: AsyncBrowserbase) -> None:
+    async def test_absolute_request_url(self, client: AsyncStagehand) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1512,7 +1735,13 @@ class TestAsyncBrowserbase:
         await client.close()
 
     async def test_copied_client_does_not_close_http(self) -> None:
-        test_client = AsyncBrowserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -1524,7 +1753,13 @@ class TestAsyncBrowserbase:
         assert not test_client.is_closed()
 
     async def test_client_context_manager(self) -> None:
-        test_client = AsyncBrowserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
         async with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -1532,9 +1767,7 @@ class TestAsyncBrowserbase:
         assert test_client.is_closed()
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_client_response_validation_error(
-        self, respx_mock: MockRouter, async_client: AsyncBrowserbase
-    ) -> None:
+    async def test_client_response_validation_error(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         class Model(BaseModel):
             foo: str
 
@@ -1547,9 +1780,25 @@ class TestAsyncBrowserbase:
 
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            AsyncBrowserbase(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
+            AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+                max_retries=cast(Any, None),
             )
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_default_stream_cls(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
+        class Model(BaseModel):
+            name: str
+
+        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+        stream = await async_client.post("/foo", cast_to=Model, stream=True, stream_cls=AsyncStream[Model])
+        assert isinstance(stream, AsyncStream)
+        await stream.response.aclose()
 
     @pytest.mark.respx(base_url=base_url)
     async def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
@@ -1558,12 +1807,24 @@ class TestAsyncBrowserbase:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = AsyncBrowserbase(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=True,
+        )
 
         with pytest.raises(APIResponseValidationError):
             await strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = AsyncBrowserbase(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = AsyncStagehand(
+            base_url=base_url,
+            browserbase_api_key=browserbase_api_key,
+            browserbase_project_id=browserbase_project_id,
+            model_api_key=model_api_key,
+            _strict_response_validation=False,
+        )
 
         response = await non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -1594,7 +1855,7 @@ class TestAsyncBrowserbase:
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     async def test_parse_retry_after_header(
-        self, remaining_retries: int, retry_after: str, timeout: float, async_client: AsyncBrowserbase
+        self, remaining_retries: int, retry_after: str, timeout: float, async_client: AsyncStagehand
     ) -> None:
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
@@ -1604,24 +1865,24 @@ class TestAsyncBrowserbase:
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_timeout_errors_doesnt_leak(
-        self, respx_mock: MockRouter, async_client: AsyncBrowserbase
+        self, respx_mock: MockRouter, async_client: AsyncStagehand
     ) -> None:
-        respx_mock.post("/sessions/start").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+        respx_mock.post("/v1/sessions/start").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            await async_client.sessions.with_streaming_response.start(env="LOCAL").__aenter__()
+            await async_client.sessions.with_streaming_response.start(model_name="gpt-4o").__aenter__()
 
         assert _get_open_connections(async_client) == 0
 
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retrying_status_errors_doesnt_leak(
-        self, respx_mock: MockRouter, async_client: AsyncBrowserbase
+        self, respx_mock: MockRouter, async_client: AsyncStagehand
     ) -> None:
-        respx_mock.post("/sessions/start").mock(return_value=httpx.Response(500))
+        respx_mock.post("/v1/sessions/start").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            await async_client.sessions.with_streaming_response.start(env="LOCAL").__aenter__()
+            await async_client.sessions.with_streaming_response.start(model_name="gpt-4o").__aenter__()
         assert _get_open_connections(async_client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -1630,7 +1891,7 @@ class TestAsyncBrowserbase:
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     async def test_retries_taken(
         self,
-        async_client: AsyncBrowserbase,
+        async_client: AsyncStagehand,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -1648,9 +1909,9 @@ class TestAsyncBrowserbase:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/start").mock(side_effect=retry_handler)
 
-        response = await client.sessions.with_raw_response.start(env="LOCAL")
+        response = await client.sessions.with_raw_response.start(model_name="gpt-4o")
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -1659,7 +1920,7 @@ class TestAsyncBrowserbase:
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_omit_retry_count_header(
-        self, async_client: AsyncBrowserbase, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncStagehand, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1672,10 +1933,10 @@ class TestAsyncBrowserbase:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/start").mock(side_effect=retry_handler)
 
         response = await client.sessions.with_raw_response.start(
-            env="LOCAL", extra_headers={"x-stainless-retry-count": Omit()}
+            model_name="gpt-4o", extra_headers={"x-stainless-retry-count": Omit()}
         )
 
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
@@ -1684,7 +1945,7 @@ class TestAsyncBrowserbase:
     @mock.patch("stagehand._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_overwrite_retry_count_header(
-        self, async_client: AsyncBrowserbase, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncStagehand, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1697,10 +1958,10 @@ class TestAsyncBrowserbase:
                 return httpx.Response(500)
             return httpx.Response(200)
 
-        respx_mock.post("/sessions/start").mock(side_effect=retry_handler)
+        respx_mock.post("/v1/sessions/start").mock(side_effect=retry_handler)
 
         response = await client.sessions.with_raw_response.start(
-            env="LOCAL", extra_headers={"x-stainless-retry-count": "42"}
+            model_name="gpt-4o", extra_headers={"x-stainless-retry-count": "42"}
         )
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
@@ -1732,7 +1993,7 @@ class TestAsyncBrowserbase:
         )
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncBrowserbase) -> None:
+    async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         # Test that the default follow_redirects=True allows following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
@@ -1744,7 +2005,7 @@ class TestAsyncBrowserbase:
         assert response.json() == {"status": "ok"}
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_follow_redirects_disabled(self, respx_mock: MockRouter, async_client: AsyncBrowserbase) -> None:
+    async def test_follow_redirects_disabled(self, respx_mock: MockRouter, async_client: AsyncStagehand) -> None:
         # Test that follow_redirects=False prevents following redirects
         respx_mock.post("/redirect").mock(
             return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})

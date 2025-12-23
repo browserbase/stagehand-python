@@ -10,7 +10,7 @@ import httpx
 import pytest
 from pytest_asyncio import is_async_test
 
-from stagehand import Browserbase, AsyncBrowserbase, DefaultAioHttpClient
+from stagehand import Stagehand, AsyncStagehand, DefaultAioHttpClient
 from stagehand._utils import is_dict
 
 if TYPE_CHECKING:
@@ -45,21 +45,29 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
-api_key = "My API Key"
+browserbase_api_key = "My Browserbase API Key"
+browserbase_project_id = "My Browserbase Project ID"
+model_api_key = "My Model API Key"
 
 
 @pytest.fixture(scope="session")
-def client(request: FixtureRequest) -> Iterator[Browserbase]:
+def client(request: FixtureRequest) -> Iterator[Stagehand]:
     strict = getattr(request, "param", True)
     if not isinstance(strict, bool):
         raise TypeError(f"Unexpected fixture parameter type {type(strict)}, expected {bool}")
 
-    with Browserbase(base_url=base_url, api_key=api_key, _strict_response_validation=strict) as client:
+    with Stagehand(
+        base_url=base_url,
+        browserbase_api_key=browserbase_api_key,
+        browserbase_project_id=browserbase_project_id,
+        model_api_key=model_api_key,
+        _strict_response_validation=strict,
+    ) as client:
         yield client
 
 
 @pytest.fixture(scope="session")
-async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncBrowserbase]:
+async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncStagehand]:
     param = getattr(request, "param", True)
 
     # defaults
@@ -78,7 +86,12 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncBrowserbas
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")
 
-    async with AsyncBrowserbase(
-        base_url=base_url, api_key=api_key, _strict_response_validation=strict, http_client=http_client
+    async with AsyncStagehand(
+        base_url=base_url,
+        browserbase_api_key=browserbase_api_key,
+        browserbase_project_id=browserbase_project_id,
+        model_api_key=model_api_key,
+        _strict_response_validation=strict,
+        http_client=http_client,
     ) as client:
         yield client

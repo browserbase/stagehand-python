@@ -1,9 +1,9 @@
-# Browserbase Python API library
+# Stagehand Python API library
 
 <!-- prettier-ignore -->
-[![PyPI version](https://img.shields.io/pypi/v/stagehand.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand/)
+[![PyPI version](https://img.shields.io/pypi/v/stagehand-alpha.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand-alpha/)
 
-The Browserbase Python library provides convenient access to the Browserbase REST API from any Python 3.9+
+The Stagehand Python library provides convenient access to the Stagehand REST API from any Python 3.9+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -11,17 +11,14 @@ It is generated with [Stainless](https://www.stainless.com/).
 
 ## Documentation
 
-The REST API documentation can be found on [browserbase.com](https://browserbase.com). The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [docs.stagehand.dev](https://docs.stagehand.dev). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
 
 ```sh
-# install from this staging repo
-pip install git+ssh://git@github.com/stainless-sdks/stagehand-python.git
+# install from PyPI
+pip install stagehand-alpha
 ```
-
-> [!NOTE]
-> Once this package is [published to PyPI](https://www.stainless.com/docs/guides/publish), this will become: `pip install stagehand`
 
 ## Usage
 
@@ -29,46 +26,56 @@ The full API of this library can be found in [api.md](api.md).
 
 ```python
 import os
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase(
-    api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
-    # or 'production' | 'local'; defaults to "production".
-    environment="dev",
+client = Stagehand(
+    browserbase_api_key=os.environ.get(
+        "BROWSERBASE_API_KEY"
+    ),  # This is the default and can be omitted
+    browserbase_project_id=os.environ.get(
+        "BROWSERBASE_PROJECT_ID"
+    ),  # This is the default and can be omitted
+    model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
 )
 
-response = client.sessions.start(
-    env="LOCAL",
+response = client.sessions.act(
+    id="00000000-your-session-id-000000000000",
+    input="click the first link on the page",
 )
-print(response.available)
+print(response.data)
 ```
 
-While you can provide an `api_key` keyword argument,
+While you can provide a `browserbase_api_key` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
-to add `STAGEHAND_API_KEY="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+to add `BROWSERBASE_API_KEY="My Browserbase API Key"` to your `.env` file
+so that your Browserbase API Key is not stored in source control.
 
 ## Async usage
 
-Simply import `AsyncBrowserbase` instead of `Browserbase` and use `await` with each API call:
+Simply import `AsyncStagehand` instead of `Stagehand` and use `await` with each API call:
 
 ```python
 import os
 import asyncio
-from stagehand import AsyncBrowserbase
+from stagehand import AsyncStagehand
 
-client = AsyncBrowserbase(
-    api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
-    # or 'production' | 'local'; defaults to "production".
-    environment="dev",
+client = AsyncStagehand(
+    browserbase_api_key=os.environ.get(
+        "BROWSERBASE_API_KEY"
+    ),  # This is the default and can be omitted
+    browserbase_project_id=os.environ.get(
+        "BROWSERBASE_PROJECT_ID"
+    ),  # This is the default and can be omitted
+    model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
 )
 
 
 async def main() -> None:
-    response = await client.sessions.start(
-        env="LOCAL",
+    response = await client.sessions.act(
+        id="00000000-your-session-id-000000000000",
+        input="click the first link on the page",
     )
-    print(response.available)
+    print(response.data)
 
 
 asyncio.run(main())
@@ -83,8 +90,8 @@ By default, the async client uses `httpx` for HTTP requests. However, for improv
 You can enable this by installing `aiohttp`:
 
 ```sh
-# install from this staging repo
-pip install 'stagehand[aiohttp] @ git+ssh://git@github.com/stainless-sdks/stagehand-python.git'
+# install from PyPI
+pip install stagehand-alpha[aiohttp]
 ```
 
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
@@ -93,21 +100,62 @@ Then you can enable it by instantiating the client with `http_client=DefaultAioH
 import os
 import asyncio
 from stagehand import DefaultAioHttpClient
-from stagehand import AsyncBrowserbase
+from stagehand import AsyncStagehand
 
 
 async def main() -> None:
-    async with AsyncBrowserbase(
-        api_key=os.environ.get("STAGEHAND_API_KEY"),  # This is the default and can be omitted
+    async with AsyncStagehand(
+        browserbase_api_key=os.environ.get(
+            "BROWSERBASE_API_KEY"
+        ),  # This is the default and can be omitted
+        browserbase_project_id=os.environ.get(
+            "BROWSERBASE_PROJECT_ID"
+        ),  # This is the default and can be omitted
+        model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
-        response = await client.sessions.start(
-            env="LOCAL",
+        response = await client.sessions.act(
+            id="00000000-your-session-id-000000000000",
+            input="click the first link on the page",
         )
-        print(response.available)
+        print(response.data)
 
 
 asyncio.run(main())
+```
+
+## Streaming responses
+
+We provide support for streaming responses using Server Side Events (SSE).
+
+```python
+from stagehand import Stagehand
+
+client = Stagehand()
+
+stream = client.sessions.act(
+    id="00000000-your-session-id-000000000000",
+    input="click the first link on the page",
+    stream_response=True,
+)
+for response in stream:
+    print(response.data)
+```
+
+The async client uses the exact same interface.
+
+```python
+from stagehand import AsyncStagehand
+
+client = AsyncStagehand()
+
+stream = await client.sessions.act(
+    id="00000000-your-session-id-000000000000",
+    input="click the first link on the page",
+    stream_response=True,
+)
+async for response in stream:
+    print(response.data)
 ```
 
 ## Using types
@@ -124,15 +172,16 @@ Typed requests and responses provide autocomplete and documentation within your 
 Nested parameters are dictionaries, typed using `TypedDict`, for example:
 
 ```python
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase()
+client = Stagehand()
 
-response = client.sessions.start(
-    env="LOCAL",
-    local_browser_launch_options={},
+response = client.sessions.act(
+    id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+    input="Click the login button",
+    options={},
 )
-print(response.local_browser_launch_options)
+print(response.options)
 ```
 
 ## Handling errors
@@ -146,13 +195,13 @@ All errors inherit from `stagehand.APIError`.
 
 ```python
 import stagehand
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase()
+client = Stagehand()
 
 try:
     client.sessions.start(
-        env="LOCAL",
+        model_name="openai/gpt-5-nano",
     )
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
@@ -187,17 +236,17 @@ Connection errors (for example, due to a network connectivity problem), 408 Requ
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
-from stagehand import Browserbase
+from stagehand import Stagehand
 
 # Configure the default for all requests:
-client = Browserbase(
+client = Stagehand(
     # default is 2
     max_retries=0,
 )
 
 # Or, configure per-request:
 client.with_options(max_retries=5).sessions.start(
-    env="LOCAL",
+    model_name="openai/gpt-5-nano",
 )
 ```
 
@@ -207,22 +256,22 @@ By default requests time out after 1 minute. You can configure this with a `time
 which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:
 
 ```python
-from stagehand import Browserbase
+from stagehand import Stagehand
 
 # Configure the default for all requests:
-client = Browserbase(
+client = Stagehand(
     # 20 seconds (default is 1 minute)
     timeout=20.0,
 )
 
 # More granular control:
-client = Browserbase(
+client = Stagehand(
     timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
 )
 
 # Override per-request:
 client.with_options(timeout=5.0).sessions.start(
-    env="LOCAL",
+    model_name="openai/gpt-5-nano",
 )
 ```
 
@@ -236,10 +285,10 @@ Note that requests that time out are [retried twice by default](#retries).
 
 We use the standard library [`logging`](https://docs.python.org/3/library/logging.html) module.
 
-You can enable logging by setting the environment variable `BROWSERBASE_LOG` to `info`.
+You can enable logging by setting the environment variable `STAGEHAND_LOG` to `info`.
 
 ```shell
-$ export BROWSERBASE_LOG=info
+$ export STAGEHAND_LOG=info
 ```
 
 Or to `debug` for more verbose logging.
@@ -261,21 +310,21 @@ if response.my_field is None:
 The "raw" Response object can be accessed by prefixing `.with_raw_response.` to any HTTP method call, e.g.,
 
 ```py
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-client = Browserbase()
+client = Stagehand()
 response = client.sessions.with_raw_response.start(
-    env="LOCAL",
+    model_name="openai/gpt-5-nano",
 )
 print(response.headers.get('X-My-Header'))
 
 session = response.parse()  # get the object that `sessions.start()` would have returned
-print(session.available)
+print(session.data)
 ```
 
-These methods return an [`APIResponse`](https://github.com/stainless-sdks/stagehand-python/tree/main/src/stagehand/_response.py) object.
+These methods return an [`APIResponse`](https://github.com/browserbase/stagehand-python/tree/stainless/src/stagehand/_response.py) object.
 
-The async client returns an [`AsyncAPIResponse`](https://github.com/stainless-sdks/stagehand-python/tree/main/src/stagehand/_response.py) with the same structure, the only difference being `await`able methods for reading the response content.
+The async client returns an [`AsyncAPIResponse`](https://github.com/browserbase/stagehand-python/tree/stainless/src/stagehand/_response.py) with the same structure, the only difference being `await`able methods for reading the response content.
 
 #### `.with_streaming_response`
 
@@ -285,7 +334,7 @@ To stream the response body, use `.with_streaming_response` instead, which requi
 
 ```python
 with client.sessions.with_streaming_response.start(
-    env="LOCAL",
+    model_name="openai/gpt-5-nano",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
@@ -339,10 +388,10 @@ You can directly override the [httpx client](https://www.python-httpx.org/api/#c
 
 ```python
 import httpx
-from stagehand import Browserbase, DefaultHttpxClient
+from stagehand import Stagehand, DefaultHttpxClient
 
-client = Browserbase(
-    # Or use the `BROWSERBASE_BASE_URL` env var
+client = Stagehand(
+    # Or use the `STAGEHAND_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",
@@ -362,9 +411,9 @@ client.with_options(http_client=DefaultHttpxClient(...))
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
 
 ```py
-from stagehand import Browserbase
+from stagehand import Stagehand
 
-with Browserbase() as client:
+with Stagehand() as client:
   # make requests here
   ...
 
@@ -381,7 +430,7 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
-We are keen for your feedback; please open an [issue](https://www.github.com/stainless-sdks/stagehand-python/issues) with questions, bugs, or suggestions.
+We are keen for your feedback; please open an [issue](https://www.github.com/browserbase/stagehand-python/issues) with questions, bugs, or suggestions.
 
 ### Determining the installed version
 

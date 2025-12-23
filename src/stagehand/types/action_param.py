@@ -11,17 +11,19 @@ __all__ = ["ActionParam"]
 
 
 class ActionParam(TypedDict, total=False):
-    arguments: Required[SequenceNotStr[str]]
-    """Arguments for the method"""
+    """Action object returned by observe and used by act"""
 
     description: Required[str]
     """Human-readable description of the action"""
 
-    method: Required[str]
-    """Method to execute (e.g., "click", "fill")"""
-
     selector: Required[str]
-    """CSS or XPath selector for the element"""
+    """CSS selector or XPath for the element"""
 
-    backend_node_id: Annotated[int, PropertyInfo(alias="backendNodeId")]
-    """CDP backend node ID"""
+    arguments: SequenceNotStr[str]
+    """Arguments to pass to the method"""
+
+    backend_node_id: Annotated[float, PropertyInfo(alias="backendNodeId")]
+    """Backend node ID for the element"""
+
+    method: str
+    """The method to execute (click, fill, etc.)"""
