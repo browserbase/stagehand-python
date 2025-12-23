@@ -295,9 +295,13 @@ class AnthropicCUAClient(AgentClient):
         if hasattr(response, "content") and isinstance(response.content, list):
             # Serialize Pydantic models from response.content for history
             try:
-                raw_assistant_content_blocks = [
-                    block.model_dump() for block in response.content
-                ]
+                for block in response.content:
+                    block_dict = block.model_dump()
+                    if isinstance(block_dict, dict):
+                        # Anthropic beta responses include a `caller` field on tool_use blocks
+                        # but the API rejects that key on subsequent requests.
+                        block_dict.pop("caller", None)
+                    raw_assistant_content_blocks.append(block_dict)
             except Exception as e:
                 self.logger.error(
                     f"Could not model_dump response.content blocks: {e}",
