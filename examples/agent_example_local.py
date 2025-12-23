@@ -26,33 +26,11 @@ console = Console(theme=custom_theme)
 
 load_dotenv()
 
-ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
-REPRO_INSTRUCTION = (
-    "Step 1: Use the goto tool to open https://example.com/.\n"
-    "Step 2: After it loads, scroll down and click the 'More information...' link "
-    "to open the iana.org page, then report the heading text you see."
-)
-ERROR_SIGNATURES = [
-    "messages.1.content.1.tool_use.caller",
-    "Extra inputs are not permitted",
-]
-
 # Configure logging with the utility function
 configure_logging(
     level=logging.INFO,  # Set to INFO for regular logs, DEBUG for detailed
     quiet_dependencies=True,  # Reduce noise from dependencies
 )
-
-
-def require_env_var(var_name: str) -> str:
-    """Fetch a required env var with a helpful error for local runs."""
-    value = os.getenv(var_name)
-    if not value:
-        raise RuntimeError(
-            f"{var_name} is not set. Add it to your .env before running this example."
-        )
-    return value
-
 
 async def main():
     # Build a unified configuration object for Stagehand
@@ -75,37 +53,19 @@ async def main():
     await stagehand.page.goto("https://google.com/")
     console.print("✅ [success]Navigated to Google[/]")
     
-    console.print(
-        "\n▶️ [highlight]Using Anthropic CUA agent[/]: reproducing the tool_use caller bug"
-    )
-    anthropic_api_key = require_env_var("ANTHROPIC_API_KEY")
+    console.print("\n▶️ [highlight] Using Agent to perform a task[/]: playing a game of 2048")
     agent = stagehand.agent(
-        model=ANTHROPIC_MODEL,
-        instructions=(
-            "You are controlling a fullscreen local browser with the Anthropic computer-use tools. "
-            "Read the current page carefully, decide on your next action, and avoid asking follow-up questions."
-        ),
-        options={"apiKey": anthropic_api_key}
+        model="gemini-2.5-computer-use-preview-10-2025",
+        instructions="You are a helpful web navigation assistant that helps users find information. You are currently on the following page: google.com. Do not ask follow up questions, the user will trust your judgement.",
+        options={"apiKey": os.getenv("GEMINI_API_KEY")}
     )
     agent_result = await agent.execute(
-        instruction=REPRO_INSTRUCTION,
-        max_steps=5,
+        instruction="Play a game of 2048",
+        max_steps=20,
         auto_screenshot=True,
     )
 
     console.print(agent_result)
-    if agent_result.message and any(
-        signature in agent_result.message for signature in ERROR_SIGNATURES
-    ):
-        console.print(
-            "🐛 [error]Reproduced the Anthropic `tool_use.caller` validation error.[/]\n"
-            "    Check the logs above for 'Extra inputs are not permitted' to link back to the GitHub issue."
-        )
-    else:
-        console.print(
-            "⚠️ [warning]Bug signature not detected in this run. "
-            "Re-run the example or tweak the instructions if you need the failing payload."
-        )
 
     console.print("📊 [info]Agent execution result:[/]")
     console.print(f"🎯 Completed: [bold]{'Yes' if agent_result.completed else 'No'}[/]")
@@ -140,4 +100,4 @@ if __name__ == "__main__":
             padding=(1, 10),
         ),
     )
-    asyncio.run(main())
+    asyncio.run(main()) 
