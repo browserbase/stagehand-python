@@ -1,5 +1,11 @@
 # Stagehand Python Changelog
 
+## 0.5.9
+
+### Patch Changes
+
+[#256](https://github.com/browserbase/stagehand-python/pull/256) [`898a2fd`](https://github.com/browserbase/stagehand-python/commit/898a2fd) Thanks @seanmcguire12! - fix: invalid_request_error when using anthropic cua client
+
 ## 0.5.8
 
 ### Patch Changes
