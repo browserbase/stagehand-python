@@ -147,6 +147,7 @@ class StagehandContext:
         Uses the page switch lock to prevent race conditions with ongoing operations.
         """
         try:
+
             async def handle_with_lock():
                 async with self.stagehand._page_switch_lock:
                     if self.active_stagehand_page is not closing_page:
