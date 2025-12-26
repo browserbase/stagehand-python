@@ -58,9 +58,12 @@ class AnthropicCUAClient(AgentClient):
     ):
         super().__init__(model, instructions, config, logger, handler)
         self.experimental = experimental
-        self.anthropic_sdk_client = Anthropic(
-            api_key=config.options.get("apiKey") or os.getenv("ANTHROPIC_API_KEY")
-        )
+        api_key = None
+        if config and hasattr(config, 'options') and config.options:
+            api_key = config.options.get('api_key') or config.options.get('apiKey')
+        if not api_key:
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+        self.anthropic_sdk_client = Anthropic(api_key=api_key)
 
         dimensions = (
             (viewport["width"], viewport["height"]) if viewport else (1288, 711)
