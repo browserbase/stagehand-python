@@ -87,8 +87,7 @@ jobs:
           --tb=short \
           --maxfail=5
       env:
-        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY || 'mock-model-key' }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'mock-openai-key' }}
+        MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
         DISPLAY: ":99"
     
     - name: Upload integration test results
