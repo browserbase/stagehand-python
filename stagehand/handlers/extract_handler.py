@@ -183,4 +183,4 @@ class ExtractHandler:
         output_string = tree["simplified"]
         output_dict = {"page_text": output_string}
         validated_model = EmptyExtractSchema.model_validate(output_dict)
-        return ExtractResult(data=validated_model).data
+        return ExtractResult(data=validated_model)
