@@ -188,6 +188,7 @@ async def connect_local_browser(
             "accept_downloads": local_browser_launch_options.get(
                 "acceptDownloads", True
             ),
+            "channel": local_browser_launch_options.get("channel"),
             "downloads_path": downloads_path,
             "args": local_browser_launch_options.get(
                 "args",
