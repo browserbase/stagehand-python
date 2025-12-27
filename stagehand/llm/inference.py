@@ -29,6 +29,7 @@ async def observe(
     logger: Optional[Callable] = None,
     log_inference_to_file: bool = False,
     from_act: bool = False,
+    variables = {}
 ) -> dict[str, Any]:
     """
     Call LLM to find elements in the DOM/accessibility tree based on an instruction.
@@ -54,6 +55,7 @@ async def observe(
     user_prompt = build_observe_user_message(
         instruction=instruction,
         tree_elements=tree_elements,
+        variables = variables
     )
 
     messages = [
