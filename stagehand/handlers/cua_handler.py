@@ -90,6 +90,8 @@ class CUAHandler:  # Computer Use Agent Handler
 
             elif action_type == "type":
                 # specific_action_model is TypeAction
+                clear_before = getattr(specific_action_model, "clear_before_typing", False)
+
                 if (
                     hasattr(specific_action_model, "x")
                     and hasattr(specific_action_model, "y")
@@ -99,11 +101,31 @@ class CUAHandler:  # Computer Use Agent Handler
                     await self._update_cursor_position(
                         specific_action_model.x, specific_action_model.y
                     )
-                    # Consider if _animate_click is desired before typing at a coordinate
-                    await self.page.mouse.click(
-                        specific_action_model.x, specific_action_model.y
-                    )
-                    # await asyncio.sleep(0.1) # Brief pause after click before typing
+
+                    if clear_before:
+                        # Triple-click to select all text in the field, then type to replace
+                        await self.page.mouse.click(
+                            specific_action_model.x,
+                            specific_action_model.y,
+                            click_count=3,
+                        )
+                        await asyncio.sleep(0.05)  # Brief pause for selection to register
+                    else:
+                        # Single click to position cursor
+                        await self.page.mouse.click(
+                            specific_action_model.x, specific_action_model.y
+                        )
+                elif clear_before:
+                    # No coordinates but clear requested - use keyboard shortcuts as fallback
+                    try:
+                        await self.page.keyboard.press("Meta+a")
+                    except Exception:
+                        pass
+                    try:
+                        await self.page.keyboard.press("Control+a")
+                    except Exception:
+                        pass
+                    await self.page.keyboard.press("Backspace")
 
                 await self.page.keyboard.type(specific_action_model.text)
 
