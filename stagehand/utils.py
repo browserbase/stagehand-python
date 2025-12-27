@@ -5,7 +5,7 @@ from typing import Any, Union, get_args, get_origin
 from pydantic import AnyUrl, BaseModel, Field, HttpUrl, create_model
 from pydantic.fields import FieldInfo
 
-from stagehand.types.a11y import AccessibilityNode
+from stagehand.types.a11y import AccessibilityNode, AXProperty, AXValue
 
 
 def snake_to_camel(snake_str: str) -> str:
@@ -95,11 +95,86 @@ def convert_dict_keys_to_snake_case(data: Any) -> Any:
     return data
 
 
+def _format_ax_value(value_type: str, value: AXValue) -> Union[str, None]:
+    """
+    Formats the accessibility value, or returns None if the value is unsupported.
+
+    NOTE:
+        Refer to "Accessible Rich Internet Applications (WAI-ARIA) 1.2"
+        for details.
+        https://www.w3.org/TR/wai-aria-1.2/#propcharacteristic_value
+    """
+    if value_type == "tristate" and value in ["true", "mixed"]:
+        return str(value)
+    elif value_type == "booleanOrUndefined" and value in [True, "true"]:
+        return "true"
+    elif value_type == "number" and isinstance(value, (int, float)):
+        return str(value)
+    elif value_type == "string" and value:
+        return str(value)
+    return None
+
+
+INCLUDED_NODE_PROPERTY_NAMES = {
+    "selected",
+    "checked",
+    "value",
+    "valuemin",
+    "valuemax",
+    "valuetext",
+    "valuenow",
+}
+"""
+AX Property names included in the simplified tree.
+"""
+
+
+def _format_property(property: AXProperty) -> Union[str, None]:
+    name = property.get("name")
+    if name is None or (value_obj := property.get("value")) is None:
+        return None
+    value_type = value_obj["type"]
+    value = value_obj["value"]
+    value_formatted: Union[str, None] = None
+
+    if (value_formatted := _format_ax_value(value_type, value)) is not None:
+        return f"{name}={value_formatted}"
+    return None
+
+
+def _format_properties(node: AccessibilityNode) -> str:
+    """Formats the properties of a node into a simplified string representation."""
+    included_properties: list[AXProperty] = [
+        property
+        for property in (node.get("properties") or [])
+        if property["name"] in INCLUDED_NODE_PROPERTY_NAMES
+    ]
+
+    formatted = ", ".join(
+        formatted
+        for property in included_properties
+        if (formatted := _format_property(property)) is not None
+    )
+
+    if formatted:
+        return f"({formatted})"
+    return ""
+
+
 def format_simplified_tree(node: AccessibilityNode, level: int = 0) -> str:
     """Formats a node and its children into a simplified string representation."""
     indent = "  " * level
-    name_part = f": {node.get('name')}" if node.get("name") else ""
-    result = f"{indent}[{node.get('nodeId')}] {node.get('role')}{name_part}\n"
+    name_part = f": {node_name.rstrip()}" if (node_name := node.get("name")) else ""
+    value_part = f" value={node.get('value')}" if node.get("value") else ""
+    properties_part = (
+        f" {formatted_properties}"
+        if (formatted_properties := _format_properties(node))
+        else ""
+    )
+    result = (
+        f"{indent}[{node.get('nodeId')}] {node.get('role')}{name_part}"
+        f"{value_part}{properties_part}\n"
+    )
 
     children = node.get("children", [])
     if children:
@@ -125,7 +200,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
     (elements) => {
         // First remove any existing overlays
         document.querySelectorAll('.stagehand-observe-overlay').forEach(el => el.remove());
-        
+
         // Create container for overlays
         const container = document.createElement('div');
         container.style.position = 'fixed';
@@ -137,7 +212,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
         container.style.zIndex = '10000';
         container.className = 'stagehand-observe-overlay';
         document.body.appendChild(container);
-        
+
         // Process each element
         elements.forEach((element, index) => {
             try {
@@ -145,18 +220,18 @@ async def draw_observe_overlay(page, elements: list[dict]):
                 let selector = element.selector;
                 if (selector.startsWith('xpath=')) {
                     selector = selector.substring(6);
-                    
+
                     // Evaluate the XPath to get the element
                     const result = document.evaluate(
-                        selector, document, null, 
+                        selector, document, null,
                         XPathResult.FIRST_ORDERED_NODE_TYPE, null
                     );
-                    
+
                     if (result.singleNodeValue) {
                         // Get the element's position
                         const el = result.singleNodeValue;
                         const rect = el.getBoundingClientRect();
-                        
+
                         // Create the overlay
                         const overlay = document.createElement('div');
                         overlay.style.position = 'absolute';
@@ -168,7 +243,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         overlay.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
                         overlay.style.boxSizing = 'border-box';
                         overlay.style.pointerEvents = 'none';
-                        
+
                         // Add element ID
                         const label = document.createElement('div');
                         label.textContent = index + 1;
@@ -180,7 +255,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         label.style.padding = '2px 5px';
                         label.style.borderRadius = '3px';
                         label.style.fontSize = '12px';
-                        
+
                         overlay.appendChild(label);
                         container.appendChild(overlay);
                     }
@@ -189,7 +264,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                     const el = document.querySelector(selector);
                     if (el) {
                         const rect = el.getBoundingClientRect();
-                        
+
                         // Create the overlay (same as above)
                         const overlay = document.createElement('div');
                         overlay.style.position = 'absolute';
@@ -201,7 +276,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         overlay.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
                         overlay.style.boxSizing = 'border-box';
                         overlay.style.pointerEvents = 'none';
-                        
+
                         // Add element ID
                         const label = document.createElement('div');
                         label.textContent = index + 1;
@@ -213,7 +288,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                         label.style.padding = '2px 5px';
                         label.style.borderRadius = '3px';
                         label.style.fontSize = '12px';
-                        
+
                         overlay.appendChild(label);
                         container.appendChild(overlay);
                     }
@@ -222,7 +297,7 @@ async def draw_observe_overlay(page, elements: list[dict]):
                 console.error(`Error drawing overlay for element ${index}:`, error);
             }
         });
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             document.querySelectorAll('.stagehand-observe-overlay').forEach(el => el.remove());

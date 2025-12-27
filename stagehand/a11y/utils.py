@@ -328,7 +328,7 @@ function getNodePath(el) {
       const pathIndex = hasSameTypeSiblings ? `[${index}]` : "";
       parts.unshift(`${tagName}${pathIndex}`);
     }
-    
+
     current = current.parentElement;
   }
 
