@@ -111,7 +111,7 @@ class Stagehand(SyncAPIClient):
         if base_url is None:
             base_url = os.environ.get("STAGEHAND_BASE_URL")
         if base_url is None:
-            base_url = f"https://api.stagehand.browserbase.com/v1"
+            base_url = f"https://api.stagehand.browserbase.com"
 
         super().__init__(
             version=__version__,
@@ -328,7 +328,7 @@ class AsyncStagehand(AsyncAPIClient):
         if base_url is None:
             base_url = os.environ.get("STAGEHAND_BASE_URL")
         if base_url is None:
-            base_url = f"https://api.stagehand.browserbase.com/v1"
+            base_url = f"https://api.stagehand.browserbase.com"
 
         super().__init__(
             version=__version__,
