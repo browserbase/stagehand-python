@@ -16,8 +16,7 @@ Run from the repo root:
 import os
 import json
 
-from stagehand import Stagehand
-from stagehand import APIResponseValidationError
+from stagehand import Stagehand, APIResponseValidationError
 
 
 def main() -> None:
