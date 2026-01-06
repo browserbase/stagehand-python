@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0 (2026-01-06)
+
+Full Changelog: [v0.1.0...v0.2.0](https://github.com/browserbase/stagehand-python/compare/v0.1.0...v0.2.0)
+
+### Features
+
+* Added optional param to force empty object ([b15e097](https://github.com/browserbase/stagehand-python/commit/b15e0976bc356e0ce09b331705ccd2b8805e1bfa))
+* **api:** manual updates ([5a3f419](https://github.com/browserbase/stagehand-python/commit/5a3f419522d49d132c4a75bf310eef1d9695a5a4))
+
+
+### Documentation
+
+* prominently feature MCP server setup in root SDK readmes ([d5a8361](https://github.com/browserbase/stagehand-python/commit/d5a83610cd39ccdecc1825d67a56ab2835d9651f))
+
 ## 0.1.0 (2025-12-23)
 
 Full Changelog: [v0.0.1...v0.1.0](https://github.com/browserbase/stagehand-python/compare/v0.0.1...v0.1.0)
