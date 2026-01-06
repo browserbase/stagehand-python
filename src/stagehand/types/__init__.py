@@ -6,6 +6,7 @@ from .action_param import ActionParam as ActionParam
 from .stream_event import StreamEvent as StreamEvent
 from .model_config_param import ModelConfigParam as ModelConfigParam
 from .session_act_params import SessionActParams as SessionActParams
+from .session_end_params import SessionEndParams as SessionEndParams
 from .session_act_response import SessionActResponse as SessionActResponse
 from .session_end_response import SessionEndResponse as SessionEndResponse
 from .session_start_params import SessionStartParams as SessionStartParams
