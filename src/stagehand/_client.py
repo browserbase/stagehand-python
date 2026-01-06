@@ -170,6 +170,7 @@ class Stagehand(SyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
+            "x-language": "python",
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
@@ -387,6 +388,7 @@ class AsyncStagehand(AsyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
+            "x-language": "python",
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }
