@@ -29,35 +29,62 @@ The REST API documentation can be found on [docs.stagehand.dev](https://docs.sta
 pip install stagehand-alpha
 ```
 
+## Running the Example
+
+A complete working example is available at [`examples/full_example.py`](examples/full_example.py).
+
+To run it, first export the required environment variables, then use Python:
+
+```bash
+export BROWSERBASE_API_KEY="your-bb-api-key"
+export BROWSERBASE_PROJECT_ID="your-bb-project-uuid"
+export MODEL_API_KEY="sk-proj-your-llm-api-key"
+
+python examples/full_example.py
+```
+
 ## Usage
 
 The full API of this library can be found in [api.md](api.md).
 
+## Client configuration
+
+Configure the client using environment variables:
+
 ```python
-import os
+from stagehand import Stagehand
+
+# Configures using the BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, and MODEL_API_KEY environment variables
+client = Stagehand()
+```
+
+Or manually:
+
+```python
 from stagehand import Stagehand
 
 client = Stagehand(
-    browserbase_api_key=os.environ.get(
-        "BROWSERBASE_API_KEY"
-    ),  # This is the default and can be omitted
-    browserbase_project_id=os.environ.get(
-        "BROWSERBASE_PROJECT_ID"
-    ),  # This is the default and can be omitted
-    model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
+    browserbase_api_key="My Browserbase API Key",
+    browserbase_project_id="My Browserbase Project ID",
+    model_api_key="My Model API Key",
 )
-
-response = client.sessions.act(
-    id="00000000-your-session-id-000000000000",
-    input="click the first link on the page",
-)
-print(response.data)
 ```
 
-While you can provide a `browserbase_api_key` keyword argument,
+Or using a combination of the two approaches:
+
+```python
+from stagehand import Stagehand
+
+client = Stagehand(
+    # Configures using environment variables
+    browserbase_api_key="My Browserbase API Key",  # Override just this one
+)
+```
+
+While you can provide API keys as keyword arguments,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `BROWSERBASE_API_KEY="My Browserbase API Key"` to your `.env` file
-so that your Browserbase API Key is not stored in source control.
+so that your API keys are not stored in source control.
 
 ## Async usage
 
