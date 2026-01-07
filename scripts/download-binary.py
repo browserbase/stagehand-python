@@ -12,10 +12,11 @@ Examples:
     python scripts/download-binary.py
     python scripts/download-binary.py --version v3.2.0
 """
+from __future__ import annotations
 
 import sys
-import platform
 import argparse
+import platform
 import urllib.request
 from pathlib import Path
 

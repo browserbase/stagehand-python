@@ -174,7 +174,6 @@ class TestSessions:
     def test_method_end_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
@@ -985,7 +984,6 @@ class TestAsyncSessions:
     async def test_method_end_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
             x_language="typescript",
             x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
