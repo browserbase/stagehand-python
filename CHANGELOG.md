@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 (2026-01-07)
+
+Full Changelog: [v0.2.0...v0.2.1](https://github.com/browserbase/stagehand-python/compare/v0.2.0...v0.2.1)
+
+### Bug Fixes
+
+* specify pnpm version 9 in publish workflow ([f4fdb7a](https://github.com/browserbase/stagehand-python/commit/f4fdb7a36ab4aea1e3c5a3e1604322a92fc5bd3f))
+
 ## 0.2.0 (2026-01-06)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/browserbase/stagehand-python/compare/v0.1.0...v0.2.0)
