@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4 (2026-01-07)
+
+Full Changelog: [v0.2.3...v0.2.4](https://github.com/browserbase/stagehand-python/compare/v0.2.3...v0.2.4)
+
+### Documentation
+
+* update README with SDK version headers ([f7bd20f](https://github.com/browserbase/stagehand-python/commit/f7bd20f4f44ae2b74a27bd791fa7bed3721b645c))
+
 ## 0.2.3 (2026-01-07)
 
 Full Changelog: [v0.2.2...v0.2.3](https://github.com/browserbase/stagehand-python/compare/v0.2.2...v0.2.3)
