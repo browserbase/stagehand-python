@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Any, Mapping
-from typing_extensions import Self, override
+from typing_extensions import Self, Literal, override
 
 import httpx
 
@@ -21,6 +21,7 @@ from ._types import (
 )
 from ._utils import is_given, get_async_library
 from ._compat import cached_property
+from ._models import FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import APIStatusError, StagehandError
@@ -29,6 +30,7 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
+from .lib.sea_server import SeaServerConfig, SeaServerManager
 
 if TYPE_CHECKING:
     from .resources import sessions
@@ -58,6 +60,14 @@ class Stagehand(SyncAPIClient):
         browserbase_api_key: str | None = None,
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
+        server: Literal["remote", "local"] = "remote",
+        local_binary_path: str | os.PathLike[str] | None = None,
+        local_host: str = "127.0.0.1",
+        local_port: int = 0,
+        local_headless: bool = True,
+        local_ready_timeout_s: float = 10.0,
+        local_openai_api_key: str | None = None,
+        local_shutdown_on_close: bool = True,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -84,6 +94,15 @@ class Stagehand(SyncAPIClient):
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
         - `model_api_key` from `MODEL_API_KEY`
         """
+        self._server_mode: Literal["remote", "local"] = server
+        self._local_binary_path = local_binary_path
+        self._local_host = local_host
+        self._local_port = local_port
+        self._local_headless = local_headless
+        self._local_ready_timeout_s = local_ready_timeout_s
+        self._local_openai_api_key = local_openai_api_key
+        self._local_shutdown_on_close = local_shutdown_on_close
+
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
         if browserbase_api_key is None:
@@ -108,10 +127,29 @@ class Stagehand(SyncAPIClient):
             )
         self.model_api_key = model_api_key
 
-        if base_url is None:
-            base_url = os.environ.get("STAGEHAND_BASE_URL")
-        if base_url is None:
-            base_url = f"https://api.stagehand.browserbase.com"
+        self._sea_server: SeaServerManager | None = None
+        if server == "local":
+            # We'll switch `base_url` to the started server before the first request.
+            if base_url is None:
+                base_url = "http://127.0.0.1"
+
+            openai_api_key = local_openai_api_key or os.environ.get("OPENAI_API_KEY") or model_api_key
+            self._sea_server = SeaServerManager(
+                config=SeaServerConfig(
+                    host=local_host,
+                    port=local_port,
+                    headless=local_headless,
+                    ready_timeout_s=local_ready_timeout_s,
+                    openai_api_key=openai_api_key,
+                    shutdown_on_close=local_shutdown_on_close,
+                ),
+                local_binary_path=local_binary_path,
+            )
+        else:
+            if base_url is None:
+                base_url = os.environ.get("STAGEHAND_BASE_URL")
+            if base_url is None:
+                base_url = f"https://api.stagehand.browserbase.com/v1"
 
         super().__init__(
             version=__version__,
@@ -125,6 +163,20 @@ class Stagehand(SyncAPIClient):
         )
 
         self._default_stream_cls = Stream
+
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._sea_server is not None:
+            self.base_url = self._sea_server.ensure_running_sync()
+        return super()._prepare_options(options)
+
+    @override
+    def close(self) -> None:
+        try:
+            super().close()
+        finally:
+            if self._sea_server is not None:
+                self._sea_server.close()
 
     @cached_property
     def sessions(self) -> SessionsResource:
@@ -181,6 +233,14 @@ class Stagehand(SyncAPIClient):
         browserbase_api_key: str | None = None,
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
+        server: Literal["remote", "local"] | None = None,
+        local_binary_path: str | os.PathLike[str] | None = None,
+        local_host: str | None = None,
+        local_port: int | None = None,
+        local_headless: bool | None = None,
+        local_ready_timeout_s: float | None = None,
+        local_openai_api_key: str | None = None,
+        local_shutdown_on_close: bool | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
@@ -217,6 +277,20 @@ class Stagehand(SyncAPIClient):
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
+            server=server or self._server_mode,
+            local_binary_path=local_binary_path if local_binary_path is not None else self._local_binary_path,
+            local_host=local_host or self._local_host,
+            local_port=local_port if local_port is not None else self._local_port,
+            local_headless=local_headless if local_headless is not None else self._local_headless,
+            local_ready_timeout_s=local_ready_timeout_s
+            if local_ready_timeout_s is not None
+            else self._local_ready_timeout_s,
+            local_openai_api_key=local_openai_api_key
+            if local_openai_api_key is not None
+            else self._local_openai_api_key,
+            local_shutdown_on_close=local_shutdown_on_close
+            if local_shutdown_on_close is not None
+            else self._local_shutdown_on_close,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
@@ -276,6 +350,14 @@ class AsyncStagehand(AsyncAPIClient):
         browserbase_api_key: str | None = None,
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
+        server: Literal["remote", "local"] = "remote",
+        local_binary_path: str | os.PathLike[str] | None = None,
+        local_host: str = "127.0.0.1",
+        local_port: int = 0,
+        local_headless: bool = True,
+        local_ready_timeout_s: float = 10.0,
+        local_openai_api_key: str | None = None,
+        local_shutdown_on_close: bool = True,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -302,6 +384,15 @@ class AsyncStagehand(AsyncAPIClient):
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
         - `model_api_key` from `MODEL_API_KEY`
         """
+        self._server_mode: Literal["remote", "local"] = server
+        self._local_binary_path = local_binary_path
+        self._local_host = local_host
+        self._local_port = local_port
+        self._local_headless = local_headless
+        self._local_ready_timeout_s = local_ready_timeout_s
+        self._local_openai_api_key = local_openai_api_key
+        self._local_shutdown_on_close = local_shutdown_on_close
+
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
         if browserbase_api_key is None:
@@ -326,10 +417,28 @@ class AsyncStagehand(AsyncAPIClient):
             )
         self.model_api_key = model_api_key
 
-        if base_url is None:
-            base_url = os.environ.get("STAGEHAND_BASE_URL")
-        if base_url is None:
-            base_url = f"https://api.stagehand.browserbase.com"
+        self._sea_server: SeaServerManager | None = None
+        if server == "local":
+            if base_url is None:
+                base_url = "http://127.0.0.1"
+
+            openai_api_key = local_openai_api_key or os.environ.get("OPENAI_API_KEY") or model_api_key
+            self._sea_server = SeaServerManager(
+                config=SeaServerConfig(
+                    host=local_host,
+                    port=local_port,
+                    headless=local_headless,
+                    ready_timeout_s=local_ready_timeout_s,
+                    openai_api_key=openai_api_key,
+                    shutdown_on_close=local_shutdown_on_close,
+                ),
+                local_binary_path=local_binary_path,
+            )
+        else:
+            if base_url is None:
+                base_url = os.environ.get("STAGEHAND_BASE_URL")
+            if base_url is None:
+                base_url = f"https://api.stagehand.browserbase.com/v1"
 
         super().__init__(
             version=__version__,
@@ -343,6 +452,20 @@ class AsyncStagehand(AsyncAPIClient):
         )
 
         self._default_stream_cls = AsyncStream
+
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._sea_server is not None:
+            self.base_url = await self._sea_server.ensure_running_async()
+        return await super()._prepare_options(options)
+
+    @override
+    async def close(self) -> None:
+        try:
+            await super().close()
+        finally:
+            if self._sea_server is not None:
+                await self._sea_server.aclose()
 
     @cached_property
     def sessions(self) -> AsyncSessionsResource:
@@ -399,6 +522,14 @@ class AsyncStagehand(AsyncAPIClient):
         browserbase_api_key: str | None = None,
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
+        server: Literal["remote", "local"] | None = None,
+        local_binary_path: str | os.PathLike[str] | None = None,
+        local_host: str | None = None,
+        local_port: int | None = None,
+        local_headless: bool | None = None,
+        local_ready_timeout_s: float | None = None,
+        local_openai_api_key: str | None = None,
+        local_shutdown_on_close: bool | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
@@ -435,6 +566,20 @@ class AsyncStagehand(AsyncAPIClient):
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
+            server=server or self._server_mode,
+            local_binary_path=local_binary_path if local_binary_path is not None else self._local_binary_path,
+            local_host=local_host or self._local_host,
+            local_port=local_port if local_port is not None else self._local_port,
+            local_headless=local_headless if local_headless is not None else self._local_headless,
+            local_ready_timeout_s=local_ready_timeout_s
+            if local_ready_timeout_s is not None
+            else self._local_ready_timeout_s,
+            local_openai_api_key=local_openai_api_key
+            if local_openai_api_key is not None
+            else self._local_openai_api_key,
+            local_shutdown_on_close=local_shutdown_on_close
+            if local_shutdown_on_close is not None
+            else self._local_shutdown_on_close,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,

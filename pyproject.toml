@@ -136,6 +136,7 @@ exclude = [
     ".venv",
     ".nox",
     ".git",
+    "hatch_build.py",
 ]
 
 reportImplicitOverride = true
@@ -154,7 +155,7 @@ show_error_codes = true
 #
 # We also exclude our `tests` as mypy doesn't always infer
 # types correctly and Pyright will still catch any type errors.
-exclude = ['src/stagehand/_files.py', '_dev/.*.py', 'tests/.*']
+exclude = ['src/stagehand/_files.py', '_dev/.*.py', 'tests/.*', 'hatch_build.py']
 
 strict_equality = true
 implicit_reexport = true

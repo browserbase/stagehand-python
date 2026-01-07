@@ -9,6 +9,10 @@ dist
 .venv
 .idea
 
+.DS_Store
+src/stagehand/_sea/stagehand-*
+src/stagehand/_sea/*.exe
+bin/sea/
 .env
 .envrc
 codegen.log

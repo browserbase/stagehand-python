@@ -1,17 +1,45 @@
 # This workflow is triggered when a GitHub release is created.
 # It can also be run manually to re-publish to PyPI in case it failed for some reason.
-# You can run this workflow by navigating to https://www.github.com/browserbase/stagehand-python/actions/workflows/publish-pypi.yml
 name: Publish PyPI
+
 on:
   workflow_dispatch:
+    inputs:
+      stagehand_tag:
+        description: "Stagehand repo git ref to build SEA binaries from (e.g. @browserbasehq/stagehand@3.0.6)"
+        required: true
+        type: string
 
   release:
     types: [published]
 
 jobs:
-  publish:
-    name: publish
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: build wheels (${{ matrix.binary_name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary_name: stagehand-linux-x64
+            output_path: src/stagehand/_sea/stagehand-linux-x64
+            wheel_platform_tag: linux_x86_64
+          - os: macos-latest
+            binary_name: stagehand-darwin-arm64
+            output_path: src/stagehand/_sea/stagehand-darwin-arm64
+            wheel_platform_tag: macosx_11_0_arm64
+          - os: macos-13
+            binary_name: stagehand-darwin-x64
+            output_path: src/stagehand/_sea/stagehand-darwin-x64
+            wheel_platform_tag: macosx_10_9_x86_64
+          - os: windows-latest
+            binary_name: stagehand-win32-x64.exe
+            output_path: src/stagehand/_sea/stagehand-win32-x64.exe
+            wheel_platform_tag: win_amd64
+
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -19,10 +47,124 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: '0.9.13'
+          version: "0.9.13"
+
+      - name: Checkout stagehand (server source)
+        uses: actions/checkout@v4
+        with:
+          repository: browserbase/stagehand
+          ref: ${{ inputs.stagehand_tag || vars.STAGEHAND_TAG }}
+          path: _stagehand
+          fetch-depth: 1
+          # If browserbase/stagehand is private, set STAGEHAND_SOURCE_TOKEN (PAT) in this repo.
+          token: ${{ secrets.STAGEHAND_SOURCE_TOKEN || github.token }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+          cache: "pnpm"
+          cache-dependency-path: _stagehand/pnpm-lock.yaml
+
+      - name: Build SEA server binary (from source)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${{ inputs.stagehand_tag }}" && -z "${{ vars.STAGEHAND_TAG }}" ]]; then
+            echo "Missing stagehand ref: set repo variable STAGEHAND_TAG or provide workflow input stagehand_tag." >&2
+            exit 1
+          fi
+
+          # Ensure we only ship the binary built for this runner's OS/arch.
+          python - <<'PY'
+          from pathlib import Path
+          sea_dir = Path("src/stagehand/_sea")
+          sea_dir.mkdir(parents=True, exist_ok=True)
+          for p in sea_dir.glob("stagehand-*"):
+              p.unlink(missing_ok=True)
+          for p in sea_dir.glob("*.exe"):
+              p.unlink(missing_ok=True)
+          PY
+
+          pushd _stagehand >/dev/null
+          pnpm install --frozen-lockfile
+          CI=true pnpm --filter @browserbasehq/stagehand-server build:binary
+          popd >/dev/null
+
+          cp "_stagehand/packages/server/dist/sea/${{ matrix.binary_name }}" "${{ matrix.output_path }}"
+          chmod +x "${{ matrix.output_path }}" 2>/dev/null || true
+
+      - name: Build wheel
+        env:
+          STAGEHAND_WHEEL_TAG: py3-none-${{ matrix.wheel_platform_tag }}
+        run: uv build --wheel
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.binary_name }}
+          path: dist/*.whl
+          retention-days: 7
+
+  build_sdist:
+    name: build sdist
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.13"
+
+      - name: Build sdist
+        run: uv build --sdist
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          retention-days: 7
+
+  publish:
+    name: publish
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.9.13"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten dist directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist_out
+          find dist -type f \( -name "*.whl" -o -name "*.tar.gz" \) -print0 | while IFS= read -r -d '' f; do
+            cp -f "$f" dist_out/
+          done
+          ls -la dist_out
 
       - name: Publish to PyPI
-        run: |
-          bash ./bin/publish-pypi
         env:
           PYPI_TOKEN: ${{ secrets.STAGEHAND_PYPI_TOKEN || secrets.PYPI_TOKEN }}
+        run: |
+          set -euo pipefail
+          uv publish --token="$PYPI_TOKEN" dist_out/*
