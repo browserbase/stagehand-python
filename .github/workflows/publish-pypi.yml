@@ -28,7 +28,7 @@ jobs:
             binary_name: stagehand-server-darwin-arm64
             output_path: src/stagehand/_sea/stagehand-darwin-arm64
             wheel_platform_tag: macosx_11_0_arm64
-          - os: macos-15
+          - os: macos-15-intel
             binary_name: stagehand-server-darwin-x64
             output_path: src/stagehand/_sea/stagehand-darwin-x64
             wheel_platform_tag: macosx_10_9_x86_64
