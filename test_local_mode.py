@@ -33,7 +33,7 @@ try:
     print("🔧 Starting session (this will start the local server)...")  # noqa: T201
     session = client.sessions.start(
         model_name="openai/gpt-5-nano",
-        browser={
+        browser={  # type: ignore[arg-type]
             "type": "local",
             "launchOptions": {},  # Launch local Playwright browser with defaults
         },

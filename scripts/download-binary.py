@@ -17,6 +17,7 @@ from __future__ import annotations
 import sys
 import argparse
 import platform
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -79,7 +80,7 @@ def download_binary(version: str) -> None:
 
     try:
         # Download with progress
-        def reporthook(block_num, block_size, total_size):
+        def reporthook(block_num: int, block_size: int, total_size: int) -> None:
             downloaded = block_num * block_size
             if total_size > 0:
                 percent = min(downloaded * 100 / total_size, 100)
@@ -87,7 +88,7 @@ def download_binary(version: str) -> None:
                 mb_total = total_size / (1024 * 1024)
                 print(f"\r   Progress: {percent:.1f}% ({mb_downloaded:.1f}/{mb_total:.1f} MB)", end="")
 
-        urllib.request.urlretrieve(url, dest_path, reporthook)
+        urllib.request.urlretrieve(url, dest_path, reporthook)  # type: ignore[arg-type]
         print()  # New line after progress
 
         # Make executable on Unix
@@ -99,8 +100,8 @@ def download_binary(version: str) -> None:
         print(f"✅ Downloaded successfully: {dest_path} ({size_mb:.1f} MB)")
         print(f"\n💡 You can now run: uv run python test_local_mode.py")
 
-    except urllib.error.HTTPError as e:
-        print(f"\n❌ Error: Failed to download binary (HTTP {e.code})")
+    except urllib.error.HTTPError as e:  # type: ignore[misc]
+        print(f"\n❌ Error: Failed to download binary (HTTP {e.code})")  # type: ignore[union-attr]
         print(f"   URL: {url}")
         print(f"\n   Available releases at: https://github.com/{repo}/releases")
         sys.exit(1)

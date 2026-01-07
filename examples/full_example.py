@@ -76,7 +76,7 @@ def main() -> None:
         # Pass the action to Act
         act_response = client.sessions.act(
             id=session_id,
-            input=result,
+            input=result,  # type: ignore[arg-type]
             x_language="typescript",
             x_sdk_version=SDK_VERSION,
         )
@@ -110,13 +110,13 @@ def main() -> None:
         print(f"Extracted data: {extracted_result}")
 
         # Get the author from the extracted data
-        author = extracted_result.get("author", "unknown") if isinstance(extracted_result, dict) else "unknown"
+        author: str = extracted_result.get("author", "unknown") if isinstance(extracted_result, dict) else "unknown"  # type: ignore[union-attr]
         print(f"Looking up profile for author: {author}")
 
         # Use the Agent to find the author's profile
         # Execute runs an autonomous agent that can navigate and interact with pages
         # Use a longer timeout (5 minutes) since agent execution can take a while
-        execute_response = client.sessions.execute(
+        execute_response = client.sessions.execute(  # pyright: ignore[reportArgumentType]
             id=session_id,
             execute_options={
                 "instruction": (
