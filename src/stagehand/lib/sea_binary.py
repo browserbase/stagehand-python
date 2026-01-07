@@ -106,5 +106,16 @@ def resolve_binary_path(
     here = Path(__file__).resolve()
     repo_root = here.parents[3]  # stagehand-python/
     candidate = repo_root / "bin" / "sea" / filename
+
+    if not candidate.exists():
+        raise FileNotFoundError(
+            f"Stagehand SEA binary not found at {candidate}.\n"
+            f"For local development, download the binary using:\n"
+            f"  uv run python scripts/download-binary.py\n"
+            f"Or set the STAGEHAND_SEA_BINARY environment variable to point to your binary.\n"
+            f"For production use, install a platform-specific wheel from PyPI.\n"
+            f"See: https://github.com/browserbase/stagehand-python#local-development"
+        )
+
     _ensure_executable(candidate)
     return candidate

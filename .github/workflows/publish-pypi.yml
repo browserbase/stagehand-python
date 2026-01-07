@@ -23,7 +23,7 @@ jobs:
           - os: ubuntu-latest
             binary_name: stagehand-linux-x64
             output_path: src/stagehand/_sea/stagehand-linux-x64
-            wheel_platform_tag: linux_x86_64
+            wheel_platform_tag: manylinux2014_x86_64
           - os: macos-latest
             binary_name: stagehand-darwin-arm64
             output_path: src/stagehand/_sea/stagehand-darwin-arm64
