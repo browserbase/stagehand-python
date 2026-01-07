@@ -40,6 +40,14 @@ from ..types.session_navigate_response import SessionNavigateResponse
 __all__ = ["SessionsResource", "AsyncSessionsResource"]
 
 
+def _format_x_sent_at(value: Union[str, datetime] | Omit) -> str | NotGiven:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, Omit):
+        return not_given
+    return value
+
+
 class SessionsResource(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> SessionsResourceWithRawResponse:
@@ -240,7 +248,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -311,7 +319,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -319,6 +327,7 @@ class SessionsResource(SyncAPIResource):
         }
         return self._post(
             f"/v1/sessions/{id}/end",
+            body={},  # Empty object to satisfy Content-Type requirement
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -496,7 +505,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -709,7 +718,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -791,7 +800,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -993,7 +1002,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1088,7 +1097,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1319,7 +1328,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1390,7 +1399,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1398,6 +1407,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         }
         return await self._post(
             f"/v1/sessions/{id}/end",
+            body={},  # Empty object to satisfy Content-Type requirement
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1575,7 +1585,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1788,7 +1798,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1870,7 +1880,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -2072,7 +2082,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -2167,7 +2177,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "x-language": str(x_language) if is_given(x_language) else not_given,
                     "x-sdk-version": x_sdk_version,
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),

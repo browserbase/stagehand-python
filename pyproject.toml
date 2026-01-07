@@ -1,6 +1,6 @@
 [project]
 name = "stagehand-alpha"
-version = "0.1.0"
+version = "0.2.0"
 description = "The official Python library for the stagehand API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -77,13 +77,16 @@ pydantic-v2 = [
 ]
 
 [build-system]
-requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
+requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme", "packaging"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
 include = [
   "src/*"
 ]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/stagehand"]
@@ -136,6 +139,10 @@ exclude = [
     ".venv",
     ".nox",
     ".git",
+    "hatch_build.py",
+    "examples",
+    "scripts",
+    "test_local_mode.py",
 ]
 
 reportImplicitOverride = true
@@ -154,7 +161,7 @@ show_error_codes = true
 #
 # We also exclude our `tests` as mypy doesn't always infer
 # types correctly and Pyright will still catch any type errors.
-exclude = ['src/stagehand/_files.py', '_dev/.*.py', 'tests/.*']
+exclude = ['src/stagehand/_files.py', '_dev/.*.py', 'tests/.*', 'hatch_build.py', 'examples/.*', 'scripts/.*', 'test_local_mode.py']
 
 strict_equality = true
 implicit_reexport = true

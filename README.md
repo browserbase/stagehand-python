@@ -9,6 +9,15 @@ and offers both synchronous and asynchronous clients powered by [httpx](https://
 
 It is generated with [Stainless](https://www.stainless.com/).
 
+## MCP Server
+
+Use the Stagehand MCP Server to enable AI assistants to interact with this API, allowing them to explore endpoints, make test requests, and use documentation to help integrate this SDK into your application.
+
+[![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en-US/install-mcp?name=stagehand-mcp&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsInN0YWdlaGFuZC1tY3AiXX0)
+[![Install in VS Code](https://img.shields.io/badge/_-Add_to_VS_Code-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZmlsbD0iI0VFRSIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMzAuMjM1IDM5Ljg4NGEyLjQ5MSAyLjQ5MSAwIDAgMS0xLjc4MS0uNzNMMTIuNyAyNC43OGwtMy40NiAyLjYyNC0zLjQwNiAyLjU4MmExLjY2NSAxLjY2NSAwIDAgMS0xLjA4Mi4zMzggMS42NjQgMS42NjQgMCAwIDEtMS4wNDYtLjQzMWwtMi4yLTJhMS42NjYgMS42NjYgMCAwIDEgMC0yLjQ2M0w3LjQ1OCAyMCA0LjY3IDE3LjQ1MyAxLjUwNyAxNC41N2ExLjY2NSAxLjY2NSAwIDAgMSAwLTIuNDYzbDIuMi0yYTEuNjY1IDEuNjY1IDAgMCAxIDIuMTMtLjA5N2w2Ljg2MyA1LjIwOUwyOC40NTIuODQ0YTIuNDg4IDIuNDg4IDAgMCAxIDEuODQxLS43MjljLjM1MS4wMDkuNjk5LjA5MSAxLjAxOS4yNDVsOC4yMzYgMy45NjFhMi41IDIuNSAwIDAgMSAxLjQxNSAyLjI1M3YuMDk5LS4wNDVWMzMuMzd2LS4wNDUuMDk1YTIuNTAxIDIuNTAxIDAgMCAxLTEuNDE2IDIuMjU3bC04LjIzNSAzLjk2MWEyLjQ5MiAyLjQ5MiAwIDAgMS0xLjA3Ny4yNDZabS43MTYtMjguOTQ3LTExLjk0OCA5LjA2MiAxMS45NTIgOS4wNjUtLjAwNC0xOC4xMjdaIi8+PC9zdmc+)](https://vscode.stainless.com/mcp/%7B%22name%22%3A%22stagehand-mcp%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22stagehand-mcp%22%5D%7D)
+
+> Note: You may need to set environment variables in your MCP client.
+
 ## Documentation
 
 The REST API documentation can be found on [docs.stagehand.dev](https://docs.stagehand.dev). The full API of this library can be found in [api.md](api.md).
@@ -20,35 +29,62 @@ The REST API documentation can be found on [docs.stagehand.dev](https://docs.sta
 pip install stagehand-alpha
 ```
 
+## Running the Example
+
+A complete working example is available at [`examples/full_example.py`](examples/full_example.py).
+
+To run it, first export the required environment variables, then use Python:
+
+```bash
+export BROWSERBASE_API_KEY="your-bb-api-key"
+export BROWSERBASE_PROJECT_ID="your-bb-project-uuid"
+export MODEL_API_KEY="sk-proj-your-llm-api-key"
+
+python examples/full_example.py
+```
+
 ## Usage
 
 The full API of this library can be found in [api.md](api.md).
 
+## Client configuration
+
+Configure the client using environment variables:
+
 ```python
-import os
+from stagehand import Stagehand
+
+# Configures using the BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, and MODEL_API_KEY environment variables
+client = Stagehand()
+```
+
+Or manually:
+
+```python
 from stagehand import Stagehand
 
 client = Stagehand(
-    browserbase_api_key=os.environ.get(
-        "BROWSERBASE_API_KEY"
-    ),  # This is the default and can be omitted
-    browserbase_project_id=os.environ.get(
-        "BROWSERBASE_PROJECT_ID"
-    ),  # This is the default and can be omitted
-    model_api_key=os.environ.get("MODEL_API_KEY"),  # This is the default and can be omitted
+    browserbase_api_key="My Browserbase API Key",
+    browserbase_project_id="My Browserbase Project ID",
+    model_api_key="My Model API Key",
 )
-
-response = client.sessions.act(
-    id="00000000-your-session-id-000000000000",
-    input="click the first link on the page",
-)
-print(response.data)
 ```
 
-While you can provide a `browserbase_api_key` keyword argument,
+Or using a combination of the two approaches:
+
+```python
+from stagehand import Stagehand
+
+client = Stagehand(
+    # Configures using environment variables
+    browserbase_api_key="My Browserbase API Key",  # Override just this one
+)
+```
+
+While you can provide API keys as keyword arguments,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `BROWSERBASE_API_KEY="My Browserbase API Key"` to your `.env` file
-so that your Browserbase API Key is not stored in source control.
+so that your API keys are not stored in source control.
 
 ## Async usage
 

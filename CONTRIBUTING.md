@@ -38,6 +38,47 @@ Most of the SDK is generated code. Modifications to code will be persisted betwe
 result in merge conflicts between manual patches and changes from the generator. The generator will never
 modify the contents of the `src/stagehand/lib/` and `examples/` directories.
 
+## Setting up the local server binary (for development)
+
+The SDK supports running a local Stagehand server for development and testing. To use this feature, you need to download the appropriate binary for your platform.
+
+### Quick setup
+
+Run the download script to automatically download the correct binary:
+
+```sh
+$ uv run python scripts/download-binary.py
+```
+
+This will:
+- Detect your platform (macOS, Linux, Windows) and architecture (x64, arm64)
+- Download the latest stagehand-server binary from GitHub releases
+- Place it in `bin/sea/` where the SDK expects to find it
+
+### Manual download (alternative)
+
+You can also manually download from [GitHub releases](https://github.com/browserbase/stagehand/releases):
+
+1. Find the latest `stagehand/server vX.X.X` release
+2. Download the binary for your platform:
+   - macOS ARM: `stagehand-server-darwin-arm64`
+   - macOS Intel: `stagehand-server-darwin-x64`
+   - Linux: `stagehand-server-linux-x64` or `stagehand-server-linux-arm64`
+   - Windows: `stagehand-server-win32-x64.exe` or `stagehand-server-win32-arm64.exe`
+3. Rename it to match the expected format (remove `-server` from the name):
+   - `stagehand-darwin-arm64`, `stagehand-linux-x64`, `stagehand-win32-x64.exe`, etc.
+4. Place it in `bin/sea/` directory
+5. Make it executable (Unix only): `chmod +x bin/sea/stagehand-*`
+
+### Using an environment variable (optional)
+
+Instead of placing the binary in `bin/sea/`, you can point to any binary location:
+
+```sh
+$ export STAGEHAND_SEA_BINARY=/path/to/your/stagehand-binary
+$ uv run python test_local_mode.py
+```
+
 ## Adding and running examples
 
 All files in the `examples/` directory are not modified by the generator and can be freely edited or added to.
