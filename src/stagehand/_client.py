@@ -149,7 +149,7 @@ class Stagehand(SyncAPIClient):
             if base_url is None:
                 base_url = os.environ.get("STAGEHAND_BASE_URL")
             if base_url is None:
-                base_url = f"https://api.stagehand.browserbase.com/v1"
+                base_url = f"https://api.stagehand.browserbase.com"
 
         super().__init__(
             version=__version__,
@@ -223,6 +223,7 @@ class Stagehand(SyncAPIClient):
         return {
             **super().default_headers,
             "x-language": "python",
+            "x-sdk-version": __version__,
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
@@ -438,7 +439,7 @@ class AsyncStagehand(AsyncAPIClient):
             if base_url is None:
                 base_url = os.environ.get("STAGEHAND_BASE_URL")
             if base_url is None:
-                base_url = f"https://api.stagehand.browserbase.com/v1"
+                base_url = f"https://api.stagehand.browserbase.com"
 
         super().__init__(
             version=__version__,
@@ -512,6 +513,7 @@ class AsyncStagehand(AsyncAPIClient):
         return {
             **super().default_headers,
             "x-language": "python",
+            "x-sdk-version": __version__,
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }
