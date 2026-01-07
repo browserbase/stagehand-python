@@ -21,19 +21,19 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            binary_name: stagehand-linux-x64
+            binary_name: stagehand-server-linux-x64
             output_path: src/stagehand/_sea/stagehand-linux-x64
             wheel_platform_tag: manylinux2014_x86_64
           - os: macos-latest
-            binary_name: stagehand-darwin-arm64
+            binary_name: stagehand-server-darwin-arm64
             output_path: src/stagehand/_sea/stagehand-darwin-arm64
             wheel_platform_tag: macosx_11_0_arm64
-          - os: macos-13
-            binary_name: stagehand-darwin-x64
+          - os: macos-15
+            binary_name: stagehand-server-darwin-x64
             output_path: src/stagehand/_sea/stagehand-darwin-x64
             wheel_platform_tag: macosx_10_9_x86_64
           - os: windows-latest
-            binary_name: stagehand-win32-x64.exe
+            binary_name: stagehand-server-win32-x64.exe
             output_path: src/stagehand/_sea/stagehand-win32-x64.exe
             wheel_platform_tag: win_amd64
 
