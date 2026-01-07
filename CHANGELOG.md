@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3 (2026-01-07)
+
+Full Changelog: [v0.2.2...v0.2.3](https://github.com/browserbase/stagehand-python/compare/v0.2.2...v0.2.3)
+
+### Bug Fixes
+
+* use macos-15-intel runner for darwin-x64 builds ([8e716fa](https://github.com/browserbase/stagehand-python/commit/8e716faccb3b3cb5a9622a4f524813f9a17b6f2d))
+
 ## 0.2.2 (2026-01-07)
 
 Full Changelog: [v0.2.1...v0.2.2](https://github.com/browserbase/stagehand-python/compare/v0.2.1...v0.2.2)
