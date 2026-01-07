@@ -22,9 +22,6 @@ from stagehand import Stagehand
 
 
 def main() -> None:
-    # SDK version for API compatibility (matches TypeScript SDK v3)
-    SDK_VERSION = "3.0.6"
-
     # Create client using environment variables
     # BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, MODEL_API_KEY
     client = Stagehand(
@@ -36,8 +33,6 @@ def main() -> None:
     # Start a new browser session
     start_response = client.sessions.start(
         model_name="openai/gpt-5-nano",
-        x_language="typescript",
-        x_sdk_version=SDK_VERSION,
     )
 
     session_id = start_response.data.session_id
@@ -49,8 +44,6 @@ def main() -> None:
             id=session_id,
             url="https://news.ycombinator.com",
             frame_id="",  # Empty string for main frame
-            x_language="typescript",
-            x_sdk_version=SDK_VERSION,
         )
         print("Navigated to Hacker News")
 
@@ -58,8 +51,6 @@ def main() -> None:
         observe_response = client.sessions.observe(
             id=session_id,
             instruction="find the link to view comments for the top post",
-            x_language="typescript",
-            x_sdk_version=SDK_VERSION,
         )
 
         results = observe_response.data.result
@@ -77,8 +68,6 @@ def main() -> None:
         act_response = client.sessions.act(
             id=session_id,
             input=result,  # type: ignore[arg-type]
-            x_language="typescript",
-            x_sdk_version=SDK_VERSION,
         )
         print(f"Act completed: {act_response.data.result.message}")
 
@@ -101,8 +90,6 @@ def main() -> None:
                 },
                 "required": ["commentText"]
             },
-            x_language="typescript",
-            x_sdk_version=SDK_VERSION,
         )
 
         # Get the extracted result
@@ -133,8 +120,6 @@ def main() -> None:
                 },
                 "cua": False,
             },
-            x_language="typescript",
-            x_sdk_version=SDK_VERSION,
             timeout=300.0,  # 5 minutes
         )
 
@@ -146,8 +131,6 @@ def main() -> None:
         # End the session to clean up resources
         client.sessions.end(
             id=session_id,
-            x_language="typescript",
-            x_sdk_version=SDK_VERSION,
         )
         print("Session ended")
 
