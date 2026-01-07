@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 (2026-01-07)
+
+Full Changelog: [v0.2.1...v0.2.2](https://github.com/browserbase/stagehand-python/compare/v0.2.1...v0.2.2)
+
+### Bug Fixes
+
+* correct binary names and update macOS runner in publish workflow ([c396aa3](https://github.com/browserbase/stagehand-python/commit/c396aa32d85d6b16acaed2bbdadd3e619a87aae6))
+
 ## 0.2.1 (2026-01-07)
 
 Full Changelog: [v0.2.0...v0.2.1](https://github.com/browserbase/stagehand-python/compare/v0.2.0...v0.2.1)
