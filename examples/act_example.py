@@ -29,17 +29,15 @@ def main() -> None:
     )
 
     # Start a new browser session
-    start_response = client.sessions.start(
+    session = client.sessions.create(
         model_name="openai/gpt-5-nano",
     )
 
-    session_id = start_response.data.session_id
-    print(f"Session started: {session_id}")
+    print(f"Session started: {session.id}")
 
     try:
         # Navigate to example.com
-        client.sessions.navigate(
-            id=session_id,
+        session.navigate(
             url="https://www.example.com",
             frame_id="",  # Empty string for main frame
         )
@@ -48,8 +46,7 @@ def main() -> None:
         # Call act() with a string instruction directly
         # This is the key test - passing a string instead of an Action object
         print("\nAttempting to call act() with string input...")
-        act_response = client.sessions.act(
-            id=session_id,
+        act_response = session.act(
             input="click the 'More information' link",  # String instruction
         )
 
@@ -61,13 +58,12 @@ def main() -> None:
         print(f"Error: {e}")
         print(f"Error type: {type(e).__name__}")
         import traceback
+
         traceback.print_exc()
 
     finally:
         # End the session to clean up resources
-        client.sessions.end(
-            id=session_id,
-        )
+        session.end()
         print("\nSession ended")
 
 

@@ -30,26 +30,23 @@ def main() -> None:
         model_api_key=os.environ.get("MODEL_API_KEY"),
     )
 
-    # Start a new browser session
-    start_response = client.sessions.start(
+    # Start a new browser session (returns a session helper bound to a session_id)
+    session = client.sessions.create(
         model_name="openai/gpt-5-nano",
     )
 
-    session_id = start_response.data.session_id
-    print(f"Session started: {session_id}")
+    print(f"Session started: {session.id}")
 
     try:
         # Navigate to Hacker News
-        client.sessions.navigate(
-            id=session_id,
+        session.navigate(
             url="https://news.ycombinator.com",
             frame_id="",  # Empty string for main frame
         )
         print("Navigated to Hacker News")
 
         # Observe to find possible actions - looking for the comments link
-        observe_response = client.sessions.observe(
-            id=session_id,
+        observe_response = session.observe(
             instruction="find the link to view comments for the top post",
         )
 
@@ -65,30 +62,22 @@ def main() -> None:
         print(f"Acting on: {result.description}")
 
         # Pass the action to Act
-        act_response = client.sessions.act(
-            id=session_id,
+        act_response = session.act(
             input=result,  # type: ignore[arg-type]
         )
         print(f"Act completed: {act_response.data.result.message}")
 
         # Extract data from the page
         # We're now on the comments page, so extract the top comment text
-        extract_response = client.sessions.extract(
-            id=session_id,
+        extract_response = session.extract(
             instruction="extract the text of the top comment on this page",
             schema={
                 "type": "object",
                 "properties": {
-                    "commentText": {
-                        "type": "string",
-                        "description": "The text content of the top comment"
-                    },
-                    "author": {
-                        "type": "string",
-                        "description": "The username of the comment author"
-                    }
+                    "commentText": {"type": "string", "description": "The text content of the top comment"},
+                    "author": {"type": "string", "description": "The username of the comment author"},
                 },
-                "required": ["commentText"]
+                "required": ["commentText"],
             },
         )
 
@@ -103,8 +92,7 @@ def main() -> None:
         # Use the Agent to find the author's profile
         # Execute runs an autonomous agent that can navigate and interact with pages
         # Use a longer timeout (5 minutes) since agent execution can take a while
-        execute_response = client.sessions.execute(  # pyright: ignore[reportArgumentType]
-            id=session_id,
+        execute_response = session.execute(  # pyright: ignore[reportArgumentType]
             execute_options={
                 "instruction": (
                     f"Find any personal website, GitHub, LinkedIn, or other best profile URL for the Hacker News user '{author}'. "
@@ -129,9 +117,7 @@ def main() -> None:
 
     finally:
         # End the session to clean up resources
-        client.sessions.end(
-            id=session_id,
-        )
+        session.end()
         print("Session ended")
 
 

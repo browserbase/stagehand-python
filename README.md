@@ -35,43 +35,32 @@ python examples/full_example.py
 This example demonstrates the full Stagehand workflow: starting a session, navigating to a page, observing possible actions, acting on elements, extracting data, and running an autonomous agent.
 
 ```python
-from stagehand import Stagehand, __version__
+from stagehand import Stagehand
 
 
 def main() -> None:
-    sdk_version = __version__
-
     # Create client using environment variables:
     # BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, MODEL_API_KEY
     client = Stagehand()
 
-    # Start a new browser session
-    start_response = client.sessions.start(
+    # Start a new browser session (returns a session helper bound to a session_id)
+    session = client.sessions.create(
         model_name="openai/gpt-5-nano",
-        x_language="python",
-        x_sdk_version=sdk_version,
     )
 
-    session_id = start_response.data.session_id
-    print(f"Session started: {session_id}")
+    print(f"Session started: {session.id}")
 
     try:
         # Navigate to a webpage
-        client.sessions.navigate(
-            id=session_id,
+        session.navigate(
             url="https://news.ycombinator.com",
             frame_id="",  # empty string for the main frame
-            x_language="python",
-            x_sdk_version=sdk_version,
         )
         print("Navigated to Hacker News")
 
         # Observe to find possible actions on the page
-        observe_response = client.sessions.observe(
-            id=session_id,
+        observe_response = session.observe(
             instruction="find the link to view comments for the top post",
-            x_language="python",
-            x_sdk_version=sdk_version,
         )
 
         results = observe_response.data.result
@@ -83,17 +72,13 @@ def main() -> None:
         action = results[0].to_dict(exclude_none=True)
         print("Acting on:", action.get("description"))
 
-        act_response = client.sessions.act(
-            id=session_id,
+        act_response = session.act(
             input=action,
-            x_language="python",
-            x_sdk_version=sdk_version,
         )
         print("Act completed:", act_response.data.result.message)
 
         # Extract structured data from the page using a JSON schema
-        extract_response = client.sessions.extract(
-            id=session_id,
+        extract_response = session.extract(
             instruction="extract the text of the top comment on this page",
             schema={
                 "type": "object",
@@ -103,8 +88,6 @@ def main() -> None:
                 },
                 "required": ["commentText"],
             },
-            x_language="python",
-            x_sdk_version=sdk_version,
         )
 
         extracted = extract_response.data.result
@@ -112,15 +95,12 @@ def main() -> None:
         print("Extracted author:", author)
 
         # Run an autonomous agent to accomplish a complex task
-        execute_response = client.sessions.execute(
-            id=session_id,
+        execute_response = session.execute(
             execute_options={
                 "instruction": f"Find any personal website, GitHub, or LinkedIn profile for the Hacker News user '{author}'.",
                 "max_steps": 10,
             },
             agent_config={"model": "openai/gpt-5-nano"},
-            x_language="python",
-            x_sdk_version=sdk_version,
             timeout=300.0,
         )
 
@@ -128,7 +108,7 @@ def main() -> None:
         print("Agent success:", execute_response.data.result.success)
     finally:
         # End the browser session to clean up resources
-        client.sessions.end(id=session_id, x_language="python", x_sdk_version=sdk_version)
+        session.end()
         print("Session ended")
 
 
