@@ -274,32 +274,39 @@ class GoogleCUAClient(AgentClient):
             elif action_name == "scroll_at":
                 action_type_str = "scroll"
                 x, y = self._normalize_coordinates(action_args["x"], action_args["y"])
-                direction = action_args["direction"].lower()
-                magnitude = action_args.get("magnitude", 800)
 
-                # Denormalize magnitude based on direction
-                if direction in ("up", "down"):
-                    magnitude = self._normalize_coordinates(0, magnitude)[1]
-                elif direction in ("left", "right"):
-                    magnitude = self._normalize_coordinates(magnitude, 0)[0]
+                # Match the TypeScript GoogleCUAClient scroll_at behavior:
+                # - direction defaults to "down" if missing
+                # - magnitude defaults to 800 if missing / not a number
+                direction_raw = action_args.get("direction", "down")
+                direction = str(direction_raw or "down").lower()
+                raw_magnitude = action_args.get("magnitude", 800)
+                magnitude: int
+                if isinstance(raw_magnitude, (int, float)):
+                    magnitude = int(raw_magnitude)
                 else:
-                    self.logger.error(
-                        f"Unsupported scroll direction: {direction}", category="agent"
-                    )
-                    return (
-                        [],
-                        reasoning_text,
-                        True,
-                        f"Unsupported scroll direction: {direction}",
-                        invoked_function_info,
-                    )
+                    magnitude = 800
+
+                scroll_x = 0
+                scroll_y = 0
+                if direction == "up":
+                    scroll_y = -magnitude
+                elif direction == "down":
+                    scroll_y = magnitude
+                elif direction == "left":
+                    scroll_x = -magnitude
+                elif direction == "right":
+                    scroll_x = magnitude
+                else:
+                    # Default to scrolling down if the direction is unknown
+                    scroll_y = magnitude
 
                 action_payload_dict = {
                     "type": "scroll",
                     "x": x,
                     "y": y,
-                    "direction": direction,
-                    "magnitude": magnitude,
+                    "scroll_x": scroll_x,
+                    "scroll_y": scroll_y,
                 }
             elif action_name == "drag_and_drop":
                 action_type_str = "function"
