@@ -14,22 +14,10 @@ Or [install uv manually](https://docs.astral.sh/uv/getting-started/installation/
 $ uv sync --all-extras
 ```
 
-You can then run scripts using `uv run python script.py` or by manually activating the virtual environment:
+You can then run scripts using `uv run python script.py`:
 
 ```sh
-# manually activate - https://docs.python.org/3/library/venv.html#how-venvs-work
-$ source .venv/bin/activate
-
-# now you can omit the `uv run` prefix
-$ python script.py
-```
-
-### Without `uv`
-
-Alternatively if you don't want to install `uv`, you can stick with the standard `pip` setup by ensuring you have the Python version specified in `.python-version`, create a virtual environment however you desire and then install dependencies using this command:
-
-```sh
-$ pip install -r requirements-dev.lock
+uv run python script.py
 ```
 
 ## Modifying/Adding code
@@ -103,7 +91,7 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```sh
-$ pip install git+ssh://git@github.com/browserbase/stagehand-python#stainless.git
+uv run pip install git+ssh://git@github.com/browserbase/stagehand-python#stainless.git
 ```
 
 Alternatively, you can build from source and install the wheel file:
@@ -115,13 +103,13 @@ To create a distributable version of the library, all you have to do is run this
 ```sh
 $ uv build
 # or
-$ python -m build
+$ uv run python -m build
 ```
 
 Then to install:
 
 ```sh
-$ pip install ./path-to-wheel-file.whl
+uv run pip install ./path-to-wheel-file.whl
 ```
 
 ## Running tests
@@ -134,7 +122,7 @@ $ npx prism mock path/to/your/openapi.yml
 ```
 
 ```sh
-$ ./scripts/test
+$ uv run -- ./scripts/test
 ```
 
 ## Linting and formatting
@@ -145,13 +133,13 @@ This repository uses [ruff](https://github.com/astral-sh/ruff) and
 To lint:
 
 ```sh
-$ ./scripts/lint
+$ uv run -- ./scripts/lint
 ```
 
 To format and fix all ruff issues automatically:
 
 ```sh
-$ ./scripts/format
+$ uv run -- ./scripts/format
 ```
 
 ## Publishing and releases

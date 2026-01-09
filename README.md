@@ -12,6 +12,8 @@ It is generated with [Stainless](https://www.stainless.com/).
 pip install stagehand-alpha
 ```
 
+For local development or when working from this repository, sync the dependency lockfile with `uv` (see the Local development section below) before running project scripts.
+
 ## Requirements
 
 Python 3.9 or higher.
@@ -27,8 +29,25 @@ export BROWSERBASE_API_KEY="your-bb-api-key"
 export BROWSERBASE_PROJECT_ID="your-bb-project-uuid"
 export MODEL_API_KEY="sk-proj-your-llm-api-key"
 
-python examples/full_example.py
+uv run python examples/full_example.py
 ```
+
+<details>
+<summary><strong>Local development</strong></summary>
+
+This repository relies on `uv` to install the sanctioned Python version and dependencies. After cloning, bootstrap the environment with:
+
+```sh
+./scripts/bootstrap
+```
+Once the environment is ready, execute repo scripts with `uv run`:
+
+```sh
+uv run python examples/full_example.py
+uv run python scripts/download-binary.py
+uv run --isolated --all-extras pytest
+```
+</details>
 
 ## Usage
 
@@ -210,7 +229,7 @@ By default, the async client uses `httpx` for HTTP requests. For improved concur
 Install `aiohttp`:
 
 ```sh
-pip install stagehand-alpha[aiohttp]
+uv run pip install stagehand-alpha[aiohttp]
 ```
 
 Then instantiate the client with `http_client=DefaultAioHttpClient()`:
