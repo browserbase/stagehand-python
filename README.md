@@ -35,31 +35,31 @@ python examples/full_example.py
 This example demonstrates the full Stagehand workflow: starting a session, navigating to a page, observing possible actions, acting on elements, extracting data, and running an autonomous agent.
 
 ```python
-from stagehand import Stagehand
+import asyncio
+
+from stagehand import AsyncStagehand
 
 
-def main() -> None:
+async def main() -> None:
     # Create client using environment variables:
     # BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, MODEL_API_KEY
-    client = Stagehand()
+    client = AsyncStagehand()
 
     # Start a new browser session (returns a session helper bound to a session_id)
-    session = client.sessions.create(
-        model_name="openai/gpt-5-nano",
-    )
+    session = await client.sessions.create(model_name="openai/gpt-5-nano")
 
     print(f"Session started: {session.id}")
 
     try:
         # Navigate to a webpage
-        session.navigate(
+        await session.navigate(
             url="https://news.ycombinator.com",
             frame_id="",  # empty string for the main frame
         )
         print("Navigated to Hacker News")
 
         # Observe to find possible actions on the page
-        observe_response = session.observe(
+        observe_response = await session.observe(
             instruction="find the link to view comments for the top post",
         )
 
@@ -72,13 +72,11 @@ def main() -> None:
         action = results[0].to_dict(exclude_none=True)
         print("Acting on:", action.get("description"))
 
-        act_response = session.act(
-            input=action,
-        )
+        act_response = await session.act(input=action)
         print("Act completed:", act_response.data.result.message)
 
         # Extract structured data from the page using a JSON schema
-        extract_response = session.extract(
+        extract_response = await session.extract(
             instruction="extract the text of the top comment on this page",
             schema={
                 "type": "object",
@@ -95,7 +93,7 @@ def main() -> None:
         print("Extracted author:", author)
 
         # Run an autonomous agent to accomplish a complex task
-        execute_response = session.execute(
+        execute_response = await session.execute(
             execute_options={
                 "instruction": f"Find any personal website, GitHub, or LinkedIn profile for the Hacker News user '{author}'.",
                 "max_steps": 10,
@@ -108,12 +106,12 @@ def main() -> None:
         print("Agent success:", execute_response.data.result.success)
     finally:
         # End the browser session to clean up resources
-        session.end()
+        await session.end()
         print("Session ended")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 ## Client configuration
@@ -121,17 +119,17 @@ if __name__ == "__main__":
 Configure the client using environment variables:
 
 ```python
-from stagehand import Stagehand
+from stagehand import AsyncStagehand
 
-client = Stagehand()
+client = AsyncStagehand()
 ```
 
 Or manually:
 
 ```python
-from stagehand import Stagehand
+from stagehand import AsyncStagehand
 
-client = Stagehand(
+client = AsyncStagehand(
     browserbase_api_key="My Browserbase API Key",
     browserbase_project_id="My Browserbase Project ID",
     model_api_key="My Model API Key",
@@ -141,9 +139,9 @@ client = Stagehand(
 Or using a combination of the two approaches:
 
 ```python
-from stagehand import Stagehand
+from stagehand import AsyncStagehand
 
-client = Stagehand(
+client = AsyncStagehand(
     # Configures using environment variables
     browserbase_api_key="My Browserbase API Key",  # override just this one
 )
@@ -188,7 +186,7 @@ Response objects are Pydantic models. If you want to build a modified copy, pref
 
 ## Asynchronous execution
 
-The default client is synchronous. To switch to asynchronous execution, use `AsyncStagehand` and `await` each API call:
+This SDK recommends using `AsyncStagehand` and `await`ing each API call:
 
 ```python
 import asyncio
@@ -197,10 +195,8 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     client = AsyncStagehand()
-    response = await client.sessions.act(
-        id="00000000-your-session-id-000000000000",
-        input="click the first link on the page",
-    )
+    session = await client.sessions.create(model_name="openai/gpt-5-nano")
+    response = await session.act(input="click the first link on the page")
     print(response.data)
 
 
@@ -226,10 +222,8 @@ from stagehand import AsyncStagehand, DefaultAioHttpClient
 
 async def main() -> None:
     async with AsyncStagehand(http_client=DefaultAioHttpClient()) as client:
-        response = await client.sessions.act(
-            id="00000000-your-session-id-000000000000",
-            input="click the first link on the page",
-        )
+        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+        response = await session.act(input="click the first link on the page")
         print(response.data)
 
 
@@ -246,36 +240,27 @@ To enable SSE streaming, you must:
 2. Tell the client to parse an SSE stream by setting `stream_response=True`.
 
 ```python
-from stagehand import Stagehand
+import asyncio
 
-client = Stagehand()
-
-stream = client.sessions.act(
-    id="00000000-your-session-id-000000000000",
-    input="click the first link on the page",
-    stream_response=True,
-    x_stream_response="true",
-)
-for event in stream:
-    # event is a StreamEvent (type: "system" | "log")
-    print(event.type, event.data)
-```
-
-The async client uses the exact same interface:
-
-```python
 from stagehand import AsyncStagehand
 
-client = AsyncStagehand()
 
-stream = await client.sessions.act(
-    id="00000000-your-session-id-000000000000",
-    input="click the first link on the page",
-    stream_response=True,
-    x_stream_response="true",
-)
-async for event in stream:
-    print(event.type, event.data)
+async def main() -> None:
+    async with AsyncStagehand() as client:
+        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+
+        stream = await client.sessions.act(
+            id=session.id,
+            input="click the first link on the page",
+            stream_response=True,
+            x_stream_response="true",
+        )
+        async for event in stream:
+            # event is a StreamEvent (type: "system" | "log")
+            print(event.type, event.data)
+
+
+asyncio.run(main())
 ```
 
 ## Raw responses
@@ -285,14 +270,21 @@ The SDK defines methods that deserialize responses into Pydantic models. However
 To access this data, prefix any HTTP method call on a client or service with `with_raw_response`:
 
 ```python
-from stagehand import Stagehand
+import asyncio
 
-client = Stagehand()
-response = client.sessions.with_raw_response.start(model_name="openai/gpt-5-nano")
-print(response.headers.get("X-My-Header"))
+from stagehand import AsyncStagehand
 
-session = response.parse()  # get the object that `sessions.start()` would have returned
-print(session.data.session_id)
+
+async def main() -> None:
+    async with AsyncStagehand() as client:
+        response = await client.sessions.with_raw_response.start(model_name="openai/gpt-5-nano")
+        print(response.headers.get("X-My-Header"))
+
+        session = response.parse()  # get the object that `sessions.start()` would have returned
+        print(session.data)
+
+
+asyncio.run(main())
 ```
 
 ### `.with_streaming_response`
@@ -302,13 +294,20 @@ The `with_raw_response` interface eagerly reads the full response body when you 
 To stream the response body (not SSE), use `with_streaming_response` instead. It requires a context manager and only reads the response body once you call `.read()`, `.text()`, `.json()`, `.iter_bytes()`, `.iter_text()`, `.iter_lines()` or `.parse()`.
 
 ```python
-from stagehand import Stagehand
+import asyncio
 
-client = Stagehand()
-with client.sessions.with_streaming_response.start(model_name="openai/gpt-5-nano") as response:
-    print(response.headers.get("X-My-Header"))
-    for line in response.iter_lines():
-        print(line)
+from stagehand import AsyncStagehand
+
+
+async def main() -> None:
+    async with AsyncStagehand() as client:
+        async with client.sessions.with_streaming_response.start(model_name="openai/gpt-5-nano") as response:
+            print(response.headers.get("X-My-Header"))
+            async for line in response.iter_lines():
+                print(line)
+
+
+asyncio.run(main())
 ```
 
 ## Error handling
@@ -320,22 +319,28 @@ When the API returns a non-success status code (that is, 4xx or 5xx response), a
 All errors inherit from `stagehand.APIError`.
 
 ```python
+import asyncio
+
 import stagehand
-from stagehand import Stagehand
+from stagehand import AsyncStagehand
 
-client = Stagehand()
 
-try:
-    client.sessions.start(model_name="openai/gpt-5-nano")
-except stagehand.APIConnectionError as e:
-    print("The server could not be reached")
-    print(e.__cause__)  # an underlying Exception, likely raised within httpx.
-except stagehand.RateLimitError:
-    print("A 429 status code was received; we should back off a bit.")
-except stagehand.APIStatusError as e:
-    print("A non-200-range status code was received")
-    print(e.status_code)
-    print(e.response)
+async def main() -> None:
+    async with AsyncStagehand() as client:
+        try:
+            await client.sessions.start(model_name="openai/gpt-5-nano")
+        except stagehand.APIConnectionError as e:
+            print("The server could not be reached")
+            print(e.__cause__)  # an underlying Exception, likely raised within httpx.
+        except stagehand.RateLimitError:
+            print("A 429 status code was received; we should back off a bit.")
+        except stagehand.APIStatusError as e:
+            print("A non-200-range status code was received")
+            print(e.status_code)
+            print(e.response)
+
+
+asyncio.run(main())
 ```
 
 Error codes are as follows:
@@ -358,13 +363,18 @@ Certain errors are automatically retried 2 times by default, with a short expone
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
-from stagehand import Stagehand
+import asyncio
 
-# Configure the default for all requests:
-client = Stagehand(max_retries=0)
+from stagehand import AsyncStagehand
 
-# Or, configure per-request:
-client.with_options(max_retries=5).sessions.start(model_name="openai/gpt-5-nano")
+
+async def main() -> None:
+    async with AsyncStagehand(max_retries=0) as client:
+        # Or, configure per-request:
+        await client.with_options(max_retries=5).sessions.start(model_name="openai/gpt-5-nano")
+
+
+asyncio.run(main())
 ```
 
 ### Timeouts
@@ -399,11 +409,18 @@ To make requests to undocumented endpoints, use `client.get`, `client.post`, and
 
 ```python
 import httpx
-from stagehand import Stagehand
+from stagehand import AsyncStagehand
 
-client = Stagehand()
-response = client.post("/foo", cast_to=httpx.Response, body={"my_param": True})
-print(response.headers.get("x-foo"))
+import asyncio
+
+
+async def main() -> None:
+    async with AsyncStagehand() as client:
+        response = await client.post("/foo", cast_to=httpx.Response, body={"my_param": True})
+        print(response.headers.get("x-foo"))
+
+
+asyncio.run(main())
 ```
 
 ### Undocumented request params
@@ -423,11 +440,16 @@ By default, the SDK is permissive and will only raise an error if you later try 
 If you would prefer to validate responses upfront, instantiate the client with `_strict_response_validation=True`. An `APIResponseValidationError` will be raised if the API responds with invalid data for the expected schema.
 
 ```python
-from stagehand import Stagehand, APIResponseValidationError
+import asyncio
+
+from stagehand import APIResponseValidationError, AsyncStagehand
 
 try:
-    with Stagehand(_strict_response_validation=True) as client:
-        client.sessions.start(model_name="openai/gpt-5-nano")
+    async def main() -> None:
+        async with AsyncStagehand(_strict_response_validation=True) as client:
+            await client.sessions.start(model_name="openai/gpt-5-nano")
+
+    asyncio.run(main())
 except APIResponseValidationError as e:
     print("Response failed schema validation:", e)
 ```
