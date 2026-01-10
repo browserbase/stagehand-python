@@ -48,8 +48,6 @@ class TestSessions:
                 "variables": {"username": "john_doe"},
             },
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -115,8 +113,6 @@ class TestSessions:
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -174,8 +170,7 @@ class TestSessions:
     def test_method_end_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            x_language="typescript",
-            x_sdk_version="3.0.6",
+            _force_body={},
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -245,8 +240,6 @@ class TestSessions:
             },
             frame_id="frameId",
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -329,8 +322,6 @@ class TestSessions:
             },
             stream_response=True,
             frame_id="frameId",
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -406,8 +397,6 @@ class TestSessions:
             },
             schema={"foo": "bar"},
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -470,8 +459,6 @@ class TestSessions:
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -535,8 +522,6 @@ class TestSessions:
                 "wait_until": "networkidle",
             },
             stream_response=True,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -600,8 +585,6 @@ class TestSessions:
                 "timeout": 30000,
             },
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -663,8 +646,6 @@ class TestSessions:
                 "selector": "nav",
                 "timeout": 30000,
             },
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -797,8 +778,6 @@ class TestSessions:
             system_prompt="systemPrompt",
             verbose=1,
             wait_for_captcha_solves=True,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -858,8 +837,6 @@ class TestAsyncSessions:
                 "variables": {"username": "john_doe"},
             },
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -925,8 +902,6 @@ class TestAsyncSessions:
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -984,8 +959,7 @@ class TestAsyncSessions:
     async def test_method_end_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            x_language="typescript",
-            x_sdk_version="3.0.6",
+            _force_body={},
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1055,8 +1029,6 @@ class TestAsyncSessions:
             },
             frame_id="frameId",
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1139,8 +1111,6 @@ class TestAsyncSessions:
             },
             stream_response=True,
             frame_id="frameId",
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1216,8 +1186,6 @@ class TestAsyncSessions:
             },
             schema={"foo": "bar"},
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1280,8 +1248,6 @@ class TestAsyncSessions:
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1345,8 +1311,6 @@ class TestAsyncSessions:
                 "wait_until": "networkidle",
             },
             stream_response=True,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1410,8 +1374,6 @@ class TestAsyncSessions:
                 "timeout": 30000,
             },
             stream_response=False,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1473,8 +1435,6 @@ class TestAsyncSessions:
                 "selector": "nav",
                 "timeout": 30000,
             },
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
@@ -1607,8 +1567,6 @@ class TestAsyncSessions:
             system_prompt="systemPrompt",
             verbose=1,
             wait_for_captcha_solves=True,
-            x_language="typescript",
-            x_sdk_version="3.0.6",
             x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
