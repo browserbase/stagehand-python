@@ -70,8 +70,6 @@ class SessionsResource(SyncAPIResource):
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -93,10 +91,6 @@ class SessionsResource(SyncAPIResource):
           frame_id: Target frame ID for the action
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -121,8 +115,6 @@ class SessionsResource(SyncAPIResource):
         stream_response: Literal[True],
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -144,10 +136,6 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the action
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -172,8 +160,6 @@ class SessionsResource(SyncAPIResource):
         stream_response: bool,
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -195,10 +181,6 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the action
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -223,8 +205,6 @@ class SessionsResource(SyncAPIResource):
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -239,8 +219,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -273,8 +251,6 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         _force_body: object | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -289,10 +265,6 @@ class SessionsResource(SyncAPIResource):
 
         Args:
           id: Unique session identifier
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -311,8 +283,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -337,8 +307,6 @@ class SessionsResource(SyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: str | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -357,10 +325,6 @@ class SessionsResource(SyncAPIResource):
           frame_id: Target frame ID for the agent
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -385,8 +349,6 @@ class SessionsResource(SyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: Literal[True],
         frame_id: str | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -405,10 +367,6 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -433,8 +391,6 @@ class SessionsResource(SyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: bool,
         frame_id: str | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -453,10 +409,6 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -481,8 +433,6 @@ class SessionsResource(SyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: str | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -497,8 +447,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -536,8 +484,6 @@ class SessionsResource(SyncAPIResource):
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -560,10 +506,6 @@ class SessionsResource(SyncAPIResource):
           schema: JSON Schema defining the structure of data to extract
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -589,8 +531,6 @@ class SessionsResource(SyncAPIResource):
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -613,10 +553,6 @@ class SessionsResource(SyncAPIResource):
           instruction: Natural language instruction for what to extract
 
           schema: JSON Schema defining the structure of data to extract
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -642,8 +578,6 @@ class SessionsResource(SyncAPIResource):
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -666,10 +600,6 @@ class SessionsResource(SyncAPIResource):
           instruction: Natural language instruction for what to extract
 
           schema: JSON Schema defining the structure of data to extract
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -694,8 +624,6 @@ class SessionsResource(SyncAPIResource):
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -710,8 +638,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -748,8 +674,6 @@ class SessionsResource(SyncAPIResource):
         frame_id: str | Omit = omit,
         options: session_navigate_params.Options | Omit = omit,
         stream_response: bool | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -771,10 +695,6 @@ class SessionsResource(SyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
-
           x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
@@ -792,8 +712,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -826,8 +744,6 @@ class SessionsResource(SyncAPIResource):
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -849,10 +765,6 @@ class SessionsResource(SyncAPIResource):
           instruction: Natural language instruction for what actions to find
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -877,8 +789,6 @@ class SessionsResource(SyncAPIResource):
         frame_id: str | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -900,10 +810,6 @@ class SessionsResource(SyncAPIResource):
           frame_id: Target frame ID for the observation
 
           instruction: Natural language instruction for what actions to find
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -928,8 +834,6 @@ class SessionsResource(SyncAPIResource):
         frame_id: str | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -951,10 +855,6 @@ class SessionsResource(SyncAPIResource):
           frame_id: Target frame ID for the observation
 
           instruction: Natural language instruction for what actions to find
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -978,8 +878,6 @@ class SessionsResource(SyncAPIResource):
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -994,8 +892,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1037,8 +933,6 @@ class SessionsResource(SyncAPIResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1070,10 +964,6 @@ class SessionsResource(SyncAPIResource):
 
           wait_for_captcha_solves: Wait for captcha solves (deprecated, v2 only)
 
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
-
           x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
@@ -1089,8 +979,6 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1151,8 +1039,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1174,10 +1060,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           frame_id: Target frame ID for the action
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1202,8 +1084,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         stream_response: Literal[True],
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1225,10 +1105,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the action
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1253,8 +1129,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         stream_response: bool,
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1276,10 +1150,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the action
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1304,8 +1174,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         frame_id: str | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1320,8 +1188,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1354,8 +1220,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         _force_body: object | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1370,10 +1234,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
         Args:
           id: Unique session identifier
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1392,8 +1252,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1418,8 +1276,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: str | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1438,10 +1294,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           frame_id: Target frame ID for the agent
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1466,8 +1318,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: Literal[True],
         frame_id: str | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1486,10 +1336,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1514,8 +1360,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: bool,
         frame_id: str | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1534,10 +1378,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1562,8 +1402,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: str | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1578,8 +1416,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1617,8 +1453,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1641,10 +1475,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           schema: JSON Schema defining the structure of data to extract
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1670,8 +1500,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1694,10 +1522,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           instruction: Natural language instruction for what to extract
 
           schema: JSON Schema defining the structure of data to extract
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1723,8 +1547,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1747,10 +1569,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           instruction: Natural language instruction for what to extract
 
           schema: JSON Schema defining the structure of data to extract
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1775,8 +1593,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1791,8 +1607,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1829,8 +1643,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         frame_id: str | Omit = omit,
         options: session_navigate_params.Options | Omit = omit,
         stream_response: bool | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1852,10 +1664,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
-
           x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
@@ -1873,8 +1681,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -1907,8 +1713,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1930,10 +1734,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           instruction: Natural language instruction for what actions to find
 
           stream_response: Whether to stream the response via SSE
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -1958,8 +1758,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         frame_id: str | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1981,10 +1779,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           frame_id: Target frame ID for the observation
 
           instruction: Natural language instruction for what actions to find
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -2009,8 +1803,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         frame_id: str | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2032,10 +1824,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           frame_id: Target frame ID for the observation
 
           instruction: Natural language instruction for what actions to find
-
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
 
           x_sent_at: ISO timestamp when request was sent
 
@@ -2059,8 +1847,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2075,8 +1861,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
@@ -2118,8 +1902,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2151,10 +1933,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           wait_for_captcha_solves: Wait for captcha solves (deprecated, v2 only)
 
-          x_language: Client SDK language
-
-          x_sdk_version: Version of the Stagehand SDK
-
           x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
@@ -2170,8 +1948,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-language": str(x_language) if is_given(x_language) else not_given,
-                    "x-sdk-version": x_sdk_version,
                     "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }

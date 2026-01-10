@@ -61,12 +61,6 @@ class SessionStartParams(TypedDict, total=False):
     wait_for_captcha_solves: Annotated[bool, PropertyInfo(alias="waitForCaptchaSolves")]
     """Wait for captcha solves (deprecated, v2 only)"""
 
-    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
-    """Client SDK language"""
-
-    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
-    """Version of the Stagehand SDK"""
-
     x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
     """ISO timestamp when request was sent"""
 
