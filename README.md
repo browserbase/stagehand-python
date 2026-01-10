@@ -73,7 +73,6 @@ async def main() -> None:
         # Navigate to a webpage
         await session.navigate(
             url="https://news.ycombinator.com",
-            frame_id="",  # empty string for the main frame
         )
         print("Navigated to Hacker News")
 

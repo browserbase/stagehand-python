@@ -38,7 +38,6 @@ async def main() -> None:
             # Navigate to example.com
             await session.navigate(
                 url="https://www.example.com",
-                frame_id="",  # Empty string for main frame
             )
             print("Navigated to example.com")
 

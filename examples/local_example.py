@@ -52,7 +52,6 @@ def main() -> None:
         client.sessions.navigate(
             id=session_id,
             url="https://www.example.com",
-            frame_id="",
         )
         print("✅ Navigation complete")
 
