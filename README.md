@@ -32,6 +32,15 @@ export MODEL_API_KEY="sk-proj-your-llm-api-key"
 uv run python examples/full_example.py
 ```
 
+## Local mode example
+
+If you want to run Stagehand locally, use the local example (`examples/local_example.py`). It shows how to configure the client for `server="local"`:
+
+```bash
+pip install stagehand-alpha
+uv run python examples/local_example.py
+```
+
 <details>
 <summary><strong>Local development</strong></summary>
 
@@ -73,7 +82,6 @@ async def main() -> None:
         # Navigate to a webpage
         await session.navigate(
             url="https://news.ycombinator.com",
-            frame_id="",  # empty string for the main frame
         )
         print("Navigated to Hacker News")
 

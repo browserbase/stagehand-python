@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import os
+import json
+from typing import cast
 
 import httpx
 import pytest
 from respx import MockRouter
+from respx.models import Call
 
 from stagehand import Stagehand, AsyncStagehand
 
@@ -37,8 +40,11 @@ def test_sessions_create_returns_bound_session(respx_mock: MockRouter, client: S
     session = client.sessions.create(model_name="openai/gpt-5-nano")
     assert session.id == session_id
 
-    session.navigate(url="https://example.com", frame_id="")
+    session.navigate(url="https://example.com")
     assert navigate_route.called is True
+    first_call = cast(Call, navigate_route.calls[0])
+    request_body = json.loads(first_call.request.content)
+    assert request_body["frameId"] == ""
 
 
 @pytest.mark.respx(base_url=base_url)
@@ -67,5 +73,8 @@ async def test_async_sessions_create_returns_bound_session(
     session = await async_client.sessions.create(model_name="openai/gpt-5-nano")
     assert session.id == session_id
 
-    await session.navigate(url="https://example.com", frame_id="")
+    await session.navigate(url="https://example.com")
     assert navigate_route.called is True
+    first_call = cast(Call, navigate_route.calls[0])
+    request_body = json.loads(first_call.request.content)
+    assert request_body["frameId"] == ""
