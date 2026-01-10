@@ -16,6 +16,7 @@ Then execute this example with the same interpreter:
 
 import os
 import sys
+from typing import Optional
 
 from stagehand import Stagehand
 
@@ -31,7 +32,7 @@ def main() -> None:
         local_ready_timeout_s=30.0,
     )
 
-    session_id: str | None = None
+    session_id: Optional[str] = None
 
     try:
         print("⏳ Starting local session (this will start the embedded SEA binary)...")
