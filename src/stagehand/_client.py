@@ -34,7 +34,7 @@ from .lib.sea_server import SeaServerConfig, SeaServerManager
 
 if TYPE_CHECKING:
     from .resources import sessions
-    from .resources.sessions import SessionsResource, AsyncSessionsResource
+    from .resources.sessions_helpers import SessionsResourceWithHelpers, AsyncSessionsResourceWithHelpers
 
 __all__ = [
     "Timeout",
@@ -179,10 +179,10 @@ class Stagehand(SyncAPIClient):
                 self._sea_server.close()
 
     @cached_property
-    def sessions(self) -> SessionsResource:
-        from .resources.sessions import SessionsResource
+    def sessions(self) -> SessionsResourceWithHelpers:
+        from .resources.sessions_helpers import SessionsResourceWithHelpers
 
-        return SessionsResource(self)
+        return SessionsResourceWithHelpers(self)
 
     @cached_property
     def with_raw_response(self) -> StagehandWithRawResponse:
@@ -469,10 +469,10 @@ class AsyncStagehand(AsyncAPIClient):
                 await self._sea_server.aclose()
 
     @cached_property
-    def sessions(self) -> AsyncSessionsResource:
-        from .resources.sessions import AsyncSessionsResource
+    def sessions(self) -> AsyncSessionsResourceWithHelpers:
+        from .resources.sessions_helpers import AsyncSessionsResourceWithHelpers
 
-        return AsyncSessionsResource(self)
+        return AsyncSessionsResourceWithHelpers(self)
 
     @cached_property
     def with_raw_response(self) -> AsyncStagehandWithRawResponse:
