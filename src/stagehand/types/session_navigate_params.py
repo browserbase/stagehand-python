@@ -23,12 +23,6 @@ class SessionNavigateParams(TypedDict, total=False):
     stream_response: Annotated[bool, PropertyInfo(alias="streamResponse")]
     """Whether to stream the response via SSE"""
 
-    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
-    """Client SDK language"""
-
-    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
-    """Version of the Stagehand SDK"""
-
     x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
     """ISO timestamp when request was sent"""
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 (2026-01-10)
+
+Full Changelog: [v0.2.4...v0.3.0](https://github.com/browserbase/stagehand-python/compare/v0.2.4...v0.3.0)
+
+### Features
+
+* Removed requiring x-language and x-sdk-version from openapi spec ([3894e30](https://github.com/browserbase/stagehand-python/commit/3894e30a5c8e61e2f9200734fd617fff5917922b))
+
 ## 0.2.4 (2026-01-07)
 
 Full Changelog: [v0.2.3...v0.2.4](https://github.com/browserbase/stagehand-python/compare/v0.2.3...v0.2.4)
