@@ -40,20 +40,27 @@ async def main() -> None:
 
         try:
             target_url = "https://news.ycombinator.com"
-            await page.goto(target_url, wait_until="networkidle")
             await session.navigate(url=target_url)
+            await page.goto(target_url, wait_until="networkidle")
 
-            print("🎯 Navigated Playwright to Hacker News; Stagehand tracks the same URL.")
+            print("🎯 Stagehand already navigated to Hacker News; Playwright now drives that page.")
 
-            print("🔄 Syncing Stagehand to the current Playwright URL:", page.url)
+            # Click the first story's comments link with Playwright.
+            comments_selector = "tr.athing:first-of-type + tr .subline > a[href^='item?id=']:nth-last-of-type(1)"
+            await page.click(comments_selector, timeout=15_000)
+            await page.wait_for_load_state("networkidle")
+
+            print("✅ Playwright clicked the first story link.")
+
+            print("🔄 Syncing Stagehand to Playwright's current URL:", page.url)
             await session.navigate(url=page.url)
 
             extract_response = await session.extract(
-                instruction="extract the primary headline on the page",
+                instruction="extract the text of the top comment on this page",
                 schema={
                     "type": "object",
-                    "properties": {"headline": {"type": "string"}},
-                    "required": ["headline"],
+                    "properties": {"comment": {"type": "string"}},
+                    "required": ["comment"],
                 },
             )
 
