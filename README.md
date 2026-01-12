@@ -34,7 +34,27 @@ uv run python examples/full_example.py
 
 ## Local mode example
 
-If you want to run Stagehand locally, use the local example (`examples/local_example.py`). It shows how to configure the client for `server="local"`:
+If you want to run Stagehand locally, use the local example (`examples/local_example.py`). It shows how to configure the client for `server="local"`.
+
+Local mode runs Stagehand’s embedded server and launches a **local Chrome/Chromium** browser (it is **not bundled** with the Python wheel), so you must have Chrome installed on the machine running the example.
+
+If Chrome is installed but Stagehand can’t find it, set `CHROME_PATH` to your browser executable (or pass `browser.launchOptions.executablePath` when starting the session).
+
+Common Windows paths:
+- `C:\Program Files\Google\Chrome\Application\chrome.exe`
+- `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
+
+PowerShell:
+
+```powershell
+# optional if you don't already have Chrome installed
+winget install -e --id Google.Chrome
+
+# optional if Stagehand can't auto-detect Chrome
+$env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+uv run python examples/local_example.py
+```
 
 ```bash
 pip install stagehand-alpha
