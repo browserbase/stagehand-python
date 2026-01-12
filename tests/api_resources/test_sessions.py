@@ -691,7 +691,7 @@ class TestSessions:
     @parametrize
     def test_method_start(self, client: Stagehand) -> None:
         session = client.sessions.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
@@ -699,7 +699,7 @@ class TestSessions:
     @parametrize
     def test_method_start_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
             act_timeout_ms=0,
             browser={
                 "cdp_url": "ws://localhost:9222",
@@ -787,7 +787,7 @@ class TestSessions:
     @parametrize
     def test_raw_response_start(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
         )
 
         assert response.is_closed is True
@@ -799,7 +799,7 @@ class TestSessions:
     @parametrize
     def test_streaming_response_start(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -1480,7 +1480,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_method_start(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
@@ -1488,7 +1488,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_method_start_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
             act_timeout_ms=0,
             browser={
                 "cdp_url": "ws://localhost:9222",
@@ -1576,7 +1576,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_raw_response_start(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
         )
 
         assert response.is_closed is True
@@ -1588,7 +1588,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_streaming_response_start(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.start(
-            model_name="gpt-4o",
+            model_name="openai/gpt-4o",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
