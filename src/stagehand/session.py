@@ -16,6 +16,7 @@ from .types import (
     session_navigate_params,
 )
 from ._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from .types.session_start_response import SessionStartResponse, Data as SessionStartResponseData
 from .types.session_act_response import SessionActResponse
 from .types.session_end_response import SessionEndResponse
 from .types.session_execute_response import SessionExecuteResponse
@@ -36,12 +37,15 @@ if TYPE_CHECKING:
     from ._client import Stagehand, AsyncStagehand
 
 
-class Session:
+class Session(SessionStartResponse):
     """A Stagehand session bound to a specific `session_id`."""
 
-    def __init__(self, client: Stagehand, id: str) -> None:
+    def __init__(self, client: Stagehand, id: str, data: SessionStartResponseData, success: bool) -> None:
         self._client = client
         self.id = id
+        # in case user tries to use client.sessions.start(...) return value as a SessionStartResponse dataclass/dict
+        super().__init__(data=data, success=success)
+    
 
     def navigate(
         self,
@@ -158,12 +162,13 @@ class Session:
         )
 
 
-class AsyncSession:
+class AsyncSession(SessionStartResponse):
     """Async variant of `Session`."""
 
-    def __init__(self, client: AsyncStagehand, id: str) -> None:
+    def __init__(self, client: AsyncStagehand, id: str, data: SessionStartResponseData, success: bool) -> None:
         self._client = client
         self.id = id
+        super().__init__(data=data, success=success)
 
     async def navigate(
         self,

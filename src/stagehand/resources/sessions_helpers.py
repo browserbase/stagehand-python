@@ -59,7 +59,7 @@ class SessionsResourceWithHelpers(SessionsResource):
             extra_body=extra_body,
             timeout=timeout,
         )
-        return Session(self._client, start_response.data.session_id)
+        return Session(self._client, start_response.data.session_id, data=start_response.data, success=start_response.success)
 
 
 class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
@@ -86,7 +86,7 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncSession:
-        start_response = await self.start(
+        start_response: SessionStartResponse = await self.start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
             browser=browser,
@@ -107,4 +107,4 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
             extra_body=extra_body,
             timeout=timeout,
         )
-        return AsyncSession(self._client, start_response.data.session_id)
+        return AsyncSession(self._client, start_response.data.session_id, data=start_response.data, success=start_response.success)
