@@ -12,7 +12,7 @@ __all__ = ["ModelConfigParam", "ModelConfigObject"]
 
 class ModelConfigObject(TypedDict, total=False):
     model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
-    """Model name string without prefix (e.g., 'gpt-5-nano', 'claude-4.5-opus')"""
+    """Model name string (e.g., 'openai/gpt-5-nano', 'anthropic/claude-4.5-opus')"""
 
     api_key: Annotated[str, PropertyInfo(alias="apiKey")]
     """API key for the model provider"""
