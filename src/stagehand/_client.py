@@ -225,7 +225,7 @@ class Stagehand(SyncAPIClient):
             **super().default_headers,
             "x-language": "python",
             "x-sdk-version": __version__,
-            "x-sent-at": datetime.datetime.now().isoformat(),
+            "x-sent-at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
@@ -516,7 +516,7 @@ class AsyncStagehand(AsyncAPIClient):
             **super().default_headers,
             "x-language": "python",
             "x-sdk-version": __version__,
-            "x-sent-at": datetime.datetime.now().isoformat(),
+            "x-sent-at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }

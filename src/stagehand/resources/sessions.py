@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Dict, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from typing_extensions import Literal, overload
 
 import httpx
@@ -42,7 +42,10 @@ __all__ = ["SessionsResource", "AsyncSessionsResource"]
 
 def _format_x_sent_at(value: Union[str, datetime] | Omit) -> str | NotGiven:
     if isinstance(value, datetime):
-        return value.isoformat()
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        value = value.astimezone(timezone.utc)
+        return value.isoformat().replace("+00:00", "Z")
     if isinstance(value, Omit):
         return not_given
     return value
@@ -226,7 +229,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -290,7 +293,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -454,7 +457,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -645,7 +648,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -719,7 +722,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -899,7 +902,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -986,7 +989,7 @@ class SessionsResource(SyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1195,7 +1198,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1259,7 +1262,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1423,7 +1426,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1614,7 +1617,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1688,7 +1691,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1868,7 +1871,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
@@ -1955,7 +1958,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_headers = {
             **strip_not_given(
                 {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
+                    "x-sent-at": _format_x_sent_at(x_sent_at),
                     "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
                 }
             ),
