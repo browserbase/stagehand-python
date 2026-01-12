@@ -41,6 +41,14 @@ pip install stagehand-alpha
 uv run python examples/local_example.py
 ```
 
+## Streaming logging example
+
+See [`examples/logging_example.py`](examples/logging_example.py) for a remote-only flow that streams `StreamEvent`s with `verbose=2`, `stream_response=True`, and `x_stream_response="true"` so you can watch the SDK’s logs as they arrive.
+
+```bash
+uv run python examples/logging_example.py
+```
+
 <details>
 <summary><strong>Local development</strong></summary>
 
