@@ -22,12 +22,6 @@ class SessionActParamsBase(TypedDict, total=False):
 
     options: Options
 
-    x_language: Annotated[Literal["typescript", "python", "playground"], PropertyInfo(alias="x-language")]
-    """Client SDK language"""
-
-    x_sdk_version: Annotated[str, PropertyInfo(alias="x-sdk-version")]
-    """Version of the Stagehand SDK"""
-
     x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
     """ISO timestamp when request was sent"""
 

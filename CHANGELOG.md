@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 (2026-01-12)
+
+Full Changelog: [v0.2.4...v0.3.0](https://github.com/browserbase/stagehand-python/compare/v0.2.4...v0.3.0)
+
+### Features
+
+* Removed requiring x-language and x-sdk-version from openapi spec ([618266f](https://github.com/browserbase/stagehand-python/commit/618266f3fe397a2d346fc1f3adaad225db443cdf))
+* Using provider/model syntax in modelName examples within openapi spec ([98d8ab9](https://github.com/browserbase/stagehand-python/commit/98d8ab97cb1115b9cff7f6e831b7dfa98e27f15a))
+
 ## 0.2.4 (2026-01-07)
 
 Full Changelog: [v0.2.3...v0.2.4](https://github.com/browserbase/stagehand-python/compare/v0.2.3...v0.2.4)
