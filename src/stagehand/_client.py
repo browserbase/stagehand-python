@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import datetime
 from typing import TYPE_CHECKING, Any, Mapping
 from typing_extensions import Self, Literal, override
 
@@ -224,6 +225,7 @@ class Stagehand(SyncAPIClient):
             **super().default_headers,
             "x-language": "python",
             "x-sdk-version": __version__,
+            "x-sent-at": datetime.datetime.now().isoformat(),
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
@@ -514,6 +516,7 @@ class AsyncStagehand(AsyncAPIClient):
             **super().default_headers,
             "x-language": "python",
             "x-sdk-version": __version__,
+            "x-sent-at": datetime.datetime.now().isoformat(),
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }
