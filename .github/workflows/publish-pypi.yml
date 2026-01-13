@@ -107,6 +107,7 @@ jobs:
         run: uv build --wheel
 
       - name: Log SEA contents
+        shell: bash
         run: |
           echo "Contents of src/stagehand/_sea/"
           ls -al src/stagehand/_sea || true
