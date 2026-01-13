@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.6](https://github.com/browserbase/stagehand-python/compare/v3.4.5...v3.4.6) (2026-01-13)
+
+
+### Chores
+
+* remove duplicate .keep files for pypi publish step fix ([5235658](https://github.com/browserbase/stagehand-python/commit/5235658b9360362d70d9154a96b53fe69167101d))
+
 ## 3.4.5 (2026-01-13)
 
 Full Changelog: [v3.4.4...v3.4.5](https://github.com/browserbase/stagehand-python/compare/v3.4.4...v3.4.5)
