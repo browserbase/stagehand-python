@@ -111,14 +111,14 @@ jobs:
           echo "Contents of src/stagehand/_sea/"
           ls -al src/stagehand/_sea || true
           python - <<'PY'
-import pathlib, zipfile
-for wheel in sorted(pathlib.Path('dist').glob('*.whl')):
-    print(f"Contents of {wheel.name} entries matching stagehand/_sea")
-    with zipfile.ZipFile(wheel, 'r') as zf:
-        for info in zf.infolist():
-            if 'stagehand/_sea/' in info.filename:
-                print(info.filename)
-PY
+          import pathlib, zipfile
+          for wheel in sorted(pathlib.Path("dist").glob("*.whl")):
+              print(f"Contents of {wheel.name} entries matching stagehand/_sea")
+              with zipfile.ZipFile(wheel, "r") as zf:
+                  for info in zf.infolist():
+                      if "stagehand/_sea/" in info.filename:
+                          print(info.filename)
+          PY
 
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
