@@ -51,6 +51,8 @@ If you're looking for the TypeScript implementation, you can find it
   </picture>
 </div>
 
+> [!TIP]
+> Migrating from the old v2 Python SDK? See our [migration guide here](https://docs.stagehand.dev/v3/migrations/python).
 
 ## Why Stagehand?
 
