@@ -2,8 +2,8 @@
   <ul style="list-style: none; margin: 0; padding: 0;">
     <a href="https://stagehand.dev">
       <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="media/dark_logo.png" />
-        <img alt="Stagehand" src="media/light_logo.png" width="200" style="margin-right: 30px;" />
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/browserbase/stagehand/main/media/dark_logo.png" />
+        <img alt="Stagehand" src="https://raw.githubusercontent.com/browserbase/stagehand/main/media/light_logo.png" width="200" style="margin-right: 30px;" />
       </picture>
     </a>
   </ul>
@@ -16,14 +16,14 @@
 <p align="center">
   <a href="https://github.com/browserbase/stagehand/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="media/dark_license.svg" />
-      <img alt="MIT License" src="media/light_license.svg" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/browserbase/stagehand/main/media/dark_license.svg" />
+      <img alt="MIT License" src="https://raw.githubusercontent.com/browserbase/stagehand/main/media/light_license.svg" />
     </picture>
   </a>
   <a href="https://stagehand.dev/discord">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="media/dark_discord.svg" />
-      <img alt="Discord Community" src="media/light_discord.svg" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/browserbase/stagehand/main/media/dark_discord.svg" />
+      <img alt="Discord Community" src="https://raw.githubusercontent.com/browserbase/stagehand/main/media/light_discord.svg" />
     </picture>
   </a>
 </p>
@@ -45,7 +45,7 @@ If you're looking for other languages, you can find them
   </a>
   <span> </span>
   <picture>
-    <img alt="Director" src="media/director_icon.svg" width="25" />
+    <img alt="Director" src="https://raw.githubusercontent.com/browserbase/stagehand/main/media/director_icon.svg" width="25" />
   </picture>
 </div>
 
