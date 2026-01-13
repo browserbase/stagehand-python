@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.1](https://github.com/browserbase/stagehand-python/compare/v0.4.0...v3.4.1) (2026-01-13)
+
+
+### Documentation
+
+* refresh README for release ([41926c7](https://github.com/browserbase/stagehand-python/commit/41926c77f9f8ffcca32c341a33d50dc731e1d84a))
+
 ## [0.4.0](https://github.com/browserbase/stagehand-python/compare/v0.3.1...v0.4.0) (2026-01-13)
 
 
