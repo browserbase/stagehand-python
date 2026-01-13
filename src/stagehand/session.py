@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, Union, cast
 from datetime import datetime
-from typing_extensions import Unpack, Literal
+import inspect
+from typing_extensions import Unpack, Literal, Protocol
 
 import httpx
 
@@ -23,9 +24,108 @@ from .types.session_execute_response import SessionExecuteResponse
 from .types.session_extract_response import SessionExtractResponse
 from .types.session_observe_response import SessionObserveResponse
 from .types.session_navigate_response import SessionNavigateResponse
+from ._exceptions import StagehandError
 
 if TYPE_CHECKING:
     from ._client import Stagehand, AsyncStagehand
+
+
+class _PlaywrightCDPSession(Protocol):
+    def send(self, method: str, params: Any = ...) -> Any:  # noqa: ANN401
+        ...
+
+
+class _PlaywrightContext(Protocol):
+    def new_cdp_session(self, page: Any) -> Any:  # noqa: ANN401
+        ...
+
+
+def _extract_frame_id_from_playwright_page(page: Any) -> str:
+    context = getattr(page, "context", None)
+    if context is None:
+        raise StagehandError("page must be a Playwright Page with a .context attribute")
+
+    if callable(context):
+        context = context()
+
+    new_cdp_session = getattr(context, "new_cdp_session", None)
+    if not callable(new_cdp_session):
+        raise StagehandError(
+            "page must be a Playwright Page; expected page.context.new_cdp_session(...) to exist"
+        )
+
+    pw_context = cast(_PlaywrightContext, context)
+    cdp = pw_context.new_cdp_session(page)
+    if inspect.isawaitable(cdp):
+        raise StagehandError(
+            "Expected a synchronous Playwright Page, but received an async CDP session; use AsyncSession methods"
+        )
+
+    send = getattr(cdp, "send", None)
+    if not callable(send):
+        raise StagehandError("Playwright CDP session missing .send(...) method")
+
+    pw_cdp = cast(_PlaywrightCDPSession, cdp)
+    result = pw_cdp.send("Page.getFrameTree")
+    if inspect.isawaitable(result):
+        raise StagehandError(
+            "Expected a synchronous Playwright Page, but received an async CDP session; use AsyncSession methods"
+        )
+
+    try:
+        return result["frameTree"]["frame"]["id"]
+    except Exception as e:  # noqa: BLE001
+        raise StagehandError("Failed to extract frame id from Playwright CDP Page.getFrameTree response") from e
+
+
+async def _extract_frame_id_from_playwright_page_async(page: Any) -> str:
+    context = getattr(page, "context", None)
+    if context is None:
+        raise StagehandError("page must be a Playwright Page with a .context attribute")
+
+    if callable(context):
+        context = context()
+
+    new_cdp_session = getattr(context, "new_cdp_session", None)
+    if not callable(new_cdp_session):
+        raise StagehandError(
+            "page must be a Playwright Page; expected page.context.new_cdp_session(...) to exist"
+        )
+
+    pw_context = cast(_PlaywrightContext, context)
+    cdp = pw_context.new_cdp_session(page)
+    if inspect.isawaitable(cdp):
+        cdp = await cdp
+
+    send = getattr(cdp, "send", None)
+    if not callable(send):
+        raise StagehandError("Playwright CDP session missing .send(...) method")
+
+    pw_cdp = cast(_PlaywrightCDPSession, cdp)
+    result = pw_cdp.send("Page.getFrameTree")
+    if inspect.isawaitable(result):
+        result = await result
+
+    try:
+        return result["frameTree"]["frame"]["id"]
+    except Exception as e:  # noqa: BLE001
+        raise StagehandError("Failed to extract frame id from Playwright CDP Page.getFrameTree response") from e
+
+
+def _maybe_inject_frame_id(params: dict[str, Any], page: Any | None) -> dict[str, Any]:
+    if page is None:
+        return params
+    if "frame_id" in params:
+        return params
+    return {**params, "frame_id": _extract_frame_id_from_playwright_page(page)}
+
+
+async def _maybe_inject_frame_id_async(params: dict[str, Any], page: Any | None) -> dict[str, Any]:
+    if page is None:
+        return params
+    if "frame_id" in params:
+        return params
+    return {**params, "frame_id": await _extract_frame_id_from_playwright_page_async(page)}
 
 
 class Session(SessionStartResponse):
@@ -41,6 +141,7 @@ class Session(SessionStartResponse):
     def navigate(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -53,12 +154,13 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **_maybe_inject_frame_id(dict(params), page),
         )
 
     def act(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -71,12 +173,13 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **_maybe_inject_frame_id(dict(params), page),
         )
 
     def observe(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -89,12 +192,13 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **_maybe_inject_frame_id(dict(params), page),
         )
 
     def extract(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -107,12 +211,13 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **_maybe_inject_frame_id(dict(params), page),
         )
 
     def execute(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -125,7 +230,7 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **_maybe_inject_frame_id(dict(params), page),
         )
 
     def end(
@@ -161,6 +266,7 @@ class AsyncSession(SessionStartResponse):
     async def navigate(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -173,12 +279,13 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **(await _maybe_inject_frame_id_async(dict(params), page)),
         )
 
     async def act(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -191,12 +298,13 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **(await _maybe_inject_frame_id_async(dict(params), page)),
         )
 
     async def observe(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -209,12 +317,13 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **(await _maybe_inject_frame_id_async(dict(params), page)),
         )
 
     async def extract(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -227,12 +336,13 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **(await _maybe_inject_frame_id_async(dict(params), page)),
         )
 
     async def execute(
         self,
         *,
+        page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
@@ -245,7 +355,7 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **params,
+            **(await _maybe_inject_frame_id_async(dict(params), page)),
         )
 
     async def end(
