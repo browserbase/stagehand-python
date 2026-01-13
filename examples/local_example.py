@@ -6,7 +6,8 @@ Required environment variables:
 - BROWSERBASE_API_KEY (can be any value in local mode)
 - BROWSERBASE_PROJECT_ID (can be any value in local mode)
 - MODEL_API_KEY (used for client configuration even in local mode)
-- OPENAI_API_KEY (used by the SEA server for LLM access)
+
+You can also set `OPENAI_API_KEY` if you prefer, but the example defaults to `MODEL_API_KEY`.
 
 Install the published wheel before running this script:
   `pip install stagehand-alpha`
@@ -22,13 +23,15 @@ from stagehand import Stagehand
 
 
 def main() -> None:
+    model_key = os.environ.get("MODEL_API_KEY")
     openai_key = os.environ.get("OPENAI_API_KEY")
-    if not openai_key:
-        sys.exit("Set the OPENAI_API_KEY environment variable to run the local server.")
+
+    if not model_key and not openai_key:
+        sys.exit("Set MODEL_API_KEY to run the local server.")
 
     client = Stagehand(
         server="local",
-        local_openai_api_key=openai_key,
+        local_openai_api_key=openai_key or model_key,
         local_ready_timeout_s=30.0,
     )
 

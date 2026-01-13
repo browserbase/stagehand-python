@@ -10,9 +10,9 @@ sys.path.insert(0, "src")
 from stagehand import Stagehand
 
 # Set required API key for LLM operations
-if not os.environ.get("OPENAI_API_KEY"):
-    print("❌ Error: OPENAI_API_KEY environment variable not set")  # noqa: T201
-    print("   Set it with: export OPENAI_API_KEY='sk-proj-...'")  # noqa: T201
+if not os.environ.get("MODEL_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+    print("❌ Error: MODEL_API_KEY or OPENAI_API_KEY environment variable not set")  # noqa: T201
+    print("   Set it with: export MODEL_API_KEY='sk-proj-...'")  # noqa: T201
     sys.exit(1)
 
 print("🚀 Testing local server mode...")  # noqa: T201
@@ -24,7 +24,7 @@ try:
         server="local",
         browserbase_api_key="local",  # Dummy value - not used in local mode
         browserbase_project_id="local",  # Dummy value - not used in local mode
-        model_api_key=os.environ["OPENAI_API_KEY"],
+        model_api_key=os.environ.get("MODEL_API_KEY") or os.environ["OPENAI_API_KEY"],
         local_headless=True,
         local_port=0,  # Auto-pick free port
         local_ready_timeout_s=15.0,  # Give it time to start
