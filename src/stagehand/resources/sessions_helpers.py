@@ -12,6 +12,7 @@ from ..types import session_start_params
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ..session import Session, AsyncSession
 from .sessions import SessionsResource, AsyncSessionsResource
+from ..types.session_start_response import SessionStartResponse
 
 
 class SessionsResourceWithHelpers(SessionsResource):

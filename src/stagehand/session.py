@@ -16,9 +16,9 @@ from .types import (
     session_navigate_params,
 )
 from ._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from .types.session_start_response import SessionStartResponse, Data as SessionStartResponseData
 from .types.session_act_response import SessionActResponse
 from .types.session_end_response import SessionEndResponse
+from .types.session_start_response import Data as SessionStartResponseData, SessionStartResponse
 from .types.session_execute_response import SessionExecuteResponse
 from .types.session_extract_response import SessionExtractResponse
 from .types.session_observe_response import SessionObserveResponse

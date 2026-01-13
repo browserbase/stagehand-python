@@ -14,15 +14,15 @@ Examples:
 """
 from __future__ import annotations
 
-import sys
 import os
+import sys
 import json
 import argparse
 import platform
 import urllib.error
 import urllib.request
-from pathlib import Path
 from typing import Any
+from pathlib import Path
 
 
 def get_platform_info() -> tuple[str, str]:
