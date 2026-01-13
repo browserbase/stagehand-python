@@ -1,7 +1,7 @@
 # Stagehand Python API library
 
 <!-- prettier-ignore -->
-[![PyPI version](https://img.shields.io/pypi/v/stagehand-alpha.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand-alpha/)
+[![PyPI version](https://img.shields.io/pypi/v/stagehand.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand/)
 
 The Stagehand Python library provides convenient access to the Stagehand REST API from any Python 3.9+
 application. The library includes type definitions for all request params and response fields,
@@ -26,7 +26,7 @@ The REST API documentation can be found on [docs.stagehand.dev](https://docs.sta
 
 ```sh
 # install from PyPI
-pip install stagehand-alpha
+pip install stagehand
 ```
 
 ## Usage
@@ -100,7 +100,7 @@ You can enable this by installing `aiohttp`:
 
 ```sh
 # install from PyPI
-pip install stagehand-alpha[aiohttp]
+pip install stagehand[aiohttp]
 ```
 
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
