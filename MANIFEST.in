@@ -1,6 +1,0 @@
-include README.md
-include requirements.txt
-global-exclude *.pyc
-global-exclude __pycache__
-global-exclude .DS_Store
-global-exclude */node_modules/* 

@@ -1,111 +1,112 @@
-# Stagehand Python Changelog
+# Changelog
 
-## 0.5.9
+## 0.3.1 (2026-01-13)
 
-### Patch Changes
+Full Changelog: [v0.3.0...v0.3.1](https://github.com/browserbase/stagehand-python/compare/v0.3.0...v0.3.1)
 
-[#256](https://github.com/browserbase/stagehand-python/pull/256) [`898a2fd`](https://github.com/browserbase/stagehand-python/commit/898a2fd) Thanks @seanmcguire12! - fix: invalid_request_error when using anthropic cua client
+## 0.3.0 (2026-01-12)
 
-## 0.5.8
+Full Changelog: [v0.2.4...v0.3.0](https://github.com/browserbase/stagehand-python/compare/v0.2.4...v0.3.0)
 
-### Patch Changes
+### Features
 
-[#241](https://github.com/browserbase/stagehand-python/pull/241) [`69289b9`](https://github.com/browserbase/stagehand-python/commit/69289b9) Thanks @tkattkat! - add support for claude 4.5 opus in cua agent
-[#251](https://github.com/browserbase/stagehand-python/pull/251) [`94304c5`](https://github.com/browserbase/stagehand-python/commit/94304c5) Thanks @shrey150! - Fix active page context
+* Removed requiring x-language and x-sdk-version from openapi spec ([618266f](https://github.com/browserbase/stagehand-python/commit/618266f3fe397a2d346fc1f3adaad225db443cdf))
+* Using provider/model syntax in modelName examples within openapi spec ([98d8ab9](https://github.com/browserbase/stagehand-python/commit/98d8ab97cb1115b9cff7f6e831b7dfa98e27f15a))
 
-## 0.5.7
+## 0.2.4 (2026-01-07)
 
-### Patch Changes
+Full Changelog: [v0.2.3...v0.2.4](https://github.com/browserbase/stagehand-python/compare/v0.2.3...v0.2.4)
 
-[#234](https://github.com/browserbase/stagehand-python/pull/234) [`f978db2`](https://github.com/browserbase/stagehand-python/commit/f978db2) Thanks @shrey150! - bump litellm to 1.80.0
-[#234](https://github.com/browserbase/stagehand-python/pull/234) [`f978db2`](https://github.com/browserbase/stagehand-python/commit/f978db2) Thanks @shrey150! - Allow running browser in headless mode
+### Documentation
 
-## 0.5.6
+* update README with SDK version headers ([f7bd20f](https://github.com/browserbase/stagehand-python/commit/f7bd20f4f44ae2b74a27bd791fa7bed3721b645c))
 
-### Patch Changes
+## 0.2.3 (2026-01-07)
 
-[#232](https://github.com/browserbase/stagehand-python/pull/232) [`cea5af9`](https://github.com/browserbase/stagehand-python/commit/cea5af9) Thanks @miguelg719! - Properly serialize os on browserbase session create params
+Full Changelog: [v0.2.2...v0.2.3](https://github.com/browserbase/stagehand-python/compare/v0.2.2...v0.2.3)
 
-## 0.5.5
+### Bug Fixes
 
-### Patch Changes
+* use macos-15-intel runner for darwin-x64 builds ([8e716fa](https://github.com/browserbase/stagehand-python/commit/8e716faccb3b3cb5a9622a4f524813f9a17b6f2d))
 
-[#215](https://github.com/browserbase/stagehand-python/pull/215) [`cb35254`](https://github.com/browserbase/stagehand-python/commit/cb35254) Thanks @derekmeegan! - Fix ability to pass raw JSON to Extract schema
-[#225](https://github.com/browserbase/stagehand-python/pull/225) [`b23e005`](https://github.com/browserbase/stagehand-python/commit/b23e005) Thanks @derekmeegan! - add local cua example, remove root model from types
-[#218](https://github.com/browserbase/stagehand-python/pull/218) [`1a919ad`](https://github.com/browserbase/stagehand-python/commit/1a919ad) Thanks @derekmeegan! - Pass api_timeout param to Stagehand API correctly
-[#223](https://github.com/browserbase/stagehand-python/pull/223) [`de7d883`](https://github.com/browserbase/stagehand-python/commit/de7d883) Thanks @derekmeegan! - Fix search, navigate, go back, and go forward for gemini cua agent
-[#221](https://github.com/browserbase/stagehand-python/pull/221) [`da570a1`](https://github.com/browserbase/stagehand-python/commit/da570a1) Thanks @miguelg719! - Add support for Haiku 4.5 CUA
+## 0.2.2 (2026-01-07)
 
-## 0.5.4
+Full Changelog: [v0.2.1...v0.2.2](https://github.com/browserbase/stagehand-python/compare/v0.2.1...v0.2.2)
 
-### Patch Changes
+### Bug Fixes
 
-[#205](https://github.com/browserbase/stagehand-python/pull/205) [`3bcdd05`](https://github.com/browserbase/stagehand-python/commit/3bcdd05) Thanks @derekmeegan! - Make litellm client async
-[#213](https://github.com/browserbase/stagehand-python/pull/213) [`1d0577d`](https://github.com/browserbase/stagehand-python/commit/1d0577d) Thanks @miguelg719! - Added support for Gemini Computer Use models
+* correct binary names and update macOS runner in publish workflow ([c396aa3](https://github.com/browserbase/stagehand-python/commit/c396aa32d85d6b16acaed2bbdadd3e619a87aae6))
 
-## 0.5.3
+## 0.2.1 (2026-01-07)
 
-### Patch Changes
+Full Changelog: [v0.2.0...v0.2.1](https://github.com/browserbase/stagehand-python/compare/v0.2.0...v0.2.1)
 
-[#196](https://github.com/browserbase/stagehand-python/pull/196) [`93f5c97`](https://github.com/browserbase/stagehand-python/commit/93f5c97) Thanks @chrisreadsf, @miguelg719 and Derek Meegan! - remove duplicate project id if already passed to Stagehand
-[#203](https://github.com/browserbase/stagehand-python/pull/203) [`82c6fed`](https://github.com/browserbase/stagehand-python/commit/82c6fed) Thanks @miguelg719! - Bump openai dependency version
-[#198](https://github.com/browserbase/stagehand-python/pull/198) [`057b38b`](https://github.com/browserbase/stagehand-python/commit/057b38b) Thanks @Zach10za! - Fix draw_overlay on env:LOCAL
+### Bug Fixes
 
-## 0.5.2
+* specify pnpm version 9 in publish workflow ([f4fdb7a](https://github.com/browserbase/stagehand-python/commit/f4fdb7a36ab4aea1e3c5a3e1604322a92fc5bd3f))
 
-### Patch Changes
+## 0.2.0 (2026-01-06)
 
-[#191](https://github.com/browserbase/stagehand-python/pull/191) [`7fb6a6f`](https://github.com/browserbase/stagehand-python/commit/7fb6a6f) Thanks @miguelg719! - Add support for custom base_url on api
-[#185](https://github.com/browserbase/stagehand-python/pull/185) [`ec22cb9`](https://github.com/browserbase/stagehand-python/commit/ec22cb9) Thanks @filip-michalsky! - fix camelCase and snake_case return api extract schema mismatch
+Full Changelog: [v0.1.0...v0.2.0](https://github.com/browserbase/stagehand-python/compare/v0.1.0...v0.2.0)
 
-## 0.5.1
+### Features
 
-### Patch Changes
+* Added optional param to force empty object ([b15e097](https://github.com/browserbase/stagehand-python/commit/b15e0976bc356e0ce09b331705ccd2b8805e1bfa))
+* **api:** manual updates ([5a3f419](https://github.com/browserbase/stagehand-python/commit/5a3f419522d49d132c4a75bf310eef1d9695a5a4))
 
-[#183](https://github.com/browserbase/stagehand-python/pull/183) [`6f72281`](https://github.com/browserbase/stagehand-python/commit/6f72281) Thanks @shubh24 and @miguelg719! - Fixing downloads behavior for use_api=false
-[#132](https://github.com/browserbase/stagehand-python/pull/132) [`edc57ac`](https://github.com/browserbase/stagehand-python/commit/edc57ac) Thanks @sanveer-osahan and @miguelg719! - Add LLM customization support (eg. api_base)
-[#179](https://github.com/browserbase/stagehand-python/pull/179) [`51ca053`](https://github.com/browserbase/stagehand-python/commit/51ca053) Thanks @miguelg719! - Fix max_steps parsing for agent execute options
-[#176](https://github.com/browserbase/stagehand-python/pull/176) [`d95974a`](https://github.com/browserbase/stagehand-python/commit/d95974a) Thanks @miguelg719! - Fix stagehand.metrics on env:BROWSERBASE
-[#88](https://github.com/browserbase/stagehand-python/pull/88) [`021c946`](https://github.com/browserbase/stagehand-python/commit/021c946) Thanks @filip-michalsky! - added regression tests
-[#161](https://github.com/browserbase/stagehand-python/pull/161) [`f68e86c`](https://github.com/browserbase/stagehand-python/commit/f68e86c) Thanks @arunpatro, @miguelg719 and Filip Michalsky! - Multi-tab support
-[#181](https://github.com/browserbase/stagehand-python/pull/181) [`1bef512`](https://github.com/browserbase/stagehand-python/commit/1bef512) Thanks @miguelg719! - Fix openai-litellm dependency bug
-[#177](https://github.com/browserbase/stagehand-python/pull/177) [`36ba981`](https://github.com/browserbase/stagehand-python/commit/36ba981) Thanks @miguelg719! - Fix temperature setting for GPT-5 family of models
-[#174](https://github.com/browserbase/stagehand-python/pull/174) [`2e3eb1a`](https://github.com/browserbase/stagehand-python/commit/2e3eb1a) Thanks @miguelg719! - Added frame_id_map to support multi-tab handling on API
 
-## 0.5.0
+### Documentation
 
-### Minor Changes
-[#167](https://github.com/browserbase/stagehand-python/pull/167) [`76669f0`](https://github.com/browserbase/stagehand-python/commit/76669f0) Thanks @miguelg719! - Enable access to iframes on api
+* prominently feature MCP server setup in root SDK readmes ([d5a8361](https://github.com/browserbase/stagehand-python/commit/d5a83610cd39ccdecc1825d67a56ab2835d9651f))
 
-### Patch Changes
+## 0.1.0 (2025-12-23)
 
-[#168](https://github.com/browserbase/stagehand-python/pull/168) [`a7d8c5e`](https://github.com/browserbase/stagehand-python/commit/a7d8c5e) Thanks @miguelg719! - Patch issue with passing a created session_id to init on api mode
-[#155](https://github.com/browserbase/stagehand-python/pull/155) [`8d55709`](https://github.com/browserbase/stagehand-python/commit/8d55709) Thanks @Zach10za! - Fix error in press_key act util function
-[#158](https://github.com/browserbase/stagehand-python/pull/158) [`426df10`](https://github.com/browserbase/stagehand-python/commit/426df10) Thanks @miguelg719! - Fix parsing schema for extract with no arguments (full page extract)
-[#166](https://github.com/browserbase/stagehand-python/pull/166) [`15fd40b`](https://github.com/browserbase/stagehand-python/commit/15fd40b) Thanks @filip-michalsky! - fix logging param name
-[#159](https://github.com/browserbase/stagehand-python/pull/159) [`cd3dc7f`](https://github.com/browserbase/stagehand-python/commit/cd3dc7f) Thanks @tkattkat! - Add support for claude 4 sonnet in agent & remove all images but the last two from anthropic cua client
+Full Changelog: [v0.0.1...v0.1.0](https://github.com/browserbase/stagehand-python/compare/v0.0.1...v0.1.0)
 
-## 0.4.1
+### Features
 
-### Patch Changes
+* [STG-1053] [server] Use fastify-zod-openapi + zod v4 for openapi generation ([405c606](https://github.com/browserbase/stagehand-python/commit/405c6068de29f39d90882b31805cc2785c6b94e0))
+* **api:** manual updates ([dde1e8b](https://github.com/browserbase/stagehand-python/commit/dde1e8b312f72179c416baaa8603c4a5da9ce706))
+* **api:** manual updates ([577cea0](https://github.com/browserbase/stagehand-python/commit/577cea04ec2814b9ec70e5f18119292991e5b635))
+* **api:** manual updates ([0cdb22b](https://github.com/browserbase/stagehand-python/commit/0cdb22be4350e78b49a2c90bb62fbf5fcc0d4a25))
+* **api:** manual updates ([fcf7666](https://github.com/browserbase/stagehand-python/commit/fcf7666829c41b7892d708c430a1a16b3ea6097e))
+* **api:** manual updates ([8590a04](https://github.com/browserbase/stagehand-python/commit/8590a048dbe8a82b8b298b7345b30b71876b6e10))
+* **api:** manual updates ([8d1c5ae](https://github.com/browserbase/stagehand-python/commit/8d1c5ae737a481f22818a4adcaba162d015142ee))
+* **api:** manual updates ([638e928](https://github.com/browserbase/stagehand-python/commit/638e92824408754dadebbffab7be6e5f14c0034c))
+* **api:** manual updates ([13484f8](https://github.com/browserbase/stagehand-python/commit/13484f87d343a9b02d58027ab17114c07fda5220))
+* **api:** manual updates ([722abc9](https://github.com/browserbase/stagehand-python/commit/722abc902c2d7210b6b8c35655b9a8dbd6433ee3))
+* **api:** manual updates ([72aa8b8](https://github.com/browserbase/stagehand-python/commit/72aa8b8476bddf351364a1bf161454206eaea3ba))
+* **api:** manual updates ([54f3289](https://github.com/browserbase/stagehand-python/commit/54f32894104f60ca81cad4797b19a86903f4ef73))
+* **api:** manual updates ([9b9d548](https://github.com/browserbase/stagehand-python/commit/9b9d548fb1a4f8a489d4dd920399d2145f4bd3af))
+* **api:** manual updates ([54fb057](https://github.com/browserbase/stagehand-python/commit/54fb05764ac58ad86e9ef4a96aefdda001839fc7))
+* **api:** manual updates ([5efd001](https://github.com/browserbase/stagehand-python/commit/5efd001ad8e5dbcea9f5aa7dad31584ade9402ae))
+* **api:** manual updates ([19a67fd](https://github.com/browserbase/stagehand-python/commit/19a67fd34a16a0acd72427862bcd0eafd6dab353))
+* **api:** manual updates ([80413be](https://github.com/browserbase/stagehand-python/commit/80413be240dd2cdf8c0c95f3e47c5537fbeed017))
+* **api:** manual updates ([585015c](https://github.com/browserbase/stagehand-python/commit/585015c998f014040086fd927d91949c7d153b86))
+* **api:** manual updates ([f032352](https://github.com/browserbase/stagehand-python/commit/f032352d00c69dd94438500c0ced3a110a7cc521))
+* **api:** manual updates ([2dcbe2d](https://github.com/browserbase/stagehand-python/commit/2dcbe2d88a8a35781d42e5bbdcebb44e0ba830dc))
+* **api:** tweak branding and fix some config fields ([8526eb4](https://github.com/browserbase/stagehand-python/commit/8526eb4417d0f2b69397294b1aa3d4da5892f2d6))
 
-[#146](https://github.com/browserbase/stagehand-python/pull/146) [`d0983da`](https://github.com/browserbase/stagehand-python/commit/d0983da) Thanks @miguelg719 and @the-roaring! - Pass sdk version number to API for debugging
-[#145](https://github.com/browserbase/stagehand-python/pull/145) [`0732268`](https://github.com/browserbase/stagehand-python/commit/0732268) Thanks @filip-michalsky! - relaxed rich to 13.7.0
-[#152](https://github.com/browserbase/stagehand-python/pull/152) [`f888d81`](https://github.com/browserbase/stagehand-python/commit/f888d81) Thanks @filip-michalsky! - simple event loop timeout for strict event loops for async playwright (which has blocking start)
-[#140](https://github.com/browserbase/stagehand-python/pull/140) [`5e70c8d`](https://github.com/browserbase/stagehand-python/commit/5e70c8d) Thanks @Zach10za! - Add support for handling OS-level dropdowns
 
-## 0.4.0
+### Bug Fixes
 
-### Minor Changes
+* use async_to_httpx_files in patch method ([77eb123](https://github.com/browserbase/stagehand-python/commit/77eb1234c04a9aa95cedddb15bef377d644f6c42))
 
-[#127](https://github.com/browserbase/stagehand-python/pull/127) [`a2fee2c`](https://github.com/browserbase/stagehand-python/commit/a2fee2c) Thanks @the-roaring! - bump to unused version range
 
-## 0.1.0
+### Chores
 
-### Minor Changes
+* **internal:** add `--fix` argument to lint script ([f7eefb4](https://github.com/browserbase/stagehand-python/commit/f7eefb45344f354cfbdbfa00505f0225ce1ad396))
+* **internal:** add missing files argument to base client ([5c05e7b](https://github.com/browserbase/stagehand-python/commit/5c05e7b37ae9aff8e259cc3190998d7e259f0cef))
+* speedup initial import ([5aafb83](https://github.com/browserbase/stagehand-python/commit/5aafb83959802f8d2a6d7544f115de28a6495d2e))
+* update SDK settings ([b8d1cd3](https://github.com/browserbase/stagehand-python/commit/b8d1cd34b5ee9608e52ea009ff31b7a429cdec62))
+* update SDK settings ([4c0b2c8](https://github.com/browserbase/stagehand-python/commit/4c0b2c8045935a5790b668e553c114d82550b85e))
 
-[#126](https://github.com/browserbase/stagehand-python/pull/126) [`5263553`](https://github.com/browserbase/stagehand-python/commit/5263553) Thanks @the-roaring! - bump minor version to fix publishing disparity
 
-### Patch Changes
+### Documentation
 
-[#126](https://github.com/browserbase/stagehand-python/pull/126) [`5263553`](https://github.com/browserbase/stagehand-python/commit/5263553) Thanks @the-roaring! - start using pychangeset to track changes
+* add more examples ([681e90f](https://github.com/browserbase/stagehand-python/commit/681e90f695f60d3b59ee017da3270bd344cf01f6))
+
+
+### Refactors
+
+* **internal:** switch from rye to uv ([0eba9d2](https://github.com/browserbase/stagehand-python/commit/0eba9d2e2ba2ff82a412adf06e80866e3dc4b7cb))

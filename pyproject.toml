@@ -1,89 +1,263 @@
-[build-system]
-requires = [ "setuptools>=61.0", "wheel",]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "stagehand"
-version = "0.5.9"
-description = "Python SDK for Stagehand"
-readme = "README.md"
-classifiers = [ "Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent",]
-requires-python = ">=3.9"
-dependencies = [ "httpx>=0.24.0", "python-dotenv>=1.0.0", "pydantic>=1.10.0", "playwright>=1.42.1", "requests>=2.31.0", "browserbase>=1.4.0", "rich>=13.7.0", "openai>=1.99.6", "anthropic>=0.51.0", "litellm>=1.72.0,<=1.80.0", "nest-asyncio>=1.6.0", "google-genai>=1.40.0",]
-[[project.authors]]
-name = "Browserbase, Inc."
-email = "support@browserbase.com"
+name = "stagehand-alpha"
+version = "0.3.1"
+description = "The official Python library for the stagehand API"
+dynamic = ["readme"]
+license = "Apache-2.0"
+authors = [
+{ name = "Stagehand", email = "" },
+]
 
-[project.license]
-text = "MIT"
+dependencies = [
+  "httpx>=0.23.0, <1",
+  "pydantic>=1.9.0, <3",
+  "typing-extensions>=4.10, <5",
+  "anyio>=3.5.0, <5",
+  "distro>=1.7.0, <2",
+  "sniffio",
+]
 
-[project.optional-dependencies]
-dev = [ "pytest>=7.3.1", "pytest-asyncio>=0.21.0", "pytest-mock>=3.10.0", "pytest-cov>=4.1.0", "black>=23.3.0", "isort>=5.12.0", "mypy>=1.3.0", "ruff", "psutil>=5.9.0",]
+requires-python = ">= 3.9"
+classifiers = [
+  "Typing :: Typed",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Operating System :: OS Independent",
+  "Operating System :: POSIX",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "License :: OSI Approved :: Apache Software License"
+]
 
 [project.urls]
 Homepage = "https://github.com/browserbase/stagehand-python"
 Repository = "https://github.com/browserbase/stagehand-python"
 
-[tool.ruff]
-line-length = 88
-target-version = "py39"
-exclude = [ ".git", ".ruff_cache", "__pycache__", "venv", ".venv", "dist", "tests",]
+[project.optional-dependencies]
+aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
 
-[tool.black]
-line-length = 88
-target-version = [ "py39",]
-include = "\\.pyi?$"
-exclude = "/(\n    \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | _build\n  | buck-out\n  | build\n  | dist\n  | __pycache__\n  | python-sdk\n)/\n"
-skip-string-normalization = false
-preview = true
+[tool.uv]
+managed = true
+required-version = ">=0.9"
+conflicts = [
+    [
+      { group = "pydantic-v1" },
+      { group = "pydantic-v2" },
+    ],
+]
 
-[tool.isort]
-profile = "black"
-line_length = 88
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-skip_gitignore = true
-skip_glob = [ "**/venv/**", "**/.venv/**", "**/__pycache__/**",]
+[dependency-groups]
+# version pins are in uv.lock
+dev = [
+    "pyright==1.1.399",
+    "mypy==1.17",
+    "respx",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "time-machine",
+    "dirty-equals>=0.6.0",
+    "importlib-metadata>=6.7.0",
+    "rich>=13.7.1",
+    "pytest-xdist>=3.6.1",
+    "dotenv>=0.9.9",
+]
+pydantic-v1 = [
+    "pydantic>=1.9.0,<2",
+]
+pydantic-v2 = [
+    "pydantic~=2.0 ; python_full_version < '3.14'",
+    "pydantic~=2.12 ; python_full_version >= '3.14'",
+]
 
-[tool.ruff.lint]
-select = [ "E", "F", "B", "C4", "UP", "N", "I", "C",]
-ignore = [ "E501", "C901",]
-fixable = [ "ALL",]
-unfixable = []
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+[build-system]
+requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme", "packaging"]
+build-backend = "hatchling.build"
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-line-ending = "auto"
+[tool.hatch.build]
+include = [
+  "src/*"
+]
 
-[tool.setuptools.package-data]
-stagehand = [ "domScripts.js",]
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stagehand"]
+
+[tool.hatch.build.targets.sdist]
+# Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
+include = [
+  "/*.toml",
+  "/*.json",
+  "/*.lock",
+  "/*.md",
+  "/mypy.ini",
+  "/noxfile.py",
+  "bin/*",
+  "examples/*",
+  "src/*",
+  "tests/*",
+]
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+# replace relative links with absolute links
+pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
+replacement = '[\1](https://github.com/browserbase/stagehand-python/tree/stainless/\g<2>)'
 
 [tool.pytest.ini_options]
-testpaths = [ "tests",]
-python_files = [ "test_*.py",]
-python_classes = [ "Test*",]
-python_functions = [ "test_*",]
+testpaths = ["tests"]
+addopts = "--tb=short -n auto"
+xfail_strict = true
 asyncio_mode = "auto"
-addopts = [ "--cov=stagehand", "--cov-report=html:htmlcov", "--cov-report=term-missing", "--cov-report=xml", "--strict-markers", "--strict-config", "-ra", "--tb=short",]
-markers = [ "unit: Unit tests for individual components", "integration: Integration tests requiring multiple components", "e2e: End-to-end tests with full workflows", "slow: Tests that take longer to run", "browserbase: Tests requiring Browserbase connection", "local: Tests for local browser functionality", "llm: Tests involving LLM interactions", "mock: Tests using mock objects only", "performance: Performance and load tests", "smoke: Quick smoke tests for basic functionality",]
-filterwarnings = [ "ignore::DeprecationWarning", "ignore::PendingDeprecationWarning", "ignore::UserWarning:pytest_asyncio", "ignore::RuntimeWarning",]
-minversion = "7.0"
+asyncio_default_fixture_loop_scope = "session"
+filterwarnings = [
+  "error"
+]
 
-[tool.ruff.lint.pep8-naming]
-classmethod-decorators = [ "classmethod", "validator",]
+[tool.pyright]
+# this enables practically every flag given by pyright.
+# there are a couple of flags that are still disabled by
+# default in strict mode as they are experimental and niche.
+typeCheckingMode = "strict"
+pythonVersion = "3.9"
+
+exclude = [
+    "_dev",
+    ".venv",
+    ".nox",
+    ".git",
+    "hatch_build.py",
+    "examples",
+    "scripts",
+    "test_local_mode.py",
+]
+
+reportImplicitOverride = true
+reportOverlappingOverload = false
+
+reportImportCycles = false
+reportPrivateUsage = false
+
+[tool.mypy]
+pretty = true
+show_error_codes = true
+
+# Exclude _files.py because mypy isn't smart enough to apply
+# the correct type narrowing and as this is an internal module
+# it's fine to just use Pyright.
+#
+# We also exclude our `tests` as mypy doesn't always infer
+# types correctly and Pyright will still catch any type errors.
+exclude = ['src/stagehand/_files.py', '_dev/.*.py', 'tests/.*', 'hatch_build.py', 'examples/.*', 'scripts/.*', 'test_local_mode.py']
+
+strict_equality = true
+implicit_reexport = true
+check_untyped_defs = true
+no_implicit_optional = true
+
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+
+# Turn these options off as it could cause conflicts
+# with the Pyright options.
+warn_unused_ignores = false
+warn_redundant_casts = false
+
+disallow_any_generics = true
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+disallow_subclassing_any = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+cache_fine_grained = true
+
+# By default, mypy reports an error if you assign a value to the result
+# of a function call that doesn't return anything. We do this in our test
+# cases:
+# ```
+# result = ...
+# assert result is None
+# ```
+# Changing this codegen to make mypy happy would increase complexity
+# and would not be worth it.
+disable_error_code = "func-returns-value,overload-cannot-match"
+
+# https://github.com/python/mypy/issues/12162
+[[tool.mypy.overrides]]
+module = "black.files.*"
+ignore_errors = true
+ignore_missing_imports = true
+
+
+[tool.ruff]
+line-length = 120
+output-format = "grouped"
+target-version = "py38"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+  # isort
+  "I",
+  # bugbear rules
+  "B",
+  # remove unused imports
+  "F401",
+  # check for missing future annotations
+  "FA102",
+  # bare except statements
+  "E722",
+  # unused arguments
+  "ARG",
+  # print statements
+  "T201",
+  "T203",
+  # misuse of typing.TYPE_CHECKING
+  "TC004",
+  # import rules
+  "TID251",
+]
+ignore = [
+  # mutable defaults
+  "B006",
+]
+unfixable = [
+  # disable auto fix for print statements
+  "T201",
+  "T203",
+]
+
+extend-safe-fixes = ["FA102"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"functools.lru_cache".msg = "This function does not retain type information for the wrapped function's arguments; The `lru_cache` function from `_utils` should be used instead"
+
+[tool.ruff.lint.isort]
+length-sort = true
+length-sort-straight = true
+combine-as-imports = true
+extra-standard-library = ["typing_extensions"]
+known-first-party = ["stagehand", "tests"]
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = [ "F401",]
-"tests/*" = [ "F401", "F811",]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.setuptools.packages.find]
-where = [ ".",]
-include = [ "stagehand*",]
+"bin/**.py" = ["T201", "T203"]
+"scripts/**.py" = ["T201", "T203"]
+"tests/**.py" = ["T201", "T203"]
+"examples/**.py" = ["T201", "T203"]
