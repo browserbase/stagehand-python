@@ -141,7 +141,6 @@ Once the environment is ready, execute repo scripts with `uv run`:
 
 ```sh
 uv run python examples/full_example.py
-uv run python scripts/download-binary.py
 uv run --isolated --all-extras pytest
 ```
 </details>
