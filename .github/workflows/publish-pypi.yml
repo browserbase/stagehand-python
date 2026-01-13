@@ -99,6 +99,7 @@ jobs:
 
           cp "_stagehand/packages/server/dist/sea/${{ matrix.binary_name }}" "${{ matrix.output_path }}"
           chmod +x "${{ matrix.output_path }}" 2>/dev/null || true
+          rm -f src/stagehand/_sea/.keep || true
           git add -f src/stagehand/_sea/*
 
       - name: Build wheel
@@ -112,13 +113,24 @@ jobs:
           echo "Contents of src/stagehand/_sea/"
           ls -al src/stagehand/_sea || true
           python - <<'PY'
-          import pathlib, zipfile
+          import pathlib, zipfile, collections, sys
+          had_error = False
           for wheel in sorted(pathlib.Path("dist").glob("*.whl")):
               print(f"Contents of {wheel.name} entries matching stagehand/_sea")
               with zipfile.ZipFile(wheel, "r") as zf:
+                  names = [info.filename for info in zf.infolist()]
+                  counts = collections.Counter(names)
+                  dups = sorted([name for name, n in counts.items() if n > 1])
                   for info in zf.infolist():
                       if "stagehand/_sea/" in info.filename:
                           print(info.filename)
+                  if dups:
+                      had_error = True
+                      print("ERROR: duplicate zip entries detected:")
+                      for name in dups:
+                          print(f"  {counts[name]}x {name}")
+          if had_error:
+              sys.exit(1)
           PY
 
       - name: Upload wheel artifact
