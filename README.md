@@ -117,7 +117,7 @@ uv run python examples/local_example.py
 ```
 
 ```bash
-pip install stagehand-alpha
+pip install stagehand
 uv run python examples/local_example.py
 ```
 
@@ -325,7 +325,7 @@ By default, the async client uses `httpx` for HTTP requests. For improved concur
 Install `aiohttp`:
 
 ```sh
-uv run pip install stagehand-alpha[aiohttp]
+uv run pip install stagehand[aiohttp]
 ```
 
 Then instantiate the client with `http_client=DefaultAioHttpClient()`:
