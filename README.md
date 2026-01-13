@@ -49,6 +49,9 @@ If you're looking for other languages, you can find them
   </picture>
 </div>
 
+> [!TIP]
+> Migrating from the old v2 Python SDK? See our [migration guide here](https://docs.stagehand.dev/v3/migrations/python).
+
 ## What is Stagehand?
 
 Stagehand is a browser automation framework used to control web browsers with natural language and code. By combining the power of AI with the precision of code, Stagehand makes web automation flexible, maintainable, and actually reliable.
