@@ -41,10 +41,10 @@ class Session(SessionStartResponse):
     """A Stagehand session bound to a specific `session_id`."""
 
     def __init__(self, client: Stagehand, id: str, data: SessionStartResponseData, success: bool) -> None:
+        # Must call super().__init__() first to initialize Pydantic's __pydantic_extra__ before setting attributes
+        super().__init__(data=data, success=success)
         self._client = client
         self.id = id
-        # in case user tries to use client.sessions.start(...) return value as a SessionStartResponse dataclass/dict
-        super().__init__(data=data, success=success)
     
 
     def navigate(
@@ -140,8 +140,6 @@ class Session(SessionStartResponse):
     def end(
         self,
         *,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -151,8 +149,6 @@ class Session(SessionStartResponse):
     ) -> SessionEndResponse:
         return self._client.sessions.end(
             id=self.id,
-            x_language=x_language,
-            x_sdk_version=x_sdk_version,
             x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
@@ -166,9 +162,10 @@ class AsyncSession(SessionStartResponse):
     """Async variant of `Session`."""
 
     def __init__(self, client: AsyncStagehand, id: str, data: SessionStartResponseData, success: bool) -> None:
+        # Must call super().__init__() first to initialize Pydantic's __pydantic_extra__ before setting attributes
+        super().__init__(data=data, success=success)
         self._client = client
         self.id = id
-        super().__init__(data=data, success=success)
 
     async def navigate(
         self,
@@ -263,8 +260,6 @@ class AsyncSession(SessionStartResponse):
     async def end(
         self,
         *,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -274,8 +269,6 @@ class AsyncSession(SessionStartResponse):
     ) -> SessionEndResponse:
         return await self._client.sessions.end(
             id=self.id,
-            x_language=x_language,
-            x_sdk_version=x_sdk_version,
             x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
