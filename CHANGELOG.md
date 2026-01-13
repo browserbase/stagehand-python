@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.3](https://github.com/browserbase/stagehand-python/compare/v3.4.2...v3.4.3) (2026-01-13)
+
+
+### Chores
+
+* force-include SEA binaries in wheel ([301147c](https://github.com/browserbase/stagehand-python/commit/301147ce8f7fde3726e04efaaecfcdc5755b7683))
+
 ## 3.4.2 (2026-01-13)
 
 Full Changelog: [v3.4.1...v3.4.2](https://github.com/browserbase/stagehand-python/compare/v3.4.1...v3.4.2)
