@@ -99,6 +99,7 @@ jobs:
 
           cp "_stagehand/packages/server/dist/sea/${{ matrix.binary_name }}" "${{ matrix.output_path }}"
           chmod +x "${{ matrix.output_path }}" 2>/dev/null || true
+          git add -f src/stagehand/_sea/*
 
       - name: Build wheel
         env:
