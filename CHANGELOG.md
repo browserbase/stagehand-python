@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/browserbase/stagehand-python/compare/v0.3.1...v0.4.0) (2026-01-13)
+
+
+### Features
+
+* don't close new opened tabs ([#161](https://github.com/browserbase/stagehand-python/issues/161)) ([#169](https://github.com/browserbase/stagehand-python/issues/169)) ([f68e86c](https://github.com/browserbase/stagehand-python/commit/f68e86c90d9e5f30d2f447ada65cc711ac531baa))
+
+
+### Bug Fixes
+
+* active page context ([#251](https://github.com/browserbase/stagehand-python/issues/251)) ([d61e118](https://github.com/browserbase/stagehand-python/commit/d61e118ccc8845ac95e4579f6137a91abb004943))
+* set injected Stagehand cursor position to fixed for correct viewport tracking ([#121](https://github.com/browserbase/stagehand-python/issues/121)) ([#122](https://github.com/browserbase/stagehand-python/issues/122)) ([93c16e3](https://github.com/browserbase/stagehand-python/commit/93c16e392d754227f9bec47ee9d9f26046bfb770))
+
 ## 0.3.1 (2026-01-13)
 
 Full Changelog: [v0.3.0...v0.3.1](https://github.com/browserbase/stagehand-python/compare/v0.3.0...v0.3.1)
