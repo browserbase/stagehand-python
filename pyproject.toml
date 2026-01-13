@@ -1,11 +1,11 @@
 [project]
-name = "stagehand-alpha"
-version = "0.3.1"
-description = "The official Python library for the stagehand API"
+name = "stagehand"
+version = "3.4.0"
+description = "Python SDK for Stagehand"
 dynamic = ["readme"]
-license = "Apache-2.0"
+license = "MIT"
 authors = [
-{ name = "Stagehand", email = "" },
+{ name = "Browserbase", email = "support@browserbase.com" },
 ]
 
 dependencies = [
