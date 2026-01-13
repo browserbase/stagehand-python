@@ -66,6 +66,7 @@ class Stagehand(SyncAPIClient):
         local_host: str = "127.0.0.1",
         local_port: int = 0,
         local_headless: bool = True,
+        local_chrome_path: str | None = None,
         local_ready_timeout_s: float = 10.0,
         local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool = True,
@@ -100,6 +101,7 @@ class Stagehand(SyncAPIClient):
         self._local_host = local_host
         self._local_port = local_port
         self._local_headless = local_headless
+        self._local_chrome_path = local_chrome_path
         self._local_ready_timeout_s = local_ready_timeout_s
         self._local_openai_api_key = local_openai_api_key
         self._local_shutdown_on_close = local_shutdown_on_close
@@ -134,6 +136,7 @@ class Stagehand(SyncAPIClient):
                     headless=local_headless,
                     ready_timeout_s=local_ready_timeout_s,
                     openai_api_key=openai_api_key,
+                    chrome_path=local_chrome_path,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
                 _local_stagehand_binary_path=_local_stagehand_binary_path,
@@ -350,6 +353,7 @@ class AsyncStagehand(AsyncAPIClient):
         local_host: str = "127.0.0.1",
         local_port: int = 0,
         local_headless: bool = True,
+        local_chrome_path: str | None = None,
         local_ready_timeout_s: float = 10.0,
         local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool = True,
@@ -384,6 +388,7 @@ class AsyncStagehand(AsyncAPIClient):
         self._local_host = local_host
         self._local_port = local_port
         self._local_headless = local_headless
+        self._local_chrome_path = local_chrome_path
         self._local_ready_timeout_s = local_ready_timeout_s
         self._local_openai_api_key = local_openai_api_key
         self._local_shutdown_on_close = local_shutdown_on_close
@@ -417,6 +422,7 @@ class AsyncStagehand(AsyncAPIClient):
                     headless=local_headless,
                     ready_timeout_s=local_ready_timeout_s,
                     openai_api_key=openai_api_key,
+                    chrome_path=local_chrome_path,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
                 _local_stagehand_binary_path=_local_stagehand_binary_path,

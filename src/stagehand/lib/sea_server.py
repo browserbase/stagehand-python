@@ -25,6 +25,7 @@ class SeaServerConfig:
     headless: bool
     ready_timeout_s: float
     openai_api_key: str | None
+    chrome_path: str | None
     shutdown_on_close: bool
 
 
@@ -179,6 +180,9 @@ class SeaServerManager:
         proc_env["HEADLESS"] = "true" if self._config.headless else "false"
         if self._config.openai_api_key:
             proc_env["OPENAI_API_KEY"] = self._config.openai_api_key
+        if self._config.chrome_path:
+            proc_env["CHROME_PATH"] = self._config.chrome_path
+            proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path
 
         preexec_fn = None
         creationflags = 0
@@ -226,6 +230,9 @@ class SeaServerManager:
         proc_env["HEADLESS"] = "true" if self._config.headless else "false"
         if self._config.openai_api_key:
             proc_env["OPENAI_API_KEY"] = self._config.openai_api_key
+        if self._config.chrome_path:
+            proc_env["CHROME_PATH"] = self._config.chrome_path
+            proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path
 
         preexec_fn = None
         creationflags = 0
