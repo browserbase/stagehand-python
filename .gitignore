@@ -1,100 +1,19 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+.prism.log
+_dev
 
-# dependencies
-**/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+__pycache__
+.mypy_cache
 
-# testing
-/coverage
+dist
 
-# next.js
-/.next/
-/out/
+.venv
+.idea
 
-# production
-/build
-
-# misc
 .DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Python bytecode
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Python virtual environments
-env/
-venv/
-.venv/
-pip-wheel-metadata/
-*.egg-info/
-*.egg
-
-# Python build directories
-build/
-dist/
-develop-eggs/
-.eggs/
-
-# Python packaging
-MANIFEST
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-.pytest_cache/
-
-# MyPy type checker
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints
-
-# PyCharm project files
-.idea/
-
-# VSCode settings
-.vscode/
-
-# Local scripts
-scripts/
-
-# Logs
-*.log
+src/stagehand/_sea/stagehand-*
+src/stagehand/_sea/*.exe
+bin/sea/
+.env
+.envrc
+codegen.log
+Brewfile.lock.json

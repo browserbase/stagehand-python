@@ -1,2 +1,0 @@
-# Installs the package in editable mode with development dependencies
--e .[dev]
