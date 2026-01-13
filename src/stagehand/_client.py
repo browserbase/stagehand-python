@@ -62,7 +62,7 @@ class Stagehand(SyncAPIClient):
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
         server: Literal["remote", "local"] = "remote",
-        local_binary_path: str | os.PathLike[str] | None = None,
+        _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
         local_host: str = "127.0.0.1",
         local_port: int = 0,
         local_headless: bool = True,
@@ -96,7 +96,7 @@ class Stagehand(SyncAPIClient):
         - `model_api_key` from `MODEL_API_KEY`
         """
         self._server_mode: Literal["remote", "local"] = server
-        self._local_binary_path = local_binary_path
+        self._local_stagehand_binary_path = _local_stagehand_binary_path
         self._local_host = local_host
         self._local_port = local_port
         self._local_headless = local_headless
@@ -136,7 +136,7 @@ class Stagehand(SyncAPIClient):
                     openai_api_key=openai_api_key,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
-                local_binary_path=local_binary_path,
+                _local_stagehand_binary_path=_local_stagehand_binary_path,
             )
         else:
             if base_url is None:
@@ -229,7 +229,7 @@ class Stagehand(SyncAPIClient):
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
         server: Literal["remote", "local"] | None = None,
-        local_binary_path: str | os.PathLike[str] | None = None,
+        _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
         local_host: str | None = None,
         local_port: int | None = None,
         local_headless: bool | None = None,
@@ -273,7 +273,7 @@ class Stagehand(SyncAPIClient):
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
             server=server or self._server_mode,
-            local_binary_path=local_binary_path if local_binary_path is not None else self._local_binary_path,
+            _local_stagehand_binary_path=_local_stagehand_binary_path if _local_stagehand_binary_path is not None else self._local_stagehand_binary_path,
             local_host=local_host or self._local_host,
             local_port=local_port if local_port is not None else self._local_port,
             local_headless=local_headless if local_headless is not None else self._local_headless,
@@ -346,7 +346,7 @@ class AsyncStagehand(AsyncAPIClient):
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
         server: Literal["remote", "local"] = "remote",
-        local_binary_path: str | os.PathLike[str] | None = None,
+        _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
         local_host: str = "127.0.0.1",
         local_port: int = 0,
         local_headless: bool = True,
@@ -380,7 +380,7 @@ class AsyncStagehand(AsyncAPIClient):
         - `model_api_key` from `MODEL_API_KEY`
         """
         self._server_mode: Literal["remote", "local"] = server
-        self._local_binary_path = local_binary_path
+        self._local_stagehand_binary_path = _local_stagehand_binary_path
         self._local_host = local_host
         self._local_port = local_port
         self._local_headless = local_headless
@@ -419,7 +419,7 @@ class AsyncStagehand(AsyncAPIClient):
                     openai_api_key=openai_api_key,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
-                local_binary_path=local_binary_path,
+                _local_stagehand_binary_path=_local_stagehand_binary_path,
             )
         else:
             if base_url is None:
@@ -512,7 +512,7 @@ class AsyncStagehand(AsyncAPIClient):
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
         server: Literal["remote", "local"] | None = None,
-        local_binary_path: str | os.PathLike[str] | None = None,
+        _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
         local_host: str | None = None,
         local_port: int | None = None,
         local_headless: bool | None = None,
@@ -556,7 +556,7 @@ class AsyncStagehand(AsyncAPIClient):
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
             server=server or self._server_mode,
-            local_binary_path=local_binary_path if local_binary_path is not None else self._local_binary_path,
+            _local_stagehand_binary_path=_local_stagehand_binary_path if _local_stagehand_binary_path is not None else self._local_stagehand_binary_path,
             local_host=local_host or self._local_host,
             local_port=local_port if local_port is not None else self._local_port,
             local_headless=local_headless if local_headless is not None else self._local_headless,

@@ -101,10 +101,10 @@ class SeaServerManager:
         self,
         *,
         config: SeaServerConfig,
-        local_binary_path: str | os.PathLike[str] | None = None,
+        _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
     ) -> None:
         self._config = config
-        self._binary_path: Path = resolve_binary_path(local_binary_path=local_binary_path, version=__version__)
+        self._binary_path: Path = resolve_binary_path(_local_stagehand_binary_path=_local_stagehand_binary_path, version=__version__)
 
         self._lock = Lock()
         self._async_lock = asyncio.Lock()
@@ -163,7 +163,7 @@ class SeaServerManager:
         if not self._binary_path.exists():
             raise FileNotFoundError(
                 f"Stagehand SEA binary not found at {self._binary_path}. "
-                "Pass local_binary_path=... or set STAGEHAND_SEA_BINARY."
+                "Pass _local_stagehand_binary_path=... or set STAGEHAND_SEA_BINARY."
             )
 
         port = _pick_free_port(self._config.host) if self._config.port == 0 else self._config.port
@@ -212,7 +212,7 @@ class SeaServerManager:
         if not self._binary_path.exists():
             raise FileNotFoundError(
                 f"Stagehand SEA binary not found at {self._binary_path}. "
-                "Pass local_binary_path=... or set STAGEHAND_SEA_BINARY."
+                "Pass _local_stagehand_binary_path=... or set STAGEHAND_SEA_BINARY."
             )
 
         port = _pick_free_port(self._config.host) if self._config.port == 0 else self._config.port

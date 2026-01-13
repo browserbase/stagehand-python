@@ -78,11 +78,11 @@ def _copy_to_cache(*, src: Path, filename: str, version: str) -> Path:
 
 def resolve_binary_path(
     *,
-    local_binary_path: str | os.PathLike[str] | None = None,
+    _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
     version: str | None = None,
 ) -> Path:
-    if local_binary_path is not None:
-        path = Path(local_binary_path)
+    if _local_stagehand_binary_path is not None:
+        path = Path(_local_stagehand_binary_path)
         _ensure_executable(path)
         return path
 

@@ -55,7 +55,7 @@ def test_sync_local_mode_starts_before_first_request(respx_mock: MockRouter, mon
         )
     )
 
-    client = Stagehand(server="local", local_binary_path="/does/not/matter/in/test")
+    client = Stagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
     # Swap in a dummy server so we don't spawn a real binary in unit tests.
     client._sea_server = dummy  # type: ignore[attr-defined]
 
@@ -90,7 +90,7 @@ async def test_async_local_mode_starts_before_first_request(
         )
     )
 
-    async with AsyncStagehand(server="local", local_binary_path="/does/not/matter/in/test") as client:
+    async with AsyncStagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test") as client:
         client._sea_server = dummy  # type: ignore[attr-defined]
         resp = await client.sessions.start(model_name="openai/gpt-5-nano")
         assert resp.success is True
