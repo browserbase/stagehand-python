@@ -44,7 +44,7 @@ def test_sessions_create_returns_bound_session(respx_mock: MockRouter, client: S
     assert navigate_route.called is True
     first_call = cast(Call, navigate_route.calls[0])
     request_body = json.loads(first_call.request.content)
-    assert request_body["frameId"] == ""
+    assert "frameId" not in request_body
 
 
 @pytest.mark.respx(base_url=base_url)
@@ -77,4 +77,4 @@ async def test_async_sessions_create_returns_bound_session(
     assert navigate_route.called is True
     first_call = cast(Call, navigate_route.calls[0])
     request_body = json.loads(first_call.request.content)
-    assert request_body["frameId"] == ""
+    assert "frameId" not in request_body

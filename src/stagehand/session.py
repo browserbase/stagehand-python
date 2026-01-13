@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Union, Mapping, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Union
 from datetime import datetime
 from typing_extensions import Unpack, Literal
 
@@ -23,15 +23,6 @@ from .types.session_execute_response import SessionExecuteResponse
 from .types.session_extract_response import SessionExtractResponse
 from .types.session_observe_response import SessionObserveResponse
 from .types.session_navigate_response import SessionNavigateResponse
-
-TSessionParams = TypeVar("TSessionParams", bound=Mapping[str, Any])
-
-
-def _with_default_frame_id(params: TSessionParams) -> TSessionParams:
-    prepared = dict(params)
-    if "frame_id" not in prepared:
-        prepared["frame_id"] = ""
-    return cast(TSessionParams, prepared)
 
 if TYPE_CHECKING:
     from ._client import Stagehand, AsyncStagehand
@@ -62,7 +53,7 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     def act(
@@ -80,7 +71,7 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     def observe(
@@ -98,7 +89,7 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     def extract(
@@ -116,7 +107,7 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     def execute(
@@ -134,7 +125,7 @@ class Session(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     def end(
@@ -182,7 +173,7 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     async def act(
@@ -200,7 +191,7 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     async def observe(
@@ -218,7 +209,7 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     async def extract(
@@ -236,7 +227,7 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     async def execute(
@@ -254,7 +245,7 @@ class AsyncSession(SessionStartResponse):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_with_default_frame_id(params),
+            **params,
         )
 
     async def end(

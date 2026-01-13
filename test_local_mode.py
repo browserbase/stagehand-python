@@ -47,7 +47,6 @@ try:
     client.sessions.navigate(
         id=session_id,
         url="https://example.com",
-        frame_id="",
     )
     print("✅ Navigation complete")  # noqa: T201
 
