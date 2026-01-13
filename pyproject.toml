@@ -94,6 +94,8 @@ packages = ["src/stagehand"]
 include = [
   "src/stagehand/_sea/*"
 ]
+[tool.hatch.build.targets.wheel.force-include]
+"src/stagehand/_sea" = "stagehand/_sea"
 
 [tool.hatch.build.targets.sdist]
 # Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
