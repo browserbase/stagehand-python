@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.4.4 (2026-01-13)
+
+Full Changelog: [v3.4.3...v3.4.4](https://github.com/browserbase/stagehand-python/compare/v3.4.3...v3.4.4)
+
+### Chores
+
+* publish-pypi lint fix ([71abdc6](https://github.com/browserbase/stagehand-python/commit/71abdc6f805c95f42da7c74dde961209a58290e7))
+
 ## 3.4.3 (2026-01-13)
 
 Full Changelog: [v3.4.2...v3.4.3](https://github.com/browserbase/stagehand-python/compare/v3.4.2...v3.4.3)
