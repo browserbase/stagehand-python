@@ -66,7 +66,7 @@ Most existing browser automation tools either require you to write low-level cod
 ## Installation
 
 ```sh
-pip install stagehand-alpha
+uv pip install stagehand
 ```
 
 For local development or when working from this repository, sync the dependency lockfile with `uv` (see the Local development section below) before running project scripts.
