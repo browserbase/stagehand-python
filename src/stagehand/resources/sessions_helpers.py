@@ -12,6 +12,7 @@ from ..types import session_start_params
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ..session import Session, AsyncSession
 from .sessions import SessionsResource, AsyncSessionsResource
+from ..types.session_start_response import SessionStartResponse
 
 
 class SessionsResourceWithHelpers(SessionsResource):
@@ -29,8 +30,6 @@ class SessionsResourceWithHelpers(SessionsResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -50,8 +49,6 @@ class SessionsResourceWithHelpers(SessionsResource):
             system_prompt=system_prompt,
             verbose=verbose,
             wait_for_captcha_solves=wait_for_captcha_solves,
-            x_language=x_language,
-            x_sdk_version=x_sdk_version,
             x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
@@ -77,8 +74,6 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_language: Literal["typescript", "python", "playground"] | Omit = omit,
-        x_sdk_version: str | Omit = omit,
         x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
@@ -98,8 +93,6 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
             system_prompt=system_prompt,
             verbose=verbose,
             wait_for_captcha_solves=wait_for_captcha_solves,
-            x_language=x_language,
-            x_sdk_version=x_sdk_version,
             x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
