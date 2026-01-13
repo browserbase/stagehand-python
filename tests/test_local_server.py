@@ -5,6 +5,7 @@ import pytest
 from respx import MockRouter
 
 from stagehand import Stagehand, AsyncStagehand
+from stagehand._exceptions import StagehandError
 
 
 class _DummySeaServer:
@@ -96,3 +97,30 @@ async def test_async_local_mode_starts_before_first_request(
         assert dummy.started == 1
 
     assert dummy.closed == 1
+
+
+def test_local_server_requires_browserbase_keys_for_browserbase_sessions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _set_required_env(monkeypatch)
+    monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
+    monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
+    client = Stagehand(server="local")
+    with pytest.raises(StagehandError):
+        client.sessions.start(model_name="openai/gpt-5-nano")
+
+
+def test_local_server_allows_local_browser_without_browserbase_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _set_required_env(monkeypatch)
+    monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
+    monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
+    client = Stagehand(server="local")
+    client._post = lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("post called"))
+
+    with pytest.raises(RuntimeError, match="post called"):
+        client.sessions.start(
+            model_name="openai/gpt-5-nano",
+            browser={"type": "local"},
+        )

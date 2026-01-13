@@ -426,7 +426,7 @@ class TestStagehand:
                     model_api_key=None,
                     _strict_response_validation=True,
                 )
-            _ = client2
+                client2.sessions.start(model_name="openai/gpt-5-nano")
 
     def test_default_query_option(self) -> None:
         client = Stagehand(

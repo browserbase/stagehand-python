@@ -106,18 +106,10 @@ class Stagehand(SyncAPIClient):
 
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
-        if browserbase_api_key is None:
-            raise StagehandError(
-                "The browserbase_api_key client option must be set either by passing browserbase_api_key to the client or by setting the BROWSERBASE_API_KEY environment variable"
-            )
-        self.browserbase_api_key = browserbase_api_key
-
         if browserbase_project_id is None:
             browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
-        if browserbase_project_id is None:
-            raise StagehandError(
-                "The browserbase_project_id client option must be set either by passing browserbase_project_id to the client or by setting the BROWSERBASE_PROJECT_ID environment variable"
-            )
+
+        self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
 
         if model_api_key is None:
@@ -206,12 +198,12 @@ class Stagehand(SyncAPIClient):
     @property
     def _bb_api_key_auth(self) -> dict[str, str]:
         browserbase_api_key = self.browserbase_api_key
-        return {"x-bb-api-key": browserbase_api_key}
+        return {"x-bb-api-key": browserbase_api_key} if browserbase_api_key else {}
 
     @property
     def _bb_project_id_auth(self) -> dict[str, str]:
         browserbase_project_id = self.browserbase_project_id
-        return {"x-bb-project-id": browserbase_project_id}
+        return {"x-bb-project-id": browserbase_project_id} if browserbase_project_id else {}
 
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
@@ -398,18 +390,10 @@ class AsyncStagehand(AsyncAPIClient):
 
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
-        if browserbase_api_key is None:
-            raise StagehandError(
-                "The browserbase_api_key client option must be set either by passing browserbase_api_key to the client or by setting the BROWSERBASE_API_KEY environment variable"
-            )
-        self.browserbase_api_key = browserbase_api_key
-
         if browserbase_project_id is None:
             browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
-        if browserbase_project_id is None:
-            raise StagehandError(
-                "The browserbase_project_id client option must be set either by passing browserbase_project_id to the client or by setting the BROWSERBASE_PROJECT_ID environment variable"
-            )
+
+        self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
 
         if model_api_key is None:
@@ -497,12 +481,12 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     def _bb_api_key_auth(self) -> dict[str, str]:
         browserbase_api_key = self.browserbase_api_key
-        return {"x-bb-api-key": browserbase_api_key}
+        return {"x-bb-api-key": browserbase_api_key} if browserbase_api_key else {}
 
     @property
     def _bb_project_id_auth(self) -> dict[str, str]:
         browserbase_project_id = self.browserbase_project_id
-        return {"x-bb-project-id": browserbase_project_id}
+        return {"x-bb-project-id": browserbase_project_id} if browserbase_project_id else {}
 
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:

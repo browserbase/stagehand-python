@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union
+from typing import Dict, TYPE_CHECKING, Union
 from datetime import datetime, timezone
 from typing_extensions import Literal, overload
 
@@ -16,6 +16,9 @@ from ..types import (
     session_observe_params,
     session_navigate_params,
 )
+
+if TYPE_CHECKING:
+    from .._client import Stagehand, AsyncStagehand
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from .._utils import is_given, required_args, maybe_transform, strip_not_given, async_maybe_transform
 from .._compat import cached_property
@@ -36,6 +39,7 @@ from ..types.session_execute_response import SessionExecuteResponse
 from ..types.session_extract_response import SessionExtractResponse
 from ..types.session_observe_response import SessionObserveResponse
 from ..types.session_navigate_response import SessionNavigateResponse
+from .._exceptions import StagehandError
 
 __all__ = ["SessionsResource", "AsyncSessionsResource"]
 
@@ -49,6 +53,20 @@ def _format_x_sent_at(value: Union[str, datetime] | Omit) -> str | NotGiven:
     if isinstance(value, Omit):
         return not_given
     return value
+
+
+def _requires_browserbase_credentials(
+    _: "Stagehand | AsyncStagehand",
+    browser: session_start_params.Browser | Omit,
+) -> bool:
+    if not is_given(browser):
+        return True
+
+    browser_type = None
+    if isinstance(browser, dict):
+        browser_type = browser.get("type")
+
+    return browser_type != "local"
 
 
 class SessionsResource(SyncAPIResource):
@@ -986,6 +1004,16 @@ class SessionsResource(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if _requires_browserbase_credentials(self._client, browser):
+            missing: list[str] = []
+            if not self._client.browserbase_api_key:
+                missing.append("browserbase_api_key")
+            if not self._client.browserbase_project_id:
+                missing.append("browserbase_project_id")
+            if missing:
+                raise StagehandError(
+                    f"Browserbase credentials are required when launching a Browserbase browser: missing {', '.join(missing)}."
+                )
         extra_headers = {
             **strip_not_given(
                 {
@@ -1955,6 +1983,16 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if _requires_browserbase_credentials(self._client, browser):
+            missing: list[str] = []
+            if not self._client.browserbase_api_key:
+                missing.append("browserbase_api_key")
+            if not self._client.browserbase_project_id:
+                missing.append("browserbase_project_id")
+            if missing:
+                raise StagehandError(
+                    f"Browserbase credentials are required when launching a Browserbase browser: missing {', '.join(missing)}."
+                )
         extra_headers = {
             **strip_not_given(
                 {
