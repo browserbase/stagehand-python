@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.5](https://github.com/browserbase/stagehand-python/compare/v3.4.4...v3.4.5) (2026-01-13)
+
+
+### Chores
+
+* windows logging/build fix ([5ed0e5f](https://github.com/browserbase/stagehand-python/commit/5ed0e5f633082295b1ab17af9291d6efc863d25d))
+
 ## 3.4.4 (2026-01-13)
 
 Full Changelog: [v3.4.3...v3.4.4](https://github.com/browserbase/stagehand-python/compare/v3.4.3...v3.4.4)
