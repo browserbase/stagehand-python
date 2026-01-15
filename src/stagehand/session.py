@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import TYPE_CHECKING, Any, Union, cast
 from datetime import datetime
-import inspect
 from typing_extensions import Unpack, Literal, Protocol
 
 import httpx
@@ -17,6 +17,7 @@ from .types import (
     session_navigate_params,
 )
 from ._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ._exceptions import StagehandError
 from .types.session_act_response import SessionActResponse
 from .types.session_end_response import SessionEndResponse
 from .types.session_start_response import Data as SessionStartResponseData, SessionStartResponse
@@ -24,7 +25,6 @@ from .types.session_execute_response import SessionExecuteResponse
 from .types.session_extract_response import SessionExtractResponse
 from .types.session_observe_response import SessionObserveResponse
 from .types.session_navigate_response import SessionNavigateResponse
-from ._exceptions import StagehandError
 
 if TYPE_CHECKING:
     from ._client import Stagehand, AsyncStagehand
@@ -73,7 +73,7 @@ def _extract_frame_id_from_playwright_page(page: Any) -> str:
         )
 
     try:
-        return result["frameTree"]["frame"]["id"]
+        return cast(str, result["frameTree"]["frame"]["id"])
     except Exception as e:  # noqa: BLE001
         raise StagehandError("Failed to extract frame id from Playwright CDP Page.getFrameTree response") from e
 
@@ -107,7 +107,7 @@ async def _extract_frame_id_from_playwright_page_async(page: Any) -> str:
         result = await result
 
     try:
-        return result["frameTree"]["frame"]["id"]
+        return cast(str, result["frameTree"]["frame"]["id"])
     except Exception as e:  # noqa: BLE001
         raise StagehandError("Failed to extract frame id from Playwright CDP Page.getFrameTree response") from e
 
@@ -167,13 +167,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_act_params.SessionActParamsNonStreaming],
     ) -> SessionActResponse:
-        return self._client.sessions.act(
+        return cast(
+            SessionActResponse,
+            self._client.sessions.act(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **_maybe_inject_frame_id(dict(params), page),
+            ),
         )
 
     def observe(
@@ -186,13 +189,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_observe_params.SessionObserveParamsNonStreaming],
     ) -> SessionObserveResponse:
-        return self._client.sessions.observe(
+        return cast(
+            SessionObserveResponse,
+            self._client.sessions.observe(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **_maybe_inject_frame_id(dict(params), page),
+            ),
         )
 
     def extract(
@@ -205,13 +211,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
-        return self._client.sessions.extract(
+        return cast(
+            SessionExtractResponse,
+            self._client.sessions.extract(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **_maybe_inject_frame_id(dict(params), page),
+            ),
         )
 
     def execute(
@@ -224,13 +233,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_execute_params.SessionExecuteParamsNonStreaming],
     ) -> SessionExecuteResponse:
-        return self._client.sessions.execute(
+        return cast(
+            SessionExecuteResponse,
+            self._client.sessions.execute(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **_maybe_inject_frame_id(dict(params), page),
+            ),
         )
 
     def end(
@@ -292,13 +304,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_act_params.SessionActParamsNonStreaming],
     ) -> SessionActResponse:
-        return await self._client.sessions.act(
+        return cast(
+            SessionActResponse,
+            await self._client.sessions.act(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **(await _maybe_inject_frame_id_async(dict(params), page)),
+            ),
         )
 
     async def observe(
@@ -311,13 +326,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_observe_params.SessionObserveParamsNonStreaming],
     ) -> SessionObserveResponse:
-        return await self._client.sessions.observe(
+        return cast(
+            SessionObserveResponse,
+            await self._client.sessions.observe(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **(await _maybe_inject_frame_id_async(dict(params), page)),
+            ),
         )
 
     async def extract(
@@ -330,13 +348,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
-        return await self._client.sessions.extract(
+        return cast(
+            SessionExtractResponse,
+            await self._client.sessions.extract(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **(await _maybe_inject_frame_id_async(dict(params), page)),
+            ),
         )
 
     async def execute(
@@ -349,13 +370,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_execute_params.SessionExecuteParamsNonStreaming],
     ) -> SessionExecuteResponse:
-        return await self._client.sessions.execute(
+        return cast(
+            SessionExecuteResponse,
+            await self._client.sessions.execute(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
             **(await _maybe_inject_frame_id_async(dict(params), page)),
+            ),
         )
 
     async def end(

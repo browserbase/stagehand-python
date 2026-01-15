@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import os
-from typing import cast, Any
+import json
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -12,7 +12,6 @@ from respx import MockRouter
 from respx.models import Call
 
 from stagehand import Stagehand, AsyncStagehand
-
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 

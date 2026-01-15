@@ -51,8 +51,8 @@ __all__ = [
 
 class Stagehand(SyncAPIClient):
     # client options
-    browserbase_api_key: str
-    browserbase_project_id: str
+    browserbase_api_key: str | None
+    browserbase_project_id: str | None
     model_api_key: str
 
     def __init__(
@@ -338,8 +338,8 @@ class Stagehand(SyncAPIClient):
 
 class AsyncStagehand(AsyncAPIClient):
     # client options
-    browserbase_api_key: str
-    browserbase_project_id: str
+    browserbase_api_key: str | None
+    browserbase_project_id: str | None
     model_api_key: str
 
     def __init__(

@@ -4,19 +4,67 @@ from __future__ import annotations
 
 from typing import Union
 from datetime import datetime
-from typing_extensions import Literal
+from typing_extensions import Literal, override
 
 import httpx
 
 from ..types import session_start_params
-from .._constants import RAW_RESPONSE_HEADER
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from .._compat import cached_property
 from ..session import Session, AsyncSession
-from .sessions import SessionsResource, AsyncSessionsResource
+from .sessions import (
+    SessionsResource,
+    AsyncSessionsResource,
+    SessionsResourceWithRawResponse,
+    AsyncSessionsResourceWithRawResponse,
+    SessionsResourceWithStreamingResponse,
+    AsyncSessionsResourceWithStreamingResponse,
+)
+from .._response import (
+    to_raw_response_wrapper,
+    to_streamed_response_wrapper,
+    async_to_raw_response_wrapper,
+    async_to_streamed_response_wrapper,
+)
 from ..types.session_start_response import SessionStartResponse
 
 
+class SessionsResourceWithHelpersRawResponse(SessionsResourceWithRawResponse):
+    def __init__(self, sessions: SessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = to_raw_response_wrapper(super(SessionsResourceWithHelpers, sessions).start)
+
+
+class SessionsResourceWithHelpersStreamingResponse(SessionsResourceWithStreamingResponse):
+    def __init__(self, sessions: SessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = to_streamed_response_wrapper(super(SessionsResourceWithHelpers, sessions).start)
+
+
+class AsyncSessionsResourceWithHelpersRawResponse(AsyncSessionsResourceWithRawResponse):
+    def __init__(self, sessions: AsyncSessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = async_to_raw_response_wrapper(super(AsyncSessionsResourceWithHelpers, sessions).start)
+
+
+class AsyncSessionsResourceWithHelpersStreamingResponse(AsyncSessionsResourceWithStreamingResponse):
+    def __init__(self, sessions: AsyncSessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = async_to_streamed_response_wrapper(super(AsyncSessionsResourceWithHelpers, sessions).start)
+
+
 class SessionsResourceWithHelpers(SessionsResource):
+    @cached_property
+    @override
+    def with_raw_response(self) -> SessionsResourceWithHelpersRawResponse:
+        return SessionsResourceWithHelpersRawResponse(self)
+
+    @cached_property
+    @override
+    def with_streaming_response(self) -> SessionsResourceWithHelpersStreamingResponse:
+        return SessionsResourceWithHelpersStreamingResponse(self)
+
+    @override
     def start(
         self,
         *,
@@ -38,28 +86,6 @@ class SessionsResourceWithHelpers(SessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Session:
-        # Preserve generated `.with_raw_response.start(...)` and `.with_streaming_response.start(...)`
-        # behavior: those wrappers set `X-Stainless-Raw-Response` and expect an APIResponse.
-        if extra_headers is not None and RAW_RESPONSE_HEADER in extra_headers:
-            return super().start(
-                model_name=model_name,
-                act_timeout_ms=act_timeout_ms,
-                browser=browser,
-                browserbase_session_create_params=browserbase_session_create_params,
-                browserbase_session_id=browserbase_session_id,
-                dom_settle_timeout_ms=dom_settle_timeout_ms,
-                experimental=experimental,
-                self_heal=self_heal,
-                system_prompt=system_prompt,
-                verbose=verbose,
-                wait_for_captcha_solves=wait_for_captcha_solves,
-                x_sent_at=x_sent_at,
-                x_stream_response=x_stream_response,
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-            )
         start_response = super().start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
@@ -83,6 +109,17 @@ class SessionsResourceWithHelpers(SessionsResource):
 
 
 class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
+    @cached_property
+    @override
+    def with_raw_response(self) -> AsyncSessionsResourceWithHelpersRawResponse:
+        return AsyncSessionsResourceWithHelpersRawResponse(self)
+
+    @cached_property
+    @override
+    def with_streaming_response(self) -> AsyncSessionsResourceWithHelpersStreamingResponse:
+        return AsyncSessionsResourceWithHelpersStreamingResponse(self)
+
+    @override
     async def start(
         self,
         *,
@@ -104,28 +141,6 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncSession:
-        # Preserve generated `.with_raw_response.start(...)` and `.with_streaming_response.start(...)`
-        # behavior: those wrappers set `X-Stainless-Raw-Response` and expect an APIResponse.
-        if extra_headers is not None and RAW_RESPONSE_HEADER in extra_headers:
-            return await super().start(
-                model_name=model_name,
-                act_timeout_ms=act_timeout_ms,
-                browser=browser,
-                browserbase_session_create_params=browserbase_session_create_params,
-                browserbase_session_id=browserbase_session_id,
-                dom_settle_timeout_ms=dom_settle_timeout_ms,
-                experimental=experimental,
-                self_heal=self_heal,
-                system_prompt=system_prompt,
-                verbose=verbose,
-                wait_for_captcha_solves=wait_for_captcha_solves,
-                x_sent_at=x_sent_at,
-                x_stream_response=x_stream_response,
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-            )
         start_response: SessionStartResponse = await super().start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
