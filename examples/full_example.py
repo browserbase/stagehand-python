@@ -30,7 +30,7 @@ async def main() -> None:
         model_api_key=os.environ.get("MODEL_API_KEY"),
     ) as client:
         # Start a new browser session (returns a session helper bound to a session_id)
-        session = await client.sessions.create(
+        session = await client.sessions.start(
             model_name="openai/gpt-5-nano",
         )
 

@@ -80,7 +80,7 @@ def test_session_act_injects_frame_id_from_page(respx_mock: MockRouter, client: 
         )
     )
 
-    session = client.sessions.create(model_name="openai/gpt-5-nano")
+    session = client.sessions.start(model_name="openai/gpt-5-nano")
     session.act(input="click something", page=_SyncPage(frame_id))
 
     assert act_route.called is True
@@ -107,7 +107,7 @@ def test_session_act_prefers_explicit_frame_id_over_page(respx_mock: MockRouter,
         )
     )
 
-    session = client.sessions.create(model_name="openai/gpt-5-nano")
+    session = client.sessions.start(model_name="openai/gpt-5-nano")
 
     class _ExplodingContext:
         def new_cdp_session(self, _page: Any) -> None:
@@ -145,11 +145,10 @@ async def test_async_session_act_injects_frame_id_from_page(
         )
     )
 
-    session = await async_client.sessions.create(model_name="openai/gpt-5-nano")
+    session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
     await session.act(input="click something", page=_AsyncPage(frame_id))
 
     assert act_route.called is True
     first_call = cast(Call, act_route.calls[0])
     request_body = json.loads(first_call.request.content)
     assert request_body["frameId"] == frame_id
-

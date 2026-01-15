@@ -55,7 +55,7 @@ def main() -> None:
         model_api_key=model_api_key,
     ) as client:
         print("⏳ Starting Stagehand session...")
-        session = client.sessions.create(
+        session = client.sessions.start(
             model_name="openai/gpt-5-nano",
             browser={"type": "browserbase"},
         )
@@ -115,4 +115,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

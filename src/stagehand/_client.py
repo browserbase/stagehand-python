@@ -299,7 +299,7 @@ class Stagehand(SyncAPIClient):
         )
 
     # Alias for `copy` for nicer inline usage, e.g.
-    # client.with_options(timeout=10).foo.create(...)
+    # client.with_options(timeout=10).foo.start(...)
     with_options = copy
 
     @override
@@ -585,7 +585,7 @@ class AsyncStagehand(AsyncAPIClient):
         )
 
     # Alias for `copy` for nicer inline usage, e.g.
-    # client.with_options(timeout=10).foo.create(...)
+    # client.with_options(timeout=10).foo.start(...)
     with_options = copy
 
     @override

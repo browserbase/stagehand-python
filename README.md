@@ -160,7 +160,7 @@ async def main() -> None:
     client = AsyncStagehand()
 
     # Start a new browser session (returns a session helper bound to a session_id)
-    session = await client.sessions.create(model_name="openai/gpt-5-nano")
+    session = await client.sessions.start(model_name="openai/gpt-5-nano")
 
     print(f"Session started: {session.id}")
 
@@ -308,7 +308,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     client = AsyncStagehand()
-    session = await client.sessions.create(model_name="openai/gpt-5-nano")
+    session = await client.sessions.start(model_name="openai/gpt-5-nano")
     response = await session.act(input="click the first link on the page")
     print(response.data)
 
@@ -335,7 +335,7 @@ from stagehand import AsyncStagehand, DefaultAioHttpClient
 
 async def main() -> None:
     async with AsyncStagehand(http_client=DefaultAioHttpClient()) as client:
-        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="openai/gpt-5-nano")
         response = await session.act(input="click the first link on the page")
         print(response.data)
 
@@ -360,7 +360,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     async with AsyncStagehand() as client:
-        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="openai/gpt-5-nano")
 
         stream = await client.sessions.act(
             id=session.id,
