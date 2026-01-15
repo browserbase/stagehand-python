@@ -1,6 +1,6 @@
 [project]
 name = "stagehand"
-version = "3.4.6"
+version = "3.4.7"
 description = "The official Python library for the stagehand API"
 dynamic = ["readme"]
 license = "MIT"
