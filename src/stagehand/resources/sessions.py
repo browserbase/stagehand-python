@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Dict, Union
 from datetime import datetime, timezone
 from typing_extensions import Literal, overload
 
@@ -30,6 +30,7 @@ from .._response import (
     async_to_streamed_response_wrapper,
 )
 from .._streaming import Stream, AsyncStream
+from .._exceptions import StagehandError
 from .._base_client import make_request_options
 from ..types.stream_event import StreamEvent
 from ..types.session_act_response import SessionActResponse
@@ -39,7 +40,6 @@ from ..types.session_execute_response import SessionExecuteResponse
 from ..types.session_extract_response import SessionExtractResponse
 from ..types.session_observe_response import SessionObserveResponse
 from ..types.session_navigate_response import SessionNavigateResponse
-from .._exceptions import StagehandError
 
 __all__ = ["SessionsResource", "AsyncSessionsResource"]
 
@@ -62,9 +62,7 @@ def _requires_browserbase_credentials(
     if not is_given(browser):
         return True
 
-    browser_type = None
-    if isinstance(browser, dict):
-        browser_type = browser.get("type")
+    browser_type = browser.get("type")
 
     return browser_type != "local"
 

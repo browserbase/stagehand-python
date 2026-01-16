@@ -37,7 +37,7 @@ def test_sessions_create_returns_bound_session(respx_mock: MockRouter, client: S
         )
     )
 
-    session = client.sessions.create(model_name="openai/gpt-5-nano")
+    session = client.sessions.start(model_name="openai/gpt-5-nano")
     assert session.id == session_id
 
     session.navigate(url="https://example.com")
@@ -70,7 +70,7 @@ async def test_async_sessions_create_returns_bound_session(
         )
     )
 
-    session = await async_client.sessions.create(model_name="openai/gpt-5-nano")
+    session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
     assert session.id == session_id
 
     await session.navigate(url="https://example.com")

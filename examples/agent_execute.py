@@ -27,7 +27,7 @@ async def main() -> None:
     # with missing fields set to None).
     async with AsyncStagehand(_strict_response_validation=True) as client:
         try:
-            session = await client.sessions.create(model_name=model_name)
+            session = await client.sessions.start(model_name=model_name)
         except APIResponseValidationError as e:
             print("Session start response failed schema validation.")
             print(f"Base URL: {client.base_url!r}")

@@ -120,7 +120,7 @@ async def main() -> None:
         model_api_key=model_api_key,
     ) as client:
         print("⏳ Starting Stagehand session...")
-        session = await client.sessions.create(
+        session = await client.sessions.start(
             model_name="openai/gpt-5-nano",
             browser={"type": "browserbase"},
         )
