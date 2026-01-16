@@ -69,6 +69,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.STAGEHAND_SOURCE_TOKEN || github.token }}
           RELEASE_TAG: ${{ steps.stagehand-server-release.outputs.tag }}
+          RELEASE_ID: ${{ steps.stagehand-server-release.outputs.id }}
           ASSET_NAME: ${{ matrix.binary_name }}
           OUTPUT_PATH: ${{ matrix.output_path }}
         shell: bash
@@ -92,7 +93,7 @@ jobs:
             curl -fsSL \
               -H "Authorization: Bearer ${GH_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/browserbase/stagehand/releases/tags/${RELEASE_TAG}" \
+              "https://api.github.com/repos/browserbase/stagehand/releases/${RELEASE_ID}" \
               | python -c 'import json,sys; d=json.load(sys.stdin); a=next((x for x in d.get("assets",[]) if x.get("name")==sys.argv[1]), None); print(a.get("url","") if a else "")' \
               "${ASSET_NAME}"
           )"
