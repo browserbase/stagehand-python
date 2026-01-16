@@ -117,7 +117,11 @@ def test_local_server_allows_local_browser_without_browserbase_keys(
     monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
     monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
     client = Stagehand(server="local")
-    client._post = lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("post called"))
+
+    def _post(*_args: object, **_kwargs: object) -> object:
+        raise RuntimeError("post called")
+
+    client._post = _post  # type: ignore[method-assign]
 
     with pytest.raises(RuntimeError, match="post called"):
         client.sessions.start(

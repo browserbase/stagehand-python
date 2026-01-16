@@ -36,7 +36,7 @@ async def main() -> None:
     ) as client, async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)
         page = await browser.new_page()
-        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="openai/gpt-5-nano")
 
         try:
             target_url = "https://news.ycombinator.com"
