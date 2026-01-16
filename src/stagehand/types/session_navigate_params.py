@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union
-from datetime import datetime
+from typing import Optional
 from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
@@ -15,16 +14,13 @@ class SessionNavigateParams(TypedDict, total=False):
     url: Required[str]
     """URL to navigate to"""
 
-    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    frame_id: Annotated[Optional[str], PropertyInfo(alias="frameId")]
     """Target frame ID for the navigation"""
 
     options: Options
 
     stream_response: Annotated[bool, PropertyInfo(alias="streamResponse")]
     """Whether to stream the response via SSE"""
-
-    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
-    """ISO timestamp when request was sent"""
 
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""

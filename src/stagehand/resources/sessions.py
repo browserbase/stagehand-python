@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union
-from datetime import datetime
+from typing import Dict, Optional
 from typing_extensions import Literal, overload
 
 import httpx
@@ -67,10 +66,9 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         input: session_act_params.Input,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -92,8 +90,6 @@ class SessionsResource(SyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -113,9 +109,8 @@ class SessionsResource(SyncAPIResource):
         *,
         input: session_act_params.Input,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -137,8 +132,6 @@ class SessionsResource(SyncAPIResource):
 
           frame_id: Target frame ID for the action
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -158,9 +151,8 @@ class SessionsResource(SyncAPIResource):
         *,
         input: session_act_params.Input,
         stream_response: bool,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -182,8 +174,6 @@ class SessionsResource(SyncAPIResource):
 
           frame_id: Target frame ID for the action
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -202,10 +192,9 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         input: session_act_params.Input,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -218,10 +207,7 @@ class SessionsResource(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -251,7 +237,6 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         _force_body: object | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -265,8 +250,6 @@ class SessionsResource(SyncAPIResource):
 
         Args:
           id: Unique session identifier
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -282,10 +265,7 @@ class SessionsResource(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -305,9 +285,8 @@ class SessionsResource(SyncAPIResource):
         *,
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -325,8 +304,6 @@ class SessionsResource(SyncAPIResource):
           frame_id: Target frame ID for the agent
 
           stream_response: Whether to stream the response via SSE
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -348,8 +325,7 @@ class SessionsResource(SyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -367,8 +343,6 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -390,8 +364,7 @@ class SessionsResource(SyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: bool,
-        frame_id: str | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -409,8 +382,6 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -431,9 +402,8 @@ class SessionsResource(SyncAPIResource):
         *,
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -446,10 +416,7 @@ class SessionsResource(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -479,12 +446,11 @@ class SessionsResource(SyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -507,8 +473,6 @@ class SessionsResource(SyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -527,11 +491,10 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -554,8 +517,6 @@ class SessionsResource(SyncAPIResource):
 
           schema: JSON Schema defining the structure of data to extract
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -574,11 +535,10 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         stream_response: bool,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -601,8 +561,6 @@ class SessionsResource(SyncAPIResource):
 
           schema: JSON Schema defining the structure of data to extract
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -619,12 +577,11 @@ class SessionsResource(SyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -637,10 +594,7 @@ class SessionsResource(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -671,10 +625,9 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         url: str,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_navigate_params.Options | Omit = omit,
         stream_response: bool | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -695,8 +648,6 @@ class SessionsResource(SyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -711,10 +662,7 @@ class SessionsResource(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -740,11 +688,10 @@ class SessionsResource(SyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -766,8 +713,6 @@ class SessionsResource(SyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -786,10 +731,9 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -811,8 +755,6 @@ class SessionsResource(SyncAPIResource):
 
           instruction: Natural language instruction for what actions to find
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -831,10 +773,9 @@ class SessionsResource(SyncAPIResource):
         id: str,
         *,
         stream_response: bool,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -856,8 +797,6 @@ class SessionsResource(SyncAPIResource):
 
           instruction: Natural language instruction for what actions to find
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -874,11 +813,10 @@ class SessionsResource(SyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -891,10 +829,7 @@ class SessionsResource(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -933,7 +868,6 @@ class SessionsResource(SyncAPIResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -948,7 +882,9 @@ class SessionsResource(SyncAPIResource):
         session ID used for all subsequent operations.
 
         Args:
-          model_name: Model name to use for AI operations
+          model_name: Model name to use for AI operations. Always use the format 'provider/model-name'
+              (e.g., 'openai/gpt-4o', 'anthropic/claude-sonnet-4-5-20250929',
+              'google/gemini-2.0-flash')
 
           act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
 
@@ -964,8 +900,6 @@ class SessionsResource(SyncAPIResource):
 
           wait_for_captcha_solves: Wait for captcha solves (deprecated, v2 only)
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -978,10 +912,7 @@ class SessionsResource(SyncAPIResource):
         """
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1036,10 +967,9 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         input: session_act_params.Input,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1061,8 +991,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1082,9 +1010,8 @@ class AsyncSessionsResource(AsyncAPIResource):
         *,
         input: session_act_params.Input,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1106,8 +1033,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           frame_id: Target frame ID for the action
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1127,9 +1052,8 @@ class AsyncSessionsResource(AsyncAPIResource):
         *,
         input: session_act_params.Input,
         stream_response: bool,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1151,8 +1075,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           frame_id: Target frame ID for the action
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1171,10 +1093,9 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         input: session_act_params.Input,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_act_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1187,10 +1108,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1220,7 +1138,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         _force_body: object | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1234,8 +1151,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
         Args:
           id: Unique session identifier
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -1251,10 +1166,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1274,9 +1186,8 @@ class AsyncSessionsResource(AsyncAPIResource):
         *,
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1294,8 +1205,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           frame_id: Target frame ID for the agent
 
           stream_response: Whether to stream the response via SSE
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -1317,8 +1226,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1336,8 +1244,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -1359,8 +1265,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: bool,
-        frame_id: str | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1378,8 +1283,6 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
-
-          x_sent_at: ISO timestamp when request was sent
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -1400,9 +1303,8 @@ class AsyncSessionsResource(AsyncAPIResource):
         *,
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1415,10 +1317,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1448,12 +1347,11 @@ class AsyncSessionsResource(AsyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1476,8 +1374,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1496,11 +1392,10 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1523,8 +1418,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           schema: JSON Schema defining the structure of data to extract
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1543,11 +1436,10 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         stream_response: bool,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1570,8 +1462,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           schema: JSON Schema defining the structure of data to extract
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1588,12 +1478,11 @@ class AsyncSessionsResource(AsyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_extract_params.Options | Omit = omit,
         schema: Dict[str, object] | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1606,10 +1495,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1640,10 +1526,9 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         url: str,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         options: session_navigate_params.Options | Omit = omit,
         stream_response: bool | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1664,8 +1549,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1680,10 +1563,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1709,11 +1589,10 @@ class AsyncSessionsResource(AsyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1735,8 +1614,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           stream_response: Whether to stream the response via SSE
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1755,10 +1632,9 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         stream_response: Literal[True],
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1780,8 +1656,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           instruction: Natural language instruction for what actions to find
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1800,10 +1674,9 @@ class AsyncSessionsResource(AsyncAPIResource):
         id: str,
         *,
         stream_response: bool,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1825,8 +1698,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           instruction: Natural language instruction for what actions to find
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1843,11 +1714,10 @@ class AsyncSessionsResource(AsyncAPIResource):
         self,
         id: str,
         *,
-        frame_id: str | Omit = omit,
+        frame_id: Optional[str] | Omit = omit,
         instruction: str | Omit = omit,
         options: session_observe_params.Options | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1860,10 +1730,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }
@@ -1902,7 +1769,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1917,7 +1783,9 @@ class AsyncSessionsResource(AsyncAPIResource):
         session ID used for all subsequent operations.
 
         Args:
-          model_name: Model name to use for AI operations
+          model_name: Model name to use for AI operations. Always use the format 'provider/model-name'
+              (e.g., 'openai/gpt-4o', 'anthropic/claude-sonnet-4-5-20250929',
+              'google/gemini-2.0-flash')
 
           act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
 
@@ -1933,8 +1801,6 @@ class AsyncSessionsResource(AsyncAPIResource):
 
           wait_for_captcha_solves: Wait for captcha solves (deprecated, v2 only)
 
-          x_sent_at: ISO timestamp when request was sent
-
           x_stream_response: Whether to stream the response via SSE
 
           extra_headers: Send extra headers
@@ -1947,10 +1813,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         """
         extra_headers = {
             **strip_not_given(
-                {
-                    "x-sent-at": x_sent_at.isoformat() if is_given(x_sent_at) else not_given,
-                    "x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given,
-                }
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
             ),
             **(extra_headers or {}),
         }

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union
-from datetime import datetime
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
@@ -13,7 +12,7 @@ __all__ = ["SessionExtractParamsBase", "Options", "SessionExtractParamsNonStream
 
 
 class SessionExtractParamsBase(TypedDict, total=False):
-    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    frame_id: Annotated[Optional[str], PropertyInfo(alias="frameId")]
     """Target frame ID for the extraction"""
 
     instruction: str
@@ -24,18 +23,16 @@ class SessionExtractParamsBase(TypedDict, total=False):
     schema: Dict[str, object]
     """JSON Schema defining the structure of data to extract"""
 
-    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
-    """ISO timestamp when request was sent"""
-
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""
 
 
 class Options(TypedDict, total=False):
     model: ModelConfigParam
-    """
-    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
-    'anthropic/claude-4.5-opus')
+    """Model name string with provider prefix.
+
+    Always use the format 'provider/model-name' (e.g., 'openai/gpt-4o',
+    'anthropic/claude-sonnet-4-5-20250929', 'google/gemini-2.0-flash')
     """
 
     selector: str
