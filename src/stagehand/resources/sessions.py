@@ -9,7 +9,6 @@ import httpx
 
 from ..types import (
     session_act_params,
-    session_end_params,
     session_start_params,
     session_execute_params,
     session_extract_params,
@@ -236,7 +235,6 @@ class SessionsResource(SyncAPIResource):
         self,
         id: str,
         *,
-        _force_body: object | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -271,7 +269,6 @@ class SessionsResource(SyncAPIResource):
         }
         return self._post(
             f"/v1/sessions/{id}/end",
-            body=maybe_transform({"_force_body": _force_body}, session_end_params.SessionEndParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1135,7 +1132,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         self,
         id: str,
         *,
-        _force_body: object | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1170,7 +1166,6 @@ class AsyncSessionsResource(AsyncAPIResource):
         }
         return await self._post(
             f"/v1/sessions/{id}/end",
-            body=await async_maybe_transform({"_force_body": _force_body}, session_end_params.SessionEndParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

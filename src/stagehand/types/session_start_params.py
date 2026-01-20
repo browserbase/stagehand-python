@@ -109,6 +109,8 @@ class BrowserLaunchOptions(TypedDict, total=False):
 
     locale: str
 
+    port: float
+
     preserve_user_data_dir: Annotated[bool, PropertyInfo(alias="preserveUserDataDir")]
 
     proxy: BrowserLaunchOptionsProxy

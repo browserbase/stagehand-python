@@ -177,7 +177,6 @@ class TestSessions:
     def test_method_end_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -747,6 +746,7 @@ class TestSessions:
                     "ignore_default_args": True,
                     "ignore_https_errors": True,
                     "locale": "locale",
+                    "port": 0,
                     "preserve_user_data_dir": True,
                     "proxy": {
                         "server": "server",
@@ -995,7 +995,6 @@ class TestAsyncSessions:
     async def test_method_end_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -1565,6 +1564,7 @@ class TestAsyncSessions:
                     "ignore_default_args": True,
                     "ignore_https_errors": True,
                     "locale": "locale",
+                    "port": 0,
                     "preserve_user_data_dir": True,
                     "proxy": {
                         "server": "server",
