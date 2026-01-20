@@ -29,11 +29,7 @@ __all__ = [
 
 class SessionStartParams(TypedDict, total=False):
     model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
-    """Model name to use for AI operations.
-
-    Always use the format 'provider/model-name' (e.g., 'openai/gpt-4o',
-    'anthropic/claude-sonnet-4-5-20250929', 'google/gemini-2.0-flash')
-    """
+    """Model name to use for AI operations"""
 
     act_timeout_ms: Annotated[float, PropertyInfo(alias="actTimeoutMs")]
     """Timeout in ms for act operations (deprecated, v2 only)"""
