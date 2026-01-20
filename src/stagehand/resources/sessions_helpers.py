@@ -4,19 +4,68 @@ from __future__ import annotations
 
 from typing import Union
 from datetime import datetime
-from typing_extensions import Literal
+from typing_extensions import Literal, override
 
 import httpx
 
 from ..types import session_start_params
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from .._compat import cached_property
 from ..session import Session, AsyncSession
-from .sessions import SessionsResource, AsyncSessionsResource
+from .sessions import (
+    SessionsResource,
+    AsyncSessionsResource,
+    SessionsResourceWithRawResponse,
+    AsyncSessionsResourceWithRawResponse,
+    SessionsResourceWithStreamingResponse,
+    AsyncSessionsResourceWithStreamingResponse,
+)
+from .._response import (
+    to_raw_response_wrapper,
+    to_streamed_response_wrapper,
+    async_to_raw_response_wrapper,
+    async_to_streamed_response_wrapper,
+)
 from ..types.session_start_response import SessionStartResponse
 
 
+class SessionsResourceWithHelpersRawResponse(SessionsResourceWithRawResponse):
+    def __init__(self, sessions: SessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = to_raw_response_wrapper(super(SessionsResourceWithHelpers, sessions).start)
+
+
+class SessionsResourceWithHelpersStreamingResponse(SessionsResourceWithStreamingResponse):
+    def __init__(self, sessions: SessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = to_streamed_response_wrapper(super(SessionsResourceWithHelpers, sessions).start)
+
+
+class AsyncSessionsResourceWithHelpersRawResponse(AsyncSessionsResourceWithRawResponse):
+    def __init__(self, sessions: AsyncSessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = async_to_raw_response_wrapper(super(AsyncSessionsResourceWithHelpers, sessions).start)
+
+
+class AsyncSessionsResourceWithHelpersStreamingResponse(AsyncSessionsResourceWithStreamingResponse):
+    def __init__(self, sessions: AsyncSessionsResourceWithHelpers) -> None:  # type: ignore[name-defined]
+        super().__init__(sessions)
+        self.start = async_to_streamed_response_wrapper(super(AsyncSessionsResourceWithHelpers, sessions).start)
+
+
 class SessionsResourceWithHelpers(SessionsResource):
-    def create(
+    @cached_property
+    @override
+    def with_raw_response(self) -> SessionsResourceWithHelpersRawResponse:
+        return SessionsResourceWithHelpersRawResponse(self)
+
+    @cached_property
+    @override
+    def with_streaming_response(self) -> SessionsResourceWithHelpersStreamingResponse:
+        return SessionsResourceWithHelpersStreamingResponse(self)
+
+    @override
+    def start(
         self,
         *,
         model_name: str,
@@ -37,7 +86,7 @@ class SessionsResourceWithHelpers(SessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Session:
-        start_response = self.start(
+        start_response = super().start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
             browser=browser,
@@ -60,7 +109,18 @@ class SessionsResourceWithHelpers(SessionsResource):
 
 
 class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
-    async def create(
+    @cached_property
+    @override
+    def with_raw_response(self) -> AsyncSessionsResourceWithHelpersRawResponse:
+        return AsyncSessionsResourceWithHelpersRawResponse(self)
+
+    @cached_property
+    @override
+    def with_streaming_response(self) -> AsyncSessionsResourceWithHelpersStreamingResponse:
+        return AsyncSessionsResourceWithHelpersStreamingResponse(self)
+
+    @override
+    async def start(
         self,
         *,
         model_name: str,
@@ -81,7 +141,7 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncSession:
-        start_response: SessionStartResponse = await self.start(
+        start_response: SessionStartResponse = await super().start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
             browser=browser,

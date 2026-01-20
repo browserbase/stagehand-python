@@ -117,7 +117,7 @@ uv run python examples/local_example.py
 ```
 
 ```bash
-pip install stagehand-alpha
+pip install stagehand
 uv run python examples/local_example.py
 ```
 
@@ -141,8 +141,6 @@ Once the environment is ready, execute repo scripts with `uv run`:
 
 ```sh
 uv run python examples/full_example.py
-uv run python scripts/download-binary.py
-uv run --isolated --all-extras pytest
 ```
 </details>
 
@@ -162,7 +160,7 @@ async def main() -> None:
     client = AsyncStagehand()
 
     # Start a new browser session (returns a session helper bound to a session_id)
-    session = await client.sessions.create(model_name="openai/gpt-5-nano")
+    session = await client.sessions.start(model_name="openai/gpt-5-nano")
 
     print(f"Session started: {session.id}")
 
@@ -310,7 +308,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     client = AsyncStagehand()
-    session = await client.sessions.create(model_name="openai/gpt-5-nano")
+    session = await client.sessions.start(model_name="openai/gpt-5-nano")
     response = await session.act(input="click the first link on the page")
     print(response.data)
 
@@ -325,7 +323,7 @@ By default, the async client uses `httpx` for HTTP requests. For improved concur
 Install `aiohttp`:
 
 ```sh
-uv run pip install stagehand-alpha[aiohttp]
+uv run pip install stagehand[aiohttp]
 ```
 
 Then instantiate the client with `http_client=DefaultAioHttpClient()`:
@@ -337,7 +335,7 @@ from stagehand import AsyncStagehand, DefaultAioHttpClient
 
 async def main() -> None:
     async with AsyncStagehand(http_client=DefaultAioHttpClient()) as client:
-        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="openai/gpt-5-nano")
         response = await session.act(input="click the first link on the page")
         print(response.data)
 
@@ -362,7 +360,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     async with AsyncStagehand() as client:
-        session = await client.sessions.create(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="openai/gpt-5-nano")
 
         stream = await client.sessions.act(
             id=session.id,
