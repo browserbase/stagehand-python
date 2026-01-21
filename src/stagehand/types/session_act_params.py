@@ -9,7 +9,14 @@ from .._utils import PropertyInfo
 from .action_param import ActionParam
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionActParamsBase", "Input", "Options", "SessionActParamsNonStreaming", "SessionActParamsStreaming"]
+__all__ = [
+    "SessionActParamsBase",
+    "Input",
+    "Options",
+    "OptionsModel",
+    "SessionActParamsNonStreaming",
+    "SessionActParamsStreaming",
+]
 
 
 class SessionActParamsBase(TypedDict, total=False):
@@ -27,9 +34,12 @@ class SessionActParamsBase(TypedDict, total=False):
 
 Input: TypeAlias = Union[str, ActionParam]
 
+OptionsModel: TypeAlias = Union[ModelConfigParam, str]
+
 
 class Options(TypedDict, total=False):
-    model: ModelConfigParam
+    model: OptionsModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     timeout: float
     """Timeout in ms for the action"""

@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 from typing import Union, Optional
-from typing_extensions import Literal, Required, Annotated, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionObserveParamsBase", "Options", "SessionObserveParamsNonStreaming", "SessionObserveParamsStreaming"]
+__all__ = [
+    "SessionObserveParamsBase",
+    "Options",
+    "OptionsModel",
+    "SessionObserveParamsNonStreaming",
+    "SessionObserveParamsStreaming",
+]
 
 
 class SessionObserveParamsBase(TypedDict, total=False):
@@ -24,8 +30,12 @@ class SessionObserveParamsBase(TypedDict, total=False):
     """Whether to stream the response via SSE"""
 
 
+OptionsModel: TypeAlias = Union[ModelConfigParam, str]
+
+
 class Options(TypedDict, total=False):
-    model: ModelConfigParam
+    model: OptionsModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     selector: str
     """CSS selector to scope observation to a specific element"""

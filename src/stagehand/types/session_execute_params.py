@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Optional
-from typing_extensions import Literal, Required, Annotated, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
@@ -11,6 +11,7 @@ from .model_config_param import ModelConfigParam
 __all__ = [
     "SessionExecuteParamsBase",
     "AgentConfig",
+    "AgentConfigModel",
     "ExecuteOptions",
     "SessionExecuteParamsNonStreaming",
     "SessionExecuteParamsStreaming",
@@ -32,11 +33,15 @@ class SessionExecuteParamsBase(TypedDict, total=False):
     """Whether to stream the response via SSE"""
 
 
+AgentConfigModel: TypeAlias = Union[ModelConfigParam, str]
+
+
 class AgentConfig(TypedDict, total=False):
     cua: bool
     """Enable Computer Use Agent mode"""
 
-    model: ModelConfigParam
+    model: AgentConfigModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     provider: Literal["openai", "anthropic", "google", "microsoft"]
     """AI provider for the agent (legacy, use model: openai/gpt-5-nano instead)"""
