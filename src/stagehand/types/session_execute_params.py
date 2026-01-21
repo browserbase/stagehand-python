@@ -25,6 +25,9 @@ class SessionExecuteParamsBase(TypedDict, total=False):
     frame_id: Annotated[Optional[str], PropertyInfo(alias="frameId")]
     """Target frame ID for the agent"""
 
+    should_cache: Annotated[bool, PropertyInfo(alias="shouldCache")]
+    """If true, the server captures a cache entry and returns it to the client"""
+
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""
 

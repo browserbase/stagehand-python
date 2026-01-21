@@ -6,7 +6,7 @@ from pydantic import Field as FieldInfo
 
 from .._models import BaseModel
 
-__all__ = ["SessionExecuteResponse", "Data", "DataResult", "DataResultAction", "DataResultUsage"]
+__all__ = ["SessionExecuteResponse", "Data", "DataResult", "DataResultAction", "DataResultUsage", "DataCacheEntry"]
 
 
 class DataResultAction(BaseModel):
@@ -71,8 +71,18 @@ class DataResult(BaseModel):
     usage: Optional[DataResultUsage] = None
 
 
+class DataCacheEntry(BaseModel):
+    cache_key: str = FieldInfo(alias="cacheKey")
+    """Opaque cache identifier computed from instruction, URL, options, and config"""
+
+    entry: object
+    """Serialized cache entry that can be written to disk"""
+
+
 class Data(BaseModel):
     result: DataResult
+
+    cache_entry: Optional[DataCacheEntry] = FieldInfo(alias="cacheEntry", default=None)
 
 
 class SessionExecuteResponse(BaseModel):

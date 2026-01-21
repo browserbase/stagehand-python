@@ -249,6 +249,7 @@ class TestSessions:
                 "max_steps": 20,
             },
             frame_id="frameId",
+            should_cache=True,
             stream_response=False,
             x_stream_response="true",
         )
@@ -336,6 +337,7 @@ class TestSessions:
             },
             stream_response=True,
             frame_id="frameId",
+            should_cache=True,
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -1067,6 +1069,7 @@ class TestAsyncSessions:
                 "max_steps": 20,
             },
             frame_id="frameId",
+            should_cache=True,
             stream_response=False,
             x_stream_response="true",
         )
@@ -1154,6 +1157,7 @@ class TestAsyncSessions:
             },
             stream_response=True,
             frame_id="frameId",
+            should_cache=True,
             x_stream_response="true",
         )
         await session_stream.response.aclose()
