@@ -283,6 +283,7 @@ class SessionsResource(SyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -299,6 +300,8 @@ class SessionsResource(SyncAPIResource):
           id: Unique session identifier
 
           frame_id: Target frame ID for the agent
+
+          should_cache: If true, the server captures a cache entry and returns it to the client
 
           stream_response: Whether to stream the response via SSE
 
@@ -323,6 +326,7 @@ class SessionsResource(SyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: Literal[True],
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -340,6 +344,8 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
+
+          should_cache: If true, the server captures a cache entry and returns it to the client
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -362,6 +368,7 @@ class SessionsResource(SyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: bool,
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -379,6 +386,8 @@ class SessionsResource(SyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
+
+          should_cache: If true, the server captures a cache entry and returns it to the client
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -400,6 +409,7 @@ class SessionsResource(SyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -424,6 +434,7 @@ class SessionsResource(SyncAPIResource):
                     "agent_config": agent_config,
                     "execute_options": execute_options,
                     "frame_id": frame_id,
+                    "should_cache": should_cache,
                     "stream_response": stream_response,
                 },
                 session_execute_params.SessionExecuteParamsStreaming
@@ -1180,6 +1191,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         stream_response: Literal[False] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1196,6 +1208,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           id: Unique session identifier
 
           frame_id: Target frame ID for the agent
+
+          should_cache: If true, the server captures a cache entry and returns it to the client
 
           stream_response: Whether to stream the response via SSE
 
@@ -1220,6 +1234,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: Literal[True],
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1237,6 +1252,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
+
+          should_cache: If true, the server captures a cache entry and returns it to the client
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -1259,6 +1276,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         execute_options: session_execute_params.ExecuteOptions,
         stream_response: bool,
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1276,6 +1294,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           stream_response: Whether to stream the response via SSE
 
           frame_id: Target frame ID for the agent
+
+          should_cache: If true, the server captures a cache entry and returns it to the client
 
           x_stream_response: Whether to stream the response via SSE
 
@@ -1297,6 +1317,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         agent_config: session_execute_params.AgentConfig,
         execute_options: session_execute_params.ExecuteOptions,
         frame_id: Optional[str] | Omit = omit,
+        should_cache: bool | Omit = omit,
         stream_response: Literal[False] | Literal[True] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1321,6 +1342,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "agent_config": agent_config,
                     "execute_options": execute_options,
                     "frame_id": frame_id,
+                    "should_cache": should_cache,
                     "stream_response": stream_response,
                 },
                 session_execute_params.SessionExecuteParamsStreaming
