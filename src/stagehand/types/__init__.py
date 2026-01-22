@@ -14,6 +14,7 @@ from .session_extract_params import SessionExtractParams as SessionExtractParams
 from .session_observe_params import SessionObserveParams as SessionObserveParams
 from .session_start_response import SessionStartResponse as SessionStartResponse
 from .session_navigate_params import SessionNavigateParams as SessionNavigateParams
+from .session_replay_response import SessionReplayResponse as SessionReplayResponse
 from .session_execute_response import SessionExecuteResponse as SessionExecuteResponse
 from .session_extract_response import SessionExtractResponse as SessionExtractResponse
 from .session_observe_response import SessionObserveResponse as SessionObserveResponse

@@ -13,6 +13,7 @@ from stagehand.types import (
     SessionExtractResponse,
     SessionNavigateResponse,
     SessionObserveResponse,
+    SessionReplayResponse,
     SessionStartResponse,
 )
 ```
@@ -25,4 +26,5 @@ Methods:
 - <code title="post /v1/sessions/{id}/extract">client.sessions.<a href="./src/stagehand/resources/sessions.py">extract</a>(id, \*\*<a href="src/stagehand/types/session_extract_params.py">params</a>) -> <a href="./src/stagehand/types/session_extract_response.py">SessionExtractResponse</a></code>
 - <code title="post /v1/sessions/{id}/navigate">client.sessions.<a href="./src/stagehand/resources/sessions.py">navigate</a>(id, \*\*<a href="src/stagehand/types/session_navigate_params.py">params</a>) -> <a href="./src/stagehand/types/session_navigate_response.py">SessionNavigateResponse</a></code>
 - <code title="post /v1/sessions/{id}/observe">client.sessions.<a href="./src/stagehand/resources/sessions.py">observe</a>(id, \*\*<a href="src/stagehand/types/session_observe_params.py">params</a>) -> <a href="./src/stagehand/types/session_observe_response.py">SessionObserveResponse</a></code>
+- <code title="get /v1/sessions/{id}/replay">client.sessions.<a href="./src/stagehand/resources/sessions.py">replay</a>(id) -> <a href="./src/stagehand/types/session_replay_response.py">SessionReplayResponse</a></code>
 - <code title="post /v1/sessions/start">client.sessions.<a href="./src/stagehand/resources/sessions.py">start</a>(\*\*<a href="src/stagehand/types/session_start_params.py">params</a>) -> <a href="./src/stagehand/types/session_start_response.py">SessionStartResponse</a></code>

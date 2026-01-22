@@ -31,6 +31,7 @@ from ..types.stream_event import StreamEvent
 from ..types.session_act_response import SessionActResponse
 from ..types.session_end_response import SessionEndResponse
 from ..types.session_start_response import SessionStartResponse
+from ..types.session_replay_response import SessionReplayResponse
 from ..types.session_execute_response import SessionExecuteResponse
 from ..types.session_extract_response import SessionExtractResponse
 from ..types.session_observe_response import SessionObserveResponse
@@ -860,6 +861,50 @@ class SessionsResource(SyncAPIResource):
             cast_to=SessionObserveResponse,
             stream=stream_response or False,
             stream_cls=Stream[StreamEvent],
+        )
+
+    def replay(
+        self,
+        id: str,
+        *,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionReplayResponse:
+        """
+        Retrieves replay metrics for a session.
+
+        Args:
+          id: Unique session identifier
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not id:
+            raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
+        extra_headers = {
+            **strip_not_given(
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
+            ),
+            **(extra_headers or {}),
+        }
+        return self._get(
+            f"/v1/sessions/{id}/replay",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=SessionReplayResponse,
         )
 
     def start(
@@ -1770,6 +1815,50 @@ class AsyncSessionsResource(AsyncAPIResource):
             stream_cls=AsyncStream[StreamEvent],
         )
 
+    async def replay(
+        self,
+        id: str,
+        *,
+        x_stream_response: Literal["true", "false"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SessionReplayResponse:
+        """
+        Retrieves replay metrics for a session.
+
+        Args:
+          id: Unique session identifier
+
+          x_stream_response: Whether to stream the response via SSE
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not id:
+            raise ValueError(f"Expected a non-empty value for `id` but received {id!r}")
+        extra_headers = {
+            **strip_not_given(
+                {"x-stream-response": str(x_stream_response) if is_given(x_stream_response) else not_given}
+            ),
+            **(extra_headers or {}),
+        }
+        return await self._get(
+            f"/v1/sessions/{id}/replay",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=SessionReplayResponse,
+        )
+
     async def start(
         self,
         *,
@@ -1877,6 +1966,9 @@ class SessionsResourceWithRawResponse:
         self.observe = to_raw_response_wrapper(
             sessions.observe,
         )
+        self.replay = to_raw_response_wrapper(
+            sessions.replay,
+        )
         self.start = to_raw_response_wrapper(
             sessions.start,
         )
@@ -1903,6 +1995,9 @@ class AsyncSessionsResourceWithRawResponse:
         )
         self.observe = async_to_raw_response_wrapper(
             sessions.observe,
+        )
+        self.replay = async_to_raw_response_wrapper(
+            sessions.replay,
         )
         self.start = async_to_raw_response_wrapper(
             sessions.start,
@@ -1931,6 +2026,9 @@ class SessionsResourceWithStreamingResponse:
         self.observe = to_streamed_response_wrapper(
             sessions.observe,
         )
+        self.replay = to_streamed_response_wrapper(
+            sessions.replay,
+        )
         self.start = to_streamed_response_wrapper(
             sessions.start,
         )
@@ -1957,6 +2055,9 @@ class AsyncSessionsResourceWithStreamingResponse:
         )
         self.observe = async_to_streamed_response_wrapper(
             sessions.observe,
+        )
+        self.replay = async_to_streamed_response_wrapper(
+            sessions.replay,
         )
         self.start = async_to_streamed_response_wrapper(
             sessions.start,
