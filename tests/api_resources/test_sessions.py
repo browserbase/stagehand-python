@@ -13,6 +13,7 @@ from stagehand.types import (
     SessionActResponse,
     SessionEndResponse,
     SessionStartResponse,
+    SessionReplayResponse,
     SessionExecuteResponse,
     SessionExtractResponse,
     SessionObserveResponse,
@@ -675,6 +676,57 @@ class TestSessions:
             client.sessions.with_raw_response.observe(
                 id="",
                 stream_response=True,
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_replay(self, client: Stagehand) -> None:
+        session = client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_replay_with_all_params(self, client: Stagehand) -> None:
+        session = client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            x_stream_response="true",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_raw_response_replay(self, client: Stagehand) -> None:
+        response = client.sessions.with_raw_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        session = response.parse()
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_streaming_response_replay(self, client: Stagehand) -> None:
+        with client.sessions.with_streaming_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            session = response.parse()
+            assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_path_params_replay(self, client: Stagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.sessions.with_raw_response.replay(
+                id="",
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
@@ -1455,6 +1507,57 @@ class TestAsyncSessions:
             await async_client.sessions.with_raw_response.observe(
                 id="",
                 stream_response=True,
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_replay(self, async_client: AsyncStagehand) -> None:
+        session = await async_client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_replay_with_all_params(self, async_client: AsyncStagehand) -> None:
+        session = await async_client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            x_stream_response="true",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_raw_response_replay(self, async_client: AsyncStagehand) -> None:
+        response = await async_client.sessions.with_raw_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        session = await response.parse()
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_streaming_response_replay(self, async_client: AsyncStagehand) -> None:
+        async with async_client.sessions.with_streaming_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            session = await response.parse()
+            assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_path_params_replay(self, async_client: AsyncStagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            await async_client.sessions.with_raw_response.replay(
+                id="",
             )
 
     @pytest.mark.skip(reason="Prism tests are disabled")
