@@ -27,6 +27,8 @@
     </picture>
   </a>
 </p>
+<!-- prettier-ignore -->
+[![PyPI version](https://img.shields.io/pypi/v/stagehand.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand/)
 
 <p align="center">
 	<a href="https://trendshift.io/repositories/12122" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12122" alt="browserbase%2Fstagehand | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -69,6 +71,7 @@ Most existing browser automation tools either require you to write low-level cod
 ## Installation
 
 ```sh
+# install from PyPI
 uv pip install stagehand
 ```
 
@@ -323,7 +326,8 @@ By default, the async client uses `httpx` for HTTP requests. For improved concur
 Install `aiohttp`:
 
 ```sh
-uv run pip install stagehand[aiohttp]
+# install from PyPI
+uv pip install stagehand[aiohttp]
 ```
 
 Then instantiate the client with `http_client=DefaultAioHttpClient()`:
