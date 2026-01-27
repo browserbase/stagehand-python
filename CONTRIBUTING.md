@@ -91,7 +91,7 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```sh
-uv run pip install git+ssh://git@github.com/browserbase/stagehand-python#stainless.git
+$ uv run pip install git+ssh://git@github.com/browserbase/stagehand-python.git
 ```
 
 Alternatively, you can build from source and install the wheel file:

@@ -2,7 +2,7 @@ name: Release Doctor
 on:
   pull_request:
     branches:
-      - main
+      - stainless
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     if: github.repository == 'browserbase/stagehand-python' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'release-please') || github.head_ref == 'next')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check release environment
         run: |

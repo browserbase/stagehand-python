@@ -14,7 +14,7 @@ Required environment variables:
 Usage:
 
 ```
-pip install playwright stagehand-alpha
+pip install playwright stagehand
 # (if Playwright is new) playwright install chromium
 uv run python examples/byob_example.py
 ```

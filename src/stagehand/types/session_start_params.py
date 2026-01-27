@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Dict, List, Union, Iterable
-from datetime import datetime
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._types import SequenceNotStr
@@ -30,7 +29,11 @@ __all__ = [
 
 class SessionStartParams(TypedDict, total=False):
     model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
-    """Model name to use for AI operations"""
+    """Model name to use for AI operations.
+
+    Always use the format 'provider/model-name' (e.g., 'openai/gpt-4o',
+    'anthropic/claude-sonnet-4-5-20250929', 'google/gemini-2.0-flash')
+    """
 
     act_timeout_ms: Annotated[float, PropertyInfo(alias="actTimeoutMs")]
     """Timeout in ms for act operations (deprecated, v2 only)"""
@@ -60,9 +63,6 @@ class SessionStartParams(TypedDict, total=False):
 
     wait_for_captcha_solves: Annotated[bool, PropertyInfo(alias="waitForCaptchaSolves")]
     """Wait for captcha solves (deprecated, v2 only)"""
-
-    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
-    """ISO timestamp when request was sent"""
 
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""
@@ -112,6 +112,8 @@ class BrowserLaunchOptions(TypedDict, total=False):
     ignore_https_errors: Annotated[bool, PropertyInfo(alias="ignoreHTTPSErrors")]
 
     locale: str
+
+    port: float
 
     preserve_user_data_dir: Annotated[bool, PropertyInfo(alias="preserveUserDataDir")]
 
