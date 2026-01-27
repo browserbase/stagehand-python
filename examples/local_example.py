@@ -10,7 +10,7 @@ Required environment variables:
 You can also set `OPENAI_API_KEY` if you prefer, but the example defaults to `MODEL_API_KEY`.
 
 Install the published wheel before running this script:
-  `pip install stagehand-alpha`
+  `pip install stagehand`
 Then execute this example with the same interpreter:
   `python examples/local_example.py`
 """
