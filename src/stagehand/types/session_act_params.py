@@ -2,28 +2,31 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union
-from datetime import datetime
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 from .action_param import ActionParam
 from .model_config_param import ModelConfigParam
 
-__all__ = ["SessionActParamsBase", "Input", "Options", "SessionActParamsNonStreaming", "SessionActParamsStreaming"]
+__all__ = [
+    "SessionActParamsBase",
+    "Input",
+    "Options",
+    "OptionsModel",
+    "SessionActParamsNonStreaming",
+    "SessionActParamsStreaming",
+]
 
 
 class SessionActParamsBase(TypedDict, total=False):
     input: Required[Input]
     """Natural language instruction or Action object"""
 
-    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    frame_id: Annotated[Optional[str], PropertyInfo(alias="frameId")]
     """Target frame ID for the action"""
 
     options: Options
-
-    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
-    """ISO timestamp when request was sent"""
 
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""
@@ -31,13 +34,12 @@ class SessionActParamsBase(TypedDict, total=False):
 
 Input: TypeAlias = Union[str, ActionParam]
 
+OptionsModel: TypeAlias = Union[ModelConfigParam, str]
+
 
 class Options(TypedDict, total=False):
-    model: ModelConfigParam
-    """
-    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
-    'anthropic/claude-4.5-opus')
-    """
+    model: OptionsModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     timeout: float
     """Timeout in ms for the action"""

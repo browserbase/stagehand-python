@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union
-from datetime import datetime
+from typing import Union, Optional
 from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
@@ -23,11 +22,11 @@ class SessionExecuteParamsBase(TypedDict, total=False):
 
     execute_options: Required[Annotated[ExecuteOptions, PropertyInfo(alias="executeOptions")]]
 
-    frame_id: Annotated[str, PropertyInfo(alias="frameId")]
+    frame_id: Annotated[Optional[str], PropertyInfo(alias="frameId")]
     """Target frame ID for the agent"""
 
-    x_sent_at: Annotated[Union[str, datetime], PropertyInfo(alias="x-sent-at", format="iso8601")]
-    """ISO timestamp when request was sent"""
+    should_cache: Annotated[bool, PropertyInfo(alias="shouldCache")]
+    """If true, the server captures a cache entry and returns it to the client"""
 
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""

@@ -13,12 +13,12 @@ from stagehand.types import (
     SessionActResponse,
     SessionEndResponse,
     SessionStartResponse,
+    SessionReplayResponse,
     SessionExecuteResponse,
     SessionExtractResponse,
     SessionObserveResponse,
     SessionNavigateResponse,
 )
-from stagehand._utils import parse_datetime
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -48,7 +48,6 @@ class TestSessions:
                 "variables": {"username": "john_doe"},
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
@@ -113,7 +112,6 @@ class TestSessions:
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -170,8 +168,6 @@ class TestSessions:
     def test_method_end_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -239,8 +235,8 @@ class TestSessions:
                 "max_steps": 20,
             },
             frame_id="frameId",
+            should_cache=True,
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
@@ -322,7 +318,7 @@ class TestSessions:
             },
             stream_response=True,
             frame_id="frameId",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            should_cache=True,
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -397,7 +393,6 @@ class TestSessions:
             },
             schema={"foo": "bar"},
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
@@ -459,7 +454,6 @@ class TestSessions:
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -522,7 +516,6 @@ class TestSessions:
                 "wait_until": "networkidle",
             },
             stream_response=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
@@ -585,7 +578,6 @@ class TestSessions:
                 "timeout": 30000,
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
@@ -646,7 +638,6 @@ class TestSessions:
                 "selector": "nav",
                 "timeout": 30000,
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -689,6 +680,57 @@ class TestSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
+    def test_method_replay(self, client: Stagehand) -> None:
+        session = client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_method_replay_with_all_params(self, client: Stagehand) -> None:
+        session = client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            x_stream_response="true",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_raw_response_replay(self, client: Stagehand) -> None:
+        response = client.sessions.with_raw_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        session = response.parse()
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_streaming_response_replay(self, client: Stagehand) -> None:
+        with client.sessions.with_streaming_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            session = response.parse()
+            assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    def test_path_params_replay(self, client: Stagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            client.sessions.with_raw_response.replay(
+                id="",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
     def test_method_start(self, client: Stagehand) -> None:
         session = client.sessions.start(
             model_name="openai/gpt-4o",
@@ -718,6 +760,7 @@ class TestSessions:
                     "ignore_default_args": True,
                     "ignore_https_errors": True,
                     "locale": "locale",
+                    "port": 0,
                     "preserve_user_data_dir": True,
                     "proxy": {
                         "server": "server",
@@ -778,7 +821,6 @@ class TestSessions:
             system_prompt="systemPrompt",
             verbose=1,
             wait_for_captcha_solves=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
@@ -837,7 +879,6 @@ class TestAsyncSessions:
                 "variables": {"username": "john_doe"},
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
@@ -902,7 +943,6 @@ class TestAsyncSessions:
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -959,8 +999,6 @@ class TestAsyncSessions:
     async def test_method_end_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -1028,8 +1066,8 @@ class TestAsyncSessions:
                 "max_steps": 20,
             },
             frame_id="frameId",
+            should_cache=True,
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
@@ -1111,7 +1149,7 @@ class TestAsyncSessions:
             },
             stream_response=True,
             frame_id="frameId",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
+            should_cache=True,
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -1186,7 +1224,6 @@ class TestAsyncSessions:
             },
             schema={"foo": "bar"},
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
@@ -1248,7 +1285,6 @@ class TestAsyncSessions:
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -1311,7 +1347,6 @@ class TestAsyncSessions:
                 "wait_until": "networkidle",
             },
             stream_response=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
@@ -1374,7 +1409,6 @@ class TestAsyncSessions:
                 "timeout": 30000,
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
@@ -1435,7 +1469,6 @@ class TestAsyncSessions:
                 "selector": "nav",
                 "timeout": 30000,
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -1478,6 +1511,57 @@ class TestAsyncSessions:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
+    async def test_method_replay(self, async_client: AsyncStagehand) -> None:
+        session = await async_client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_method_replay_with_all_params(self, async_client: AsyncStagehand) -> None:
+        session = await async_client.sessions.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+            x_stream_response="true",
+        )
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_raw_response_replay(self, async_client: AsyncStagehand) -> None:
+        response = await async_client.sessions.with_raw_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        session = await response.parse()
+        assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_streaming_response_replay(self, async_client: AsyncStagehand) -> None:
+        async with async_client.sessions.with_streaming_response.replay(
+            id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            session = await response.parse()
+            assert_matches_type(SessionReplayResponse, session, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
+    async def test_path_params_replay(self, async_client: AsyncStagehand) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
+            await async_client.sessions.with_raw_response.replay(
+                id="",
+            )
+
+    @pytest.mark.skip(reason="Prism tests are disabled")
+    @parametrize
     async def test_method_start(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
             model_name="openai/gpt-4o",
@@ -1507,6 +1591,7 @@ class TestAsyncSessions:
                     "ignore_default_args": True,
                     "ignore_https_errors": True,
                     "locale": "locale",
+                    "port": 0,
                     "preserve_user_data_dir": True,
                     "proxy": {
                         "server": "server",
@@ -1567,7 +1652,6 @@ class TestAsyncSessions:
             system_prompt="systemPrompt",
             verbose=1,
             wait_for_captcha_solves=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
