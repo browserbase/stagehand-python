@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.5.0 (2026-01-27)
+
+Full Changelog: [v3.4.7...v3.5.0](https://github.com/browserbase/stagehand-python/compare/v3.4.7...v3.5.0)
+
+### Features
+
+* [feat]: add support for local caching of agent when using api (2) ([b32a290](https://github.com/browserbase/stagehand-python/commit/b32a29086b5d996556aaf9fabdf3eed769197f3b))
+* add v3 integration tests matching cloud exactly ([64847ef](https://github.com/browserbase/stagehand-python/commit/64847ef9e065b3fda3acaadcc87fa36c607d5ab1))
+* **api:** manual updates ([24ede05](https://github.com/browserbase/stagehand-python/commit/24ede050f05061573865fe5d51922155935f7b62))
+* **api:** manual updates ([3dac57a](https://github.com/browserbase/stagehand-python/commit/3dac57a7fa654b30938f623c9a1d336afa5c04a6))
+* **client:** add support for binary request streaming ([ae2f587](https://github.com/browserbase/stagehand-python/commit/ae2f5873f090eeb6a564d8fd54378347725a8ae7))
+* End endpoint cleanup ([ba74968](https://github.com/browserbase/stagehand-python/commit/ba74968c8b1543d3edf57779b7592f1a3ecb965b))
+* Include replay endpoint in stainless spec so SDK clients can get run metrics ([fb4c3f9](https://github.com/browserbase/stagehand-python/commit/fb4c3f9f0e118a155d4b74877d2ebb1540881b59))
+* move Stainless compatibility transforms from gen-openapi.ts into stainless.yml ([3f5b25c](https://github.com/browserbase/stagehand-python/commit/3f5b25cfea25801870c43d1598c671ffa7cc9932))
+* x-stainless-any fix, optional frame id, ModelConfigString fix ([6d46ed2](https://github.com/browserbase/stagehand-python/commit/6d46ed2cd9e4b82eb3753eb524d9d52b033e6351))
+
+
+### Chores
+
+* **internal:** update `actions/checkout` version ([bda97bc](https://github.com/browserbase/stagehand-python/commit/bda97bca74f981ec3fa2626c552bb52d9cb79cc0))
+* **internal:** version bump ([f0e9667](https://github.com/browserbase/stagehand-python/commit/f0e9667cab4f0ea074341fbbaae16a5b0a7e3ec9))
+* **internal:** version bump ([66d0f45](https://github.com/browserbase/stagehand-python/commit/66d0f4544e2d8e72d316b55507d7967adcef4456))
+* sync repo ([fa2456e](https://github.com/browserbase/stagehand-python/commit/fa2456eeec78a5b05d2e9cf9c9aad3f287e83e59))
+* update SDK settings ([d54c240](https://github.com/browserbase/stagehand-python/commit/d54c24082b66853485fc4307e985b6c9a5f21d31))
+* update SDK settings ([23c5201](https://github.com/browserbase/stagehand-python/commit/23c520167bc3931c44348d5feceba075176f127a))
+
 ## 3.4.7 (2026-01-15)
 
 Full Changelog: [v3.4.6...v3.4.7](https://github.com/browserbase/stagehand-python/compare/v3.4.6...v3.4.7)
