@@ -18,7 +18,6 @@ from stagehand.types import (
     SessionObserveResponse,
     SessionNavigateResponse,
 )
-from stagehand._utils import parse_datetime
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -43,12 +42,11 @@ class TestSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
@@ -109,11 +107,10 @@ class TestSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -171,7 +168,6 @@ class TestSessions:
         session = client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             _force_body={},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -229,7 +225,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -240,7 +236,6 @@ class TestSessions:
             },
             frame_id="frameId",
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
@@ -311,7 +306,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -322,7 +317,6 @@ class TestSessions:
             },
             stream_response=True,
             frame_id="frameId",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -391,13 +385,12 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
@@ -454,12 +447,11 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -522,7 +514,6 @@ class TestSessions:
                 "wait_until": "networkidle",
             },
             stream_response=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
@@ -580,12 +571,11 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "nav",
                 "timeout": 30000,
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
@@ -642,11 +632,10 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "nav",
                 "timeout": 30000,
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         session_stream.response.close()
@@ -778,7 +767,6 @@ class TestSessions:
             system_prompt="systemPrompt",
             verbose=1,
             wait_for_captcha_solves=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
@@ -832,12 +820,11 @@ class TestAsyncSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
@@ -898,11 +885,10 @@ class TestAsyncSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -960,7 +946,6 @@ class TestAsyncSessions:
         session = await async_client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             _force_body={},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -1018,7 +1003,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1029,7 +1014,6 @@ class TestAsyncSessions:
             },
             frame_id="frameId",
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
@@ -1100,7 +1084,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1111,7 +1095,6 @@ class TestAsyncSessions:
             },
             stream_response=True,
             frame_id="frameId",
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -1180,13 +1163,12 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
@@ -1243,12 +1225,11 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
             schema={"foo": "bar"},
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -1311,7 +1292,6 @@ class TestAsyncSessions:
                 "wait_until": "networkidle",
             },
             stream_response=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
@@ -1369,12 +1349,11 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "nav",
                 "timeout": 30000,
             },
             stream_response=False,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
@@ -1431,11 +1410,10 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": "openai/gpt-4o",
                 "selector": "nav",
                 "timeout": 30000,
             },
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         await session_stream.response.aclose()
@@ -1567,7 +1545,6 @@ class TestAsyncSessions:
             system_prompt="systemPrompt",
             verbose=1,
             wait_for_captcha_solves=True,
-            x_sent_at=parse_datetime("2025-01-15T10:30:00Z"),
             x_stream_response="true",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
