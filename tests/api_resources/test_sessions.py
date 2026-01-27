@@ -225,6 +225,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -307,6 +308,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -1056,6 +1058,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -1138,6 +1141,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
