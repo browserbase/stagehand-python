@@ -3,7 +3,7 @@ name = "stagehand-alpha"
 version = "3.4.7"
 description = "The official Python library for the stagehand API"
 dynamic = ["readme"]
-license = "Apache-2.0"
+license = "MIT"
 authors = [
 { name = "Stagehand", email = "" },
 ]
@@ -33,7 +33,7 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Topic :: Software Development :: Libraries :: Python Modules",
-  "License :: OSI Approved :: Apache Software License"
+  "License :: OSI Approved :: MIT License"
 ]
 
 [project.urls]
