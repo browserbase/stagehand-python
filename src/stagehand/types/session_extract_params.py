@@ -29,11 +29,6 @@ class SessionExtractParamsBase(TypedDict, total=False):
 
 class Options(TypedDict, total=False):
     model: ModelConfigParam
-    """Model name string with provider prefix.
-
-    Always use the format 'provider/model-name' (e.g., 'openai/gpt-4o',
-    'anthropic/claude-sonnet-4-5-20250929', 'google/gemini-2.0-flash')
-    """
 
     selector: str
     """CSS selector to scope extraction to a specific element"""

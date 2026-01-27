@@ -927,9 +927,7 @@ class SessionsResource(SyncAPIResource):
         session ID used for all subsequent operations.
 
         Args:
-          model_name: Model name to use for AI operations. Always use the format 'provider/model-name'
-              (e.g., 'openai/gpt-4o', 'anthropic/claude-sonnet-4-5-20250929',
-              'google/gemini-2.0-flash')
+          model_name: Model name to use for AI operations
 
           act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
 
@@ -1859,9 +1857,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         session ID used for all subsequent operations.
 
         Args:
-          model_name: Model name to use for AI operations. Always use the format 'provider/model-name'
-              (e.g., 'openai/gpt-4o', 'anthropic/claude-sonnet-4-5-20250929',
-              'google/gemini-2.0-flash')
+          model_name: Model name to use for AI operations
 
           act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
 

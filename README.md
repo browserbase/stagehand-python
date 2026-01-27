@@ -28,7 +28,7 @@
   </a>
 </p>
 <!-- prettier-ignore -->
-[![PyPI version](https://img.shields.io/pypi/v/stagehand.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand/)
+[![PyPI version](https://img.shields.io/pypi/v/stagehand-alpha.svg?label=pypi%20(stable))](https://pypi.org/project/stagehand-alpha/)
 
 <p align="center">
 	<a href="https://trendshift.io/repositories/12122" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12122" alt="browserbase%2Fstagehand | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -606,9 +606,9 @@ session = response.parse()  # get the object that `sessions.start()` would have 
 print(session.data)
 ```
 
-These methods return an [`APIResponse`](https://github.com/browserbase/stagehand-python/tree/main/src/stagehand/_response.py) object.
+These methods return an [`APIResponse`](https://github.com/browserbase/stagehand-python/tree/stainless/src/stagehand/_response.py) object.
 
-The async client returns an [`AsyncAPIResponse`](https://github.com/browserbase/stagehand-python/tree/main/src/stagehand/_response.py) with the same structure, the only difference being `await`able methods for reading the response content.
+The async client returns an [`AsyncAPIResponse`](https://github.com/browserbase/stagehand-python/tree/stainless/src/stagehand/_response.py) with the same structure, the only difference being `await`able methods for reading the response content.
 
 #### `.with_streaming_response`
 
