@@ -235,6 +235,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
@@ -322,6 +323,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
@@ -1106,6 +1108,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
@@ -1193,6 +1196,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
+                "mode": "cua",
                 "model": {
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",

@@ -38,7 +38,13 @@ AgentConfigModel: TypeAlias = Union[ModelConfigParam, str]
 
 class AgentConfig(TypedDict, total=False):
     cua: bool
-    """Enable Computer Use Agent mode"""
+    """Deprecated.
+
+    Use mode: 'cua' instead. If both are provided, mode takes precedence.
+    """
+
+    mode: Literal["dom", "hybrid", "cua"]
+    """Tool mode for the agent (dom, hybrid, cua). If set, overrides cua."""
 
     model: AgentConfigModel
     """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
