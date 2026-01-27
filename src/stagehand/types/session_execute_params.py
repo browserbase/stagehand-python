@@ -34,6 +34,10 @@ class AgentConfig(TypedDict, total=False):
     """Enable Computer Use Agent mode"""
 
     model: ModelConfigParam
+    """
+    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
+    'anthropic/claude-4.5-opus')
+    """
 
     provider: Literal["openai", "anthropic", "google", "microsoft"]
     """AI provider for the agent (legacy, use model: openai/gpt-5-nano instead)"""

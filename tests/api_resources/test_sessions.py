@@ -42,12 +42,7 @@ class TestSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -112,12 +107,7 @@ class TestSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -177,7 +167,6 @@ class TestSessions:
     def test_method_end_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -235,12 +224,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -321,12 +305,7 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -405,12 +384,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -472,12 +446,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -601,12 +570,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -667,12 +631,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -747,6 +706,7 @@ class TestSessions:
                     "ignore_default_args": True,
                     "ignore_https_errors": True,
                     "locale": "locale",
+                    "port": 0,
                     "preserve_user_data_dir": True,
                     "proxy": {
                         "server": "server",
@@ -860,12 +820,7 @@ class TestAsyncSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -930,12 +885,7 @@ class TestAsyncSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -995,7 +945,6 @@ class TestAsyncSessions:
     async def test_method_end_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
-            _force_body={},
             x_stream_response="true",
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
@@ -1053,12 +1002,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1139,12 +1083,7 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1223,12 +1162,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -1290,12 +1224,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -1419,12 +1348,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -1485,12 +1409,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {
-                    "model_name": "openai/gpt-5-nano",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "provider": "openai",
-                },
+                "model": "openai/gpt-5-nano",
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -1565,6 +1484,7 @@ class TestAsyncSessions:
                     "ignore_default_args": True,
                     "ignore_https_errors": True,
                     "locale": "locale",
+                    "port": 0,
                     "preserve_user_data_dir": True,
                     "proxy": {
                         "server": "server",
