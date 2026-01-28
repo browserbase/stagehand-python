@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Any, Union, cast
-from datetime import datetime
+from typing import TYPE_CHECKING, Any, cast
 from typing_extensions import Unpack, Literal, Protocol
 
 import httpx
@@ -248,7 +247,6 @@ class Session(SessionStartResponse):
     def end(
         self,
         *,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -257,7 +255,6 @@ class Session(SessionStartResponse):
     ) -> SessionEndResponse:
         return self._client.sessions.end(
             id=self.id,
-            x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -385,7 +382,6 @@ class AsyncSession(SessionStartResponse):
     async def end(
         self,
         *,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -394,7 +390,6 @@ class AsyncSession(SessionStartResponse):
     ) -> SessionEndResponse:
         return await self._client.sessions.end(
             id=self.id,
-            x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
             extra_query=extra_query,
