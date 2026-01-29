@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.6.0 (2026-01-29)
+
+Full Changelog: [v3.5.0...v3.6.0](https://github.com/browserbase/stagehand-python/compare/v3.5.0...v3.6.0)
+
+### Features
+
+* Update stainless.yml for project and publish settings ([4b63f42](https://github.com/browserbase/stagehand-python/commit/4b63f4201c3f659efb69faaf1328eab554fbbaed))
+
 ## 3.5.0 (2026-01-29)
 
 Full Changelog: [v3.4.8...v3.5.0](https://github.com/browserbase/stagehand-python/compare/v3.4.8...v3.5.0)
