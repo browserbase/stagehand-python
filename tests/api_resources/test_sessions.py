@@ -43,7 +43,7 @@ class TestSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -108,7 +108,7 @@ class TestSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -225,7 +225,8 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "mode": "cua",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -307,7 +308,8 @@ class TestSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "mode": "cua",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -387,7 +389,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -449,7 +451,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -573,7 +575,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -634,7 +636,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -874,7 +876,7 @@ class TestAsyncSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -939,7 +941,7 @@ class TestAsyncSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
                 "variables": {"username": "john_doe"},
             },
@@ -1056,7 +1058,8 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "mode": "cua",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1138,7 +1141,8 @@ class TestAsyncSessions:
             id="c4dbf3a9-9a58-4b22-8a1c-9f20f9f9e123",
             agent_config={
                 "cua": True,
-                "model": "openai/gpt-5-nano",
+                "mode": "cua",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1218,7 +1222,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -1280,7 +1284,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -1404,7 +1408,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
             },
@@ -1465,7 +1469,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": "openai/gpt-5-nano",
+                "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
             },

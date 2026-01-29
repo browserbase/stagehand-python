@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Union
-from datetime import datetime
 from typing_extensions import Literal, override
 
 import httpx
@@ -79,7 +77,6 @@ class SessionsResourceWithHelpers(SessionsResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -98,7 +95,6 @@ class SessionsResourceWithHelpers(SessionsResource):
             system_prompt=system_prompt,
             verbose=verbose,
             wait_for_captcha_solves=wait_for_captcha_solves,
-            x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -134,7 +130,6 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
-        x_sent_at: Union[str, datetime] | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -153,7 +148,6 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
             system_prompt=system_prompt,
             verbose=verbose,
             wait_for_captcha_solves=wait_for_captcha_solves,
-            x_sent_at=x_sent_at,
             x_stream_response=x_stream_response,
             extra_headers=extra_headers,
             extra_query=extra_query,

@@ -105,7 +105,8 @@ def test_local_server_requires_browserbase_keys_for_browserbase_sessions(
     _set_required_env(monkeypatch)
     monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
     monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
-    client = Stagehand(server="local")
+    client = Stagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
+    client._sea_server = _DummySeaServer("http://127.0.0.1:43125")  # type: ignore[attr-defined]
     with pytest.raises(StagehandError):
         client.sessions.start(model_name="openai/gpt-5-nano")
 
@@ -116,12 +117,14 @@ def test_local_server_allows_local_browser_without_browserbase_keys(
     _set_required_env(monkeypatch)
     monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
     monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
-    client = Stagehand(server="local")
+    client = Stagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
+    client._sea_server = _DummySeaServer("http://127.0.0.1:43126")  # type: ignore[attr-defined]
 
     def _post(*_args: object, **_kwargs: object) -> object:
         raise RuntimeError("post called")
 
-    client._post = _post  # type: ignore[method-assign]
+    client.sessions._post = _post  # type: ignore[method-assign]
+    client.base_url = httpx.URL("http://127.0.0.1:43126")
 
     with pytest.raises(RuntimeError, match="post called"):
         client.sessions.start(

@@ -34,7 +34,13 @@ class SessionExecuteParamsBase(TypedDict, total=False):
 
 class AgentConfig(TypedDict, total=False):
     cua: bool
-    """Enable Computer Use Agent mode"""
+    """Deprecated.
+
+    Use mode: 'cua' instead. If both are provided, mode takes precedence.
+    """
+
+    mode: Literal["dom", "hybrid", "cua"]
+    """Tool mode for the agent (dom, hybrid, cua). If set, overrides cua."""
 
     model: ModelConfigParam
     """

@@ -857,12 +857,15 @@ class FinalRequestOptions(pydantic.BaseModel):
         _fields_set: set[str] | None = None,
         **values: Unpack[FinalRequestOptionsInput],
     ) -> FinalRequestOptions:
-        kwargs: dict[str, Any] = {
+        kwargs: dict[str, Any] = {}
+        for key, value in values.items():
+            if key == "headers" and is_mapping(value):
+                # Preserve Omit() for headers so callers can explicitly remove defaults.
+                kwargs[key] = {k: v for k, v in value.items() if not isinstance(v, NotGiven)}
+                continue
             # we unconditionally call `strip_not_given` on any value
             # as it will just ignore any non-mapping types
-            key: strip_not_given(value)
-            for key, value in values.items()
-        }
+            kwargs[key] = strip_not_given(value)
         if PYDANTIC_V1:
             return cast(FinalRequestOptions, super().construct(_fields_set, **kwargs))  # pyright: ignore[reportDeprecated]
         return super().model_construct(_fields_set, **kwargs)
