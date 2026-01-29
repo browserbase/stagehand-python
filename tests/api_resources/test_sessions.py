@@ -232,6 +232,13 @@ class TestSessions:
                     "provider": "openai",
                 },
                 "mode": "cua",
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "provider": "openai",
+                },
+                "mode": "cua",
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -315,6 +322,13 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "provider": "openai",
+                },
+                "mode": "cua",
+                "model": {
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
@@ -1077,6 +1091,13 @@ class TestAsyncSessions:
                     "provider": "openai",
                 },
                 "mode": "cua",
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "provider": "openai",
+                },
+                "mode": "cua",
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -1160,6 +1181,13 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "provider": "openai",
+                },
+                "mode": "cua",
+                "model": {
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
