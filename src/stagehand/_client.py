@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import datetime
 from typing import TYPE_CHECKING, Any, Mapping
 from typing_extensions import Self, Literal, override
 
@@ -220,7 +219,6 @@ class Stagehand(SyncAPIClient):
             **super().default_headers,
             "x-language": "python",
             "x-sdk-version": __version__,
-            "x-sent-at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
@@ -236,6 +234,7 @@ class Stagehand(SyncAPIClient):
         local_host: str | None = None,
         local_port: int | None = None,
         local_headless: bool | None = None,
+        local_chrome_path: str | None = None,
         local_ready_timeout_s: float | None = None,
         local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool | None = None,
@@ -280,6 +279,7 @@ class Stagehand(SyncAPIClient):
             local_host=local_host or self._local_host,
             local_port=local_port if local_port is not None else self._local_port,
             local_headless=local_headless if local_headless is not None else self._local_headless,
+            local_chrome_path=local_chrome_path if local_chrome_path is not None else self._local_chrome_path,
             local_ready_timeout_s=local_ready_timeout_s
             if local_ready_timeout_s is not None
             else self._local_ready_timeout_s,
@@ -506,7 +506,6 @@ class AsyncStagehand(AsyncAPIClient):
             **super().default_headers,
             "x-language": "python",
             "x-sdk-version": __version__,
-            "x-sent-at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }
@@ -522,6 +521,7 @@ class AsyncStagehand(AsyncAPIClient):
         local_host: str | None = None,
         local_port: int | None = None,
         local_headless: bool | None = None,
+        local_chrome_path: str | None = None,
         local_ready_timeout_s: float | None = None,
         local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool | None = None,
@@ -566,6 +566,7 @@ class AsyncStagehand(AsyncAPIClient):
             local_host=local_host or self._local_host,
             local_port=local_port if local_port is not None else self._local_port,
             local_headless=local_headless if local_headless is not None else self._local_headless,
+            local_chrome_path=local_chrome_path if local_chrome_path is not None else self._local_chrome_path,
             local_ready_timeout_s=local_ready_timeout_s
             if local_ready_timeout_s is not None
             else self._local_ready_timeout_s,
