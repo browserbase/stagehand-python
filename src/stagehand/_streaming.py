@@ -56,7 +56,7 @@ class Stream(Generic[_T]):
 
         try:
             for sse in iterator:
-                if sse.data.startswith('{"data":{"status":"finished"'):
+                if sse.data.startswith("finished"):
                     break
 
                 if sse.data.startswith("error"):
@@ -139,7 +139,7 @@ class AsyncStream(Generic[_T]):
 
         try:
             async for sse in iterator:
-                if sse.data.startswith('{"data":{"status":"finished"'):
+                if sse.data.startswith("finished"):
                     break
 
                 if sse.data.startswith("error"):

@@ -1,5 +1,5 @@
 [project]
-name = "stagehand"
+name = "stagehand-alpha"
 version = "3.5.0"
 description = "The official Python library for the stagehand API"
 dynamic = ["readme"]
@@ -112,7 +112,7 @@ path = "README.md"
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 # replace relative links with absolute links
 pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
-replacement = '[\1](https://github.com/browserbase/stagehand-python/tree/main/\g<2>)'
+replacement = '[\1](https://github.com/browserbase/stagehand-python/tree/stainless/\g<2>)'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
