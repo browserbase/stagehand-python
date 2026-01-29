@@ -4,11 +4,7 @@ name: Publish PyPI
 
 on:
   workflow_dispatch:
-    inputs:
-      stagehand_tag:
-        description: "Stagehand repo git ref to build SEA binaries from (e.g. @browserbasehq/stagehand@3.0.6)"
-        required: true
-        type: string
+    inputs: {}
 
   release:
     types: [published]
@@ -42,46 +38,45 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.9.13"
 
-      - name: Checkout stagehand (server source)
-        uses: actions/checkout@v4
+      - name: Resolve latest stagehand/server release
+        id: stagehand-server-release
+        uses: actions/github-script@v6
         with:
-          repository: browserbase/stagehand
-          ref: ${{ inputs.stagehand_tag || vars.STAGEHAND_TAG }}
-          path: _stagehand
-          fetch-depth: 1
-          # If browserbase/stagehand is private, set STAGEHAND_SOURCE_TOKEN (PAT) in this repo.
-          token: ${{ secrets.STAGEHAND_SOURCE_TOKEN || github.token }}
+          github-token: ${{ secrets.STAGEHAND_SOURCE_TOKEN || github.token }}
+          script: |
+            const { data } = await github.rest.repos.listReleases({
+              owner: 'browserbase',
+              repo: 'stagehand',
+              per_page: 100,
+            });
+            const release = data.find(r => typeof r.tag_name === 'string' && r.tag_name.startsWith('stagehand-server/v'));
+            if (!release) {
+              core.setFailed('No stagehand-server/v* release found in browserbase/stagehand');
+              return;
+            }
+            core.info(`Using stagehand/server release tag: ${release.tag_name}`);
+            core.setOutput('tag', release.tag_name);
+            core.setOutput('id', String(release.id));
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "23"
-          cache: "pnpm"
-          cache-dependency-path: _stagehand/pnpm-lock.yaml
-
-      - name: Build SEA server binary (from source)
+      - name: Download stagehand/server SEA binary (from GitHub Release assets)
+        env:
+          GH_TOKEN: ${{ secrets.STAGEHAND_SOURCE_TOKEN || github.token }}
+          RELEASE_TAG: ${{ steps.stagehand-server-release.outputs.tag }}
+          RELEASE_ID: ${{ steps.stagehand-server-release.outputs.id }}
+          ASSET_NAME: ${{ matrix.binary_name }}
+          OUTPUT_PATH: ${{ matrix.output_path }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [[ -z "${{ inputs.stagehand_tag }}" && -z "${{ vars.STAGEHAND_TAG }}" ]]; then
-            echo "Missing stagehand ref: set repo variable STAGEHAND_TAG or provide workflow input stagehand_tag." >&2
-            exit 1
-          fi
-
-          # Ensure we only ship the binary built for this runner's OS/arch.
+          # Ensure we only ship the binary for this runner's OS/arch.
           python - <<'PY'
           from pathlib import Path
           sea_dir = Path("src/stagehand/_sea")
@@ -92,18 +87,62 @@ jobs:
               p.unlink(missing_ok=True)
           PY
 
-          pushd _stagehand >/dev/null
-          pnpm install --frozen-lockfile
-          CI=true pnpm --filter @browserbasehq/stagehand-server build:binary
-          popd >/dev/null
+          echo "Downloading ${ASSET_NAME} from browserbase/stagehand@${RELEASE_TAG}"
 
-          cp "_stagehand/packages/server/dist/sea/${{ matrix.binary_name }}" "${{ matrix.output_path }}"
-          chmod +x "${{ matrix.output_path }}" 2>/dev/null || true
+          url="$(
+            curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/browserbase/stagehand/releases/${RELEASE_ID}" \
+              | python -c 'import json,sys; d=json.load(sys.stdin); a=next((x for x in d.get("assets",[]) if x.get("name")==sys.argv[1]), None); print(a.get("url","") if a else "")' \
+              "${ASSET_NAME}"
+          )"
+
+          if [ -z "${url}" ]; then
+            echo "Release asset not found: ${ASSET_NAME} (tag=${RELEASE_TAG})" >&2
+            exit 1
+          fi
+
+          mkdir -p "$(dirname "${OUTPUT_PATH}")"
+          curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/octet-stream" \
+            "${url}" \
+            -o "${OUTPUT_PATH}"
+
+          chmod +x "${OUTPUT_PATH}" 2>/dev/null || true
+          rm -f src/stagehand/_sea/.keep || true
 
       - name: Build wheel
         env:
           STAGEHAND_WHEEL_TAG: py3-none-${{ matrix.wheel_platform_tag }}
         run: uv build --wheel
+
+      - name: Log SEA contents
+        shell: bash
+        run: |
+          echo "Contents of src/stagehand/_sea/"
+          ls -al src/stagehand/_sea || true
+          python - <<'PY'
+          import pathlib, zipfile, collections, sys
+          had_error = False
+          for wheel in sorted(pathlib.Path("dist").glob("*.whl")):
+              print(f"Contents of {wheel.name} entries matching stagehand/_sea")
+              with zipfile.ZipFile(wheel, "r") as zf:
+                  names = [info.filename for info in zf.infolist()]
+                  counts = collections.Counter(names)
+                  dups = sorted([name for name, n in counts.items() if n > 1])
+                  for info in zf.infolist():
+                      if "stagehand/_sea/" in info.filename:
+                          print(info.filename)
+                  if dups:
+                      had_error = True
+                      print("ERROR: duplicate zip entries detected:")
+                      for name in dups:
+                          print(f"  {counts[name]}x {name}")
+          if had_error:
+              sys.exit(1)
+          PY
 
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4

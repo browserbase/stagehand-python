@@ -1,9 +1,9 @@
 [project]
-name = "stagehand-alpha"
-version = "0.3.1"
+name = "stagehand"
+version = "3.5.0"
 description = "The official Python library for the stagehand API"
 dynamic = ["readme"]
-license = "Apache-2.0"
+license = "MIT"
 authors = [
 { name = "Stagehand", email = "" },
 ]
@@ -33,7 +33,7 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Topic :: Software Development :: Libraries :: Python Modules",
-  "License :: OSI Approved :: Apache Software License"
+  "License :: OSI Approved :: MIT License"
 ]
 
 [project.urls]
@@ -91,6 +91,12 @@ path = "hatch_build.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/stagehand"]
+exclude = [
+  "src/stagehand/_sea/.keep"
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/stagehand/_sea" = "stagehand/_sea"
 
 [tool.hatch.build.targets.sdist]
 # Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
@@ -116,7 +122,7 @@ path = "README.md"
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 # replace relative links with absolute links
 pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
-replacement = '[\1](https://github.com/browserbase/stagehand-python/tree/stainless/\g<2>)'
+replacement = '[\1](https://github.com/browserbase/stagehand-python/tree/main/\g<2>)'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

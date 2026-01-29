@@ -1,5 +1,97 @@
 # Changelog
 
+## 3.5.0 (2026-01-29)
+
+Full Changelog: [v3.4.8...v3.5.0](https://github.com/browserbase/stagehand-python/compare/v3.4.8...v3.5.0)
+
+### Features
+
+* add auto-bedrock support based on bedrock/provider.model-name ([eaded9f](https://github.com/browserbase/stagehand-python/commit/eaded9ffb050c297b86223c333044d8c22dd3cf4))
+* Update stainless.yml for project and publish settings ([f90c553](https://github.com/browserbase/stagehand-python/commit/f90c55378c03c18215d1cdc153f84d587e5048b0))
+
+
+### Bug Fixes
+
+* **docs:** fix mcp installation instructions for remote servers ([85f8584](https://github.com/browserbase/stagehand-python/commit/85f85840c9e9de4c0c1b07ec1ef41936788ea88b))
+
+
+### Chores
+
+* **internal:** version bump ([d227b02](https://github.com/browserbase/stagehand-python/commit/d227b0213aa729243fbc56d818a808536b98b191))
+* update SDK settings ([879b799](https://github.com/browserbase/stagehand-python/commit/879b7990e8095ca106bf9553159d6c7a01936ec9))
+
+## 3.4.8 (2026-01-27)
+
+Full Changelog: [v3.4.7...v3.4.8](https://github.com/browserbase/stagehand-python/compare/v3.4.7...v3.4.8)
+
+### Chores
+
+* sync repo ([efaf774](https://github.com/browserbase/stagehand-python/commit/efaf774f0dbd93db8e15e5c3800d62dd7670006c))
+
+## 3.4.7 (2026-01-15)
+
+Full Changelog: [v3.4.6...v3.4.7](https://github.com/browserbase/stagehand-python/compare/v3.4.6...v3.4.7)
+
+## 3.4.6 (2026-01-13)
+
+Full Changelog: [v3.4.5...v3.4.6](https://github.com/browserbase/stagehand-python/compare/v3.4.5...v3.4.6)
+
+### Chores
+
+* remove duplicate .keep files for pypi publish step fix ([5235658](https://github.com/browserbase/stagehand-python/commit/5235658b9360362d70d9154a96b53fe69167101d))
+
+## 3.4.5 (2026-01-13)
+
+Full Changelog: [v3.4.4...v3.4.5](https://github.com/browserbase/stagehand-python/compare/v3.4.4...v3.4.5)
+
+### Chores
+
+* windows logging/build fix ([5ed0e5f](https://github.com/browserbase/stagehand-python/commit/5ed0e5f633082295b1ab17af9291d6efc863d25d))
+
+## 3.4.4 (2026-01-13)
+
+Full Changelog: [v3.4.3...v3.4.4](https://github.com/browserbase/stagehand-python/compare/v3.4.3...v3.4.4)
+
+### Chores
+
+* publish-pypi lint fix ([71abdc6](https://github.com/browserbase/stagehand-python/commit/71abdc6f805c95f42da7c74dde961209a58290e7))
+
+## 3.4.3 (2026-01-13)
+
+Full Changelog: [v3.4.2...v3.4.3](https://github.com/browserbase/stagehand-python/compare/v3.4.2...v3.4.3)
+
+### Chores
+
+* force-include SEA binaries in wheel ([301147c](https://github.com/browserbase/stagehand-python/commit/301147ce8f7fde3726e04efaaecfcdc5755b7683))
+
+## 3.4.2 (2026-01-13)
+
+Full Changelog: [v3.4.1...v3.4.2](https://github.com/browserbase/stagehand-python/compare/v3.4.1...v3.4.2)
+
+### Chores
+
+* sync repo ([2d4bd0a](https://github.com/browserbase/stagehand-python/commit/2d4bd0aee5a1f03ed09473a43f5607871f05c7ee))
+
+## [3.4.1](https://github.com/browserbase/stagehand-python/compare/v0.4.0...v3.4.1) (2026-01-13)
+
+
+### Documentation
+
+* refresh README for release ([41926c7](https://github.com/browserbase/stagehand-python/commit/41926c77f9f8ffcca32c341a33d50dc731e1d84a))
+
+## [0.4.0](https://github.com/browserbase/stagehand-python/compare/v0.3.1...v0.4.0) (2026-01-13)
+
+
+### Features
+
+* don't close new opened tabs ([#161](https://github.com/browserbase/stagehand-python/issues/161)) ([#169](https://github.com/browserbase/stagehand-python/issues/169)) ([f68e86c](https://github.com/browserbase/stagehand-python/commit/f68e86c90d9e5f30d2f447ada65cc711ac531baa))
+
+
+### Bug Fixes
+
+* active page context ([#251](https://github.com/browserbase/stagehand-python/issues/251)) ([d61e118](https://github.com/browserbase/stagehand-python/commit/d61e118ccc8845ac95e4579f6137a91abb004943))
+* set injected Stagehand cursor position to fixed for correct viewport tracking ([#121](https://github.com/browserbase/stagehand-python/issues/121)) ([#122](https://github.com/browserbase/stagehand-python/issues/122)) ([93c16e3](https://github.com/browserbase/stagehand-python/commit/93c16e392d754227f9bec47ee9d9f26046bfb770))
+
 ## 0.3.1 (2026-01-13)
 
 Full Changelog: [v0.3.0...v0.3.1](https://github.com/browserbase/stagehand-python/compare/v0.3.0...v0.3.1)
