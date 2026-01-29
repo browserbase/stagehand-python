@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.5.0 (2026-01-29)
+
+Full Changelog: [v3.4.8...v3.5.0](https://github.com/browserbase/stagehand-python/compare/v3.4.8...v3.5.0)
+
+### Features
+
+* add auto-bedrock support based on bedrock/provider.model-name ([eaded9f](https://github.com/browserbase/stagehand-python/commit/eaded9ffb050c297b86223c333044d8c22dd3cf4))
+* Update stainless.yml for project and publish settings ([f90c553](https://github.com/browserbase/stagehand-python/commit/f90c55378c03c18215d1cdc153f84d587e5048b0))
+
+
+### Bug Fixes
+
+* **docs:** fix mcp installation instructions for remote servers ([85f8584](https://github.com/browserbase/stagehand-python/commit/85f85840c9e9de4c0c1b07ec1ef41936788ea88b))
+
+
+### Chores
+
+* **internal:** version bump ([d227b02](https://github.com/browserbase/stagehand-python/commit/d227b0213aa729243fbc56d818a808536b98b191))
+* update SDK settings ([879b799](https://github.com/browserbase/stagehand-python/commit/879b7990e8095ca106bf9553159d6c7a01936ec9))
+
 ## 3.4.8 (2026-01-27)
 
 Full Changelog: [v3.4.7...v3.4.8](https://github.com/browserbase/stagehand-python/compare/v3.4.7...v3.4.8)
