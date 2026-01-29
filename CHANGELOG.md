@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.5.1 (2026-01-29)
+
+Full Changelog: [v3.5.0...v3.5.1](https://github.com/browserbase/stagehand-python/compare/v3.5.0...v3.5.1)
+
+### Chores
+
+* sync repo ([033e0ba](https://github.com/browserbase/stagehand-python/commit/033e0ba529ae29b0732627291a09074306d7abb0))
+
 ## 3.5.0 (2026-01-29)
 
 Full Changelog: [v3.4.8...v3.5.0](https://github.com/browserbase/stagehand-python/compare/v3.4.8...v3.5.0)
