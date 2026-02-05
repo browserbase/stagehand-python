@@ -132,6 +132,14 @@ See [`examples/logging_example.py`](examples/logging_example.py) for a remote-on
 uv run python examples/logging_example.py
 ```
 
+## Remote Playwright (SSE) example
+
+See [`examples/remote_browser_playwright_example.py`](examples/remote_browser_playwright_example.py) for a remote Browserbase flow that attaches Playwright via CDP and streams SSE events for observe/act/extract/execute.
+
+```bash
+uv run python examples/remote_browser_playwright_example.py
+```
+
 <details>
 <summary><strong>Local development</strong></summary>
 
