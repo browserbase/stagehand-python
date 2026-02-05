@@ -45,7 +45,7 @@ async def main() -> None:
             # This is the key test - passing a string instead of an Action object
             print("\nAttempting to call act() with string input...")
             act_response = await session.act(
-                input="click the 'More information' link",  # String instruction
+                input="click the 'Learn more' link",  # String instruction
             )
 
             print(f"Act completed successfully!")
