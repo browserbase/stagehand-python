@@ -105,7 +105,7 @@ def main() -> None:
 
                 print("🖱️ Stagehand.act(page=...) ...")
                 _ = session.act(
-                    input="Click the 'More information' link",
+                    input="Click the 'Learn more' link",
                     page=page,
                 )
                 print("Done.")
