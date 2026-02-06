@@ -140,6 +140,14 @@ See [`examples/remote_browser_playwright_example.py`](examples/remote_browser_pl
 uv run python examples/remote_browser_playwright_example.py
 ```
 
+## Local Playwright (SSE) example
+
+See [`examples/local_browser_playwright_example.py`](examples/local_browser_playwright_example.py) for a local Stagehand flow that launches Playwright locally, shares its CDP URL with Stagehand, and streams SSE events for observe/act/extract/execute.
+
+```bash
+uv run python examples/local_browser_playwright_example.py
+```
+
 <details>
 <summary><strong>Local development</strong></summary>
 
