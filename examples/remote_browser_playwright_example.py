@@ -24,6 +24,8 @@ import os
 import sys
 from typing import Any, Optional
 
+from env import load_example_env
+
 from stagehand import Stagehand
 
 
@@ -46,6 +48,7 @@ def _print_stream_events(stream: Any, label: str) -> object | None:
 
 
 def main() -> None:
+    load_example_env()
     model_api_key = os.environ.get("MODEL_API_KEY")
     if not model_api_key:
         sys.exit("Set the MODEL_API_KEY environment variable to run this example.")

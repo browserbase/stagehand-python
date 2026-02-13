@@ -22,10 +22,31 @@ import os
 import sys
 from typing import Optional
 
+from env import load_example_env
+
 from stagehand import Stagehand
 
 
+def _stream_to_result(stream, label: str) -> object | None:
+    result_payload: object | None = None
+    for event in stream:
+        if event.type == "log":
+            print(f"[{label}][log] {event.data.message}")
+            continue
+
+        status = event.data.status
+        print(f"[{label}][system] status={status}")
+        if status == "finished":
+            result_payload = event.data.result
+        elif status == "error":
+            error_message = event.data.error or "unknown error"
+            raise RuntimeError(f"{label} stream reported error: {error_message}")
+
+    return result_payload
+
+
 def main() -> None:
+    load_example_env()
     model_api_key = os.environ.get("MODEL_API_KEY")
     if not model_api_key:
         sys.exit("Set the MODEL_API_KEY environment variable to run this example.")
@@ -81,14 +102,18 @@ def main() -> None:
                 page.goto("https://example.com", wait_until="domcontentloaded")
 
                 print("👀 Stagehand.observe(page=...) ...")
-                actions = session.observe(
+                observe_stream = session.observe(
                     instruction="Find the most relevant click target on this page",
                     page=page,
+                    stream_response=True,
+                    x_stream_response="true",
                 )
-                print(f"Observed {len(actions.data.result)} actions")
+                actions = _stream_to_result(observe_stream, "observe")
+                actions = actions if isinstance(actions, list) else []
+                print(f"Observed {len(actions)} actions")
 
                 print("🧠 Stagehand.extract(page=...) ...")
-                extracted = session.extract(
+                extract_stream = session.extract(
                     instruction="Extract the page title and the primary heading (h1) text",
                     schema={
                         "type": "object",
@@ -100,14 +125,20 @@ def main() -> None:
                         "additionalProperties": False,
                     },
                     page=page,
+                    stream_response=True,
+                    x_stream_response="true",
                 )
-                print("Extracted:", extracted.data.result)
+                extracted = _stream_to_result(extract_stream, "extract")
+                print("Extracted:", extracted)
 
                 print("🖱️ Stagehand.act(page=...) ...")
-                _ = session.act(
+                act_stream = session.act(
                     input="Click the 'Learn more' link",
                     page=page,
+                    stream_response=True,
+                    x_stream_response="true",
                 )
+                _stream_to_result(act_stream, "act")
                 print("Done.")
             finally:
                 browser.close()

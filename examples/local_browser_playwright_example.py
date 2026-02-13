@@ -20,9 +20,15 @@ Optional:
 
 from __future__ import annotations
 
+import json
 import os
+import socket
 import sys
+import time
 from typing import Any, Optional
+from urllib.request import urlopen
+
+from env import load_example_env
 
 from stagehand import Stagehand
 
@@ -45,7 +51,32 @@ def _print_stream_events(stream: Any, label: str) -> object | None:
     return result_payload
 
 
+def _pick_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def _resolve_cdp_ws_url(port: int) -> str:
+    url = f"http://127.0.0.1:{port}/json/version"
+    last_error: Exception | None = None
+    for _ in range(40):
+        try:
+            with urlopen(url, timeout=1) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            ws_url = payload.get("webSocketDebuggerUrl")
+            if ws_url:
+                return str(ws_url)
+        except Exception as exc:  # noqa: BLE001 - transient startup errors are expected
+            last_error = exc
+        time.sleep(0.1)
+    raise RuntimeError(
+        f"Unable to resolve CDP websocket URL from {url}. Last error: {last_error}"
+    )
+
+
 def main() -> None:
+    load_example_env()
     model_api_key = os.environ.get("MODEL_API_KEY")
     if not model_api_key:
         sys.exit("Set the MODEL_API_KEY environment variable to run this example.")
@@ -79,8 +110,16 @@ def main() -> None:
         print("⏳ Starting Stagehand session (local server + local browser)...")
 
         with sync_playwright() as p:
-            browser_server = p.chromium.launch_server(headless=True)
-            cdp_url = browser_server.ws_endpoint
+            port = _pick_free_port()
+            browser = p.chromium.launch(
+                headless=True,
+                args=[f"--remote-debugging-port={port}"],
+            )
+            cdp_url = _resolve_cdp_ws_url(port)
+
+            context = browser.new_context()
+            page = context.new_page()
+            page.goto("about:blank", wait_until="domcontentloaded")
 
             session = client.sessions.start(
                 model_name="openai/gpt-5-nano",
@@ -95,11 +134,7 @@ def main() -> None:
             print(f"✅ Session started: {session_id}")
             print("🔌 Connecting Playwright to the same browser over CDP...")
 
-            browser = p.chromium.connect_over_cdp(cdp_url)
             try:
-                context = browser.contexts[0] if browser.contexts else browser.new_context()
-                page = context.pages[0] if context.pages else context.new_page()
-
                 page.goto("https://example.com", wait_until="domcontentloaded")
 
                 print("👀 Stagehand.observe(page=...) with SSE streaming...")
@@ -161,7 +196,6 @@ def main() -> None:
                 print("Execute result:", execute_result)
             finally:
                 browser.close()
-                browser_server.close()
                 session.end()
                 print("✅ Session ended.")
 
