@@ -20,11 +20,11 @@ Optional:
 
 from __future__ import annotations
 
-import json
 import os
-import socket
 import sys
+import json
 import time
+import socket
 from typing import Any, Optional
 from urllib.request import urlopen
 
