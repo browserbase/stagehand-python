@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 import httpx
-import nest_asyncio
 from dotenv import load_dotenv
 from playwright.async_api import (
     BrowserContext,
@@ -782,12 +781,10 @@ class Stagehand:
                     # Try to get current event loop
                     try:
                         asyncio.get_running_loop()
-                        # We're in an async context, need to handle this carefully
-                        # Create a new task and wait for it
-                        nest_asyncio.apply()
-                        return asyncio.run(get_replay_metrics())
+                        # Already in async context, return empty metrics
+                        return StagehandMetrics()
                     except RuntimeError:
-                        # No event loop running, we can use asyncio.run directly
+                        # No event loop running, safe to use asyncio.run
                         return asyncio.run(get_replay_metrics())
                 except Exception as e:
                     # Log error and return empty metrics
