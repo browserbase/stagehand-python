@@ -85,6 +85,15 @@ Python 3.9 or higher.
 
 A complete working example is available at [`examples/full_example.py`](examples/full_example.py).
 
+Before running examples, set up the example environment file:
+
+```bash
+cp examples/.env.example examples/.env
+# Edit examples/.env with your credentials.
+```
+
+The examples load `examples/.env` automatically.
+
 To run it, first export the required environment variables, then use Python:
 
 ```bash

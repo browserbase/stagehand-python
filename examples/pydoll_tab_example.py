@@ -30,7 +30,27 @@ import sys
 import asyncio
 from typing import Any
 
+from env import load_example_env
+
 from stagehand import AsyncStagehand
+
+
+async def _stream_to_result(stream, label: str) -> object | None:
+    result_payload: object | None = None
+    async for event in stream:
+        if event.type == "log":
+            print(f"[{label}][log] {event.data.message}")
+            continue
+
+        status = event.data.status
+        print(f"[{label}][system] status={status}")
+        if status == "finished":
+            result_payload = event.data.result
+        elif status == "error":
+            error_message = event.data.error or "unknown error"
+            raise RuntimeError(f"{label} stream reported error: {error_message}")
+
+    return result_payload
 
 
 def _normalize_ws_address_for_pydoll(cdp_url: str) -> str:
@@ -94,6 +114,8 @@ async def _pydoll_session_to_frame_id(*, handler: Any, session_id: str) -> str:
 
 
 async def main() -> None:
+    load_example_env()
+    load_example_env()
     model_api_key = os.environ.get("MODEL_API_KEY")
     if not model_api_key:
         sys.exit("Set the MODEL_API_KEY environment variable to run this example.")
@@ -174,14 +196,18 @@ async def main() -> None:
             print(f"🧩 frame_id: {frame_id}")
 
             print("👀 Stagehand.observe(frame_id=...) ...")
-            actions = await session.observe(
+            observe_stream = await session.observe(
                 instruction="Find the most relevant click target on this page",
                 frame_id=frame_id,
+                stream_response=True,
+                x_stream_response="true",
             )
-            print(f"Observed {len(actions.data.result)} actions")
+            actions = await _stream_to_result(observe_stream, "observe")
+            actions = actions if isinstance(actions, list) else []
+            print(f"Observed {len(actions)} actions")
 
             print("🧠 Stagehand.extract(frame_id=...) ...")
-            extracted = await session.extract(
+            extract_stream = await session.extract(
                 instruction="Extract the page title and the primary heading (h1) text",
                 schema={
                     "type": "object",
@@ -193,8 +219,11 @@ async def main() -> None:
                     "additionalProperties": False,
                 },
                 frame_id=frame_id,
+                stream_response=True,
+                x_stream_response="true",
             )
-            print("Extracted:", extracted.data.result)
+            extracted = await _stream_to_result(extract_stream, "extract")
+            print("Extracted:", extracted)
 
         finally:
             close = getattr(chrome, "close", None)

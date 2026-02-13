@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Example showing how to bring your own browser driver while still using Stagehand.
 
@@ -20,15 +18,38 @@ uv run python examples/byob_example.py
 ```
 """
 
+from __future__ import annotations
+
 import os
 import asyncio
 
+from env import load_example_env
 from playwright.async_api import async_playwright
 
 from stagehand import AsyncStagehand
 
 
+async def _stream_to_result(stream, label: str) -> object | None:
+    result_payload: object | None = None
+    async for event in stream:
+        if event.type == "log":
+            print(f"[{label}][log] {event.data.message}")
+            continue
+
+        status = event.data.status
+        print(f"[{label}][system] status={status}")
+        if status == "finished":
+            result_payload = event.data.result
+        elif status == "error":
+            error_message = event.data.error or "unknown error"
+            raise RuntimeError(f"{label} stream reported error: {error_message}")
+
+    return result_payload
+
+
 async def main() -> None:
+    load_example_env()
+    load_example_env()
     async with AsyncStagehand(
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
         browserbase_project_id=os.environ.get("BROWSERBASE_PROJECT_ID"),
@@ -55,16 +76,19 @@ async def main() -> None:
             print("🔄 Syncing Stagehand to Playwright's current URL:", page.url)
             await session.navigate(url=page.url)
 
-            extract_response = await session.extract(
+            extract_stream = await session.extract(
                 instruction="extract the text of the top comment on this page",
                 schema={
                     "type": "object",
                     "properties": {"comment": {"type": "string"}},
                     "required": ["comment"],
                 },
+                stream_response=True,
+                x_stream_response="true",
             )
 
-            print("🧮 Stagehand extraction result:", extract_response.data.result)
+            extract_result = await _stream_to_result(extract_stream, "extract")
+            print("🧮 Stagehand extraction result:", extract_result)
         finally:
             await session.end()
             await browser.close()

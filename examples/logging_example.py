@@ -8,12 +8,18 @@ Required environment variables:
 - MODEL_API_KEY: Your OpenAI API key
 """
 
+from __future__ import annotations
+
 import os
+
+from env import load_example_env
 
 from stagehand import AsyncStagehand
 
 
 async def main() -> None:
+    load_example_env()
+    load_example_env()
     # Create client using environment variables
     async with AsyncStagehand(
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
