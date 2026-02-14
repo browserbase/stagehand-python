@@ -6,7 +6,7 @@ from typing import Any
 from .metrics import StagehandMetrics
 from .utils import convert_dict_keys_to_camel_case
 
-__all__ = ["_create_session", "_execute", "_get_replay_metrics"]
+__all__ = ["_create_session", "_execute", "_get_replay_metrics", "_get_replay_metrics_sync"]
 
 
 async def _create_session(self):
@@ -210,11 +210,59 @@ async def _execute(self, method: str, payload: dict[str, Any]) -> Any:
         raise
 
 
+def _parse_replay_metrics_data(data: dict) -> StagehandMetrics:
+    """
+    Parse raw API response data into StagehandMetrics.
+    Shared by both async and sync fetch paths.
+    """
+    if not data.get("success"):
+        raise RuntimeError(
+            f"Failed to fetch metrics: {data.get('error', 'Unknown error')}"
+        )
+
+    api_data = data.get("data", {})
+    metrics = StagehandMetrics()
+
+    pages = api_data.get("pages", [])
+    for page in pages:
+        actions = page.get("actions", [])
+        for action in actions:
+            method = action.get("method", "").lower()
+            token_usage = action.get("tokenUsage", {})
+
+            if token_usage:
+                input_tokens = token_usage.get("inputTokens", 0)
+                output_tokens = token_usage.get("outputTokens", 0)
+                time_ms = token_usage.get("timeMs", 0)
+
+                if method == "act":
+                    metrics.act_prompt_tokens += input_tokens
+                    metrics.act_completion_tokens += output_tokens
+                    metrics.act_inference_time_ms += time_ms
+                elif method == "extract":
+                    metrics.extract_prompt_tokens += input_tokens
+                    metrics.extract_completion_tokens += output_tokens
+                    metrics.extract_inference_time_ms += time_ms
+                elif method == "observe":
+                    metrics.observe_prompt_tokens += input_tokens
+                    metrics.observe_completion_tokens += output_tokens
+                    metrics.observe_inference_time_ms += time_ms
+                elif method == "agent":
+                    metrics.agent_prompt_tokens += input_tokens
+                    metrics.agent_completion_tokens += output_tokens
+                    metrics.agent_inference_time_ms += time_ms
+
+                metrics.total_prompt_tokens += input_tokens
+                metrics.total_completion_tokens += output_tokens
+                metrics.total_inference_time_ms += time_ms
+
+    return metrics
+
+
 async def _get_replay_metrics(self):
     """
-    Fetch replay metrics from the API and parse them into StagehandMetrics.
+    Fetch replay metrics from the API (async version).
     """
-
     if not self.session_id:
         raise ValueError("session_id is required to fetch metrics.")
 
@@ -241,55 +289,46 @@ async def _get_replay_metrics(self):
                 f"Failed to fetch metrics with status {response.status_code}: {error_text}"
             )
 
-        data = response.json()
+        return _parse_replay_metrics_data(response.json())
 
-        if not data.get("success"):
+    except Exception as e:
+        self.logger.error(f"[EXCEPTION] Error fetching replay metrics: {str(e)}")
+        raise
+
+
+def _get_replay_metrics_sync(self):
+    """
+    Fetch replay metrics from the API (sync version).
+    Uses a synchronous httpx request so it can be called from sync contexts
+    even when an async event loop is already running.
+    """
+    import httpx
+
+    if not self.session_id:
+        raise ValueError("session_id is required to fetch metrics.")
+
+    headers = {
+        "x-bb-api-key": self.browserbase_api_key,
+        "x-bb-project-id": self.browserbase_project_id,
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = httpx.get(
+            f"{self.api_url}/sessions/{self.session_id}/replay",
+            headers=headers,
+            timeout=self.timeout_settings,
+        )
+
+        if response.status_code != 200:
+            self.logger.error(
+                f"[HTTP ERROR] Failed to fetch metrics. Status {response.status_code}: {response.text}"
+            )
             raise RuntimeError(
-                f"Failed to fetch metrics: {data.get('error', 'Unknown error')}"
+                f"Failed to fetch metrics with status {response.status_code}: {response.text}"
             )
 
-        # Parse the API data into StagehandMetrics format
-        api_data = data.get("data", {})
-        metrics = StagehandMetrics()
-
-        # Parse pages and their actions
-        pages = api_data.get("pages", [])
-        for page in pages:
-            actions = page.get("actions", [])
-            for action in actions:
-                # Get method name and token usage
-                method = action.get("method", "").lower()
-                token_usage = action.get("tokenUsage", {})
-
-                if token_usage:
-                    input_tokens = token_usage.get("inputTokens", 0)
-                    output_tokens = token_usage.get("outputTokens", 0)
-                    time_ms = token_usage.get("timeMs", 0)
-
-                    # Map method to metrics fields
-                    if method == "act":
-                        metrics.act_prompt_tokens += input_tokens
-                        metrics.act_completion_tokens += output_tokens
-                        metrics.act_inference_time_ms += time_ms
-                    elif method == "extract":
-                        metrics.extract_prompt_tokens += input_tokens
-                        metrics.extract_completion_tokens += output_tokens
-                        metrics.extract_inference_time_ms += time_ms
-                    elif method == "observe":
-                        metrics.observe_prompt_tokens += input_tokens
-                        metrics.observe_completion_tokens += output_tokens
-                        metrics.observe_inference_time_ms += time_ms
-                    elif method == "agent":
-                        metrics.agent_prompt_tokens += input_tokens
-                        metrics.agent_completion_tokens += output_tokens
-                        metrics.agent_inference_time_ms += time_ms
-
-                    # Always update totals for any method with token usage
-                    metrics.total_prompt_tokens += input_tokens
-                    metrics.total_completion_tokens += output_tokens
-                    metrics.total_inference_time_ms += time_ms
-
-        return metrics
+        return _parse_replay_metrics_data(response.json())
 
     except Exception as e:
         self.logger.error(f"[EXCEPTION] Error fetching replay metrics: {str(e)}")

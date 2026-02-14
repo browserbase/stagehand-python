@@ -16,7 +16,12 @@ from playwright.async_api import (
 from playwright.async_api import Page as PlaywrightPage
 
 from .agent import Agent
-from .api import _create_session, _execute, _get_replay_metrics
+from .api import (
+    _create_session,
+    _execute,
+    _get_replay_metrics,
+    _get_replay_metrics_sync,
+)
 from .browser import (
     cleanup_browser_resources,
     connect_browserbase_browser,
@@ -781,8 +786,12 @@ class Stagehand:
                     # Try to get current event loop
                     try:
                         asyncio.get_running_loop()
-                        # Already in async context, return empty metrics
-                        return StagehandMetrics()
+                        # Already in async context - use sync HTTP to avoid
+                        # event loop nesting issues
+                        get_replay_metrics_sync = object.__getattribute__(
+                            self, "_get_replay_metrics_sync"
+                        )
+                        return get_replay_metrics_sync()
                     except RuntimeError:
                         # No event loop running, safe to use asyncio.run
                         return asyncio.run(get_replay_metrics())
@@ -804,3 +813,4 @@ class Stagehand:
 Stagehand._create_session = _create_session
 Stagehand._execute = _execute
 Stagehand._get_replay_metrics = _get_replay_metrics
+Stagehand._get_replay_metrics_sync = _get_replay_metrics_sync
