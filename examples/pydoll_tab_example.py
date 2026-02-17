@@ -143,7 +143,7 @@ async def main() -> None:
     ) as client:
         print("⏳ Starting Stagehand session...")
         session = await client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
             browser={"type": "browserbase"},
         )
 

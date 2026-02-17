@@ -60,7 +60,7 @@ def main() -> None:
     try:
         print("⏳ Starting local session (this will start the embedded SEA binary)...")
         session = client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
             browser={
                 "type": "local",
                 "launchOptions": {

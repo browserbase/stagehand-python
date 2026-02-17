@@ -28,7 +28,7 @@ async def main() -> None:
     ) as client:
         # Start a new browser session with verbose logging enabled
         session = await client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
             verbose=2,
         )
 
