@@ -199,7 +199,7 @@ def main() -> None:
                     "max_steps": 3,
                 },
                 agent_config={
-                    "model": {"model_name": "anthropic/claude-sonnet-4-6"},
+                    "model": {"model_name": "anthropic/claude-opus-4-6"},
                     "cua": False,
                 },
                 stream_response=True,

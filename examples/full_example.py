@@ -139,7 +139,7 @@ async def main() -> None:
                 },
                 agent_config={
                     "model": {
-                        "model_name": "anthropic/claude-sonnet-4-6",
+                        "model_name": "anthropic/claude-opus-4-6",
                         "api_key": os.environ.get("MODEL_API_KEY"),
                     },
                     "cua": False,

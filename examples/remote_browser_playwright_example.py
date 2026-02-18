@@ -149,7 +149,7 @@ def main() -> None:
 
                     print("🤖 Stagehand.execute(page=...) with SSE streaming...")
                     execute_stream = session.execute(
-                        agent_config={"model": "anthropic/claude-sonnet-4-6"},
+                        agent_config={"model": "anthropic/claude-opus-4-6"},
                         execute_options={
                             "instruction": (
                                 "Open the 'Learn more' link if present and summarize the destination in one sentence."
