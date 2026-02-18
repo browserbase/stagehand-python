@@ -79,7 +79,7 @@ def main() -> None:
     ) as client:
         print("⏳ Starting Stagehand session...")
         session = client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
             browser={"type": "browserbase"},
             verbose=2,
         )
@@ -149,7 +149,7 @@ def main() -> None:
 
                     print("🤖 Stagehand.execute(page=...) with SSE streaming...")
                     execute_stream = session.execute(
-                        agent_config={"model": "openai/gpt-5-nano"},
+                        agent_config={"model": "anthropic/claude-opus-4-6"},
                         execute_options={
                             "instruction": (
                                 "Open the 'Learn more' link if present and summarize the destination in one sentence."

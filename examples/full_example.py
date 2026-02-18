@@ -55,7 +55,7 @@ async def main() -> None:
     ) as client:
         # Start a new browser session (returns a session helper bound to a session_id)
         session = await client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
         )
 
         print(f"Session started: {session.id}")
@@ -139,7 +139,7 @@ async def main() -> None:
                 },
                 agent_config={
                     "model": {
-                        "model_name": "openai/gpt-5-nano",
+                        "model_name": "anthropic/claude-opus-4-6",
                         "api_key": os.environ.get("MODEL_API_KEY"),
                     },
                     "cua": False,

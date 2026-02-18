@@ -7,7 +7,7 @@ Required environment variables:
 - MODEL_API_KEY
 
 Optional:
-- STAGEHAND_MODEL (defaults to "openai/gpt-5-nano")
+- STAGEHAND_MODEL (defaults to "anthropic/claude-sonnet-4-6")
 
 Run from the repo root:
   `PYTHONPATH=src .venv/bin/python examples/agent_execute_minimal.py`
@@ -44,7 +44,7 @@ async def _stream_to_result(stream, label: str) -> object | None:
 async def main() -> None:
     load_example_env()
     load_example_env()
-    model_name = os.environ.get("STAGEHAND_MODEL", "openai/gpt-5-nano")
+    model_name = os.environ.get("STAGEHAND_MODEL", "anthropic/claude-sonnet-4-6")
 
     # Enable strict response validation so we fail fast if the API response
     # doesn't match the expected schema (instead of silently constructing models
