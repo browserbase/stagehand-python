@@ -26,7 +26,7 @@ base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 class TestSessions:
     parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_act_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.act(
@@ -35,7 +35,7 @@ class TestSessions:
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_act_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.act(
@@ -52,7 +52,7 @@ class TestSessions:
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_act_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.act(
@@ -65,7 +65,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionActResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_act_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.act(
@@ -80,7 +80,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_act_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -89,7 +89,7 @@ class TestSessions:
                 input="Click the login button",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_act_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.act(
@@ -99,7 +99,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_act_with_all_params_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.act(
@@ -116,7 +116,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_act_overload_2(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.act(
@@ -129,7 +129,7 @@ class TestSessions:
         stream = response.parse()
         stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_act_overload_2(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.act(
@@ -145,7 +145,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_act_overload_2(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -155,7 +155,7 @@ class TestSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_end(self, client: Stagehand) -> None:
         session = client.sessions.end(
@@ -163,7 +163,7 @@ class TestSessions:
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_end_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.end(
@@ -172,7 +172,7 @@ class TestSessions:
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_end(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.end(
@@ -184,7 +184,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionEndResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_end(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.end(
@@ -198,7 +198,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_end(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -206,7 +206,7 @@ class TestSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_execute_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.execute(
@@ -218,7 +218,7 @@ class TestSessions:
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_execute_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.execute(
@@ -255,7 +255,7 @@ class TestSessions:
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_execute_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.execute(
@@ -271,7 +271,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_execute_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.execute(
@@ -289,7 +289,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_execute_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -301,7 +301,7 @@ class TestSessions:
                 },
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_execute_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.execute(
@@ -314,7 +314,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_execute_with_all_params_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.execute(
@@ -351,7 +351,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_execute_overload_2(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.execute(
@@ -367,7 +367,7 @@ class TestSessions:
         stream = response.parse()
         stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_execute_overload_2(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.execute(
@@ -386,7 +386,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_execute_overload_2(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -399,7 +399,7 @@ class TestSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_extract_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.extract(
@@ -407,7 +407,7 @@ class TestSessions:
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_extract_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.extract(
@@ -425,7 +425,7 @@ class TestSessions:
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_extract_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.extract(
@@ -437,7 +437,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionExtractResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_extract_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.extract(
@@ -451,7 +451,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_extract_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -459,7 +459,7 @@ class TestSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_extract_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.extract(
@@ -468,7 +468,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_extract_with_all_params_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.extract(
@@ -486,7 +486,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_extract_overload_2(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.extract(
@@ -498,7 +498,7 @@ class TestSessions:
         stream = response.parse()
         stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_extract_overload_2(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.extract(
@@ -513,7 +513,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_extract_overload_2(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -522,7 +522,7 @@ class TestSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_navigate(self, client: Stagehand) -> None:
         session = client.sessions.navigate(
@@ -531,7 +531,7 @@ class TestSessions:
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_navigate_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.navigate(
@@ -548,7 +548,7 @@ class TestSessions:
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_navigate(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.navigate(
@@ -561,7 +561,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_navigate(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.navigate(
@@ -576,7 +576,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_navigate(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -585,7 +585,7 @@ class TestSessions:
                 url="https://example.com",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_observe_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.observe(
@@ -593,7 +593,7 @@ class TestSessions:
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_observe_with_all_params_overload_1(self, client: Stagehand) -> None:
         session = client.sessions.observe(
@@ -610,7 +610,7 @@ class TestSessions:
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_observe_overload_1(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.observe(
@@ -622,7 +622,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionObserveResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_observe_overload_1(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.observe(
@@ -636,7 +636,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_observe_overload_1(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -644,7 +644,7 @@ class TestSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_observe_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.observe(
@@ -653,7 +653,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_observe_with_all_params_overload_2(self, client: Stagehand) -> None:
         session_stream = client.sessions.observe(
@@ -670,7 +670,7 @@ class TestSessions:
         )
         session_stream.response.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_observe_overload_2(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.observe(
@@ -682,7 +682,7 @@ class TestSessions:
         stream = response.parse()
         stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_observe_overload_2(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.observe(
@@ -697,7 +697,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_observe_overload_2(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -706,7 +706,7 @@ class TestSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_replay(self, client: Stagehand) -> None:
         session = client.sessions.replay(
@@ -714,7 +714,7 @@ class TestSessions:
         )
         assert_matches_type(SessionReplayResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_replay_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.replay(
@@ -723,7 +723,7 @@ class TestSessions:
         )
         assert_matches_type(SessionReplayResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_replay(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.replay(
@@ -735,7 +735,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionReplayResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_replay(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.replay(
@@ -749,7 +749,7 @@ class TestSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_path_params_replay(self, client: Stagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -757,7 +757,7 @@ class TestSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_start(self, client: Stagehand) -> None:
         session = client.sessions.start(
@@ -765,7 +765,7 @@ class TestSessions:
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_method_start_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.start(
@@ -853,7 +853,7 @@ class TestSessions:
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_raw_response_start(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.start(
@@ -865,7 +865,7 @@ class TestSessions:
         session = response.parse()
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     def test_streaming_response_start(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.start(
@@ -885,7 +885,7 @@ class TestAsyncSessions:
         "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
     )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_act_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.act(
@@ -894,7 +894,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_act_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.act(
@@ -911,7 +911,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionActResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_act_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.act(
@@ -924,7 +924,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionActResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_act_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.act(
@@ -939,7 +939,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_act_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -948,7 +948,7 @@ class TestAsyncSessions:
                 input="Click the login button",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_act_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.act(
@@ -958,7 +958,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_act_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.act(
@@ -975,7 +975,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_act_overload_2(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.act(
@@ -988,7 +988,7 @@ class TestAsyncSessions:
         stream = await response.parse()
         await stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_act_overload_2(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.act(
@@ -1004,7 +1004,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_act_overload_2(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1014,7 +1014,7 @@ class TestAsyncSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_end(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
@@ -1022,7 +1022,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_end_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.end(
@@ -1031,7 +1031,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionEndResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_end(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.end(
@@ -1043,7 +1043,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionEndResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_end(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.end(
@@ -1057,7 +1057,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_end(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1065,7 +1065,7 @@ class TestAsyncSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.execute(
@@ -1077,7 +1077,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_execute_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.execute(
@@ -1114,7 +1114,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.execute(
@@ -1130,7 +1130,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionExecuteResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.execute(
@@ -1148,7 +1148,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_execute_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1160,7 +1160,7 @@ class TestAsyncSessions:
                 },
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_execute_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.execute(
@@ -1173,7 +1173,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_execute_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.execute(
@@ -1210,7 +1210,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_execute_overload_2(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.execute(
@@ -1226,7 +1226,7 @@ class TestAsyncSessions:
         stream = await response.parse()
         await stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_execute_overload_2(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.execute(
@@ -1245,7 +1245,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_execute_overload_2(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1258,7 +1258,7 @@ class TestAsyncSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.extract(
@@ -1266,7 +1266,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_extract_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.extract(
@@ -1284,7 +1284,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionExtractResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.extract(
@@ -1296,7 +1296,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionExtractResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.extract(
@@ -1310,7 +1310,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_extract_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1318,7 +1318,7 @@ class TestAsyncSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_extract_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.extract(
@@ -1327,7 +1327,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_extract_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.extract(
@@ -1345,7 +1345,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_extract_overload_2(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.extract(
@@ -1357,7 +1357,7 @@ class TestAsyncSessions:
         stream = await response.parse()
         await stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_extract_overload_2(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.extract(
@@ -1372,7 +1372,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_extract_overload_2(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1381,7 +1381,7 @@ class TestAsyncSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_navigate(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.navigate(
@@ -1390,7 +1390,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_navigate_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.navigate(
@@ -1407,7 +1407,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_navigate(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.navigate(
@@ -1420,7 +1420,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionNavigateResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_navigate(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.navigate(
@@ -1435,7 +1435,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_navigate(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1444,7 +1444,7 @@ class TestAsyncSessions:
                 url="https://example.com",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.observe(
@@ -1452,7 +1452,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_observe_with_all_params_overload_1(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.observe(
@@ -1469,7 +1469,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionObserveResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.observe(
@@ -1481,7 +1481,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionObserveResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.observe(
@@ -1495,7 +1495,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_observe_overload_1(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1503,7 +1503,7 @@ class TestAsyncSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_observe_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.observe(
@@ -1512,7 +1512,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_observe_with_all_params_overload_2(self, async_client: AsyncStagehand) -> None:
         session_stream = await async_client.sessions.observe(
@@ -1529,7 +1529,7 @@ class TestAsyncSessions:
         )
         await session_stream.response.aclose()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_observe_overload_2(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.observe(
@@ -1541,7 +1541,7 @@ class TestAsyncSessions:
         stream = await response.parse()
         await stream.close()
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_observe_overload_2(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.observe(
@@ -1556,7 +1556,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_observe_overload_2(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1565,7 +1565,7 @@ class TestAsyncSessions:
                 stream_response=True,
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_replay(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.replay(
@@ -1573,7 +1573,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionReplayResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_replay_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.replay(
@@ -1582,7 +1582,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionReplayResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_replay(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.replay(
@@ -1594,7 +1594,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionReplayResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_replay(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.replay(
@@ -1608,7 +1608,7 @@ class TestAsyncSessions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_path_params_replay(self, async_client: AsyncStagehand) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `id` but received ''"):
@@ -1616,7 +1616,7 @@ class TestAsyncSessions:
                 id="",
             )
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_start(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
@@ -1624,7 +1624,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_method_start_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
@@ -1712,7 +1712,7 @@ class TestAsyncSessions:
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_raw_response_start(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.start(
@@ -1724,7 +1724,7 @@ class TestAsyncSessions:
         session = await response.parse()
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
-    @pytest.mark.skip(reason="Prism tests are disabled")
+    @pytest.mark.skip(reason="Mock server tests are disabled")
     @parametrize
     async def test_streaming_response_start(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.start(
