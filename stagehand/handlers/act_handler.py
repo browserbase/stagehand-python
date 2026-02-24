@@ -95,11 +95,16 @@ class ActHandler:
             # Substitute variables in arguments
             if options.get("variables"):
                 variables = options.get("variables", {})
-                element_to_act_on.arguments = [
-                    str(arg).replace(f"{key}", str(value))
-                    for arg in element_to_act_on.arguments or []
-                    for key, value in variables.items()
-                ]
+                replaced_args = []
+                for arg in element_to_act_on.arguments or []:
+                    replaced = str(arg)
+                    for key, value in variables.items():
+                        if f"%{key}%" in replaced:
+                            replaced = replaced.replace(f"%{key}%", str(value))
+                        else:
+                            replaced = replaced.replace(key, str(value))
+                    replaced_args.append(replaced)
+                element_to_act_on.arguments = replaced_args
 
             # domSettleTimeoutMs might come from options if specified for act
             dom_settle_timeout_ms = options.get("dom_settle_timeout_ms")

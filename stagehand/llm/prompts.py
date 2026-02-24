@@ -205,7 +205,7 @@ If the action implies choosing an option from a dropdown, AND the corresponding 
 If the action implies choosing an option from a dropdown, and the corresponding element is NOT a 'select' element, choose the click method."""
 
     if variables and len(variables) > 0:
-        variables_prompt = f"The following variables are available to use in the action: {', '.join(variables.keys())}. Fill the argument variables with the variable name."
+        variables_prompt = f"The following variables are available to use in the action: {', '.join(variables.keys())}. Fill the argument variables with the variable name. Wrap the argument in % symbols."
         instruction += f" {variables_prompt}"
 
     return instruction
