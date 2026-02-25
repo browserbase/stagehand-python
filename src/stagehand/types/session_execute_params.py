@@ -59,7 +59,7 @@ class AgentConfig(TypedDict, total=False):
     model: AgentConfigModel
     """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
-    provider: Literal["openai", "anthropic", "google", "microsoft"]
+    provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
     """AI provider for the agent (legacy, use model: openai/gpt-5-nano instead)"""
 
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]

@@ -19,5 +19,5 @@ class ModelConfigParam(TypedDict, total=False):
     base_url: Annotated[str, PropertyInfo(alias="baseURL")]
     """Base URL for the model provider"""
 
-    provider: Literal["openai", "anthropic", "google", "microsoft"]
+    provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
     """AI provider for the model (or provide a baseURL endpoint instead)"""
