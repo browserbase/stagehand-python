@@ -1,3 +1,4 @@
+<!-- x-stagehand-custom-start -->
 <div id="toc" align="center" style="margin-bottom: 0;">
   <ul style="list-style: none; margin: 0; padding: 0;">
     <a href="https://stagehand.dev">
@@ -50,6 +51,7 @@ If you're looking for other languages, you can find them
     <img alt="Director" src="https://raw.githubusercontent.com/browserbase/stagehand/main/media/director_icon.svg" width="25" />
   </picture>
 </div>
+<!-- x-stagehand-custom-end -->
 
 > [!TIP]
 > Migrating from the old v2 Python SDK? See our [migration guide here](https://docs.stagehand.dev/v3/migrations/python).
@@ -83,151 +85,134 @@ Python 3.9 or higher.
 
 ## Running the Example
 
-A complete working example is available at [`examples/full_example.py`](examples/full_example.py).
+Set your environment variables (from `examples/.env.example`):
 
-To run it, first export the required environment variables, then use Python:
-
-```bash
-export BROWSERBASE_API_KEY="your-bb-api-key"
-export BROWSERBASE_PROJECT_ID="your-bb-project-uuid"
-export MODEL_API_KEY="sk-proj-your-llm-api-key"
-
-uv run python examples/full_example.py
-```
-
-## Local mode example
-
-If you want to run Stagehand locally, use the local example (`examples/local_example.py`). It shows how to configure the client for `server="local"`.
-
-Local mode runs Stagehand’s embedded server and launches a **local Chrome/Chromium** browser (it is **not bundled** with the Python wheel), so you must have Chrome installed on the machine running the example.
-
-If Chrome is installed but Stagehand can’t find it, set `CHROME_PATH` to your browser executable (or pass `browser.launchOptions.executablePath` when starting the session).
-
-Common Windows paths:
-- `C:\Program Files\Google\Chrome\Application\chrome.exe`
-- `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
-
-PowerShell:
-
-```powershell
-# optional if you don't already have Chrome installed
-winget install -e --id Google.Chrome
-
-# optional if Stagehand can't auto-detect Chrome
-$env:CHROME_PATH="C:\Program Files\Google\Chrome\Application\chrome.exe"
-
-uv run python examples/local_example.py
-```
+- `STAGEHAND_API_URL`
+- `MODEL_API_KEY`
+- `BROWSERBASE_API_KEY`
+- `BROWSERBASE_PROJECT_ID`
 
 ```bash
-pip install stagehand
-uv run python examples/local_example.py
+cp examples/.env.example examples/.env
+# Edit examples/.env with your credentials.
 ```
 
-## Streaming logging example
+The examples load `examples/.env` automatically.
 
-See [`examples/logging_example.py`](examples/logging_example.py) for a remote-only flow that streams `StreamEvent`s with `verbose=2`, `stream_response=True`, and `x_stream_response="true"` so you can watch the SDK’s logs as they arrive.
+Examples and dependencies:
+
+- `examples/full_example.py`: stagehand only
+- `examples/act_example.py`: stagehand only
+- `examples/agent_execute.py`: stagehand only
+- `examples/local_example.py`: stagehand only
+- `examples/logging_example.py`: stagehand only
+- `examples/remote_browser_playwright_example.py`: Playwright + Playwright browsers
+- `examples/local_browser_playwright_example.py`: Playwright + Playwright browsers
+- `examples/playwright_page_example.py`: Playwright + Playwright browsers
+- `examples/byob_example.py`: Playwright + Playwright browsers
+- `examples/pydoll_tab_example.py`: `pydoll-python` (Python 3.10+)
+
+Run any example:
 
 ```bash
-uv run python examples/logging_example.py
+uv run python examples/remote_browser_playwright_example.py
 ```
-
-<details>
-<summary><strong>Local development</strong></summary>
-
-This repository relies on `uv` to install the sanctioned Python version and dependencies. After cloning, bootstrap the environment with:
-
-```sh
-./scripts/bootstrap
-```
-Once the environment is ready, execute repo scripts with `uv run`:
-
-```sh
-uv run python examples/full_example.py
-```
-</details>
 
 ## Usage
 
-This example demonstrates the full Stagehand workflow: starting a session, navigating to a page, observing possible actions, acting on elements, extracting data, and running an autonomous agent.
+This mirrors `examples/remote_browser_playwright_example.py`.
 
 ```python
-import asyncio
+import os
 
-from stagehand import AsyncStagehand
+from playwright.sync_api import sync_playwright
+
+from env import load_example_env
+from stagehand import Stagehand
 
 
-async def main() -> None:
-    # Create client using environment variables:
-    # BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, MODEL_API_KEY
-    client = AsyncStagehand()
+def main() -> None:
+    load_example_env()
 
-    # Start a new browser session (returns a session helper bound to a session_id)
-    session = await client.sessions.start(model_name="openai/gpt-5-nano")
-
-    print(f"Session started: {session.id}")
-
-    try:
-        # Navigate to a webpage
-        await session.navigate(
-            url="https://news.ycombinator.com",
-        )
-        print("Navigated to Hacker News")
-
-        # Observe to find possible actions on the page
-        observe_response = await session.observe(
-            instruction="find the link to view comments for the top post",
+    with Stagehand(
+        server="remote",
+        browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
+        browserbase_project_id=os.environ.get("BROWSERBASE_PROJECT_ID"),
+        model_api_key=os.environ.get("MODEL_API_KEY"),
+    ) as client:
+        session = client.sessions.start(
+            model_name="anthropic/claude-sonnet-4-6",
+            browser={"type": "browserbase"},
         )
 
-        results = observe_response.data.result
-        print(f"Found {len(results)} possible actions")
-        if not results:
-            return
+        cdp_url = session.data.cdp_url
+        if not cdp_url:
+            raise RuntimeError("No cdp_url returned from the API for this session.")
 
-        # Take the first action returned by Observe and pass it to Act
-        action = results[0].to_dict(exclude_none=True)
-        print("Acting on:", action.get("description"))
+        with sync_playwright() as p:
+            browser = p.chromium.connect_over_cdp(cdp_url)
+            context = browser.contexts[0] if browser.contexts else browser.new_context()
+            page = context.pages[0] if context.pages else context.new_page()
 
-        act_response = await session.act(input=action)
-        print("Act completed:", act_response.data.result.message)
+            client.sessions.navigate(session.id, url="https://news.ycombinator.com")
+            page.wait_for_load_state("domcontentloaded")
 
-        # Extract structured data from the page using a JSON schema
-        extract_response = await session.extract(
-            instruction="extract the text of the top comment on this page",
-            schema={
-                "type": "object",
-                "properties": {
-                    "commentText": {"type": "string"},
-                    "author": {"type": "string"},
+            observe_stream = client.sessions.observe(
+                session.id,
+                instruction="find the link to view comments for the top post",
+                stream_response=True,
+                x_stream_response="true",
+            )
+            for _ in observe_stream:
+                pass
+
+            act_stream = client.sessions.act(
+                session.id,
+                input="Click the comments link for the top post",
+                stream_response=True,
+                x_stream_response="true",
+            )
+            for _ in act_stream:
+                pass
+
+            extract_stream = client.sessions.extract(
+                session.id,
+                instruction="extract the text of the top comment on this page",
+                schema={
+                    "type": "object",
+                    "properties": {
+                        "commentText": {"type": "string"},
+                        "author": {"type": "string"},
+                    },
+                    "required": ["commentText"],
                 },
-                "required": ["commentText"],
-            },
-        )
+                stream_response=True,
+                x_stream_response="true",
+            )
+            for _ in extract_stream:
+                pass
 
-        extracted = extract_response.data.result
-        author = extracted.get("author", "unknown") if isinstance(extracted, dict) else "unknown"
-        print("Extracted author:", author)
+            execute_stream = client.sessions.execute(
+                session.id,
+                execute_options={
+                    "instruction": "Click the 'Learn more' link if available",
+                    "max_steps": 3,
+                },
+                agent_config={
+                    "model": {"model_name": "anthropic/claude-opus-4-6"},
+                    "cua": False,
+                },
+                stream_response=True,
+                x_stream_response="true",
+            )
+            for _ in execute_stream:
+                pass
 
-        # Run an autonomous agent to accomplish a complex task
-        execute_response = await session.execute(
-            execute_options={
-                "instruction": f"Find any personal website, GitHub, or LinkedIn profile for the Hacker News user '{author}'.",
-                "max_steps": 10,
-            },
-            agent_config={"model": "openai/gpt-5-nano"},
-            timeout=300.0,
-        )
-
-        print("Agent completed:", execute_response.data.result.message)
-        print("Agent success:", execute_response.data.result.success)
-    finally:
-        # End the browser session to clean up resources
-        await session.end()
-        print("Session ended")
+        client.sessions.end(session.id)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ## Client configuration
@@ -311,7 +296,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     client = AsyncStagehand()
-    session = await client.sessions.start(model_name="openai/gpt-5-nano")
+    session = await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
     response = await session.act(input="click the first link on the page")
     print(response.data)
 
@@ -339,7 +324,7 @@ from stagehand import AsyncStagehand, DefaultAioHttpClient
 
 async def main() -> None:
     async with AsyncStagehand(http_client=DefaultAioHttpClient()) as client:
-        session = await client.sessions.start(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
         response = await session.act(input="click the first link on the page")
         print(response.data)
 
@@ -364,7 +349,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     async with AsyncStagehand() as client:
-        session = await client.sessions.start(model_name="openai/gpt-5-nano")
+        session = await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
 
         stream = await client.sessions.act(
             id=session.id,
@@ -394,7 +379,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     async with AsyncStagehand() as client:
-        response = await client.sessions.with_raw_response.start(model_name="openai/gpt-5-nano")
+        response = await client.sessions.with_raw_response.start(model_name="anthropic/claude-sonnet-4-6")
         print(response.headers.get("X-My-Header"))
 
         session = response.parse()  # get the object that `sessions.start()` would have returned
@@ -418,7 +403,7 @@ from stagehand import AsyncStagehand
 
 async def main() -> None:
     async with AsyncStagehand() as client:
-        async with client.sessions.with_streaming_response.start(model_name="openai/gpt-5-nano") as response:
+        async with client.sessions.with_streaming_response.start(model_name="anthropic/claude-sonnet-4-6") as response:
             print(response.headers.get("X-My-Header"))
             async for line in response.iter_lines():
                 print(line)
@@ -445,7 +430,7 @@ from stagehand import AsyncStagehand
 async def main() -> None:
     async with AsyncStagehand() as client:
         try:
-            await client.sessions.start(model_name="openai/gpt-5-nano")
+            await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
         except stagehand.APIConnectionError as e:
             print("The server could not be reached")
             print(e.__cause__)  # an underlying Exception, likely raised within httpx.
@@ -488,7 +473,7 @@ from stagehand import AsyncStagehand
 async def main() -> None:
     async with AsyncStagehand(max_retries=0) as client:
         # Or, configure per-request:
-        await client.with_options(max_retries=5).sessions.start(model_name="openai/gpt-5-nano")
+        await client.with_options(max_retries=5).sessions.start(model_name="anthropic/claude-sonnet-4-6")
 
 
 asyncio.run(main())
@@ -564,7 +549,7 @@ from stagehand import APIResponseValidationError, AsyncStagehand
 try:
     async def main() -> None:
         async with AsyncStagehand(_strict_response_validation=True) as client:
-            await client.sessions.start(model_name="openai/gpt-5-nano")
+            await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
 
     asyncio.run(main())
 except APIResponseValidationError as e:
@@ -598,7 +583,7 @@ from stagehand import Stagehand
 
 client = Stagehand()
 response = client.sessions.with_raw_response.start(
-    model_name="openai/gpt-5-nano",
+    model_name="anthropic/claude-sonnet-4-6",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -618,7 +603,7 @@ To stream the response body, use `.with_streaming_response` instead, which requi
 
 ```python
 with client.sessions.with_streaming_response.start(
-    model_name="openai/gpt-5-nano",
+    model_name="anthropic/claude-sonnet-4-6",
 ) as response:
     print(response.headers.get("X-My-Header"))
 

@@ -8,12 +8,18 @@ Required environment variables:
 - MODEL_API_KEY: Your OpenAI API key
 """
 
+from __future__ import annotations
+
 import os
+
+from env import load_example_env
 
 from stagehand import AsyncStagehand
 
 
 async def main() -> None:
+    load_example_env()
+    load_example_env()
     # Create client using environment variables
     async with AsyncStagehand(
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
@@ -22,7 +28,7 @@ async def main() -> None:
     ) as client:
         # Start a new browser session with verbose logging enabled
         session = await client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
             verbose=2,
         )
 

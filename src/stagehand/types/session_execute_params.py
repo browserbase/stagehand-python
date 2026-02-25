@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Optional
-from typing_extensions import Literal, Required, Annotated, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
@@ -11,6 +11,8 @@ from .model_config_param import ModelConfigParam
 __all__ = [
     "SessionExecuteParamsBase",
     "AgentConfig",
+    "AgentConfigExecutionModel",
+    "AgentConfigModel",
     "ExecuteOptions",
     "SessionExecuteParamsNonStreaming",
     "SessionExecuteParamsStreaming",
@@ -32,11 +34,23 @@ class SessionExecuteParamsBase(TypedDict, total=False):
     """Whether to stream the response via SSE"""
 
 
+AgentConfigExecutionModel: TypeAlias = Union[ModelConfigParam, str]
+
+AgentConfigModel: TypeAlias = Union[ModelConfigParam, str]
+
+
 class AgentConfig(TypedDict, total=False):
     cua: bool
     """Deprecated.
 
     Use mode: 'cua' instead. If both are provided, mode takes precedence.
+    """
+
+    execution_model: Annotated[AgentConfigExecutionModel, PropertyInfo(alias="executionModel")]
+    """
+    Model configuration object or model name string (e.g., 'openai/gpt-5-nano') for
+    tool execution (observe/act calls within agent tools). If not specified,
+    inherits from the main model configuration.
     """
 
     mode: Literal["dom", "hybrid", "cua"]

@@ -16,12 +16,36 @@ Required environment variables:
 - MODEL_API_KEY: Your OpenAI API key
 """
 
+from __future__ import annotations
+
 import os
+
+from env import load_example_env
 
 from stagehand import AsyncStagehand
 
 
+async def _stream_to_result(stream, label: str) -> object | None:
+    result_payload: object | None = None
+    async for event in stream:
+        if event.type == "log":
+            print(f"[{label}][log] {event.data.message}")
+            continue
+
+        status = event.data.status
+        print(f"[{label}][system] status={status}")
+        if status == "finished":
+            result_payload = event.data.result
+        elif status == "error":
+            error_message = event.data.error or "unknown error"
+            raise RuntimeError(f"{label} stream reported error: {error_message}")
+
+    return result_payload
+
+
 async def main() -> None:
+    load_example_env()
+    load_example_env()
     # Create client using environment variables
     # BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, MODEL_API_KEY
     async with AsyncStagehand(
@@ -31,7 +55,7 @@ async def main() -> None:
     ) as client:
         # Start a new browser session (returns a session helper bound to a session_id)
         session = await client.sessions.start(
-            model_name="openai/gpt-5-nano",
+            model_name="anthropic/claude-sonnet-4-6",
         )
 
         print(f"Session started: {session.id}")
@@ -44,11 +68,14 @@ async def main() -> None:
             print("Navigated to Hacker News")
 
             # Observe to find possible actions - looking for the comments link
-            observe_response = await session.observe(
+            observe_stream = await session.observe(
                 instruction="find the link to view comments for the top post",
+                stream_response=True,
+                x_stream_response="true",
             )
 
-            results = observe_response.data.result
+            results = await _stream_to_result(observe_stream, "observe")
+            results = results if isinstance(results, list) else []
             print(f"Found {len(results)} possible actions")
 
             if not results:
@@ -60,14 +87,22 @@ async def main() -> None:
             print(f"Acting on: {result.description}")
 
             # Pass the action to Act
-            act_response = await session.act(
+            act_stream = await session.act(
                 input=result,  # type: ignore[arg-type]
+                stream_response=True,
+                x_stream_response="true",
             )
-            print(f"Act completed: {act_response.data.result.message}")
+            act_result = await _stream_to_result(act_stream, "act")
+            act_message = (
+                act_result.get("message")
+                if isinstance(act_result, dict)
+                else act_result
+            )
+            print(f"Act completed: {act_message}")
 
             # Extract data from the page
             # We're now on the comments page, so extract the top comment text
-            extract_response = await session.extract(
+            extract_stream = await session.extract(
                 instruction="extract the text of the top comment on this page",
                 schema={
                     "type": "object",
@@ -77,10 +112,11 @@ async def main() -> None:
                     },
                     "required": ["commentText"],
                 },
+                stream_response=True,
+                x_stream_response="true",
             )
 
-            # Get the extracted result
-            extracted_result = extract_response.data.result
+            extracted_result = await _stream_to_result(extract_stream, "extract")
             print(f"Extracted data: {extracted_result}")
 
             # Get the author from the extracted data
@@ -92,7 +128,7 @@ async def main() -> None:
             # Use the Agent to find the author's profile
             # Execute runs an autonomous agent that can navigate and interact with pages
             # Use a longer timeout (5 minutes) since agent execution can take a while
-            execute_response = await session.execute(  # pyright: ignore[reportArgumentType]
+            execute_stream = await session.execute(  # pyright: ignore[reportArgumentType]
                 execute_options={
                     "instruction": (
                         f"Find any personal website, GitHub, LinkedIn, or other best profile URL for the Hacker News user '{author}'. "
@@ -103,17 +139,35 @@ async def main() -> None:
                 },
                 agent_config={
                     "model": {
-                        "model_name": "openai/gpt-5-nano",
+                        "model_name": "anthropic/claude-opus-4-6",
                         "api_key": os.environ.get("MODEL_API_KEY"),
                     },
                     "cua": False,
                 },
+                stream_response=True,
+                x_stream_response="true",
                 timeout=300.0,  # 5 minutes
             )
 
-            print(f"Agent completed: {execute_response.data.result.message}")
-            print(f"Agent success: {execute_response.data.result.success}")
-            print(f"Agent actions taken: {len(execute_response.data.result.actions)}")
+            execute_result = await _stream_to_result(execute_stream, "execute")
+            execute_message = (
+                execute_result.get("message")
+                if isinstance(execute_result, dict)
+                else execute_result
+            )
+            execute_success = (
+                execute_result.get("success")
+                if isinstance(execute_result, dict)
+                else None
+            )
+            execute_actions = (
+                execute_result.get("actions")
+                if isinstance(execute_result, dict)
+                else None
+            )
+            print(f"Agent completed: {execute_message}")
+            print(f"Agent success: {execute_success}")
+            print(f"Agent actions taken: {len(execute_actions or [])}")
 
         finally:
             # End the session to clean up resources

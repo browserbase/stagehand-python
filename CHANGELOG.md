@@ -1,5 +1,30 @@
 # Changelog
 
+## 3.6.0 (2026-02-25)
+
+Full Changelog: [v3.5.0...v3.6.0](https://github.com/browserbase/stagehand-python/compare/v3.5.0...v3.6.0)
+
+### Features
+
+* Add executionModel serialization to api client ([22dd688](https://github.com/browserbase/stagehand-python/commit/22dd68831f5b599dc070798bb991b349211631d9))
+* **client:** add custom JSON encoder for extended type support ([f9017c8](https://github.com/browserbase/stagehand-python/commit/f9017c8fff8c58992739c6924ed6efbae552e027))
+* randomize region used for evals, split out pnpm and turbo cache, veri… ([18b63b8](https://github.com/browserbase/stagehand-python/commit/18b63b82d8abd4769b1b4f4dd00d29e157cb27b7))
+
+
+### Chores
+
+* format all `api.md` files ([c22d22c](https://github.com/browserbase/stagehand-python/commit/c22d22cd79700c3c12462f20e3ebad54b925968f))
+* **internal:** add request options to SSE classes ([93cdbe5](https://github.com/browserbase/stagehand-python/commit/93cdbe53bb17beab4c370ef5e9c42dc76ebd46e3))
+* **internal:** bump dependencies ([92d8393](https://github.com/browserbase/stagehand-python/commit/92d83930190c30b1d4653b78eb2a6e8d28225fa5))
+* **internal:** codegen related update ([aa3fbd4](https://github.com/browserbase/stagehand-python/commit/aa3fbd46cfd8e3ad4f4db6724c14d43db52564b6))
+* **internal:** codegen related update ([555a9c4](https://github.com/browserbase/stagehand-python/commit/555a9c44a902a6735e585e09ed974d9a7915a6bb))
+* **internal:** fix lint error on Python 3.14 ([b0df744](https://github.com/browserbase/stagehand-python/commit/b0df7441a5a50cc8933d3f0edbc46561219d9fba))
+* **internal:** make `test_proxy_environment_variables` more resilient ([82890a6](https://github.com/browserbase/stagehand-python/commit/82890a681e470d54e266c7706b0ea774ed0dc369))
+* **internal:** make `test_proxy_environment_variables` more resilient to env ([1dfcc4b](https://github.com/browserbase/stagehand-python/commit/1dfcc4bece375e9ed04704da0dc0e8fd94b0f185))
+* **internal:** remove mock server code ([195d489](https://github.com/browserbase/stagehand-python/commit/195d48951c67b69463976328b286e2311ad3fc9a))
+* sync repo ([0c9bb8c](https://github.com/browserbase/stagehand-python/commit/0c9bb8cb3b791bf8c60ad0065fed9ad16b912b8e))
+* update mock server docs ([4e8e5cf](https://github.com/browserbase/stagehand-python/commit/4e8e5cf63fc76628f79204e7be78d6b3b335838c))
+
 ## 3.5.0 (2026-01-29)
 
 Full Changelog: [v3.4.8...v3.5.0](https://github.com/browserbase/stagehand-python/compare/v3.4.8...v3.5.0)
