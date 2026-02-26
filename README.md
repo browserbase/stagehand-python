@@ -112,6 +112,8 @@ Examples and dependencies:
 - `examples/byob_example.py`: Playwright + Playwright browsers
 - `examples/pydoll_tab_example.py`: `pydoll-python` (Python 3.10+)
 
+Multiregion support: see `examples/local_server_multiregion_browser_example.py`.
+
 Run any example:
 
 ```bash
