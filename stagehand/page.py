@@ -53,28 +53,33 @@ class StagehandPage:
         self._frame_id = new_id
         self._stagehand.logger.debug(f"Updated frame ID to {new_id}", category="page")
 
-    # TODO try catch here
     async def ensure_injection(self):
         """Ensure custom injection scripts are present on the page using domScripts.js."""
-        exists_before = await self._page.evaluate(
-            "typeof window.getScrollableElementXpaths === 'function'"
-        )
-        if not exists_before:
-            global _INJECTION_SCRIPT
-            if _INJECTION_SCRIPT is None:
-                import os
+        try:
+            exists_before = await self._page.evaluate(
+                "typeof window.getScrollableElementXpaths === 'function'"
+            )
+            if not exists_before:
+                global _INJECTION_SCRIPT
+                if _INJECTION_SCRIPT is None:
+                    import os
 
-                script_path = os.path.join(os.path.dirname(__file__), "domScripts.js")
-                try:
-                    with open(script_path) as f:
-                        _INJECTION_SCRIPT = f.read()
-                except Exception as e:
-                    self._stagehand.logger.error(f"Error reading domScripts.js: {e}")
-                    _INJECTION_SCRIPT = "/* fallback injection script */"
-            # Inject the script into the current page context
-            await self._page.evaluate(_INJECTION_SCRIPT)
-            # Ensure that the script is injected on future navigations
-            await self._page.add_init_script(_INJECTION_SCRIPT)
+                    script_path = os.path.join(os.path.dirname(__file__), "domScripts.js")
+                    try:
+                        with open(script_path) as f:
+                            _INJECTION_SCRIPT = f.read()
+                    except Exception as e:
+                        self._stagehand.logger.error(f"Error reading domScripts.js: {e}")
+                        _INJECTION_SCRIPT = "/* fallback injection script */"
+                # Inject the script into the current page context
+                await self._page.evaluate(_INJECTION_SCRIPT)
+                # Ensure that the script is injected on future navigations
+                await self._page.add_init_script(_INJECTION_SCRIPT)
+        except Exception as e:
+            self._stagehand.logger.warning(
+                f"ensure_injection failed (page may be navigating): {e}",
+                category="page",
+            )
 
     async def goto(
         self,
