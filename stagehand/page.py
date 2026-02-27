@@ -76,10 +76,13 @@ class StagehandPage:
                 # Ensure that the script is injected on future navigations
                 await self._page.add_init_script(_INJECTION_SCRIPT)
         except Exception as e:
-            self._stagehand.logger.warning(
-                f"ensure_injection failed (page may be navigating): {e}",
-                category="page",
-            )
+            if "Execution context was destroyed" in str(e):
+                self._stagehand.logger.warning(
+                    f"ensure_injection failed (page may be navigating): {e}",
+                    category="page",
+                )
+            else:
+                raise
 
     async def goto(
         self,
