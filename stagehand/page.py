@@ -2,6 +2,7 @@ import asyncio
 import time
 from typing import Optional, Union
 
+from playwright._impl._errors import TargetClosedError
 from playwright.async_api import CDPSession, Page
 from pydantic import BaseModel
 
@@ -75,14 +76,11 @@ class StagehandPage:
                 await self._page.evaluate(_INJECTION_SCRIPT)
                 # Ensure that the script is injected on future navigations
                 await self._page.add_init_script(_INJECTION_SCRIPT)
-        except Exception as e:
-            if "Execution context was destroyed" in str(e):
-                self._stagehand.logger.warning(
-                    f"ensure_injection failed (page may be navigating): {e}",
-                    category="page",
-                )
-            else:
-                raise
+        except TargetClosedError as e:
+            self._stagehand.logger.warning(
+                f"ensure_injection failed (page may be navigating): {e}",
+                category="page",
+            )
 
     async def goto(
         self,
