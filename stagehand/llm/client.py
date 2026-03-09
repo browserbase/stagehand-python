@@ -114,6 +114,11 @@ class LLMClient:
         if "gpt-5" in completion_model:
             filtered_params["temperature"] = 1
 
+            # GPT-5.1 and GPT-5.2 don't support "minimal" reasoning_effort.
+            # Set "low" for these models to avoid OpenAI API errors.
+            if "gpt-5.1" in completion_model or "gpt-5.2" in completion_model:
+                filtered_params["reasoning_effort"] = "low"
+
         self.logger.debug(
             f"Calling litellm.acompletion with model={completion_model} and params: {filtered_params}",
             category="llm",
