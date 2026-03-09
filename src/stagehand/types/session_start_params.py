@@ -85,6 +85,8 @@ class BrowserLaunchOptions(TypedDict, total=False):
 
     args: SequenceNotStr[str]
 
+    cdp_headers: Annotated[Dict[str, str], PropertyInfo(alias="cdpHeaders")]
+
     cdp_url: Annotated[str, PropertyInfo(alias="cdpUrl")]
 
     chromium_sandbox: Annotated[bool, PropertyInfo(alias="chromiumSandbox")]

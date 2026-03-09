@@ -802,6 +802,7 @@ class TestSessions:
                 "launch_options": {
                     "accept_downloads": True,
                     "args": ["string"],
+                    "cdp_headers": {"foo": "string"},
                     "cdp_url": "cdpUrl",
                     "chromium_sandbox": True,
                     "connect_timeout_ms": 0,
@@ -1687,6 +1688,7 @@ class TestAsyncSessions:
                 "launch_options": {
                     "accept_downloads": True,
                     "args": ["string"],
+                    "cdp_headers": {"foo": "string"},
                     "cdp_url": "cdpUrl",
                     "chromium_sandbox": True,
                     "connect_timeout_ms": 0,
