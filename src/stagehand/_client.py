@@ -60,6 +60,7 @@ class Stagehand(SyncAPIClient):
         browserbase_api_key: str | None = None,
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
+        model_base_url: str | None = None,
         server: Literal["remote", "local"] = "remote",
         _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
         local_host: str = "127.0.0.1",
@@ -120,6 +121,10 @@ class Stagehand(SyncAPIClient):
                 "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
             )
         self.model_api_key = model_api_key
+
+        if model_base_url is None:
+            model_base_url = os.environ.get("MODEL_BASE_URL")
+        self.model_base_url = model_base_url
 
         self._sea_server: SeaServerManager | None = None
         if server == "local":
@@ -195,7 +200,7 @@ class Stagehand(SyncAPIClient):
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
+        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth, **self._llm_model_base_url_header}
 
     @property
     def _bb_api_key_auth(self) -> dict[str, str]:
@@ -211,6 +216,11 @@ class Stagehand(SyncAPIClient):
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
         return {"x-model-api-key": model_api_key}
+
+    @property
+    def _llm_model_base_url_header(self) -> dict[str, str]:
+        model_base_url = self.model_base_url
+        return {"x-model-base-url": model_base_url} if model_base_url else {}
 
     @property
     @override
@@ -348,6 +358,7 @@ class AsyncStagehand(AsyncAPIClient):
         browserbase_api_key: str | None = None,
         browserbase_project_id: str | None = None,
         model_api_key: str | None = None,
+        model_base_url: str | None = None,
         server: Literal["remote", "local"] = "remote",
         _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
         local_host: str = "127.0.0.1",
@@ -408,6 +419,10 @@ class AsyncStagehand(AsyncAPIClient):
                 "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
             )
         self.model_api_key = model_api_key
+
+        if model_base_url is None:
+            model_base_url = os.environ.get("MODEL_BASE_URL")
+        self.model_base_url = model_base_url
 
         self._sea_server: SeaServerManager | None = None
         if server == "local":
@@ -482,7 +497,7 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
+        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth, **self._llm_model_base_url_header}
 
     @property
     def _bb_api_key_auth(self) -> dict[str, str]:
@@ -498,6 +513,11 @@ class AsyncStagehand(AsyncAPIClient):
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
         return {"x-model-api-key": model_api_key}
+
+    @property
+    def _llm_model_base_url_header(self) -> dict[str, str]:
+        model_base_url = self.model_base_url
+        return {"x-model-base-url": model_base_url} if model_base_url else {}
 
     @property
     @override
