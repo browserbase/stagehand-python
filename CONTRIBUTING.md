@@ -40,19 +40,19 @@ $ uv run python scripts/download-binary.py
 
 This will:
 - Detect your platform (macOS, Linux, Windows) and architecture (x64, arm64)
-- Download the latest stagehand-server binary from GitHub releases
+- Download the latest stagehand-server-v3 binary from GitHub releases
 - Place it in `bin/sea/` where the SDK expects to find it
 
 ### Manual download (alternative)
 
 You can also manually download from [GitHub releases](https://github.com/browserbase/stagehand/releases):
 
-1. Find the latest `stagehand/server vX.X.X` release
+1. Find the latest `stagehand/server-v3 vX.X.X` release
 2. Download the binary for your platform:
-   - macOS ARM: `stagehand-server-darwin-arm64`
-   - macOS Intel: `stagehand-server-darwin-x64`
-   - Linux: `stagehand-server-linux-x64` or `stagehand-server-linux-arm64`
-   - Windows: `stagehand-server-win32-x64.exe` or `stagehand-server-win32-arm64.exe`
+   - macOS ARM: `stagehand-server-v3-darwin-arm64`
+   - macOS Intel: `stagehand-server-v3-darwin-x64`
+   - Linux: `stagehand-server-v3-linux-x64` or `stagehand-server-v3-linux-arm64`
+   - Windows: `stagehand-server-v3-win32-x64.exe` or `stagehand-server-v3-win32-arm64.exe`
 3. Rename it to match the expected format (remove `-server` from the name):
    - `stagehand-darwin-arm64`, `stagehand-linux-x64`, `stagehand-win32-x64.exe`, etc.
 4. Place it in `bin/sea/` directory
