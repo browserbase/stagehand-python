@@ -129,6 +129,7 @@ def _merge_default_model(params: dict[str, Any], default_model: dict[str, Any] |
 
     options = params.get("options")
     if isinstance(options, dict):
+        options = cast(dict[str, Any], options)
         if options.get("model") is not None:
             return params
         return {
@@ -156,6 +157,7 @@ def _merge_default_agent_model(params: dict[str, Any], default_model: dict[str, 
 
     agent_config = params.get("agent_config")
     if isinstance(agent_config, dict):
+        agent_config = cast(dict[str, Any], agent_config)
         if agent_config.get("model") is not None:
             return params
         return {
