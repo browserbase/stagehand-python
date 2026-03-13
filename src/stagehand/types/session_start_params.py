@@ -24,6 +24,7 @@ __all__ = [
     "BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfig",
     "BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfigGeolocation",
     "BrowserbaseSessionCreateParamsProxiesProxyConfigListExternalProxyConfig",
+    "ModelClientOptions",
 ]
 
 
@@ -47,6 +48,9 @@ class SessionStartParams(TypedDict, total=False):
     browserbase_session_id: Annotated[str, PropertyInfo(alias="browserbaseSessionID")]
     """Existing Browserbase session ID to resume"""
 
+    model_client_options: Annotated[ModelClientOptions, PropertyInfo(alias="modelClientOptions")]
+    """Provider-specific model client options such as Bedrock auth and region"""
+
     dom_settle_timeout_ms: Annotated[float, PropertyInfo(alias="domSettleTimeoutMs")]
     """Timeout in ms to wait for DOM to settle"""
 
@@ -66,6 +70,32 @@ class SessionStartParams(TypedDict, total=False):
 
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""
+
+
+class ModelClientOptions(TypedDict, total=False):
+    api_key: Annotated[str, PropertyInfo(alias="apiKey")]
+    """API key for the model provider"""
+
+    access_key_id: Annotated[str, PropertyInfo(alias="accessKeyId")]
+    """AWS access key ID for Bedrock"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the model provider"""
+
+    headers: Dict[str, str]
+    """Additional headers for the model provider"""
+
+    provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
+    """AI provider for the model"""
+
+    region: str
+    """AWS region for Bedrock"""
+
+    secret_access_key: Annotated[str, PropertyInfo(alias="secretAccessKey")]
+    """AWS secret access key for Bedrock"""
+
+    session_token: Annotated[str, PropertyInfo(alias="sessionToken")]
+    """AWS session token for Bedrock"""
 
 
 class BrowserLaunchOptionsProxy(TypedDict, total=False):

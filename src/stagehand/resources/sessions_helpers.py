@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from typing_extensions import Literal, override
 
 import httpx
@@ -25,6 +26,26 @@ from .._response import (
     async_to_streamed_response_wrapper,
 )
 from ..types.session_start_response import SessionStartResponse
+
+
+def _has_explicit_aws_credentials(model_config: dict[str, Any]) -> bool:
+    return any(model_config.get(key) for key in ("access_key_id", "secret_access_key", "session_token"))
+
+
+def _build_default_model_config(
+    *,
+    model_name: str,
+    model_client_options: session_start_params.ModelClientOptions | Omit,
+    fallback_api_key: str | None,
+) -> dict[str, Any]:
+    model_config: dict[str, Any] = {"model_name": model_name}
+    if isinstance(model_client_options, dict):
+        model_config.update(model_client_options)
+
+    if fallback_api_key and "api_key" not in model_config and not _has_explicit_aws_credentials(model_config):
+        model_config["api_key"] = fallback_api_key
+
+    return model_config
 
 
 class SessionsResourceWithHelpersRawResponse(SessionsResourceWithRawResponse):
@@ -71,6 +92,7 @@ class SessionsResourceWithHelpers(SessionsResource):
         browser: session_start_params.Browser | Omit = omit,
         browserbase_session_create_params: session_start_params.BrowserbaseSessionCreateParams | Omit = omit,
         browserbase_session_id: str | Omit = omit,
+        model_client_options: session_start_params.ModelClientOptions | Omit = omit,
         dom_settle_timeout_ms: float | Omit = omit,
         experimental: bool | Omit = omit,
         self_heal: bool | Omit = omit,
@@ -89,6 +111,7 @@ class SessionsResourceWithHelpers(SessionsResource):
             browser=browser,
             browserbase_session_create_params=browserbase_session_create_params,
             browserbase_session_id=browserbase_session_id,
+            model_client_options=model_client_options,
             dom_settle_timeout_ms=dom_settle_timeout_ms,
             experimental=experimental,
             self_heal=self_heal,
@@ -101,7 +124,17 @@ class SessionsResourceWithHelpers(SessionsResource):
             extra_body=extra_body,
             timeout=timeout,
         )
-        return Session(self._client, start_response.data.session_id, data=start_response.data, success=start_response.success)
+        return Session(
+            self._client,
+            start_response.data.session_id,
+            data=start_response.data,
+            success=start_response.success,
+            default_model=_build_default_model_config(
+                model_name=model_name,
+                model_client_options=model_client_options,
+                fallback_api_key=self._client.model_api_key,
+            ),
+        )
 
 
 class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
@@ -124,6 +157,7 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         browser: session_start_params.Browser | Omit = omit,
         browserbase_session_create_params: session_start_params.BrowserbaseSessionCreateParams | Omit = omit,
         browserbase_session_id: str | Omit = omit,
+        model_client_options: session_start_params.ModelClientOptions | Omit = omit,
         dom_settle_timeout_ms: float | Omit = omit,
         experimental: bool | Omit = omit,
         self_heal: bool | Omit = omit,
@@ -142,6 +176,7 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
             browser=browser,
             browserbase_session_create_params=browserbase_session_create_params,
             browserbase_session_id=browserbase_session_id,
+            model_client_options=model_client_options,
             dom_settle_timeout_ms=dom_settle_timeout_ms,
             experimental=experimental,
             self_heal=self_heal,
@@ -154,4 +189,14 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
             extra_body=extra_body,
             timeout=timeout,
         )
-        return AsyncSession(self._client, start_response.data.session_id, data=start_response.data, success=start_response.success)
+        return AsyncSession(
+            self._client,
+            start_response.data.session_id,
+            data=start_response.data,
+            success=start_response.success,
+            default_model=_build_default_model_config(
+                model_name=model_name,
+                model_client_options=model_client_options,
+                fallback_api_key=self._client.model_api_key,
+            ),
+        )

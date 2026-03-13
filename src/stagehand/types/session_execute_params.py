@@ -62,7 +62,7 @@ class AgentConfig(TypedDict, total=False):
     'anthropic/claude-4.5-opus')
     """
 
-    provider: Literal["openai", "anthropic", "google", "microsoft"]
+    provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
     """AI provider for the agent (legacy, use model: openai/gpt-5-nano instead)"""
 
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]

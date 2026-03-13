@@ -49,9 +49,7 @@ def _extract_frame_id_from_playwright_page(page: Any) -> str:
 
     new_cdp_session = getattr(context, "new_cdp_session", None)
     if not callable(new_cdp_session):
-        raise StagehandError(
-            "page must be a Playwright Page; expected page.context.new_cdp_session(...) to exist"
-        )
+        raise StagehandError("page must be a Playwright Page; expected page.context.new_cdp_session(...) to exist")
 
     pw_context = cast(_PlaywrightContext, context)
     cdp = pw_context.new_cdp_session(page)
@@ -87,9 +85,7 @@ async def _extract_frame_id_from_playwright_page_async(page: Any) -> str:
 
     new_cdp_session = getattr(context, "new_cdp_session", None)
     if not callable(new_cdp_session):
-        raise StagehandError(
-            "page must be a Playwright Page; expected page.context.new_cdp_session(...) to exist"
-        )
+        raise StagehandError("page must be a Playwright Page; expected page.context.new_cdp_session(...) to exist")
 
     pw_context = cast(_PlaywrightContext, context)
     cdp = pw_context.new_cdp_session(page)
@@ -127,15 +123,76 @@ async def _maybe_inject_frame_id_async(params: dict[str, Any], page: Any | None)
     return {**params, "frame_id": await _extract_frame_id_from_playwright_page_async(page)}
 
 
+def _merge_default_model(params: dict[str, Any], default_model: dict[str, Any] | None) -> dict[str, Any]:
+    if not default_model:
+        return params
+
+    options = params.get("options")
+    if isinstance(options, dict):
+        if options.get("model") is not None:
+            return params
+        return {
+            **params,
+            "options": {
+                **options,
+                "model": dict(default_model),
+            },
+        }
+
+    if options:
+        return params
+
+    return {
+        **params,
+        "options": {
+            "model": dict(default_model),
+        },
+    }
+
+
+def _merge_default_agent_model(params: dict[str, Any], default_model: dict[str, Any] | None) -> dict[str, Any]:
+    if not default_model:
+        return params
+
+    agent_config = params.get("agent_config")
+    if isinstance(agent_config, dict):
+        if agent_config.get("model") is not None:
+            return params
+        return {
+            **params,
+            "agent_config": {
+                **agent_config,
+                "model": dict(default_model),
+            },
+        }
+
+    if agent_config:
+        return params
+
+    return {
+        **params,
+        "agent_config": {
+            "model": dict(default_model),
+        },
+    }
+
+
 class Session(SessionStartResponse):
     """A Stagehand session bound to a specific `session_id`."""
 
-    def __init__(self, client: Stagehand, id: str, data: SessionStartResponseData, success: bool) -> None:
+    def __init__(
+        self,
+        client: Stagehand,
+        id: str,
+        data: SessionStartResponseData,
+        success: bool,
+        default_model: dict[str, Any] | None = None,
+    ) -> None:
         # Must call super().__init__() first to initialize Pydantic's __pydantic_extra__ before setting attributes
         super().__init__(data=data, success=success)
         self._client = client
+        self._default_model = default_model
         self.id = id
-    
 
     def navigate(
         self,
@@ -166,15 +223,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_act_params.SessionActParamsNonStreaming],
     ) -> SessionActResponse:
+        request_params = _merge_default_model(dict(params), self._default_model)
         return cast(
             SessionActResponse,
             self._client.sessions.act(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **_maybe_inject_frame_id(dict(params), page),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **_maybe_inject_frame_id(request_params, page),
             ),
         )
 
@@ -188,15 +246,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_observe_params.SessionObserveParamsNonStreaming],
     ) -> SessionObserveResponse:
+        request_params = _merge_default_model(dict(params), self._default_model)
         return cast(
             SessionObserveResponse,
             self._client.sessions.observe(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **_maybe_inject_frame_id(dict(params), page),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **_maybe_inject_frame_id(request_params, page),
             ),
         )
 
@@ -210,15 +269,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
+        request_params = _merge_default_model(dict(params), self._default_model)
         return cast(
             SessionExtractResponse,
             self._client.sessions.extract(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **_maybe_inject_frame_id(dict(params), page),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **_maybe_inject_frame_id(request_params, page),
             ),
         )
 
@@ -232,15 +292,16 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_execute_params.SessionExecuteParamsNonStreaming],
     ) -> SessionExecuteResponse:
+        request_params = _merge_default_agent_model(dict(params), self._default_model)
         return cast(
             SessionExecuteResponse,
             self._client.sessions.execute(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **_maybe_inject_frame_id(dict(params), page),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **_maybe_inject_frame_id(request_params, page),
             ),
         )
 
@@ -266,10 +327,18 @@ class Session(SessionStartResponse):
 class AsyncSession(SessionStartResponse):
     """Async variant of `Session`."""
 
-    def __init__(self, client: AsyncStagehand, id: str, data: SessionStartResponseData, success: bool) -> None:
+    def __init__(
+        self,
+        client: AsyncStagehand,
+        id: str,
+        data: SessionStartResponseData,
+        success: bool,
+        default_model: dict[str, Any] | None = None,
+    ) -> None:
         # Must call super().__init__() first to initialize Pydantic's __pydantic_extra__ before setting attributes
         super().__init__(data=data, success=success)
         self._client = client
+        self._default_model = default_model
         self.id = id
 
     async def navigate(
@@ -301,15 +370,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_act_params.SessionActParamsNonStreaming],
     ) -> SessionActResponse:
+        request_params = _merge_default_model(dict(params), self._default_model)
         return cast(
             SessionActResponse,
             await self._client.sessions.act(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **(await _maybe_inject_frame_id_async(dict(params), page)),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **(await _maybe_inject_frame_id_async(request_params, page)),
             ),
         )
 
@@ -323,15 +393,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_observe_params.SessionObserveParamsNonStreaming],
     ) -> SessionObserveResponse:
+        request_params = _merge_default_model(dict(params), self._default_model)
         return cast(
             SessionObserveResponse,
             await self._client.sessions.observe(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **(await _maybe_inject_frame_id_async(dict(params), page)),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **(await _maybe_inject_frame_id_async(request_params, page)),
             ),
         )
 
@@ -345,15 +416,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
+        request_params = _merge_default_model(dict(params), self._default_model)
         return cast(
             SessionExtractResponse,
             await self._client.sessions.extract(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **(await _maybe_inject_frame_id_async(dict(params), page)),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **(await _maybe_inject_frame_id_async(request_params, page)),
             ),
         )
 
@@ -367,15 +439,16 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_execute_params.SessionExecuteParamsNonStreaming],
     ) -> SessionExecuteResponse:
+        request_params = _merge_default_agent_model(dict(params), self._default_model)
         return cast(
             SessionExecuteResponse,
             await self._client.sessions.execute(
-            id=self.id,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-            **(await _maybe_inject_frame_id_async(dict(params), page)),
+                id=self.id,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                **(await _maybe_inject_frame_id_async(request_params, page)),
             ),
         )
 

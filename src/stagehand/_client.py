@@ -24,7 +24,7 @@ from ._compat import cached_property
 from ._models import FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import APIStatusError, StagehandError
+from ._exceptions import APIStatusError
 from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
@@ -52,7 +52,7 @@ class Stagehand(SyncAPIClient):
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
-    model_api_key: str
+    model_api_key: str | None
 
     def __init__(
         self,
@@ -115,10 +115,6 @@ class Stagehand(SyncAPIClient):
 
         if model_api_key is None:
             model_api_key = os.environ.get("MODEL_API_KEY")
-        if model_api_key is None:
-            raise StagehandError(
-                "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
-            )
         self.model_api_key = model_api_key
 
         self._sea_server: SeaServerManager | None = None
@@ -210,7 +206,7 @@ class Stagehand(SyncAPIClient):
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
-        return {"x-model-api-key": model_api_key}
+        return {"x-model-api-key": model_api_key} if model_api_key else {}
 
     @property
     @override
@@ -273,9 +269,11 @@ class Stagehand(SyncAPIClient):
         return self.__class__(
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
-            model_api_key=model_api_key or self.model_api_key,
+            model_api_key=model_api_key if model_api_key is not None else self.model_api_key,
             server=server or self._server_mode,
-            _local_stagehand_binary_path=_local_stagehand_binary_path if _local_stagehand_binary_path is not None else self._local_stagehand_binary_path,
+            _local_stagehand_binary_path=_local_stagehand_binary_path
+            if _local_stagehand_binary_path is not None
+            else self._local_stagehand_binary_path,
             local_host=local_host or self._local_host,
             local_port=local_port if local_port is not None else self._local_port,
             local_headless=local_headless if local_headless is not None else self._local_headless,
@@ -340,7 +338,7 @@ class AsyncStagehand(AsyncAPIClient):
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
-    model_api_key: str
+    model_api_key: str | None
 
     def __init__(
         self,
@@ -403,10 +401,6 @@ class AsyncStagehand(AsyncAPIClient):
 
         if model_api_key is None:
             model_api_key = os.environ.get("MODEL_API_KEY")
-        if model_api_key is None:
-            raise StagehandError(
-                "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
-            )
         self.model_api_key = model_api_key
 
         self._sea_server: SeaServerManager | None = None
@@ -497,7 +491,7 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
-        return {"x-model-api-key": model_api_key}
+        return {"x-model-api-key": model_api_key} if model_api_key else {}
 
     @property
     @override
@@ -560,9 +554,11 @@ class AsyncStagehand(AsyncAPIClient):
         return self.__class__(
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
-            model_api_key=model_api_key or self.model_api_key,
+            model_api_key=model_api_key if model_api_key is not None else self.model_api_key,
             server=server or self._server_mode,
-            _local_stagehand_binary_path=_local_stagehand_binary_path if _local_stagehand_binary_path is not None else self._local_stagehand_binary_path,
+            _local_stagehand_binary_path=_local_stagehand_binary_path
+            if _local_stagehand_binary_path is not None
+            else self._local_stagehand_binary_path,
             local_host=local_host or self._local_host,
             local_port=local_port if local_port is not None else self._local_port,
             local_headless=local_headless if local_headless is not None else self._local_headless,
