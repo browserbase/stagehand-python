@@ -164,7 +164,7 @@ class StagehandContext:
                                 category="context",
                             )
                         else:
-                            self.stagehand.logger.warning(
+                            self.stagehand.logger.debug(
                                 "Could not find StagehandPage wrapper for remaining page",
                                 category="context",
                             )

@@ -77,7 +77,7 @@ class StagehandPage:
                 # Ensure that the script is injected on future navigations
                 await self._page.add_init_script(_INJECTION_SCRIPT)
         except TargetClosedError as e:
-            self._stagehand.logger.warning(
+            self._stagehand.logger.debug(
                 f"ensure_injection failed (page may be navigating): {e}",
                 category="page",
             )
