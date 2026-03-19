@@ -60,7 +60,7 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith('{"data":{"status":"finished"'):
-                    yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                    break
 
                 if sse.data.startswith("error"):
                     body = sse.data
@@ -145,7 +145,7 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith('{"data":{"status":"finished"'):
-                    yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                    break
 
                 if sse.data.startswith("error"):
                     body = sse.data
