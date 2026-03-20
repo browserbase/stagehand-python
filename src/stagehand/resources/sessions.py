@@ -16,7 +16,7 @@ from ..types import (
     session_navigate_params,
 )
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from .._utils import is_given, required_args, maybe_transform, strip_not_given, async_maybe_transform
+from .._utils import is_given, path_template, required_args, maybe_transform, strip_not_given, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -212,7 +212,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._post(
-            f"/v1/sessions/{id}/act",
+            path_template("/v1/sessions/{id}/act", id=id),
             body=maybe_transform(
                 {
                     "input": input,
@@ -269,7 +269,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._post(
-            f"/v1/sessions/{id}/end",
+            path_template("/v1/sessions/{id}/end", id=id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -429,7 +429,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._post(
-            f"/v1/sessions/{id}/agentExecute",
+            path_template("/v1/sessions/{id}/agentExecute", id=id),
             body=maybe_transform(
                 {
                     "agent_config": agent_config,
@@ -608,7 +608,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._post(
-            f"/v1/sessions/{id}/extract",
+            path_template("/v1/sessions/{id}/extract", id=id),
             body=maybe_transform(
                 {
                     "frame_id": frame_id,
@@ -676,7 +676,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._post(
-            f"/v1/sessions/{id}/navigate",
+            path_template("/v1/sessions/{id}/navigate", id=id),
             body=maybe_transform(
                 {
                     "url": url,
@@ -843,7 +843,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._post(
-            f"/v1/sessions/{id}/observe",
+            path_template("/v1/sessions/{id}/observe", id=id),
             body=maybe_transform(
                 {
                     "frame_id": frame_id,
@@ -900,7 +900,7 @@ class SessionsResource(SyncAPIResource):
             **(extra_headers or {}),
         }
         return self._get(
-            f"/v1/sessions/{id}/replay",
+            path_template("/v1/sessions/{id}/replay", id=id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1164,7 +1164,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._post(
-            f"/v1/sessions/{id}/act",
+            path_template("/v1/sessions/{id}/act", id=id),
             body=await async_maybe_transform(
                 {
                     "input": input,
@@ -1221,7 +1221,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._post(
-            f"/v1/sessions/{id}/end",
+            path_template("/v1/sessions/{id}/end", id=id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1381,7 +1381,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._post(
-            f"/v1/sessions/{id}/agentExecute",
+            path_template("/v1/sessions/{id}/agentExecute", id=id),
             body=await async_maybe_transform(
                 {
                     "agent_config": agent_config,
@@ -1560,7 +1560,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._post(
-            f"/v1/sessions/{id}/extract",
+            path_template("/v1/sessions/{id}/extract", id=id),
             body=await async_maybe_transform(
                 {
                     "frame_id": frame_id,
@@ -1628,7 +1628,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._post(
-            f"/v1/sessions/{id}/navigate",
+            path_template("/v1/sessions/{id}/navigate", id=id),
             body=await async_maybe_transform(
                 {
                     "url": url,
@@ -1795,7 +1795,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._post(
-            f"/v1/sessions/{id}/observe",
+            path_template("/v1/sessions/{id}/observe", id=id),
             body=await async_maybe_transform(
                 {
                     "frame_id": frame_id,
@@ -1852,7 +1852,7 @@ class AsyncSessionsResource(AsyncAPIResource):
             **(extra_headers or {}),
         }
         return await self._get(
-            f"/v1/sessions/{id}/replay",
+            path_template("/v1/sessions/{id}/replay", id=id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
