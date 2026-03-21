@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Dict
+
 from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from .._utils import PropertyInfo
@@ -18,6 +20,9 @@ class ModelConfigParam(TypedDict, total=False):
 
     base_url: Annotated[str, PropertyInfo(alias="baseURL")]
     """Base URL for the model provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the model provider"""
 
     provider: Literal["openai", "anthropic", "google", "microsoft"]
     """AI provider for the model (or provide a baseURL endpoint instead)"""
