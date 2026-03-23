@@ -14,6 +14,8 @@ __all__ = [
     "Input",
     "Options",
     "OptionsModel",
+    "OptionsVariables",
+    "OptionsVariablesUnionMember3",
     "SessionActParamsNonStreaming",
     "SessionActParamsStreaming",
 ]
@@ -37,6 +39,15 @@ Input: TypeAlias = Union[str, ActionParam]
 OptionsModel: TypeAlias = Union[ModelConfigParam, str]
 
 
+class OptionsVariablesUnionMember3(TypedDict, total=False):
+    value: Required[Union[str, float, bool]]
+
+    description: str
+
+
+OptionsVariables: TypeAlias = Union[str, float, bool, OptionsVariablesUnionMember3]
+
+
 class Options(TypedDict, total=False):
     model: OptionsModel
     """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
@@ -44,8 +55,11 @@ class Options(TypedDict, total=False):
     timeout: float
     """Timeout in ms for the action"""
 
-    variables: Dict[str, str]
-    """Variables to substitute in the action instruction"""
+    variables: Dict[str, OptionsVariables]
+    """Variables to substitute in the action instruction.
+
+    Accepts flat primitives or { value, description? } objects.
+    """
 
 
 class SessionActParamsNonStreaming(SessionActParamsBase, total=False):
