@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
@@ -12,6 +12,8 @@ __all__ = [
     "SessionObserveParamsBase",
     "Options",
     "OptionsModel",
+    "OptionsVariables",
+    "OptionsVariablesUnionMember3",
     "SessionObserveParamsNonStreaming",
     "SessionObserveParamsStreaming",
 ]
@@ -33,6 +35,15 @@ class SessionObserveParamsBase(TypedDict, total=False):
 OptionsModel: TypeAlias = Union[ModelConfigParam, str]
 
 
+class OptionsVariablesUnionMember3(TypedDict, total=False):
+    value: Required[Union[str, float, bool]]
+
+    description: str
+
+
+OptionsVariables: TypeAlias = Union[str, float, bool, OptionsVariablesUnionMember3]
+
+
 class Options(TypedDict, total=False):
     model: OptionsModel
     """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
@@ -42,6 +53,13 @@ class Options(TypedDict, total=False):
 
     timeout: float
     """Timeout in ms for the observation"""
+
+    variables: Dict[str, OptionsVariables]
+    """
+    Variables whose names are exposed to the model so observe() returns
+    %variableName% placeholders in suggested action arguments instead of literal
+    values. Accepts flat primitives or { value, description? } objects.
+    """
 
 
 class SessionObserveParamsNonStreaming(SessionObserveParamsBase, total=False):

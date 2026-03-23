@@ -50,7 +50,13 @@ class TestSessions:
                     "provider": "openai",
                 },
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -120,7 +126,13 @@ class TestSessions:
                     "provider": "openai",
                 },
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             x_stream_response="true",
         )
@@ -629,6 +641,13 @@ class TestSessions:
                 },
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -695,6 +714,13 @@ class TestSessions:
                 },
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             x_stream_response="true",
         )
@@ -940,7 +966,13 @@ class TestAsyncSessions:
                     "provider": "openai",
                 },
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -1010,7 +1042,13 @@ class TestAsyncSessions:
                     "provider": "openai",
                 },
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             x_stream_response="true",
         )
@@ -1519,6 +1557,13 @@ class TestAsyncSessions:
                 },
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -1585,6 +1630,13 @@ class TestAsyncSessions:
                 },
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             x_stream_response="true",
         )
