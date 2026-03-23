@@ -1,5 +1,32 @@
 # Changelog
 
+## 3.7.0 (2026-03-23)
+
+Full Changelog: [v3.6.0...v3.7.0](https://github.com/browserbase/stagehand-python/compare/v3.6.0...v3.7.0)
+
+### Features
+
+* [fix]: add `useSearch` & `toolTimeout` to stainless types ([0faf1df](https://github.com/browserbase/stagehand-python/commit/0faf1dfb3d6b98e727bf0c904e272da3857863e8))
+* [STG-1607] Yield finished SSE event instead of silently dropping it ([0bba1e9](https://github.com/browserbase/stagehand-python/commit/0bba1e9c657cffbbe306a2bc6520ab2992295773))
+* Add bedrock to provider enum in Zod schemas and OpenAPI spec ([5ace8c9](https://github.com/browserbase/stagehand-python/commit/5ace8c9ee306ff8cc09c258500c24b6b55e9562b))
+* Add missing cdpHeaders field to v3 server openapi spec ([7c17bc2](https://github.com/browserbase/stagehand-python/commit/7c17bc237e604ae38ca6772deb02a378d5117f81))
+* Revert broken finished SSE yield config ([21189cf](https://github.com/browserbase/stagehand-python/commit/21189cf82aab6b07caf9a322f28355279b2a3f45))
+* variables for observe ([93ef310](https://github.com/browserbase/stagehand-python/commit/93ef31098a0cb2b4acfd157ae4c45cedc2f2e58c))
+
+
+### Bug Fixes
+
+* **deps:** bump minimum typing-extensions version ([c8cce20](https://github.com/browserbase/stagehand-python/commit/c8cce20e513c91cff638742df3f19c477aeab795))
+* **pydantic:** do not pass `by_alias` unless set ([b045b1a](https://github.com/browserbase/stagehand-python/commit/b045b1ab4d93aed7de6388fe31e768470d080fd4))
+* sanitize endpoint path params ([5201ec1](https://github.com/browserbase/stagehand-python/commit/5201ec149265832d89100c9c5292985e2e65c0f8))
+
+
+### Chores
+
+* **ci:** bump uv version ([84a841c](https://github.com/browserbase/stagehand-python/commit/84a841cd29648432d713f10b37a530e18942a3f0))
+* **ci:** skip uploading artifacts on stainless-internal branches ([291b296](https://github.com/browserbase/stagehand-python/commit/291b296a33c5be942422946051925ad6c500679b))
+* **internal:** tweak CI branches ([1d33bbf](https://github.com/browserbase/stagehand-python/commit/1d33bbf69c610c4627e31345d5ae65828dfcc483))
+
 ## 3.6.0 (2026-02-25)
 
 Full Changelog: [v3.5.0...v3.6.0](https://github.com/browserbase/stagehand-python/compare/v3.5.0...v3.6.0)
