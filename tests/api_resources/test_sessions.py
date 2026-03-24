@@ -45,7 +45,13 @@ class TestSessions:
             options={
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -110,7 +116,13 @@ class TestSessions:
             options={
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             x_stream_response="true",
         )
@@ -247,6 +259,8 @@ class TestSessions:
                 "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings",
                 "highlight_cursor": True,
                 "max_steps": 20,
+                "tool_timeout": 30000,
+                "use_search": True,
             },
             frame_id="frameId",
             should_cache=True,
@@ -343,6 +357,8 @@ class TestSessions:
                 "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings",
                 "highlight_cursor": True,
                 "max_steps": 20,
+                "tool_timeout": 30000,
+                "use_search": True,
             },
             stream_response=True,
             frame_id="frameId",
@@ -604,6 +620,13 @@ class TestSessions:
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -665,6 +688,13 @@ class TestSessions:
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             x_stream_response="true",
         )
@@ -776,6 +806,7 @@ class TestSessions:
                 "launch_options": {
                     "accept_downloads": True,
                     "args": ["string"],
+                    "cdp_headers": {"foo": "string"},
                     "cdp_url": "cdpUrl",
                     "chromium_sandbox": True,
                     "connect_timeout_ms": 0,
@@ -904,7 +935,13 @@ class TestAsyncSessions:
             options={
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -969,7 +1006,13 @@ class TestAsyncSessions:
             options={
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "timeout": 30000,
-                "variables": {"username": "john_doe"},
+                "variables": {
+                    "username": "john_doe",
+                    "password": {
+                        "value": "secret123",
+                        "description": "The login password",
+                    },
+                },
             },
             x_stream_response="true",
         )
@@ -1106,6 +1149,8 @@ class TestAsyncSessions:
                 "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings",
                 "highlight_cursor": True,
                 "max_steps": 20,
+                "tool_timeout": 30000,
+                "use_search": True,
             },
             frame_id="frameId",
             should_cache=True,
@@ -1202,6 +1247,8 @@ class TestAsyncSessions:
                 "instruction": "Log in with username 'demo' and password 'test123', then navigate to settings",
                 "highlight_cursor": True,
                 "max_steps": 20,
+                "tool_timeout": 30000,
+                "use_search": True,
             },
             stream_response=True,
             frame_id="frameId",
@@ -1463,6 +1510,13 @@ class TestAsyncSessions:
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             stream_response=False,
             x_stream_response="true",
@@ -1524,6 +1578,13 @@ class TestAsyncSessions:
                 "model": {"model_name": "openai/gpt-5-nano"},
                 "selector": "nav",
                 "timeout": 30000,
+                "variables": {
+                    "username": {
+                        "value": "john@example.com",
+                        "description": "The login email",
+                    },
+                    "rememberMe": True,
+                },
             },
             x_stream_response="true",
         )
@@ -1635,6 +1696,7 @@ class TestAsyncSessions:
                 "launch_options": {
                     "accept_downloads": True,
                     "args": ["string"],
+                    "cdp_headers": {"foo": "string"},
                     "cdp_url": "cdpUrl",
                     "chromium_sandbox": True,
                     "connect_timeout_ms": 0,

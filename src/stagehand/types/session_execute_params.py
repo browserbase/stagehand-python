@@ -62,7 +62,7 @@ class AgentConfig(TypedDict, total=False):
     'anthropic/claude-4.5-opus')
     """
 
-    provider: Literal["openai", "anthropic", "google", "microsoft"]
+    provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
     """AI provider for the agent (legacy, use model: openai/gpt-5-nano instead)"""
 
     system_prompt: Annotated[str, PropertyInfo(alias="systemPrompt")]
@@ -78,6 +78,12 @@ class ExecuteOptions(TypedDict, total=False):
 
     max_steps: Annotated[float, PropertyInfo(alias="maxSteps")]
     """Maximum number of steps the agent can take"""
+
+    tool_timeout: Annotated[float, PropertyInfo(alias="toolTimeout")]
+    """Timeout in milliseconds for each agent tool call"""
+
+    use_search: Annotated[bool, PropertyInfo(alias="useSearch")]
+    """Whether to enable the web search tool powered by Browserbase Search API"""
 
 
 class SessionExecuteParamsNonStreaming(SessionExecuteParamsBase, total=False):

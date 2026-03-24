@@ -1,12 +1,14 @@
 name: CI
 on:
   push:
-    branches-ignore:
-      - 'generated'
-      - 'codegen/**'
-      - 'integrated/**'
-      - 'stl-preview-head/**'
-      - 'stl-preview-base/**'
+    branches:
+      - '**'
+      - '!integrated/**'
+      - '!stl-preview-head/**'
+      - '!stl-preview-base/**'
+      - '!generated'
+      - '!codegen/**'
+      - 'codegen/stl/**'
   pull_request:
     branches-ignore:
       - 'stl-preview-head/**'
@@ -24,7 +26,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: '0.9.13'
+          version: '0.10.2'
 
       - name: Install dependencies
         run: uv sync --all-extras
@@ -46,7 +48,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: '0.9.13'
+          version: '0.10.2'
 
       - name: Install dependencies
         run: uv sync --all-extras
@@ -55,14 +57,18 @@ jobs:
         run: uv build
 
       - name: Get GitHub OIDC Token
-        if: github.repository == 'stainless-sdks/stagehand-python'
+        if: |-
+          github.repository == 'stainless-sdks/stagehand-python' &&
+          !startsWith(github.ref, 'refs/heads/stl/')
         id: github-oidc
         uses: actions/github-script@v8
         with:
           script: core.setOutput('github_token', await core.getIDToken());
 
       - name: Upload tarball
-        if: github.repository == 'stainless-sdks/stagehand-python'
+        if: |-
+          github.repository == 'stainless-sdks/stagehand-python' &&
+          !startsWith(github.ref, 'refs/heads/stl/')
         env:
           URL: https://pkg.stainless.com/s
           AUTH: ${{ steps.github-oidc.outputs.github_token }}
@@ -80,7 +86,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: '0.9.13'
+          version: '0.10.2'
 
       - name: Bootstrap
         run: ./scripts/bootstrap

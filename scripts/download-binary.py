@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Download the stagehand-server binary for local development.
+Download the stagehand-server-v3 binary for local development.
 
 This script downloads the appropriate binary for your platform from GitHub releases
 and places it in bin/sea/ for use during development and testing.
@@ -43,7 +43,7 @@ def get_platform_info() -> tuple[str, str]:
 
 def get_binary_filename(plat: str, arch: str) -> str:
     """Get the expected binary filename for this platform."""
-    name = f"stagehand-server-{plat}-{arch}"
+    name = f"stagehand-server-v3-{plat}-{arch}"
     return name + (".exe" if plat == "win32" else "")
 
 
@@ -53,11 +53,11 @@ def get_local_filename(plat: str, arch: str) -> str:
     return name + (".exe" if plat == "win32" else "")
 
 def _parse_server_tag(tag: str) -> tuple[int, int, int] | None:
-    # Expected: stagehand-server/vX.Y.Z
-    if not tag.startswith("stagehand-server/v"):
+    # Expected: stagehand-server-v3/vX.Y.Z
+    if not tag.startswith("stagehand-server-v3/v"):
         return None
 
-    ver = tag.removeprefix("stagehand-server/v")
+    ver = tag.removeprefix("stagehand-server-v3/v")
     # Drop any pre-release/build metadata (we only expect stable tags here).
     ver = ver.split("-", 1)[0].split("+", 1)[0]
     parts = ver.split(".")
@@ -86,7 +86,7 @@ def _http_get_json(url: str) -> Any:
 
 
 def resolve_latest_server_tag() -> str:
-    """Resolve the latest stagehand-server/v* tag from GitHub releases."""
+    """Resolve the latest stagehand-server-v3/v* tag from GitHub releases."""
     repo = "browserbase/stagehand"
     releases_url = f"https://api.github.com/repos/{repo}/releases?per_page=100"
     try:
@@ -113,7 +113,7 @@ def resolve_latest_server_tag() -> str:
             best = (parsed, tag)
 
     if best is None:
-        raise RuntimeError("No stagehand-server/v* GitHub Releases found for browserbase/stagehand")
+        raise RuntimeError("No stagehand-server-v3/v* GitHub Releases found for browserbase/stagehand")
 
     return best[1]
 
@@ -126,7 +126,7 @@ def download_binary(version: str) -> None:
 
     # GitHub release URL
     repo = "browserbase/stagehand"
-    tag = version if version.startswith("stagehand-server/v") else f"stagehand-server/{version}"
+    tag = version if version.startswith("stagehand-server-v3/v") else f"stagehand-server-v3/{version}"
     url = f"https://github.com/{repo}/releases/download/{tag}/{binary_filename}"
 
     # Destination path
@@ -186,13 +186,13 @@ def main() -> None:
 Examples:
   python scripts/download-binary.py
   python scripts/download-binary.py --version v3.2.0
-  python scripts/download-binary.py --version stagehand-server/v3.2.0
+  python scripts/download-binary.py --version stagehand-server-v3/v3.2.0
         """,
     )
     parser.add_argument(
         "--version",
         default=None,
-        help="Stagehand server release tag/version to download (e.g. v3.2.0 or stagehand-server/v3.2.0). Defaults to latest stagehand-server/* GitHub Release.",
+        help="Stagehand server release tag/version to download (e.g. v3.2.0 or stagehand-server-v3/v3.2.0). Defaults to latest stagehand-server-v3/* GitHub Release.",
     )
 
     args = parser.parse_args()

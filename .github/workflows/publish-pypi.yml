@@ -17,19 +17,19 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            binary_name: stagehand-server-linux-x64
+            binary_name: stagehand-server-v3-linux-x64
             output_path: src/stagehand/_sea/stagehand-linux-x64
             wheel_platform_tag: manylinux2014_x86_64
           - os: macos-latest
-            binary_name: stagehand-server-darwin-arm64
+            binary_name: stagehand-server-v3-darwin-arm64
             output_path: src/stagehand/_sea/stagehand-darwin-arm64
             wheel_platform_tag: macosx_11_0_arm64
           - os: macos-15-intel
-            binary_name: stagehand-server-darwin-x64
+            binary_name: stagehand-server-v3-darwin-x64
             output_path: src/stagehand/_sea/stagehand-darwin-x64
             wheel_platform_tag: macosx_10_9_x86_64
           - os: windows-latest
-            binary_name: stagehand-server-win32-x64.exe
+            binary_name: stagehand-server-v3-win32-x64.exe
             output_path: src/stagehand/_sea/stagehand-win32-x64.exe
             wheel_platform_tag: win_amd64
 
@@ -45,7 +45,7 @@ jobs:
         with:
           version: "0.9.13"
 
-      - name: Resolve latest stagehand/server release
+      - name: Resolve latest stagehand/server-v3 release
         id: stagehand-server-release
         uses: actions/github-script@v6
         with:
@@ -56,12 +56,12 @@ jobs:
               repo: 'stagehand',
               per_page: 100,
             });
-            const release = data.find(r => typeof r.tag_name === 'string' && r.tag_name.startsWith('stagehand-server/v'));
+            const release = data.find(r => typeof r.tag_name === 'string' && r.tag_name.startsWith('stagehand-server-v3/v'));
             if (!release) {
-              core.setFailed('No stagehand-server/v* release found in browserbase/stagehand');
+              core.setFailed('No stagehand-server-v3/v* release found in browserbase/stagehand');
               return;
             }
-            core.info(`Using stagehand/server release tag: ${release.tag_name}`);
+            core.info(`Using stagehand/server-v3 release tag: ${release.tag_name}`);
             core.setOutput('tag', release.tag_name);
             core.setOutput('id', String(release.id));
 
