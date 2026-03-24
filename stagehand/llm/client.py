@@ -1,8 +1,8 @@
-"""LLM client for model interactions."""
+"""LLM client for model interactions using the OpenAI SDK."""
 
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
-import litellm
+from openai import AsyncOpenAI
 
 from stagehand.metrics import get_inference_time_ms, start_inference_timer
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class LLMClient:
     """
-    Client for making LLM calls using the litellm library.
+    Client for making LLM calls using the OpenAI SDK.
     Provides a simplified interface for chat completions.
     """
 
@@ -22,43 +22,48 @@ class LLMClient:
         api_key: Optional[str] = None,
         default_model: Optional[str] = None,
         metrics_callback: Optional[Callable[[Any, int, Optional[str]], None]] = None,
-        **kwargs: Any,  # To catch other potential litellm global settings
+        **kwargs: Any,
     ):
         """
-        Initializes the LiteLLMClient.
+        Initializes the LLMClient.
 
         Args:
             stagehand_logger: StagehandLogger instance for centralized logging
-            api_key: An API key for the default provider, if required.
-                     It's often better to set provider-specific environment variables
-                     (e.g., OPENAI_API_KEY, ANTHROPIC_API_KEY) which litellm reads automatically.
-                     Passing api_key here might set litellm.api_key globally, which may
-                     not be desired if using multiple providers.
+            api_key: An API key for the OpenAI API or compatible provider.
             default_model: The default model to use if none is specified in chat_completion
-                           (e.g., "gpt-4o", "claude-3-opus-20240229").
+                           (e.g., "gpt-4o", "gpt-4o-mini").
             metrics_callback: Optional callback to track metrics from responses
-            **kwargs: Additional global settings for litellm (e.g., api_base).
-                      See litellm documentation for available settings.
+            **kwargs: Additional settings for the OpenAI client (e.g., base_url, timeout).
         """
         self.logger = stagehand_logger
         self.default_model = default_model
         self.metrics_callback = metrics_callback
 
-        # Warning:Prefer environment variables for specific providers.
+        # Build client configuration
+        client_kwargs = {}
         if api_key:
-            litellm.api_key = api_key
+            client_kwargs["api_key"] = api_key
 
-        # Apply other global settings if provided
-        for key, value in kwargs.items():
-            if hasattr(litellm, key):
-                setattr(litellm, key, value)
-                self.logger.debug(f"Set global litellm.{key}", category="llm")
-            # Handle common aliases or expected config names if necessary
-            elif key == "api_base" or key == "baseURL":
-                litellm.api_base = value
-                self.logger.debug(
-                    f"Set global litellm.api_base to {value}", category="llm"
-                )
+        # Handle base URL configuration (support multiple naming conventions)
+        base_url = kwargs.get("base_url") or kwargs.get("baseURL") or kwargs.get("api_base")
+        if base_url:
+            client_kwargs["base_url"] = base_url
+            self.logger.debug(f"Set OpenAI client base_url to {base_url}", category="llm")
+
+        # Handle timeout if provided
+        if "timeout" in kwargs:
+            client_kwargs["timeout"] = kwargs["timeout"]
+
+        # Handle max_retries if provided
+        if "max_retries" in kwargs:
+            client_kwargs["max_retries"] = kwargs["max_retries"]
+
+        # Handle default headers if provided
+        if "default_headers" in kwargs:
+            client_kwargs["default_headers"] = kwargs["default_headers"]
+
+        # Initialize the async OpenAI client
+        self.client = AsyncOpenAI(**client_kwargs)
 
     async def create_response(
         self,
@@ -69,25 +74,23 @@ class LLMClient:
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
-        Generate a chat completion response using litellm.
+        Generate a chat completion response using the OpenAI SDK.
 
         Args:
             messages: A list of message dictionaries, e.g., [{"role": "user", "content": "Hello"}].
-            model: The specific model to use (e.g., "gpt-4o", "claude-3-opus-20240229").
+            model: The specific model to use (e.g., "gpt-4o", "gpt-4o-mini").
                    Overrides the default_model if provided.
             function_name: The name of the Stagehand function calling this method (ACT, OBSERVE, etc.)
                    Used for metrics tracking.
-            **kwargs: Additional parameters to pass directly to litellm.acompletion
-                      (e.g., temperature, max_tokens, stream=True, specific provider arguments).
+            **kwargs: Additional parameters to pass directly to the OpenAI completions API
+                      (e.g., temperature, max_tokens, response_format).
 
         Returns:
-            A dictionary containing the completion response from litellm, typically
-            including choices, usage statistics, etc. Structure depends on the model
-            provider and whether streaming is used.
+            The completion response from the OpenAI SDK.
 
         Raises:
             ValueError: If no model is specified (neither default nor in the call).
-            Exception: Propagates exceptions from litellm.acompletion.
+            Exception: Propagates exceptions from the OpenAI client.
         """
         completion_model = model or self.default_model
         if not completion_model:
@@ -95,27 +98,42 @@ class LLMClient:
                 "No model specified for chat completion (neither default_model nor model argument)."
             )
 
-        # Standardize gemini provider to google
-        if completion_model.startswith("google/"):
-            completion_model = completion_model.replace("google/", "gemini/")
+        # Handle provider prefixes - strip them for OpenAI SDK
+        # Some configurations use prefixes like "openai/", etc.
+        # For OpenAI SDK, we just use the model name directly
+        if "/" in completion_model:
+            # Extract just the model name after the provider prefix
+            completion_model = completion_model.split("/", 1)[1]
 
-        # Prepare arguments directly from kwargs
+        # Prepare arguments
         params = {
             "model": completion_model,
             "messages": messages,
-            **kwargs,  # Pass through any extra arguments
         }
-        # Filter out None values only for keys explicitly present in kwargs to avoid sending nulls
-        # unless they were intentionally provided as None.
-        filtered_params = {
-            k: v for k, v in params.items() if v is not None or k in kwargs
-        }
+
+        # Handle response_format - convert Pydantic model to OpenAI format if needed
+        response_format = kwargs.pop("response_format", None)
+        if response_format is not None:
+            if isinstance(response_format, type):
+                # It's a Pydantic model class, use structured outputs
+                params["response_format"] = response_format
+            elif isinstance(response_format, dict):
+                params["response_format"] = response_format
+            else:
+                params["response_format"] = response_format
+
+        # Add remaining kwargs
+        params.update(kwargs)
+
+        # Filter out None values
+        filtered_params = {k: v for k, v in params.items() if v is not None}
+
         # Fixes parameters for GPT-5 family of models
         if "gpt-5" in completion_model:
             filtered_params["temperature"] = 1
 
         self.logger.debug(
-            f"Calling litellm.acompletion with model={completion_model} and params: {filtered_params}",
+            f"Calling OpenAI client with model={completion_model}",
             category="llm",
         )
 
@@ -123,8 +141,17 @@ class LLMClient:
             # Start tracking inference time
             start_time = start_inference_timer()
 
-            # Use litellm's async completion function
-            response = await litellm.acompletion(**filtered_params)
+            # Check if we're using structured output with a Pydantic model
+            if "response_format" in filtered_params and isinstance(
+                filtered_params["response_format"], type
+            ):
+                # Use beta.chat.completions.parse for structured outputs
+                response = await self.client.beta.chat.completions.parse(
+                    **filtered_params
+                )
+            else:
+                # Use standard chat completions
+                response = await self.client.chat.completions.create(**filtered_params)
 
             # Calculate inference time
             inference_time_ms = get_inference_time_ms(start_time)
@@ -136,6 +163,5 @@ class LLMClient:
             return response
 
         except Exception as e:
-            self.logger.error(f"Error calling litellm.acompletion: {e}", category="llm")
-            # Consider more specific exception handling based on litellm errors
+            self.logger.error(f"Error calling OpenAI client: {e}", category="llm")
             raise

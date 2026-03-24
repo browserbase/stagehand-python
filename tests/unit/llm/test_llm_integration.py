@@ -21,7 +21,6 @@ class TestLLMClientInitialization:
         )
         
         assert client.default_model == "gpt-4o"
-        # Note: api_key is set globally on litellm, not stored on client
     
     def test_llm_client_creation_with_anthropic(self):
         """Test LLM client creation with Anthropic provider"""
@@ -32,7 +31,6 @@ class TestLLMClientInitialization:
         )
         
         assert client.default_model == "claude-3-sonnet"
-        # Note: api_key is set globally on litellm, not stored on client
     
     def test_llm_client_with_custom_options(self):
         """Test LLM client with custom configuration options"""

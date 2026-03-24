@@ -38,7 +38,7 @@ class MockLLMResponse:
         self.message = MagicMock()
         self.message.content = content
         
-        # Hidden params for some litellm compatibility
+        # Hidden params for compatibility
         self._hidden_params = {
             "usage": {
                 "prompt_tokens": self.usage.prompt_tokens,
