@@ -59,10 +59,7 @@ class Stream(Generic[_T]):
 
         try:
             for sse in iterator:
-                if sse.data.startswith('{"data":{"status":"finished"'):
-                    break
-
-                if sse.data.startswith("error"):
+                if sse.event == "error":
                     body = sse.data
 
                     try:
@@ -77,7 +74,12 @@ class Stream(Generic[_T]):
                         response=self.response,
                     )
 
-                if sse.event is None:
+                if (
+                    sse.event == "starting"
+                    or sse.event == "connected"
+                    or sse.event == "running"
+                    or sse.event == "finished"
+                ):
                     yield process_data(data=sse.json(), cast_to=cast_to, response=response)
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
@@ -144,10 +146,7 @@ class AsyncStream(Generic[_T]):
 
         try:
             async for sse in iterator:
-                if sse.data.startswith('{"data":{"status":"finished"'):
-                    break
-
-                if sse.data.startswith("error"):
+                if sse.event == "error":
                     body = sse.data
 
                     try:
@@ -162,7 +161,12 @@ class AsyncStream(Generic[_T]):
                         response=self.response,
                     )
 
-                if sse.event is None:
+                if (
+                    sse.event == "starting"
+                    or sse.event == "connected"
+                    or sse.event == "running"
+                    or sse.event == "finished"
+                ):
                     yield process_data(data=sse.json(), cast_to=cast_to, response=response)
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
