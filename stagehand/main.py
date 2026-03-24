@@ -405,11 +405,11 @@ class Stagehand:
         inference_time_ms: Optional[int] = None,
     ):
         """
-        Extract and update metrics from a litellm response.
+        Extract and update metrics from an LLM response.
 
         Args:
             function_name: The function that generated the response
-            response: litellm response object
+            response: LLM response object
             inference_time_ms: Optional inference time if already calculated
         """
         try:
@@ -713,7 +713,7 @@ class Stagehand:
         Callback to handle metrics from LLM responses.
 
         Args:
-            response: The litellm response object
+            response: The LLM response object
             inference_time_ms: Time taken for inference in milliseconds
             function_name: The function that generated the metrics (name or enum value)
         """

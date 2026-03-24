@@ -358,7 +358,6 @@ class StagehandPage:
                 # Case 1: Pydantic model class
                 schema_to_validate_with = options_obj.schema_definition
             elif isinstance(options_obj.schema_definition, dict):
-                # TODO: revisit this case to pass the json_schema since litellm has a bug when passing it directly
                 # Case 2: Dictionary
                 # Assume it's a direct JSON schema dictionary
                 schema_to_validate_with = options_obj.schema_definition
