@@ -43,7 +43,13 @@ class TestSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "timeout": 30000,
                 "variables": {
                     "username": "john_doe",
@@ -114,7 +120,13 @@ class TestSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "timeout": 30000,
                 "variables": {
                     "username": "john_doe",
@@ -241,6 +253,7 @@ class TestSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
                 "mode": "cua",
@@ -248,10 +261,9 @@ class TestSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
-                "mode": "cua",
-                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -339,6 +351,7 @@ class TestSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
                 "mode": "cua",
@@ -346,10 +359,9 @@ class TestSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
-                "mode": "cua",
-                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -431,7 +443,13 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -493,7 +511,13 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -617,7 +641,13 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "nav",
                 "timeout": 30000,
                 "variables": {
@@ -685,7 +715,13 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "nav",
                 "timeout": 30000,
                 "variables": {
@@ -933,7 +969,13 @@ class TestAsyncSessions:
             input="Click the login button",
             frame_id="frameId",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "timeout": 30000,
                 "variables": {
                     "username": "john_doe",
@@ -1004,7 +1046,13 @@ class TestAsyncSessions:
             stream_response=True,
             frame_id="frameId",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "timeout": 30000,
                 "variables": {
                     "username": "john_doe",
@@ -1131,6 +1179,7 @@ class TestAsyncSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
                 "mode": "cua",
@@ -1138,10 +1187,9 @@ class TestAsyncSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
-                "mode": "cua",
-                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1229,6 +1277,7 @@ class TestAsyncSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
                 "mode": "cua",
@@ -1236,10 +1285,9 @@ class TestAsyncSessions:
                     "model_name": "openai/gpt-5-nano",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
                     "provider": "openai",
                 },
-                "mode": "cua",
-                "model": {"model_name": "openai/gpt-5-nano"},
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
             },
@@ -1321,7 +1369,13 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -1383,7 +1437,13 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "#main-content",
                 "timeout": 30000,
             },
@@ -1507,7 +1567,13 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "nav",
                 "timeout": 30000,
                 "variables": {
@@ -1575,7 +1641,13 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
-                "model": {"model_name": "openai/gpt-5-nano"},
+                "model": {
+                    "model_name": "openai/gpt-5-nano",
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
+                    "headers": {"foo": "string"},
+                    "provider": "openai",
+                },
                 "selector": "nav",
                 "timeout": 30000,
                 "variables": {
