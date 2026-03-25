@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.18.0 (2026-03-25)
+
+Full Changelog: [v3.7.0...v3.18.0](https://github.com/browserbase/stagehand-python/compare/v3.7.0...v3.18.0)
+
+### Features
+
+* Add explicit SSE event names for local v3 streaming ([493abf4](https://github.com/browserbase/stagehand-python/commit/493abf4ee2023c3a88701c01bdd4bfdd1f4e0b63))
+* Include LLM headers in ModelConfig ([b0df6bc](https://github.com/browserbase/stagehand-python/commit/b0df6bcddaa9dbf206dee0d97ee9e303d703530b))
+
+
+### Chores
+
+* **ci:** skip lint on metadata-only changes ([4049e44](https://github.com/browserbase/stagehand-python/commit/4049e44cb7855c62d2231c34c6211532860dfdbf))
+* **internal:** update gitignore ([5acaa6f](https://github.com/browserbase/stagehand-python/commit/5acaa6f97a3fd926e3406c3af3504576a86a05bb))
+
 ## 3.7.0 (2026-03-23)
 
 Full Changelog: [v3.6.0...v3.7.0](https://github.com/browserbase/stagehand-python/compare/v3.6.0...v3.7.0)
