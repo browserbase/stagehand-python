@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import httpx
 import pytest
 from respx import MockRouter
@@ -62,6 +64,45 @@ def test_sync_local_mode_starts_before_first_request(respx_mock: MockRouter, mon
     resp = client.sessions.start(model_name="openai/gpt-5-nano")
     assert resp.success is True
     assert dummy.started == 1
+
+    client.close()
+    assert dummy.closed == 1
+
+
+@pytest.mark.respx(base_url="http://127.0.0.1:43127")
+def test_sync_local_mode_defaults_browser_type_local_when_omitted(
+    respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _set_required_env(monkeypatch)
+
+    dummy = _DummySeaServer("http://127.0.0.1:43127")
+    request_body: dict[str, object] = {}
+
+    def _capture_start_request(request: httpx.Request) -> httpx.Response:
+        request_body["json"] = json.loads(request.content.decode("utf-8"))
+        return httpx.Response(
+            200,
+            json={
+                "success": True,
+                "data": {
+                    "available": True,
+                    "connectUrl": "ws://example",
+                    "sessionId": "00000000-0000-0000-0000-000000000001",
+                },
+            },
+        )
+
+    respx_mock.post("/v1/sessions/start").mock(side_effect=_capture_start_request)
+
+    client = Stagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
+    client._sea_server = dummy  # type: ignore[attr-defined]
+
+    resp = client.sessions.start(model_name="openai/gpt-5-nano")
+    assert resp.success is True
+    assert request_body["json"] == {
+        "modelName": "openai/gpt-5-nano",
+        "browser": {"type": "local"},
+    }
 
     client.close()
     assert dummy.closed == 1
