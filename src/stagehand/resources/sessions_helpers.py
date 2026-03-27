@@ -83,6 +83,9 @@ class SessionsResourceWithHelpers(SessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Session:
+        if browser is omit and getattr(self._client, "_server_mode", None) == "local":
+            browser = {"type": "local"}
+
         start_response = super().start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
@@ -136,6 +139,9 @@ class AsyncSessionsResourceWithHelpers(AsyncSessionsResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncSession:
+        if browser is omit and getattr(self._client, "_server_mode", None) == "local":
+            browser = {"type": "local"}
+
         start_response: SessionStartResponse = await super().start(
             model_name=model_name,
             act_timeout_ms=act_timeout_ms,
