@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.19.0 (2026-03-27)
+
+Full Changelog: [v3.18.0...v3.19.0](https://github.com/browserbase/stagehand-python/compare/v3.18.0...v3.19.0)
+
+### Features
+
+* **internal:** implement indices array format for query and form serialization ([b2cccf5](https://github.com/browserbase/stagehand-python/commit/b2cccf56bc7e99d7869b8ed9339956a9f160348a))
+
 ## 3.18.0 (2026-03-25)
 
 Full Changelog: [v3.7.0...v3.18.0](https://github.com/browserbase/stagehand-python/compare/v3.7.0...v3.18.0)
