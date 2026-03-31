@@ -1334,7 +1334,7 @@ wheels = [
 
 [[package]]
 name = "stagehand"
-version = "3.19.0"
+version = "3.19.1"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
