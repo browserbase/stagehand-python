@@ -56,14 +56,40 @@ jobs:
               repo: 'stagehand',
               per_page: 100,
             });
-            const release = data.find(r => typeof r.tag_name === 'string' && r.tag_name.startsWith('stagehand-server-v3/v'));
-            if (!release) {
-              core.setFailed('No stagehand-server-v3/v* release found in browserbase/stagehand');
+            const parseStableTag = (tag) => {
+              if (typeof tag !== 'string') return null;
+              const match = /^stagehand-server-v3\/v(\d+)\.(\d+)\.(\d+)$/.exec(tag);
+              if (!match) return null;
+              return match.slice(1).map(Number);
+            };
+
+            let best = null;
+            for (const release of data) {
+              if (release.draft || release.prerelease) continue;
+              const version = parseStableTag(release.tag_name);
+              if (!version) continue;
+              if (!best) {
+                best = { release, version };
+                continue;
+              }
+
+              const isGreater =
+                version[0] > best.version[0] ||
+                (version[0] === best.version[0] && version[1] > best.version[1]) ||
+                (version[0] === best.version[0] && version[1] === best.version[1] && version[2] > best.version[2]);
+
+              if (isGreater) {
+                best = { release, version };
+              }
+            }
+
+            if (!best) {
+              core.setFailed('No stable stagehand-server-v3/vX.Y.Z release found in browserbase/stagehand');
               return;
             }
-            core.info(`Using stagehand/server-v3 release tag: ${release.tag_name}`);
-            core.setOutput('tag', release.tag_name);
-            core.setOutput('id', String(release.id));
+            core.info(`Using stagehand/server-v3 release tag: ${best.release.tag_name}`);
+            core.setOutput('tag', best.release.tag_name);
+            core.setOutput('id', String(best.release.id));
 
       - name: Download stagehand/server SEA binary (from GitHub Release assets)
         env:
