@@ -58,8 +58,10 @@ def _parse_server_tag(tag: str) -> tuple[int, int, int] | None:
         return None
 
     ver = tag.removeprefix("stagehand-server-v3/v")
-    # Drop any pre-release/build metadata (we only expect stable tags here).
-    ver = ver.split("-", 1)[0].split("+", 1)[0]
+    # Only accept stable tags. Pre-release/build tags like "-dev" should not
+    # be used for local binary downloads or release packaging.
+    if "-" in ver or "+" in ver:
+        return None
     parts = ver.split(".")
     if len(parts) != 3:
         return None

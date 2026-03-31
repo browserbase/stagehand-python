@@ -8,6 +8,8 @@ import importlib.resources as importlib_resources
 from pathlib import Path
 from contextlib import suppress
 
+from .._version import __version__
+
 
 def _platform_tag() -> tuple[str, str]:
     plat = "win32" if sys.platform.startswith("win") else ("darwin" if sys.platform == "darwin" else "linux")
@@ -99,7 +101,7 @@ def resolve_binary_path(
     if resource_path is not None:
         # Best-effort versioning to keep cached binaries stable across upgrades.
         if version is None:
-            version = os.environ.get("STAGEHAND_VERSION", "dev")
+            version = os.environ.get("STAGEHAND_VERSION") or __version__
         return _copy_to_cache(src=resource_path, filename=filename, version=version)
 
     # Fallback: source checkout layout (works for local dev in-repo).
