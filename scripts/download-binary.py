@@ -120,6 +120,17 @@ def resolve_latest_server_tag() -> str:
     return best[1]
 
 
+def normalize_server_tag(version: str) -> str:
+    """Normalize explicit CLI input to a stable stagehand-server-v3 tag."""
+    tag = version if version.startswith("stagehand-server-v3/v") else f"stagehand-server-v3/{version}"
+    if _parse_server_tag(tag) is None:
+        raise ValueError(
+            "Invalid stagehand server version. Expected a stable tag like "
+            "'v3.2.0' or 'stagehand-server-v3/v3.2.0'."
+        )
+    return tag
+
+
 def download_binary(version: str) -> None:
     """Download the binary for the current platform."""
     plat, arch = get_platform_info()
@@ -128,7 +139,7 @@ def download_binary(version: str) -> None:
 
     # GitHub release URL
     repo = "browserbase/stagehand"
-    tag = version if version.startswith("stagehand-server-v3/v") else f"stagehand-server-v3/{version}"
+    tag = normalize_server_tag(version)
     url = f"https://github.com/{repo}/releases/download/{tag}/{binary_filename}"
 
     # Destination path
