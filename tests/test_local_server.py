@@ -284,3 +284,28 @@ def test_local_mode_masks_inherited_model_api_key_envs_and_prefers_explicit_para
     assert captured_env["MODEL_API_KEY"] == expected_model_api_key
     assert captured_env["OPENAI_API_KEY"] == "bad2"
     client.close()
+
+
+def test_local_mode_forwards_flow_log_and_config_dir_env_to_sea_binary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _set_required_env(monkeypatch)
+    monkeypatch.setenv("BROWSERBASE_FLOW_LOGS", "1")
+    monkeypatch.setenv("BROWSERBASE_CONFIG_DIR", "./tmp")
+
+    captured_env: dict[str, str] = {}
+    _install_fake_sea_runtime(monkeypatch, tmp_path, captured_env, port=43131)
+
+    client = Stagehand(
+        server="local",
+        model_api_key="model_key",
+        _local_stagehand_binary_path="/does/not/matter/in/test",
+    )
+    assert client._sea_server is not None
+
+    client._sea_server.ensure_running_sync()
+
+    assert captured_env["BROWSERBASE_FLOW_LOGS"] == "1"
+    assert captured_env["BROWSERBASE_CONFIG_DIR"] == "./tmp"
+    client.close()
