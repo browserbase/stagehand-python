@@ -19,6 +19,12 @@ _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
 
 PYDANTIC_V1 = pydantic.VERSION.startswith("1.")
 
+if PYDANTIC_V1:
+    raise ImportError(
+        f"stagehand requires Pydantic v2 or newer; found Pydantic {pydantic.VERSION}. "
+        "Install `pydantic>=2,<3`."
+    )
+
 if TYPE_CHECKING:
 
     def parse_date(value: date | StrBytesIntFloat) -> date:  # noqa: ARG001
