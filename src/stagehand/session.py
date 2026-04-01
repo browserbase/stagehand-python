@@ -17,6 +17,7 @@ from .types import (
 )
 from ._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ._exceptions import StagehandError
+from ._pydantic_extract import is_pydantic_model, pydantic_model_to_json_schema, validate_extract_response
 from .types.session_act_response import SessionActResponse
 from .types.session_end_response import SessionEndResponse
 from .types.session_start_response import Data as SessionStartResponseData, SessionStartResponse
@@ -203,6 +204,7 @@ class Session(SessionStartResponse):
     def extract(
         self,
         *,
+        schema: dict[str, object] | type | None = None,
         page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -210,17 +212,33 @@ class Session(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
-        return cast(
-            SessionExtractResponse,
-            self._client.sessions.extract(
+        # If the caller passed schema via **params (TypedDict), prefer the explicit kwarg.
+        resolved_schema = schema if schema is not None else params.pop("schema", None)  # type: ignore[misc]
+
+        pydantic_cls = None
+        if is_pydantic_model(resolved_schema):
+            pydantic_cls = resolved_schema
+            resolved_schema = pydantic_model_to_json_schema(resolved_schema)
+
+        api_params: dict[str, Any] = _maybe_inject_frame_id(dict(params), page)
+        if resolved_schema is not None:
+            api_params["schema"] = resolved_schema
+
+        response = self._client.sessions.extract(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **_maybe_inject_frame_id(dict(params), page),
-            ),
+            **api_params,
         )
+
+        # Pydantic validation only applies to non-streaming responses.
+        if pydantic_cls is not None and isinstance(response, SessionExtractResponse):
+            if response.data and response.data.result is not None:
+                response.data.result = validate_extract_response(response.data.result, pydantic_cls)
+
+        return cast(SessionExtractResponse, response)
 
     def execute(
         self,
@@ -338,6 +356,7 @@ class AsyncSession(SessionStartResponse):
     async def extract(
         self,
         *,
+        schema: dict[str, object] | type | None = None,
         page: Any | None = None,
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -345,17 +364,33 @@ class AsyncSession(SessionStartResponse):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
-        return cast(
-            SessionExtractResponse,
-            await self._client.sessions.extract(
+        # If the caller passed schema via **params (TypedDict), prefer the explicit kwarg.
+        resolved_schema = schema if schema is not None else params.pop("schema", None)  # type: ignore[misc]
+
+        pydantic_cls = None
+        if is_pydantic_model(resolved_schema):
+            pydantic_cls = resolved_schema
+            resolved_schema = pydantic_model_to_json_schema(resolved_schema)
+
+        api_params: dict[str, Any] = await _maybe_inject_frame_id_async(dict(params), page)
+        if resolved_schema is not None:
+            api_params["schema"] = resolved_schema
+
+        response = await self._client.sessions.extract(
             id=self.id,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            **(await _maybe_inject_frame_id_async(dict(params), page)),
-            ),
+            **api_params,
         )
+
+        # Pydantic validation only applies to non-streaming responses.
+        if pydantic_cls is not None and isinstance(response, SessionExtractResponse):
+            if response.data and response.data.result is not None:
+                response.data.result = validate_extract_response(response.data.result, pydantic_cls)
+
+        return cast(SessionExtractResponse, response)
 
     async def execute(
         self,
