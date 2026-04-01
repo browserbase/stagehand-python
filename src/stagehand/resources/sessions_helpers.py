@@ -6,25 +6,28 @@ from typing_extensions import Literal, override
 
 import httpx
 
-from ..types import session_start_params
-from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from .._session_extract import install_pydantic_extract_patch
 from .._compat import cached_property
-from ..session import Session, AsyncSession
-from .sessions import (
-    SessionsResource,
-    AsyncSessionsResource,
-    SessionsResourceWithRawResponse,
-    AsyncSessionsResourceWithRawResponse,
-    SessionsResourceWithStreamingResponse,
-    AsyncSessionsResourceWithStreamingResponse,
-)
 from .._response import (
-    to_raw_response_wrapper,
-    to_streamed_response_wrapper,
     async_to_raw_response_wrapper,
     async_to_streamed_response_wrapper,
+    to_raw_response_wrapper,
+    to_streamed_response_wrapper,
 )
+from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ..session import Session, AsyncSession
+from ..types import session_start_params
 from ..types.session_start_response import SessionStartResponse
+from .sessions import (
+    AsyncSessionsResource,
+    AsyncSessionsResourceWithRawResponse,
+    AsyncSessionsResourceWithStreamingResponse,
+    SessionsResource,
+    SessionsResourceWithRawResponse,
+    SessionsResourceWithStreamingResponse,
+)
+
+install_pydantic_extract_patch()
 
 
 class SessionsResourceWithHelpersRawResponse(SessionsResourceWithRawResponse):

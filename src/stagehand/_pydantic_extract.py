@@ -6,7 +6,9 @@ import inspect
 import logging
 from typing import Any, Dict, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+from ._utils import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,9 @@ def pydantic_model_to_json_schema(schema: Type[BaseModel]) -> Dict[str, object]:
     return schema.model_json_schema()
 
 
-def validate_extract_response(result: object, schema: Type[BaseModel]) -> Any:
+def validate_extract_response(
+    result: object, schema: Type[BaseModel], *, strict_response_validation: bool
+) -> Any:
     """Validate raw extract result data against a Pydantic model.
 
     Tries direct validation first. On failure, falls back to normalizing
@@ -36,12 +40,13 @@ def validate_extract_response(result: object, schema: Type[BaseModel]) -> Any:
     Returns the validated Pydantic model instance, or the raw result if
     both attempts fail.
     """
+    validation_schema = _validation_schema(schema, strict_response_validation)
     try:
-        return schema.model_validate(result)
+        return validation_schema.model_validate(result)
     except Exception:
         try:
             normalized = _convert_dict_keys_to_snake_case(result)
-            return schema.model_validate(normalized)
+            return validation_schema.model_validate(normalized)
         except Exception:
             logger.warning(
                 "Failed to validate extracted data against schema %s. "
@@ -49,6 +54,21 @@ def validate_extract_response(result: object, schema: Type[BaseModel]) -> Any:
                 schema.__name__,
             )
             return result
+
+
+@lru_cache(maxsize=None)
+def _validation_schema(schema: Type[BaseModel], strict_response_validation: bool) -> Type[BaseModel]:
+    extra_behavior = "forbid" if strict_response_validation else "allow"
+    validation_schema = type(
+        f"{schema.__name__}ExtractValidation",
+        (schema,),
+        {
+            "__module__": schema.__module__,
+            "model_config": ConfigDict(extra=extra_behavior),
+        },
+    )
+    validation_schema.model_rebuild(force=True)
+    return validation_schema
 
 
 def _camel_to_snake(name: str) -> str:
