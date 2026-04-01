@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 from pathlib import Path
 
@@ -85,10 +86,27 @@ def _install_fake_sea_runtime(
         captured_env.update(env)
         return _DummyProcess()
 
-    monkeypatch.setattr(sea_server, "_pick_free_port", lambda _host: port)
-    monkeypatch.setattr(sea_server, "_terminate_process", lambda proc: setattr(proc, "_returncode", 0))
-    monkeypatch.setattr(sea_server, "_wait_ready_sync", lambda **_kwargs: None)
-    monkeypatch.setattr(sea_server, "resolve_binary_path", lambda **_kwargs: binary_path)
+    def _fake_pick_free_port(_host: str) -> int:
+        return port
+
+    def _fake_terminate_process(proc: _DummyProcess) -> None:
+        proc._returncode = 0
+
+    def _fake_wait_ready_sync(*, base_url: str, timeout_s: float) -> None:
+        del base_url, timeout_s
+
+    def _fake_resolve_binary_path(
+        *,
+        _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
+        version: str | None = None,
+    ) -> Path:
+        del _local_stagehand_binary_path, version
+        return binary_path
+
+    monkeypatch.setattr(sea_server, "_pick_free_port", _fake_pick_free_port)
+    monkeypatch.setattr(sea_server, "_terminate_process", _fake_terminate_process)
+    monkeypatch.setattr(sea_server, "_wait_ready_sync", _fake_wait_ready_sync)
+    monkeypatch.setattr(sea_server, "resolve_binary_path", _fake_resolve_binary_path)
     monkeypatch.setattr(sea_server.subprocess, "Popen", _fake_popen)
 
 
@@ -271,14 +289,17 @@ def test_local_mode_masks_inherited_model_api_key_envs_and_prefers_explicit_para
     captured_env: dict[str, str] = {}
     _install_fake_sea_runtime(monkeypatch, tmp_path, captured_env, port=43129)
 
-    client_kwargs: dict[str, object] = {
-        "server": "local",
-        "_local_stagehand_binary_path": "/does/not/matter/in/test",
-    }
-    if explicit_model_api_key is not None:
-        client_kwargs["model_api_key"] = explicit_model_api_key
-
-    client = Stagehand(**client_kwargs)
+    if explicit_model_api_key is None:
+        client = Stagehand(
+            server="local",
+            _local_stagehand_binary_path="/does/not/matter/in/test",
+        )
+    else:
+        client = Stagehand(
+            server="local",
+            model_api_key=explicit_model_api_key,
+            _local_stagehand_binary_path="/does/not/matter/in/test",
+        )
     assert client._sea_server is not None
 
     client._sea_server.ensure_running_sync()
