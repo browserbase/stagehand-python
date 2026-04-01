@@ -120,8 +120,10 @@ class SeaServerManager:
 
     def _build_process_env(self, *, port: int) -> dict[str, str]:
         proc_env = dict(os.environ)
-        # Defaults that make the server boot under SEA (avoid pino-pretty transport)
-        proc_env.setdefault("NODE_ENV", "production")
+        # Force production mode so inherited NODE_ENV=development never reaches the
+        # SEA child process. Development mode breaks under SEA because pino-pretty
+        # is an optional dependency that is not present in the packaged binary.
+        proc_env["NODE_ENV"] = "production"
         # Server package expects BB_ENV to be set (see packages/server/src/lib/env.ts)
         proc_env.setdefault("BB_ENV", "local")
         proc_env["HOST"] = self._config.host
