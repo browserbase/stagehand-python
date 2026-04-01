@@ -66,8 +66,8 @@ def _convert_dict_keys_to_snake_case(data: Any) -> Any:
     if isinstance(data, dict):
         return {
             _camel_to_snake(k) if isinstance(k, str) else k: _convert_dict_keys_to_snake_case(v)
-            for k, v in data.items()
+            for k, v in data.items()  # type: ignore[union-attr]
         }
     if isinstance(data, list):
-        return [_convert_dict_keys_to_snake_case(item) for item in data]
+        return [_convert_dict_keys_to_snake_case(item) for item in data]  # type: ignore[union-attr]
     return data

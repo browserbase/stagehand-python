@@ -10,7 +10,7 @@ authors = [
 
 dependencies = [
   "httpx>=0.23.0, <1",
-  "pydantic>=1.9.0, <3",
+  "pydantic>=2.0.0, <3",
   "typing-extensions>=4.14, <5",
   "anyio>=3.5.0, <5",
   "distro>=1.7.0, <2",
@@ -46,12 +46,7 @@ aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
 [tool.uv]
 managed = true
 required-version = ">=0.9"
-conflicts = [
-    [
-      { group = "pydantic-v1" },
-      { group = "pydantic-v2" },
-    ],
-]
+conflicts = []
 
 [dependency-groups]
 # version pins are in uv.lock
@@ -68,9 +63,6 @@ dev = [
     "rich>=13.7.1",
     "pytest-xdist>=3.6.1",
     "dotenv>=0.9.9",
-]
-pydantic-v1 = [
-    "pydantic>=1.9.0,<2",
 ]
 pydantic-v2 = [
     "pydantic~=2.0 ; python_full_version < '3.14'",
