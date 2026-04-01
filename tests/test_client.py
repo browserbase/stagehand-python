@@ -20,6 +20,7 @@ from respx import MockRouter
 from pydantic import ValidationError
 
 from stagehand import Stagehand, AsyncStagehand, APIResponseValidationError
+from stagehand._client import _MODEL_API_KEY_ENV_VARS
 from stagehand._types import Omit
 from stagehand._utils import asyncify
 from stagehand._models import BaseModel, FinalRequestOptions
@@ -43,6 +44,10 @@ base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 browserbase_api_key = "My Browserbase API Key"
 browserbase_project_id = "My Browserbase Project ID"
 model_api_key = "My Model API Key"
+
+
+def _omit_model_api_key_env_vars() -> dict[str, Omit]:
+    return {name: Omit() for name in _MODEL_API_KEY_ENV_VARS}
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -469,7 +474,7 @@ class TestStagehand:
                 **{
                     "BROWSERBASE_API_KEY": Omit(),
                     "BROWSERBASE_PROJECT_ID": Omit(),
-                    "MODEL_API_KEY": Omit(),
+                    **_omit_model_api_key_env_vars(),
                 }
             ):
                 client2 = Stagehand(
@@ -480,6 +485,35 @@ class TestStagehand:
                     _strict_response_validation=True,
                 )
                 client2.sessions.start(model_name="openai/gpt-5-nano")
+
+    def test_model_api_key_falls_back_to_openai_env(self) -> None:
+        with update_env(
+            MODEL_API_KEY=Omit(),
+            OPENAI_API_KEY="openai-key",
+        ):
+            client = Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=None,
+            )
+
+        assert client.model_api_key == "openai-key"
+
+    def test_model_api_key_falls_back_to_gemini_env(self) -> None:
+        with update_env(
+            MODEL_API_KEY=Omit(),
+            OPENAI_API_KEY=Omit(),
+            GEMINI_API_KEY="gemini-key",
+        ):
+            client = Stagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=None,
+            )
+
+        assert client.model_api_key == "gemini-key"
 
     def test_default_query_option(self) -> None:
         client = Stagehand(
@@ -1517,7 +1551,7 @@ class TestAsyncStagehand:
                 **{
                     "BROWSERBASE_API_KEY": Omit(),
                     "BROWSERBASE_PROJECT_ID": Omit(),
-                    "MODEL_API_KEY": Omit(),
+                    **_omit_model_api_key_env_vars(),
                 }
             ):
                 client2 = AsyncStagehand(
@@ -1528,6 +1562,35 @@ class TestAsyncStagehand:
                     _strict_response_validation=True,
                 )
             _ = client2
+
+    async def test_model_api_key_falls_back_to_openai_env(self) -> None:
+        with update_env(
+            MODEL_API_KEY=Omit(),
+            OPENAI_API_KEY="openai-key",
+        ):
+            client = AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=None,
+            )
+
+        assert client.model_api_key == "openai-key"
+
+    async def test_model_api_key_falls_back_to_gemini_env(self) -> None:
+        with update_env(
+            MODEL_API_KEY=Omit(),
+            OPENAI_API_KEY=Omit(),
+            GEMINI_API_KEY="gemini-key",
+        ):
+            client = AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=None,
+            )
+
+        assert client.model_api_key == "gemini-key"
 
     async def test_default_query_option(self) -> None:
         client = AsyncStagehand(

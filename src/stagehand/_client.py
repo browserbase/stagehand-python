@@ -47,6 +47,36 @@ __all__ = [
     "AsyncClient",
 ]
 
+_MODEL_API_KEY_ENV_VARS: tuple[str, ...] = (
+    "MODEL_API_KEY",
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "GEMINI_API_KEY",
+    "GOOGLE_GENERATIVE_AI_API_KEY",
+    "GOOGLE_API_KEY",
+    "GOOGLE_VERTEX_AI_API_KEY",
+    "GROQ_API_KEY",
+    "CEREBRAS_API_KEY",
+    "TOGETHER_AI_API_KEY",
+    "MISTRAL_API_KEY",
+    "DEEPSEEK_API_KEY",
+    "PERPLEXITY_API_KEY",
+    "AZURE_API_KEY",
+    "XAI_API_KEY",
+)
+
+
+def _resolve_model_api_key(model_api_key: str | None) -> str | None:
+    if model_api_key is not None:
+        return model_api_key
+
+    for env_var in _MODEL_API_KEY_ENV_VARS:
+        value = os.environ.get(env_var)
+        if value:
+            return value
+
+    return None
+
 
 class Stagehand(SyncAPIClient):
     # client options
@@ -93,7 +123,7 @@ class Stagehand(SyncAPIClient):
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
-        - `model_api_key` from `MODEL_API_KEY`
+        - `model_api_key` from `MODEL_API_KEY` or a recognized provider API key env var
         """
         self._server_mode: Literal["remote", "local"] = server
         self._local_stagehand_binary_path = _local_stagehand_binary_path
@@ -113,11 +143,11 @@ class Stagehand(SyncAPIClient):
         self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
 
-        if model_api_key is None:
-            model_api_key = os.environ.get("MODEL_API_KEY")
+        model_api_key = _resolve_model_api_key(model_api_key)
         if model_api_key is None:
             raise StagehandError(
-                "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
+                "The model_api_key client option must be set either by passing model_api_key to the client "
+                f"or by setting one of the supported environment variables: {', '.join(_MODEL_API_KEY_ENV_VARS)}"
             )
         self.model_api_key = model_api_key
 
@@ -127,14 +157,14 @@ class Stagehand(SyncAPIClient):
             if base_url is None:
                 base_url = "http://127.0.0.1"
 
-            openai_api_key = local_openai_api_key or os.environ.get("OPENAI_API_KEY") or model_api_key
+            local_model_api_key = local_openai_api_key or model_api_key
             self._sea_server = SeaServerManager(
                 config=SeaServerConfig(
                     host=local_host,
                     port=local_port,
                     headless=local_headless,
                     ready_timeout_s=local_ready_timeout_s,
-                    openai_api_key=openai_api_key,
+                    model_api_key=local_model_api_key,
                     chrome_path=local_chrome_path,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
@@ -381,7 +411,7 @@ class AsyncStagehand(AsyncAPIClient):
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
-        - `model_api_key` from `MODEL_API_KEY`
+        - `model_api_key` from `MODEL_API_KEY` or a recognized provider API key env var
         """
         self._server_mode: Literal["remote", "local"] = server
         self._local_stagehand_binary_path = _local_stagehand_binary_path
@@ -401,11 +431,11 @@ class AsyncStagehand(AsyncAPIClient):
         self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
 
-        if model_api_key is None:
-            model_api_key = os.environ.get("MODEL_API_KEY")
+        model_api_key = _resolve_model_api_key(model_api_key)
         if model_api_key is None:
             raise StagehandError(
-                "The model_api_key client option must be set either by passing model_api_key to the client or by setting the MODEL_API_KEY environment variable"
+                "The model_api_key client option must be set either by passing model_api_key to the client "
+                f"or by setting one of the supported environment variables: {', '.join(_MODEL_API_KEY_ENV_VARS)}"
             )
         self.model_api_key = model_api_key
 
@@ -414,14 +444,14 @@ class AsyncStagehand(AsyncAPIClient):
             if base_url is None:
                 base_url = "http://127.0.0.1"
 
-            openai_api_key = local_openai_api_key or os.environ.get("OPENAI_API_KEY") or model_api_key
+            local_model_api_key = local_openai_api_key or model_api_key
             self._sea_server = SeaServerManager(
                 config=SeaServerConfig(
                     host=local_host,
                     port=local_port,
                     headless=local_headless,
                     ready_timeout_s=local_ready_timeout_s,
-                    openai_api_key=openai_api_key,
+                    model_api_key=local_model_api_key,
                     chrome_path=local_chrome_path,
                     shutdown_on_close=local_shutdown_on_close,
                 ),

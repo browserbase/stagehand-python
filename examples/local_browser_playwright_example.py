@@ -104,7 +104,6 @@ def main() -> None:
         browserbase_api_key=bb_api_key,
         browserbase_project_id=bb_project_id,
         model_api_key=model_api_key,
-        local_openai_api_key=model_api_key,
         local_ready_timeout_s=30.0,
     ) as client:
         print("⏳ Starting Stagehand session (local server + local browser)...")
