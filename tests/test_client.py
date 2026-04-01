@@ -24,7 +24,7 @@ from stagehand._types import Omit
 from stagehand._utils import asyncify
 from stagehand._models import BaseModel, FinalRequestOptions
 from stagehand._streaming import Stream, AsyncStream
-from stagehand._exceptions import APIStatusError, StagehandError, APITimeoutError, APIResponseValidationError
+from stagehand._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
 from stagehand._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -464,22 +464,21 @@ class TestStagehand:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-model-api-key") == model_api_key
 
-        with pytest.raises(StagehandError):
-            with update_env(
-                **{
-                    "BROWSERBASE_API_KEY": Omit(),
-                    "BROWSERBASE_PROJECT_ID": Omit(),
-                    "MODEL_API_KEY": Omit(),
-                }
-            ):
-                client2 = Stagehand(
-                    base_url=base_url,
-                    browserbase_api_key=None,
-                    browserbase_project_id=None,
-                    model_api_key=None,
-                    _strict_response_validation=True,
-                )
-                client2.sessions.start(model_name="openai/gpt-5-nano")
+        with update_env(
+            BROWSERBASE_API_KEY=Omit(),
+            BROWSERBASE_PROJECT_ID=Omit(),
+        ):
+            client2 = Stagehand(
+                base_url=base_url,
+                browserbase_api_key=None,
+                browserbase_project_id=None,
+                model_api_key=None,
+                _strict_response_validation=True,
+            )
+            request = client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert request.headers.get("x-bb-api-key") is None
+            assert request.headers.get("x-bb-project-id") is None
+            assert request.headers.get("x-model-api-key") is None
 
     def test_default_query_option(self) -> None:
         client = Stagehand(
@@ -1512,22 +1511,21 @@ class TestAsyncStagehand:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-model-api-key") == model_api_key
 
-        with pytest.raises(StagehandError):
-            with update_env(
-                **{
-                    "BROWSERBASE_API_KEY": Omit(),
-                    "BROWSERBASE_PROJECT_ID": Omit(),
-                    "MODEL_API_KEY": Omit(),
-                }
-            ):
-                client2 = AsyncStagehand(
-                    base_url=base_url,
-                    browserbase_api_key=None,
-                    browserbase_project_id=None,
-                    model_api_key=None,
-                    _strict_response_validation=True,
-                )
-            _ = client2
+        with update_env(
+            BROWSERBASE_API_KEY=Omit(),
+            BROWSERBASE_PROJECT_ID=Omit(),
+        ):
+            client2 = AsyncStagehand(
+                base_url=base_url,
+                browserbase_api_key=None,
+                browserbase_project_id=None,
+                model_api_key=None,
+                _strict_response_validation=True,
+            )
+            request = client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert request.headers.get("x-bb-api-key") is None
+            assert request.headers.get("x-bb-project-id") is None
+            assert request.headers.get("x-model-api-key") is None
 
     async def test_default_query_option(self) -> None:
         client = AsyncStagehand(

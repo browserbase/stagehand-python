@@ -32,7 +32,11 @@ def test_resolve_binary_path_defaults_cache_version_to_package_version(
 
     captured: dict[str, object] = {}
 
+    # This test is exercising the packaged-resource path, so clear the env override
+    # that would otherwise bypass _resource_binary_path() entirely.
+    monkeypatch.delenv("STAGEHAND_SEA_BINARY", raising=False)
     monkeypatch.delenv("STAGEHAND_VERSION", raising=False)
+
     def _fake_resource_binary_path(_filename: str) -> Path:
         return resource_path
 

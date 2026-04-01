@@ -24,7 +24,7 @@ class SeaServerConfig:
     port: int
     headless: bool
     ready_timeout_s: float
-    openai_api_key: str | None
+    model_api_key: str | None
     chrome_path: str | None
     shutdown_on_close: bool
 
@@ -118,6 +118,26 @@ class SeaServerManager:
     def base_url(self) -> str | None:
         return self._base_url
 
+    def _build_process_env(self, *, port: int) -> dict[str, str]:
+        proc_env = dict(os.environ)
+        # Force production mode so inherited NODE_ENV=development never reaches the
+        # SEA child process. Development mode breaks under SEA because pino-pretty
+        # is an optional dependency that is not present in the packaged binary.
+        proc_env["NODE_ENV"] = "production"
+        # Server package expects BB_ENV to be set (see packages/server/src/lib/env.ts)
+        proc_env.setdefault("BB_ENV", "local")
+        proc_env["HOST"] = self._config.host
+        proc_env["PORT"] = str(port)
+        proc_env["HEADLESS"] = "true" if self._config.headless else "false"
+        # Always set MODEL_API_KEY in the child env so the SDK constructor value wins
+        # over any inherited parent MODEL_API_KEY. An empty string preserves the
+        # "explicitly unset" case instead of silently reusing the parent's value.
+        proc_env["MODEL_API_KEY"] = self._config.model_api_key or ""
+        if self._config.chrome_path:
+            proc_env["CHROME_PATH"] = self._config.chrome_path
+            proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path
+        return proc_env
+
     def ensure_running_sync(self) -> str:
         with self._lock:
             if self._proc is not None and self._proc.poll() is None and self._base_url is not None:
@@ -169,20 +189,7 @@ class SeaServerManager:
 
         port = _pick_free_port(self._config.host) if self._config.port == 0 else self._config.port
         base_url = _build_base_url(host=self._config.host, port=port)
-
-        proc_env = dict(os.environ)
-        # Defaults that make the server boot under SEA (avoid pino-pretty transport)
-        proc_env.setdefault("NODE_ENV", "production")
-        # Server package expects BB_ENV to be set (see packages/server/src/lib/env.ts)
-        proc_env.setdefault("BB_ENV", "local")
-        proc_env["HOST"] = self._config.host
-        proc_env["PORT"] = str(port)
-        proc_env["HEADLESS"] = "true" if self._config.headless else "false"
-        if self._config.openai_api_key:
-            proc_env["OPENAI_API_KEY"] = self._config.openai_api_key
-        if self._config.chrome_path:
-            proc_env["CHROME_PATH"] = self._config.chrome_path
-            proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path
+        proc_env = self._build_process_env(port=port)
 
         preexec_fn = None
         creationflags = 0
@@ -221,18 +228,7 @@ class SeaServerManager:
 
         port = _pick_free_port(self._config.host) if self._config.port == 0 else self._config.port
         base_url = _build_base_url(host=self._config.host, port=port)
-
-        proc_env = dict(os.environ)
-        proc_env.setdefault("NODE_ENV", "production")
-        proc_env.setdefault("BB_ENV", "local")
-        proc_env["HOST"] = self._config.host
-        proc_env["PORT"] = str(port)
-        proc_env["HEADLESS"] = "true" if self._config.headless else "false"
-        if self._config.openai_api_key:
-            proc_env["OPENAI_API_KEY"] = self._config.openai_api_key
-        if self._config.chrome_path:
-            proc_env["CHROME_PATH"] = self._config.chrome_path
-            proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path
+        proc_env = self._build_process_env(port=port)
 
         preexec_fn = None
         creationflags = 0
