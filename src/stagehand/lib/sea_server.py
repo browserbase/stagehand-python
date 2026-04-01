@@ -127,8 +127,7 @@ class SeaServerManager:
         proc_env["HOST"] = self._config.host
         proc_env["PORT"] = str(port)
         proc_env["HEADLESS"] = "true" if self._config.headless else "false"
-        if self._config.model_api_key:
-            proc_env["MODEL_API_KEY"] = self._config.model_api_key
+        proc_env["MODEL_API_KEY"] = self._config.model_api_key or ""
         if self._config.chrome_path:
             proc_env["CHROME_PATH"] = self._config.chrome_path
             proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path

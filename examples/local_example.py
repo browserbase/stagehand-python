@@ -51,6 +51,7 @@ def main() -> None:
 
     client = Stagehand(
         server="local",
+        model_api_key=model_key,
         local_ready_timeout_s=30.0,
     )
 

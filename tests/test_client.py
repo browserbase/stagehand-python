@@ -20,12 +20,11 @@ from respx import MockRouter
 from pydantic import ValidationError
 
 from stagehand import Stagehand, AsyncStagehand, APIResponseValidationError
-from stagehand._client import _MODEL_API_KEY_ENV_VARS
 from stagehand._types import Omit
 from stagehand._utils import asyncify
 from stagehand._models import BaseModel, FinalRequestOptions
 from stagehand._streaming import Stream, AsyncStream
-from stagehand._exceptions import APIStatusError, StagehandError, APITimeoutError, APIResponseValidationError
+from stagehand._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
 from stagehand._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -44,10 +43,6 @@ base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 browserbase_api_key = "My Browserbase API Key"
 browserbase_project_id = "My Browserbase Project ID"
 model_api_key = "My Model API Key"
-
-
-def _omit_model_api_key_env_vars() -> dict[str, Omit]:
-    return {name: Omit() for name in _MODEL_API_KEY_ENV_VARS}
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -469,51 +464,21 @@ class TestStagehand:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-model-api-key") == model_api_key
 
-        with pytest.raises(StagehandError):
-            with update_env(
-                **{
-                    "BROWSERBASE_API_KEY": Omit(),
-                    "BROWSERBASE_PROJECT_ID": Omit(),
-                    **_omit_model_api_key_env_vars(),
-                }
-            ):
-                client2 = Stagehand(
-                    base_url=base_url,
-                    browserbase_api_key=None,
-                    browserbase_project_id=None,
-                    model_api_key=None,
-                    _strict_response_validation=True,
-                )
-                client2.sessions.start(model_name="openai/gpt-5-nano")
-
-    def test_model_api_key_falls_back_to_openai_env(self) -> None:
         with update_env(
-            MODEL_API_KEY=Omit(),
-            OPENAI_API_KEY="openai-key",
+            BROWSERBASE_API_KEY=Omit(),
+            BROWSERBASE_PROJECT_ID=Omit(),
         ):
-            client = Stagehand(
+            client2 = Stagehand(
                 base_url=base_url,
-                browserbase_api_key=browserbase_api_key,
-                browserbase_project_id=browserbase_project_id,
+                browserbase_api_key=None,
+                browserbase_project_id=None,
                 model_api_key=None,
+                _strict_response_validation=True,
             )
-
-        assert client.model_api_key == "openai-key"
-
-    def test_model_api_key_falls_back_to_gemini_env(self) -> None:
-        with update_env(
-            MODEL_API_KEY=Omit(),
-            OPENAI_API_KEY=Omit(),
-            GEMINI_API_KEY="gemini-key",
-        ):
-            client = Stagehand(
-                base_url=base_url,
-                browserbase_api_key=browserbase_api_key,
-                browserbase_project_id=browserbase_project_id,
-                model_api_key=None,
-            )
-
-        assert client.model_api_key == "gemini-key"
+            request = client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert request.headers.get("x-bb-api-key") is None
+            assert request.headers.get("x-bb-project-id") is None
+            assert request.headers.get("x-model-api-key") is None
 
     def test_default_query_option(self) -> None:
         client = Stagehand(
@@ -1546,51 +1511,21 @@ class TestAsyncStagehand:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-model-api-key") == model_api_key
 
-        with pytest.raises(StagehandError):
-            with update_env(
-                **{
-                    "BROWSERBASE_API_KEY": Omit(),
-                    "BROWSERBASE_PROJECT_ID": Omit(),
-                    **_omit_model_api_key_env_vars(),
-                }
-            ):
-                client2 = AsyncStagehand(
-                    base_url=base_url,
-                    browserbase_api_key=None,
-                    browserbase_project_id=None,
-                    model_api_key=None,
-                    _strict_response_validation=True,
-                )
-            _ = client2
-
-    async def test_model_api_key_falls_back_to_openai_env(self) -> None:
         with update_env(
-            MODEL_API_KEY=Omit(),
-            OPENAI_API_KEY="openai-key",
+            BROWSERBASE_API_KEY=Omit(),
+            BROWSERBASE_PROJECT_ID=Omit(),
         ):
-            client = AsyncStagehand(
+            client2 = AsyncStagehand(
                 base_url=base_url,
-                browserbase_api_key=browserbase_api_key,
-                browserbase_project_id=browserbase_project_id,
+                browserbase_api_key=None,
+                browserbase_project_id=None,
                 model_api_key=None,
+                _strict_response_validation=True,
             )
-
-        assert client.model_api_key == "openai-key"
-
-    async def test_model_api_key_falls_back_to_gemini_env(self) -> None:
-        with update_env(
-            MODEL_API_KEY=Omit(),
-            OPENAI_API_KEY=Omit(),
-            GEMINI_API_KEY="gemini-key",
-        ):
-            client = AsyncStagehand(
-                base_url=base_url,
-                browserbase_api_key=browserbase_api_key,
-                browserbase_project_id=browserbase_project_id,
-                model_api_key=None,
-            )
-
-        assert client.model_api_key == "gemini-key"
+            request = client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert request.headers.get("x-bb-api-key") is None
+            assert request.headers.get("x-bb-project-id") is None
+            assert request.headers.get("x-model-api-key") is None
 
     async def test_default_query_option(self) -> None:
         client = AsyncStagehand(

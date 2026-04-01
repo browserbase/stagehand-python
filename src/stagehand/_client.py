@@ -24,7 +24,7 @@ from ._compat import cached_property
 from ._models import FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import APIStatusError, StagehandError
+from ._exceptions import APIStatusError
 from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
@@ -47,42 +47,12 @@ __all__ = [
     "AsyncClient",
 ]
 
-_MODEL_API_KEY_ENV_VARS: tuple[str, ...] = (
-    "MODEL_API_KEY",
-    "OPENAI_API_KEY",
-    "ANTHROPIC_API_KEY",
-    "GEMINI_API_KEY",
-    "GOOGLE_GENERATIVE_AI_API_KEY",
-    "GOOGLE_API_KEY",
-    "GOOGLE_VERTEX_AI_API_KEY",
-    "GROQ_API_KEY",
-    "CEREBRAS_API_KEY",
-    "TOGETHER_AI_API_KEY",
-    "MISTRAL_API_KEY",
-    "DEEPSEEK_API_KEY",
-    "PERPLEXITY_API_KEY",
-    "AZURE_API_KEY",
-    "XAI_API_KEY",
-)
-
-
-def _resolve_model_api_key(model_api_key: str | None) -> str | None:
-    if model_api_key is not None:
-        return model_api_key
-
-    for env_var in _MODEL_API_KEY_ENV_VARS:
-        value = os.environ.get(env_var)
-        if value:
-            return value
-
-    return None
-
 
 class Stagehand(SyncAPIClient):
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
-    model_api_key: str
+    model_api_key: str | None
 
     def __init__(
         self,
@@ -97,7 +67,6 @@ class Stagehand(SyncAPIClient):
         local_headless: bool = True,
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float = 10.0,
-        local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool = True,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -123,7 +92,6 @@ class Stagehand(SyncAPIClient):
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
-        - `model_api_key` from `MODEL_API_KEY` or a recognized provider API key env var
         """
         self._server_mode: Literal["remote", "local"] = server
         self._local_stagehand_binary_path = _local_stagehand_binary_path
@@ -132,7 +100,6 @@ class Stagehand(SyncAPIClient):
         self._local_headless = local_headless
         self._local_chrome_path = local_chrome_path
         self._local_ready_timeout_s = local_ready_timeout_s
-        self._local_openai_api_key = local_openai_api_key
         self._local_shutdown_on_close = local_shutdown_on_close
 
         if browserbase_api_key is None:
@@ -143,12 +110,6 @@ class Stagehand(SyncAPIClient):
         self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
 
-        model_api_key = _resolve_model_api_key(model_api_key)
-        if model_api_key is None:
-            raise StagehandError(
-                "The model_api_key client option must be set either by passing model_api_key to the client "
-                f"or by setting one of the supported environment variables: {', '.join(_MODEL_API_KEY_ENV_VARS)}"
-            )
         self.model_api_key = model_api_key
 
         self._sea_server: SeaServerManager | None = None
@@ -157,14 +118,13 @@ class Stagehand(SyncAPIClient):
             if base_url is None:
                 base_url = "http://127.0.0.1"
 
-            local_model_api_key = local_openai_api_key or model_api_key
             self._sea_server = SeaServerManager(
                 config=SeaServerConfig(
                     host=local_host,
                     port=local_port,
                     headless=local_headless,
                     ready_timeout_s=local_ready_timeout_s,
-                    model_api_key=local_model_api_key,
+                    model_api_key=model_api_key,
                     chrome_path=local_chrome_path,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
@@ -240,7 +200,7 @@ class Stagehand(SyncAPIClient):
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
-        return {"x-model-api-key": model_api_key}
+        return {"x-model-api-key": model_api_key} if model_api_key else {}
 
     @property
     @override
@@ -266,7 +226,6 @@ class Stagehand(SyncAPIClient):
         local_headless: bool | None = None,
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float | None = None,
-        local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -313,9 +272,6 @@ class Stagehand(SyncAPIClient):
             local_ready_timeout_s=local_ready_timeout_s
             if local_ready_timeout_s is not None
             else self._local_ready_timeout_s,
-            local_openai_api_key=local_openai_api_key
-            if local_openai_api_key is not None
-            else self._local_openai_api_key,
             local_shutdown_on_close=local_shutdown_on_close
             if local_shutdown_on_close is not None
             else self._local_shutdown_on_close,
@@ -370,7 +326,7 @@ class AsyncStagehand(AsyncAPIClient):
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
-    model_api_key: str
+    model_api_key: str | None
 
     def __init__(
         self,
@@ -385,7 +341,6 @@ class AsyncStagehand(AsyncAPIClient):
         local_headless: bool = True,
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float = 10.0,
-        local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool = True,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -411,7 +366,6 @@ class AsyncStagehand(AsyncAPIClient):
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
-        - `model_api_key` from `MODEL_API_KEY` or a recognized provider API key env var
         """
         self._server_mode: Literal["remote", "local"] = server
         self._local_stagehand_binary_path = _local_stagehand_binary_path
@@ -420,7 +374,6 @@ class AsyncStagehand(AsyncAPIClient):
         self._local_headless = local_headless
         self._local_chrome_path = local_chrome_path
         self._local_ready_timeout_s = local_ready_timeout_s
-        self._local_openai_api_key = local_openai_api_key
         self._local_shutdown_on_close = local_shutdown_on_close
 
         if browserbase_api_key is None:
@@ -431,12 +384,6 @@ class AsyncStagehand(AsyncAPIClient):
         self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
 
-        model_api_key = _resolve_model_api_key(model_api_key)
-        if model_api_key is None:
-            raise StagehandError(
-                "The model_api_key client option must be set either by passing model_api_key to the client "
-                f"or by setting one of the supported environment variables: {', '.join(_MODEL_API_KEY_ENV_VARS)}"
-            )
         self.model_api_key = model_api_key
 
         self._sea_server: SeaServerManager | None = None
@@ -444,14 +391,13 @@ class AsyncStagehand(AsyncAPIClient):
             if base_url is None:
                 base_url = "http://127.0.0.1"
 
-            local_model_api_key = local_openai_api_key or model_api_key
             self._sea_server = SeaServerManager(
                 config=SeaServerConfig(
                     host=local_host,
                     port=local_port,
                     headless=local_headless,
                     ready_timeout_s=local_ready_timeout_s,
-                    model_api_key=local_model_api_key,
+                    model_api_key=model_api_key,
                     chrome_path=local_chrome_path,
                     shutdown_on_close=local_shutdown_on_close,
                 ),
@@ -527,7 +473,7 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
         model_api_key = self.model_api_key
-        return {"x-model-api-key": model_api_key}
+        return {"x-model-api-key": model_api_key} if model_api_key else {}
 
     @property
     @override
@@ -553,7 +499,6 @@ class AsyncStagehand(AsyncAPIClient):
         local_headless: bool | None = None,
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float | None = None,
-        local_openai_api_key: str | None = None,
         local_shutdown_on_close: bool | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -600,9 +545,6 @@ class AsyncStagehand(AsyncAPIClient):
             local_ready_timeout_s=local_ready_timeout_s
             if local_ready_timeout_s is not None
             else self._local_ready_timeout_s,
-            local_openai_api_key=local_openai_api_key
-            if local_openai_api_key is not None
-            else self._local_openai_api_key,
             local_shutdown_on_close=local_shutdown_on_close
             if local_shutdown_on_close is not None
             else self._local_shutdown_on_close,
