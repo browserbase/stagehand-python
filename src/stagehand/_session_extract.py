@@ -8,8 +8,8 @@ import httpx
 from typing_extensions import Unpack
 
 from ._pydantic_extract import is_pydantic_model, pydantic_model_to_json_schema, validate_extract_response
-from ._types import Body, Headers, NotGiven, Query, not_given
 from .session import AsyncSession, Session
+from ._types import Body, Headers, NotGiven, Query, not_given
 from .types import session_extract_params
 from .types.session_extract_response import SessionExtractResponse
 
