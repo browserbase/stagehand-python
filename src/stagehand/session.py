@@ -213,7 +213,8 @@ class Session(SessionStartResponse):
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
         # If the caller passed schema via **params (TypedDict), prefer the explicit kwarg.
-        resolved_schema = schema if schema is not None else params.pop("schema", None)  # type: ignore[misc]
+        params_schema = params.pop("schema", None)  # type: ignore[misc]
+        resolved_schema = schema if schema is not None else params_schema
 
         pydantic_cls = None
         if is_pydantic_model(resolved_schema):
@@ -365,7 +366,8 @@ class AsyncSession(SessionStartResponse):
         **params: Unpack[session_extract_params.SessionExtractParamsNonStreaming],
     ) -> SessionExtractResponse:
         # If the caller passed schema via **params (TypedDict), prefer the explicit kwarg.
-        resolved_schema = schema if schema is not None else params.pop("schema", None)  # type: ignore[misc]
+        params_schema = params.pop("schema", None)  # type: ignore[misc]
+        resolved_schema = schema if schema is not None else params_schema
 
         pydantic_cls = None
         if is_pydantic_model(resolved_schema):
