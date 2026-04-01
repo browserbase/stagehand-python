@@ -92,6 +92,10 @@ class Stagehand(SyncAPIClient):
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
+
+        `model_api_key` is intentionally not inferred from any AI provider environment variable.
+        Pass it explicitly when you want the SDK to send `x-model-api-key` on remote requests or
+        to forward `MODEL_API_KEY` to the local SEA child process.
         """
         self._server_mode: Literal["remote", "local"] = server
         self._local_stagehand_binary_path = _local_stagehand_binary_path
@@ -366,6 +370,10 @@ class AsyncStagehand(AsyncAPIClient):
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
         - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
+
+        `model_api_key` is intentionally not inferred from any AI provider environment variable.
+        Pass it explicitly when you want the SDK to send `x-model-api-key` on remote requests or
+        to forward `MODEL_API_KEY` to the local SEA child process.
         """
         self._server_mode: Literal["remote", "local"] = server
         self._local_stagehand_binary_path = _local_stagehand_binary_path

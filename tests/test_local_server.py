@@ -263,6 +263,8 @@ def test_local_mode_masks_inherited_model_api_key_envs_and_prefers_explicit_para
     expected_model_api_key: str,
 ) -> None:
     _set_browserbase_env(monkeypatch)
+    # Simulate a parent process with conflicting inherited env. The child SEA process
+    # should keep unrelated env intact while MODEL_API_KEY follows constructor intent.
     monkeypatch.setenv("MODEL_API_KEY", "bad1")
     monkeypatch.setenv("OPENAI_API_KEY", "bad2")
 

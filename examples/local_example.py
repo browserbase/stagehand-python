@@ -5,7 +5,7 @@ that ships with the PyPI wheel.
 Required environment variables:
 - BROWSERBASE_API_KEY (can be any value in local mode)
 - BROWSERBASE_PROJECT_ID (can be any value in local mode)
-- MODEL_API_KEY (used for client configuration even in local mode)
+- MODEL_API_KEY (read by this example and passed explicitly to the client)
 
 
 Install the published wheel before running this script:
@@ -45,6 +45,7 @@ def _stream_to_result(stream, label: str) -> object | None:
 
 def main() -> None:
     load_example_env()
+    # The example reads MODEL_API_KEY itself so the SDK configuration stays explicit.
     model_key = os.environ.get("MODEL_API_KEY")
     if not model_key:
         sys.exit("Set MODEL_API_KEY to run the local server.")

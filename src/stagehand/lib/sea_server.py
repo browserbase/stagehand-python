@@ -127,6 +127,9 @@ class SeaServerManager:
         proc_env["HOST"] = self._config.host
         proc_env["PORT"] = str(port)
         proc_env["HEADLESS"] = "true" if self._config.headless else "false"
+        # Always set MODEL_API_KEY in the child env so the SDK constructor value wins
+        # over any inherited parent MODEL_API_KEY. An empty string preserves the
+        # "explicitly unset" case instead of silently reusing the parent's value.
         proc_env["MODEL_API_KEY"] = self._config.model_api_key or ""
         if self._config.chrome_path:
             proc_env["CHROME_PATH"] = self._config.chrome_path
