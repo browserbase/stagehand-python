@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import os
 import json
-from typing import cast
+from typing import Any, cast
 
 import httpx
 import pytest
-from pydantic import BaseModel
 from respx import MockRouter
+from pydantic import BaseModel
 from respx.models import Call
 
-from stagehand import AsyncStagehand, Stagehand
+from stagehand import Stagehand, AsyncStagehand
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -45,7 +45,7 @@ def test_session_extract_accepts_pydantic_schema(respx_mock: MockRouter, client:
     )
 
     session = client.sessions.start(model_name="openai/gpt-5-nano")
-    response = session.extract(instruction="extract the user", schema=ExtractedUser)
+    response = session.extract(instruction="extract the user", schema=cast(Any, ExtractedUser))
 
     assert isinstance(response.data.result, ExtractedUser)
     assert response.data.result.user_name == "Ada"
@@ -79,7 +79,7 @@ def test_session_extract_allows_extra_fields_when_client_is_non_strict(
     )
 
     session = client.sessions.start(model_name="openai/gpt-5-nano")
-    response = session.extract(instruction="extract the user", schema=ExtractedName)
+    response = session.extract(instruction="extract the user", schema=cast(Any, ExtractedName))
 
     assert isinstance(response.data.result, ExtractedName)
     assert response.data.result.user_name == "Ada"
@@ -107,7 +107,7 @@ def test_session_extract_rejects_extra_fields_when_client_is_strict(
     )
 
     session = client.sessions.start(model_name="openai/gpt-5-nano")
-    response = session.extract(instruction="extract the user", schema=ExtractedName)
+    response = session.extract(instruction="extract the user", schema=cast(Any, ExtractedName))
 
     assert response.data.result == {"userName": "Ada", "favoriteColor": "blue"}
 
@@ -133,7 +133,7 @@ async def test_async_session_extract_accepts_pydantic_schema(
     )
 
     session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
-    response = await session.extract(instruction="extract the user", schema=ExtractedUser)
+    response = await session.extract(instruction="extract the user", schema=cast(Any, ExtractedUser))
 
     assert isinstance(response.data.result, ExtractedUser)
     assert response.data.result.user_name == "Grace"
@@ -167,7 +167,7 @@ async def test_async_session_extract_allows_extra_fields_when_client_is_non_stri
     )
 
     session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
-    response = await session.extract(instruction="extract the user", schema=ExtractedName)
+    response = await session.extract(instruction="extract the user", schema=cast(Any, ExtractedName))
 
     assert isinstance(response.data.result, ExtractedName)
     assert response.data.result.user_name == "Grace"
@@ -195,6 +195,6 @@ async def test_async_session_extract_rejects_extra_fields_when_client_is_strict(
     )
 
     session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
-    response = await session.extract(instruction="extract the user", schema=ExtractedName)
+    response = await session.extract(instruction="extract the user", schema=cast(Any, ExtractedName))
 
     assert response.data.result == {"userName": "Grace", "favoriteColor": "green"}

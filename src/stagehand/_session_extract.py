@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
-
-import httpx
+from typing import Any, Mapping, cast
 from typing_extensions import Unpack
 
-from ._pydantic_extract import is_pydantic_model, pydantic_model_to_json_schema, validate_extract_response
-from .session import AsyncSession, Session
-from ._types import Body, Headers, NotGiven, Query, not_given
+import httpx
+
 from .types import session_extract_params
+from ._types import Body, Query, Headers, NotGiven, not_given
+from .session import Session, AsyncSession
+from ._pydantic_extract import is_pydantic_model, validate_extract_response, pydantic_model_to_json_schema
 from .types.session_extract_response import SessionExtractResponse
 
 _ORIGINAL_SESSION_EXTRACT = Session.extract
@@ -104,7 +104,7 @@ async def _async_extract(  # type: ignore[override, misc]
 
 
 def _with_schema(
-    params: session_extract_params.SessionExtractParamsNonStreaming,
+    params: Mapping[str, object],
     schema: dict[str, object] | type | None,
 ) -> session_extract_params.SessionExtractParamsNonStreaming:
     api_params = dict(params)
@@ -112,15 +112,14 @@ def _with_schema(
         api_params["schema"] = cast(Any, schema)
     return cast(session_extract_params.SessionExtractParamsNonStreaming, api_params)
 
-
 _sync_extract.__module__ = _ORIGINAL_SESSION_EXTRACT.__module__
 _sync_extract.__name__ = _ORIGINAL_SESSION_EXTRACT.__name__
 _sync_extract.__qualname__ = _ORIGINAL_SESSION_EXTRACT.__qualname__
 _sync_extract.__doc__ = _ORIGINAL_SESSION_EXTRACT.__doc__
-_sync_extract.__stagehand_pydantic_extract_patch__ = True
+setattr(_sync_extract, "__stagehand_pydantic_extract_patch__", True)  # noqa: B010
 
 _async_extract.__module__ = _ORIGINAL_ASYNC_SESSION_EXTRACT.__module__
 _async_extract.__name__ = _ORIGINAL_ASYNC_SESSION_EXTRACT.__name__
 _async_extract.__qualname__ = _ORIGINAL_ASYNC_SESSION_EXTRACT.__qualname__
 _async_extract.__doc__ = _ORIGINAL_ASYNC_SESSION_EXTRACT.__doc__
-_async_extract.__stagehand_pydantic_extract_patch__ = True
+setattr(_async_extract, "__stagehand_pydantic_extract_patch__", True)  # noqa: B010

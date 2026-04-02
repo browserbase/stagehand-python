@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import inspect
 import logging
-from typing import Any, Dict, Type
+from typing import Any, Dict, Type, cast
+from typing_extensions import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -58,14 +59,17 @@ def validate_extract_response(
 
 @lru_cache(maxsize=None)
 def _validation_schema(schema: Type[BaseModel], strict_response_validation: bool) -> Type[BaseModel]:
-    extra_behavior = "forbid" if strict_response_validation else "allow"
-    validation_schema = type(
-        f"{schema.__name__}ExtractValidation",
-        (schema,),
-        {
-            "__module__": schema.__module__,
-            "model_config": ConfigDict(extra=extra_behavior),
-        },
+    extra_behavior: Literal["allow", "forbid"] = "forbid" if strict_response_validation else "allow"
+    validation_schema = cast(
+        Type[BaseModel],
+        type(
+            f"{schema.__name__}ExtractValidation",
+            (schema,),
+            {
+                "__module__": schema.__module__,
+                "model_config": ConfigDict(extra=extra_behavior),
+            },
+        ),
     )
     validation_schema.model_rebuild(force=True)
     return validation_schema
