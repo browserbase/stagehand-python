@@ -73,7 +73,7 @@ def validate_extract_response(
             return result
 
 
-@lru_cache(maxsize=None)
+@lru_cache(maxsize=256)
 def _validation_schema(schema: Type[BaseModel], strict_response_validation: bool) -> Type[BaseModel]:
     extra_behavior: Literal["allow", "forbid"] = "forbid" if strict_response_validation else "allow"
     validation_schema = cast(
