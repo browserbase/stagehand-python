@@ -106,7 +106,7 @@ def resolve_binary_path(
 
     # Fallback: source checkout layout (works for local dev in-repo).
     here = Path(__file__).resolve()
-    repo_root = here.parents[3]  # stagehand-python/
+    repo_root = here.parents[3]
     candidate = repo_root / "bin" / "sea" / filename
 
     if not candidate.exists():

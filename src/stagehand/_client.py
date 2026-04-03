@@ -30,11 +30,27 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
-from .lib.sea_server import SeaServerConfig, SeaServerManager
+
+### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+# Keep the generated client thin: all runtime patch logic lives in `_custom`.
+from ._custom.session import install_stainless_session_patches
+from ._custom.sea_server import (
+    copy_local_mode_kwargs,
+    configure_client_base_url,
+    close_sync_client_sea_server,
+    prepare_sync_client_base_url,
+    close_async_client_sea_server,
+    prepare_async_client_base_url,
+)
+
+### </END CUSTOM CODE>
 
 if TYPE_CHECKING:
     from .resources import sessions
-    from .resources.sessions_helpers import SessionsResourceWithHelpers, AsyncSessionsResourceWithHelpers
+
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+    from ._custom.sea_server import SeaServerManager
+    ### </END CUSTOM CODE>
 
 __all__ = [
     "Timeout",
@@ -47,12 +63,31 @@ __all__ = [
     "AsyncClient",
 ]
 
+### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+# Patch the generated resource classes in place so user-facing types stay on the
+# original Stainless imports instead of custom wrapper classes.
+install_stainless_session_patches()
+### </END CUSTOM CODE>
+
 
 class Stagehand(SyncAPIClient):
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
     model_api_key: str | None
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+    # These are assigned indirectly by `configure_client_base_url(...)` so the
+    # generated class still exposes typed local-mode state for `copy()` and tests.
+    _server_mode: Literal["remote", "local"]
+    _local_stagehand_binary_path: str | os.PathLike[str] | None
+    _local_host: str
+    _local_port: int
+    _local_headless: bool
+    _local_chrome_path: str | None
+    _local_ready_timeout_s: float
+    _local_shutdown_on_close: bool
+    _sea_server: SeaServerManager | None
+    ### </END CUSTOM CODE>
 
     def __init__(
         self,
@@ -97,15 +132,6 @@ class Stagehand(SyncAPIClient):
         Pass it explicitly when you want the SDK to send `x-model-api-key` on remote requests or
         to forward `MODEL_API_KEY` to the local SEA child process.
         """
-        self._server_mode: Literal["remote", "local"] = server
-        self._local_stagehand_binary_path = _local_stagehand_binary_path
-        self._local_host = local_host
-        self._local_port = local_port
-        self._local_headless = local_headless
-        self._local_chrome_path = local_chrome_path
-        self._local_ready_timeout_s = local_ready_timeout_s
-        self._local_shutdown_on_close = local_shutdown_on_close
-
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
         if browserbase_project_id is None:
@@ -116,29 +142,23 @@ class Stagehand(SyncAPIClient):
 
         self.model_api_key = model_api_key
 
-        self._sea_server: SeaServerManager | None = None
-        if server == "local":
-            # We'll switch `base_url` to the started server before the first request.
-            if base_url is None:
-                base_url = "http://127.0.0.1"
-
-            self._sea_server = SeaServerManager(
-                config=SeaServerConfig(
-                    host=local_host,
-                    port=local_port,
-                    headless=local_headless,
-                    ready_timeout_s=local_ready_timeout_s,
-                    model_api_key=model_api_key,
-                    chrome_path=local_chrome_path,
-                    shutdown_on_close=local_shutdown_on_close,
-                ),
-                _local_stagehand_binary_path=_local_stagehand_binary_path,
-            )
-        else:
-            if base_url is None:
-                base_url = os.environ.get("STAGEHAND_BASE_URL")
-            if base_url is None:
-                base_url = f"https://api.stagehand.browserbase.com"
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # Centralize local-mode state hydration and base-url selection in `_custom`
+        # so no constructor branching lives in the generated client.
+        base_url = configure_client_base_url(
+            self,
+            server=server,
+            _local_stagehand_binary_path=_local_stagehand_binary_path,
+            local_host=local_host,
+            local_port=local_port,
+            local_headless=local_headless,
+            local_chrome_path=local_chrome_path,
+            local_ready_timeout_s=local_ready_timeout_s,
+            local_shutdown_on_close=local_shutdown_on_close,
+            base_url=base_url,
+            model_api_key=model_api_key,
+        )
+        ### </END CUSTOM CODE>
 
         super().__init__(
             version=__version__,
@@ -155,8 +175,13 @@ class Stagehand(SyncAPIClient):
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        if self._sea_server is not None:
-            self.base_url = self._sea_server.ensure_running_sync()
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # Start the local SEA server lazily on first request instead of at client
+        # construction time, then swap the base URL to the started process.
+        local_base_url = prepare_sync_client_base_url(self)
+        if local_base_url is not None:
+            self.base_url = local_base_url
+        ### </END CUSTOM CODE>
         return super()._prepare_options(options)
 
     @override
@@ -164,14 +189,16 @@ class Stagehand(SyncAPIClient):
         try:
             super().close()
         finally:
-            if self._sea_server is not None:
-                self._sea_server.close()
+            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+            # Tear down the managed SEA process after HTTP resources close.
+            close_sync_client_sea_server(self)
+            ### </END CUSTOM CODE>
 
     @cached_property
-    def sessions(self) -> SessionsResourceWithHelpers:
-        from .resources.sessions_helpers import SessionsResourceWithHelpers
+    def sessions(self) -> sessions.SessionsResource:
+        from .resources.sessions import SessionsResource
 
-        return SessionsResourceWithHelpers(self)
+        return SessionsResource(self)
 
     @cached_property
     def with_raw_response(self) -> StagehandWithRawResponse:
@@ -267,24 +294,27 @@ class Stagehand(SyncAPIClient):
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
-            server=server or self._server_mode,
-            _local_stagehand_binary_path=_local_stagehand_binary_path if _local_stagehand_binary_path is not None else self._local_stagehand_binary_path,
-            local_host=local_host or self._local_host,
-            local_port=local_port if local_port is not None else self._local_port,
-            local_headless=local_headless if local_headless is not None else self._local_headless,
-            local_chrome_path=local_chrome_path if local_chrome_path is not None else self._local_chrome_path,
-            local_ready_timeout_s=local_ready_timeout_s
-            if local_ready_timeout_s is not None
-            else self._local_ready_timeout_s,
-            local_shutdown_on_close=local_shutdown_on_close
-            if local_shutdown_on_close is not None
-            else self._local_shutdown_on_close,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+            # Preserve local-mode configuration when cloning the client without
+            # duplicating that branching logic in generated code.
+            **copy_local_mode_kwargs(
+                self,
+                server=server,
+                _local_stagehand_binary_path=_local_stagehand_binary_path,
+                local_host=local_host,
+                local_port=local_port,
+                local_headless=local_headless,
+                local_chrome_path=local_chrome_path,
+                local_ready_timeout_s=local_ready_timeout_s,
+                local_shutdown_on_close=local_shutdown_on_close,
+            ),
+            ### </END CUSTOM CODE>
             **_extra_kwargs,
         )
 
@@ -331,6 +361,19 @@ class AsyncStagehand(AsyncAPIClient):
     browserbase_api_key: str | None
     browserbase_project_id: str | None
     model_api_key: str | None
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+    # These are assigned indirectly by `configure_client_base_url(...)` so the
+    # generated class still exposes typed local-mode state for `copy()` and tests.
+    _server_mode: Literal["remote", "local"]
+    _local_stagehand_binary_path: str | os.PathLike[str] | None
+    _local_host: str
+    _local_port: int
+    _local_headless: bool
+    _local_chrome_path: str | None
+    _local_ready_timeout_s: float
+    _local_shutdown_on_close: bool
+    _sea_server: SeaServerManager | None
+    ### </END CUSTOM CODE>
 
     def __init__(
         self,
@@ -375,15 +418,6 @@ class AsyncStagehand(AsyncAPIClient):
         Pass it explicitly when you want the SDK to send `x-model-api-key` on remote requests or
         to forward `MODEL_API_KEY` to the local SEA child process.
         """
-        self._server_mode: Literal["remote", "local"] = server
-        self._local_stagehand_binary_path = _local_stagehand_binary_path
-        self._local_host = local_host
-        self._local_port = local_port
-        self._local_headless = local_headless
-        self._local_chrome_path = local_chrome_path
-        self._local_ready_timeout_s = local_ready_timeout_s
-        self._local_shutdown_on_close = local_shutdown_on_close
-
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
         if browserbase_project_id is None:
@@ -394,28 +428,23 @@ class AsyncStagehand(AsyncAPIClient):
 
         self.model_api_key = model_api_key
 
-        self._sea_server: SeaServerManager | None = None
-        if server == "local":
-            if base_url is None:
-                base_url = "http://127.0.0.1"
-
-            self._sea_server = SeaServerManager(
-                config=SeaServerConfig(
-                    host=local_host,
-                    port=local_port,
-                    headless=local_headless,
-                    ready_timeout_s=local_ready_timeout_s,
-                    model_api_key=model_api_key,
-                    chrome_path=local_chrome_path,
-                    shutdown_on_close=local_shutdown_on_close,
-                ),
-                _local_stagehand_binary_path=_local_stagehand_binary_path,
-            )
-        else:
-            if base_url is None:
-                base_url = os.environ.get("STAGEHAND_BASE_URL")
-            if base_url is None:
-                base_url = f"https://api.stagehand.browserbase.com"
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # Centralize local-mode state hydration and base-url selection in `_custom`
+        # so no constructor branching lives in the generated client.
+        base_url = configure_client_base_url(
+            self,
+            server=server,
+            _local_stagehand_binary_path=_local_stagehand_binary_path,
+            local_host=local_host,
+            local_port=local_port,
+            local_headless=local_headless,
+            local_chrome_path=local_chrome_path,
+            local_ready_timeout_s=local_ready_timeout_s,
+            local_shutdown_on_close=local_shutdown_on_close,
+            base_url=base_url,
+            model_api_key=model_api_key,
+        )
+        ### </END CUSTOM CODE>
 
         super().__init__(
             version=__version__,
@@ -432,8 +461,13 @@ class AsyncStagehand(AsyncAPIClient):
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        if self._sea_server is not None:
-            self.base_url = await self._sea_server.ensure_running_async()
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # Start the local SEA server lazily on first request instead of at client
+        # construction time, then swap the base URL to the started process.
+        local_base_url = await prepare_async_client_base_url(self)
+        if local_base_url is not None:
+            self.base_url = local_base_url
+        ### </END CUSTOM CODE>
         return await super()._prepare_options(options)
 
     @override
@@ -441,14 +475,16 @@ class AsyncStagehand(AsyncAPIClient):
         try:
             await super().close()
         finally:
-            if self._sea_server is not None:
-                await self._sea_server.aclose()
+            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+            # Tear down the managed SEA process after HTTP resources close.
+            await close_async_client_sea_server(self)
+            ### </END CUSTOM CODE>
 
     @cached_property
-    def sessions(self) -> AsyncSessionsResourceWithHelpers:
-        from .resources.sessions_helpers import AsyncSessionsResourceWithHelpers
+    def sessions(self) -> sessions.AsyncSessionsResource:
+        from .resources.sessions import AsyncSessionsResource
 
-        return AsyncSessionsResourceWithHelpers(self)
+        return AsyncSessionsResource(self)
 
     @cached_property
     def with_raw_response(self) -> AsyncStagehandWithRawResponse:
@@ -544,24 +580,27 @@ class AsyncStagehand(AsyncAPIClient):
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
-            server=server or self._server_mode,
-            _local_stagehand_binary_path=_local_stagehand_binary_path if _local_stagehand_binary_path is not None else self._local_stagehand_binary_path,
-            local_host=local_host or self._local_host,
-            local_port=local_port if local_port is not None else self._local_port,
-            local_headless=local_headless if local_headless is not None else self._local_headless,
-            local_chrome_path=local_chrome_path if local_chrome_path is not None else self._local_chrome_path,
-            local_ready_timeout_s=local_ready_timeout_s
-            if local_ready_timeout_s is not None
-            else self._local_ready_timeout_s,
-            local_shutdown_on_close=local_shutdown_on_close
-            if local_shutdown_on_close is not None
-            else self._local_shutdown_on_close,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+            # Preserve local-mode configuration when cloning the client without
+            # duplicating that branching logic in generated code.
+            **copy_local_mode_kwargs(
+                self,
+                server=server,
+                _local_stagehand_binary_path=_local_stagehand_binary_path,
+                local_host=local_host,
+                local_port=local_port,
+                local_headless=local_headless,
+                local_chrome_path=local_chrome_path,
+                local_ready_timeout_s=local_ready_timeout_s,
+                local_shutdown_on_close=local_shutdown_on_close,
+            ),
+            ### </END CUSTOM CODE>
             **_extra_kwargs,
         )
 

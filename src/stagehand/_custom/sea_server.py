@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path
 from threading import Lock
 from dataclasses import dataclass
+from typing_extensions import Literal, Protocol, TypedDict
 
 import httpx
 
@@ -27,6 +28,29 @@ class SeaServerConfig:
     model_api_key: str | None
     chrome_path: str | None
     shutdown_on_close: bool
+
+
+class _HasLocalModeState(Protocol):
+    _server_mode: Literal["remote", "local"]
+    _local_stagehand_binary_path: str | os.PathLike[str] | None
+    _local_host: str
+    _local_port: int
+    _local_headless: bool
+    _local_chrome_path: str | None
+    _local_ready_timeout_s: float
+    _local_shutdown_on_close: bool
+    _sea_server: SeaServerManager | None
+
+
+class LocalModeKwargs(TypedDict):
+    server: Literal["remote", "local"]
+    _local_stagehand_binary_path: str | os.PathLike[str] | None
+    local_host: str
+    local_port: int
+    local_headless: bool
+    local_chrome_path: str | None
+    local_ready_timeout_s: float
+    local_shutdown_on_close: bool
 
 
 def _pick_free_port(host: str) -> int:
@@ -105,7 +129,10 @@ class SeaServerManager:
         _local_stagehand_binary_path: str | os.PathLike[str] | None = None,
     ) -> None:
         self._config = config
-        self._binary_path: Path = resolve_binary_path(_local_stagehand_binary_path=_local_stagehand_binary_path, version=__version__)
+        self._binary_path: Path = resolve_binary_path(
+            _local_stagehand_binary_path=_local_stagehand_binary_path,
+            version=__version__,
+        )
 
         self._lock = Lock()
         self._async_lock = asyncio.Lock()
@@ -257,3 +284,112 @@ class SeaServerManager:
             raise
 
         return base_url, proc
+
+
+def configure_client_base_url(
+    client: _HasLocalModeState,
+    *,
+    server: Literal["remote", "local"],
+    _local_stagehand_binary_path: str | os.PathLike[str] | None,
+    local_host: str,
+    local_port: int,
+    local_headless: bool,
+    local_chrome_path: str | None,
+    local_ready_timeout_s: float,
+    local_shutdown_on_close: bool,
+    base_url: str | httpx.URL | None,
+    model_api_key: str | None,
+) -> str | httpx.URL:
+    client._server_mode = server
+    client._local_stagehand_binary_path = _local_stagehand_binary_path
+    client._local_host = local_host
+    client._local_port = local_port
+    client._local_headless = local_headless
+    client._local_chrome_path = local_chrome_path
+    client._local_ready_timeout_s = local_ready_timeout_s
+    client._local_shutdown_on_close = local_shutdown_on_close
+    client._sea_server = None
+
+    if server == "local":
+        if base_url is None:
+            base_url = "http://127.0.0.1"
+
+        client._sea_server = SeaServerManager(
+            config=SeaServerConfig(
+                host=local_host,
+                port=local_port,
+                headless=local_headless,
+                ready_timeout_s=local_ready_timeout_s,
+                model_api_key=model_api_key,
+                chrome_path=local_chrome_path,
+                shutdown_on_close=local_shutdown_on_close,
+            ),
+            _local_stagehand_binary_path=_local_stagehand_binary_path,
+        )
+        return base_url
+
+    if base_url is None:
+        base_url = os.environ.get("STAGEHAND_BASE_URL")
+    if base_url is None:
+        base_url = "https://api.stagehand.browserbase.com"
+    return base_url
+
+
+def copy_local_mode_kwargs(
+    client: _HasLocalModeState,
+    *,
+    server: Literal["remote", "local"] | None,
+    _local_stagehand_binary_path: str | os.PathLike[str] | None,
+    local_host: str | None,
+    local_port: int | None,
+    local_headless: bool | None,
+    local_chrome_path: str | None,
+    local_ready_timeout_s: float | None,
+    local_shutdown_on_close: bool | None,
+) -> LocalModeKwargs:
+    return {
+        "server": server or client._server_mode,
+        "_local_stagehand_binary_path": (
+            _local_stagehand_binary_path
+            if _local_stagehand_binary_path is not None
+            else client._local_stagehand_binary_path
+        ),
+        "local_host": local_host or client._local_host,
+        "local_port": local_port if local_port is not None else client._local_port,
+        "local_headless": local_headless if local_headless is not None else client._local_headless,
+        "local_chrome_path": (
+            local_chrome_path if local_chrome_path is not None else client._local_chrome_path
+        ),
+        "local_ready_timeout_s": (
+            local_ready_timeout_s
+            if local_ready_timeout_s is not None
+            else client._local_ready_timeout_s
+        ),
+        "local_shutdown_on_close": (
+            local_shutdown_on_close
+            if local_shutdown_on_close is not None
+            else client._local_shutdown_on_close
+        ),
+    }
+
+
+def prepare_sync_client_base_url(client: _HasLocalModeState) -> str | None:
+    if client._sea_server is None:
+        return None
+    return client._sea_server.ensure_running_sync()
+
+
+async def prepare_async_client_base_url(client: _HasLocalModeState) -> str | None:
+    if client._sea_server is None:
+        return None
+    return await client._sea_server.ensure_running_async()
+
+
+def close_sync_client_sea_server(client: _HasLocalModeState) -> None:
+    if client._sea_server is not None:
+        client._sea_server.close()
+
+
+async def close_async_client_sea_server(client: _HasLocalModeState) -> None:
+    if client._sea_server is not None:
+        await client._sea_server.aclose()

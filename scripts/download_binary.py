@@ -6,11 +6,11 @@ This script downloads the appropriate binary for your platform from GitHub relea
 and places it in bin/sea/ for use during development and testing.
 
 Usage:
-    python scripts/download-binary.py [--version VERSION]
+    python scripts/download_binary.py [--version VERSION]
 
 Examples:
-    python scripts/download-binary.py
-    python scripts/download-binary.py --version v3.2.0
+    python scripts/download_binary.py
+    python scripts/download_binary.py --version v3.2.0
 """
 from __future__ import annotations
 
@@ -179,7 +179,7 @@ def download_binary(version: str) -> None:
 
         size_mb = dest_path.stat().st_size / (1024 * 1024)
         print(f"✅ Downloaded successfully: {dest_path} ({size_mb:.1f} MB)")
-        print(f"\n💡 You can now run: uv run python test_local_mode.py")
+        print("\n💡 You can now run: uv run python scripts/test_local_mode.py")
 
     except urllib.error.HTTPError as e:  # type: ignore[misc]
         print(f"\n❌ Error: Failed to download binary (HTTP {e.code})")  # type: ignore[union-attr]
@@ -197,9 +197,9 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/download-binary.py
-  python scripts/download-binary.py --version v3.2.0
-  python scripts/download-binary.py --version stagehand-server-v3/v3.2.0
+  python scripts/download_binary.py
+  python scripts/download_binary.py --version v3.2.0
+  python scripts/download_binary.py --version stagehand-server-v3/v3.2.0
         """,
     )
     parser.add_argument(

@@ -9,7 +9,7 @@ import pytest
 from respx import MockRouter
 
 from stagehand import Stagehand, AsyncStagehand
-from stagehand.lib import sea_server
+from stagehand._custom import sea_server
 from stagehand._exceptions import StagehandError
 
 

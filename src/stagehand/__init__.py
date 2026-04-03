@@ -39,6 +39,13 @@ from ._exceptions import (
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 
+### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+# Re-export the public bound session types from `_custom` so users can type
+# against `stagehand.Session` instead of importing from private modules.
+from ._custom.session import Session, AsyncSession
+
+### </END CUSTOM CODE>
+
 __all__ = [
     "types",
     "__version__",
@@ -73,6 +80,10 @@ __all__ = [
     "AsyncStream",
     "Stagehand",
     "AsyncStagehand",
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+    "Session",
+    "AsyncSession",
+    ### </END CUSTOM CODE>
     "file_from_path",
     "BaseModel",
     "DEFAULT_TIMEOUT",
