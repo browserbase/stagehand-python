@@ -56,11 +56,8 @@ class AgentConfig(TypedDict, total=False):
     mode: Literal["dom", "hybrid", "cua"]
     """Tool mode for the agent (dom, hybrid, cua). If set, overrides cua."""
 
-    model: ModelConfigParam
-    """
-    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
-    'anthropic/claude-4.5-opus')
-    """
+    model: AgentConfigModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
     """AI provider for the agent (legacy, use model: openai/gpt-5-nano instead)"""

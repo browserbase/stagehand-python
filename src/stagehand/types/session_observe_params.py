@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Dict, Union, Optional
-from typing_extensions import Literal, Required, Annotated, TypedDict
+from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
@@ -11,6 +11,7 @@ from .model_config_param import ModelConfigParam
 __all__ = [
     "SessionObserveParamsBase",
     "Options",
+    "OptionsModel",
     "OptionsVariables",
     "OptionsVariablesUnionMember3",
     "SessionObserveParamsNonStreaming",
@@ -30,6 +31,10 @@ class SessionObserveParamsBase(TypedDict, total=False):
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""
 
+
+OptionsModel: TypeAlias = Union[ModelConfigParam, str]
+
+
 class OptionsVariablesUnionMember3(TypedDict, total=False):
     value: Required[Union[str, float, bool]]
 
@@ -40,11 +45,8 @@ OptionsVariables: TypeAlias = Union[str, float, bool, OptionsVariablesUnionMembe
 
 
 class Options(TypedDict, total=False):
-    model: ModelConfigParam
-    """
-    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
-    'anthropic/claude-4.5-opus')
-    """
+    model: OptionsModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     selector: str
     """CSS selector to scope observation to a specific element"""
