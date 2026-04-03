@@ -45,11 +45,8 @@ OptionsVariables: TypeAlias = Union[str, float, bool, OptionsVariablesUnionMembe
 
 
 class Options(TypedDict, total=False):
-    model: ModelConfigParam
-    """
-    Model name string with provider prefix (e.g., 'openai/gpt-5-nano',
-    'anthropic/claude-4.5-opus')
-    """
+    model: OptionsModel
+    """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
     selector: str
     """CSS selector to scope observation to a specific element"""
