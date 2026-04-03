@@ -44,7 +44,7 @@ class TestSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -121,7 +121,7 @@ class TestSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -250,7 +250,7 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -258,7 +258,7 @@ class TestSessions:
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -348,7 +348,7 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -356,7 +356,7 @@ class TestSessions:
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -444,7 +444,7 @@ class TestSessions:
             instruction="Extract all product names and prices from the page",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -512,7 +512,7 @@ class TestSessions:
             instruction="Extract all product names and prices from the page",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -642,7 +642,7 @@ class TestSessions:
             instruction="Find all clickable navigation links",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -716,7 +716,7 @@ class TestSessions:
             instruction="Find all clickable navigation links",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -827,7 +827,7 @@ class TestSessions:
     @parametrize
     def test_method_start(self, client: Stagehand) -> None:
         session = client.sessions.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
@@ -835,7 +835,7 @@ class TestSessions:
     @parametrize
     def test_method_start_with_all_params(self, client: Stagehand) -> None:
         session = client.sessions.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
             act_timeout_ms=0,
             browser={
                 "cdp_url": "ws://localhost:9222",
@@ -924,7 +924,7 @@ class TestSessions:
     @parametrize
     def test_raw_response_start(self, client: Stagehand) -> None:
         response = client.sessions.with_raw_response.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
         )
 
         assert response.is_closed is True
@@ -936,7 +936,7 @@ class TestSessions:
     @parametrize
     def test_streaming_response_start(self, client: Stagehand) -> None:
         with client.sessions.with_streaming_response.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -970,7 +970,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1047,7 +1047,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1176,7 +1176,7 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1184,7 +1184,7 @@ class TestAsyncSessions:
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1274,7 +1274,7 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1282,7 +1282,7 @@ class TestAsyncSessions:
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1370,7 +1370,7 @@ class TestAsyncSessions:
             instruction="Extract all product names and prices from the page",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1438,7 +1438,7 @@ class TestAsyncSessions:
             instruction="Extract all product names and prices from the page",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1568,7 +1568,7 @@ class TestAsyncSessions:
             instruction="Find all clickable navigation links",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1642,7 +1642,7 @@ class TestAsyncSessions:
             instruction="Find all clickable navigation links",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5-nano",
+                    "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
                     "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
@@ -1753,7 +1753,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_method_start(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
         )
         assert_matches_type(SessionStartResponse, session, path=["response"])
 
@@ -1761,7 +1761,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_method_start_with_all_params(self, async_client: AsyncStagehand) -> None:
         session = await async_client.sessions.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
             act_timeout_ms=0,
             browser={
                 "cdp_url": "ws://localhost:9222",
@@ -1850,7 +1850,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_raw_response_start(self, async_client: AsyncStagehand) -> None:
         response = await async_client.sessions.with_raw_response.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
         )
 
         assert response.is_closed is True
@@ -1862,7 +1862,7 @@ class TestAsyncSessions:
     @parametrize
     async def test_streaming_response_start(self, async_client: AsyncStagehand) -> None:
         async with async_client.sessions.with_streaming_response.start(
-            model_name="openai/gpt-4o",
+            model_name="openai/gpt-5.4-mini",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
