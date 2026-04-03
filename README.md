@@ -201,7 +201,7 @@ client = Stagehand()
 
 try:
     client.sessions.start(
-        model_name="openai/gpt-5-nano",
+        model_name="openai/gpt-5.4-mini",
     )
 except stagehand.APIConnectionError as e:
     print("The server could not be reached")
@@ -246,7 +246,7 @@ client = Stagehand(
 
 # Or, configure per-request:
 client.with_options(max_retries=5).sessions.start(
-    model_name="openai/gpt-5-nano",
+    model_name="openai/gpt-5.4-mini",
 )
 ```
 
@@ -271,7 +271,7 @@ client = Stagehand(
 
 # Override per-request:
 client.with_options(timeout=5.0).sessions.start(
-    model_name="openai/gpt-5-nano",
+    model_name="openai/gpt-5.4-mini",
 )
 ```
 
@@ -314,7 +314,7 @@ from stagehand import Stagehand
 
 client = Stagehand()
 response = client.sessions.with_raw_response.start(
-    model_name="openai/gpt-5-nano",
+    model_name="openai/gpt-5.4-mini",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -334,7 +334,7 @@ To stream the response body, use `.with_streaming_response` instead, which requi
 
 ```python
 with client.sessions.with_streaming_response.start(
-    model_name="openai/gpt-5-nano",
+    model_name="openai/gpt-5.4-mini",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
