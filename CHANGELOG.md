@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.19.3 (2026-04-03)
+
+Full Changelog: [v3.19.2...v3.19.3](https://github.com/browserbase/stagehand-python/compare/v3.19.2...v3.19.3)
+
+### Features
+
+* Replace default model used in server-v3 api spec examples ([fb347d2](https://github.com/browserbase/stagehand-python/commit/fb347d256fea9453c9eb23d935558bd43405f934))
+
 ## 3.19.2 (2026-04-03)
 
 Full Changelog: [v3.19.1...v3.19.2](https://github.com/browserbase/stagehand-python/compare/v3.19.1...v3.19.2)
