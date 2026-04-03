@@ -50,6 +50,7 @@ if TYPE_CHECKING:
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     from ._custom.sea_server import SeaServerManager
+    from .resources.sessions import SessionsResource, AsyncSessionsResource
     ### </END CUSTOM CODE>
 
 __all__ = [
@@ -195,7 +196,7 @@ class Stagehand(SyncAPIClient):
             ### </END CUSTOM CODE>
 
     @cached_property
-    def sessions(self) -> sessions.SessionsResource:
+    def sessions(self) -> SessionsResource:
         from .resources.sessions import SessionsResource
 
         return SessionsResource(self)
@@ -481,7 +482,7 @@ class AsyncStagehand(AsyncAPIClient):
             ### </END CUSTOM CODE>
 
     @cached_property
-    def sessions(self) -> sessions.AsyncSessionsResource:
+    def sessions(self) -> AsyncSessionsResource:
         from .resources.sessions import AsyncSessionsResource
 
         return AsyncSessionsResource(self)

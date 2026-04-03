@@ -84,7 +84,9 @@ async def main() -> None:
 
             # Use the first result
             result = results[0]
-            print(f"Acting on: {result.description}")
+            if not isinstance(result, dict):
+                raise RuntimeError(f"Expected observe stream result item to be a dict, got {type(result).__name__}")
+            print(f"Acting on: {result['description']}")
 
             # Pass the action to Act
             act_stream = await session.act(
