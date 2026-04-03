@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Any, Mapping
+
+### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+# Keep the generated client thin: all runtime patch logic lives in `_custom`.
 from typing_extensions import Self, Literal, override
 
 import httpx
@@ -30,9 +33,6 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
-
-### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
-# Keep the generated client thin: all runtime patch logic lives in `_custom`.
 from ._custom.session import install_stainless_session_patches
 from ._custom.sea_server import (
     copy_local_mode_kwargs,
@@ -50,6 +50,7 @@ if TYPE_CHECKING:
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     from ._custom.sea_server import SeaServerManager
+    from .resources.sessions import SessionsResource, AsyncSessionsResource
     ### </END CUSTOM CODE>
 
 __all__ = [
@@ -71,11 +72,11 @@ install_stainless_session_patches()
 
 
 class Stagehand(SyncAPIClient):
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
     model_api_key: str | None
-    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     # These are assigned indirectly by `configure_client_base_url(...)` so the
     # generated class still exposes typed local-mode state for `copy()` and tests.
     _server_mode: Literal["remote", "local"]
@@ -89,6 +90,7 @@ class Stagehand(SyncAPIClient):
     _sea_server: SeaServerManager | None
     ### </END CUSTOM CODE>
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     def __init__(
         self,
         *,
@@ -142,7 +144,6 @@ class Stagehand(SyncAPIClient):
 
         self.model_api_key = model_api_key
 
-        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
         # Centralize local-mode state hydration and base-url selection in `_custom`
         # so no constructor branching lives in the generated client.
         base_url = configure_client_base_url(
@@ -158,7 +159,7 @@ class Stagehand(SyncAPIClient):
             base_url=base_url,
             model_api_key=model_api_key,
         )
-        ### </END CUSTOM CODE>
+    ### </END CUSTOM CODE>
 
         super().__init__(
             version=__version__,
@@ -173,15 +174,14 @@ class Stagehand(SyncAPIClient):
 
         self._default_stream_cls = Stream
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
         # Start the local SEA server lazily on first request instead of at client
         # construction time, then swap the base URL to the started process.
         local_base_url = prepare_sync_client_base_url(self)
         if local_base_url is not None:
             self.base_url = local_base_url
-        ### </END CUSTOM CODE>
         return super()._prepare_options(options)
 
     @override
@@ -189,13 +189,12 @@ class Stagehand(SyncAPIClient):
         try:
             super().close()
         finally:
-            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
             # Tear down the managed SEA process after HTTP resources close.
             close_sync_client_sea_server(self)
-            ### </END CUSTOM CODE>
+    ### </END CUSTOM CODE>
 
     @cached_property
-    def sessions(self) -> sessions.SessionsResource:
+    def sessions(self) -> SessionsResource:
         from .resources.sessions import SessionsResource
 
         return SessionsResource(self)
@@ -218,6 +217,7 @@ class Stagehand(SyncAPIClient):
     def auth_headers(self) -> dict[str, str]:
         return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     @property
     def _bb_api_key_auth(self) -> dict[str, str]:
         browserbase_api_key = self.browserbase_api_key
@@ -243,7 +243,9 @@ class Stagehand(SyncAPIClient):
             "X-Stainless-Async": "false",
             **self._custom_headers,
         }
+    ### </END CUSTOM CODE>
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     def copy(
         self,
         *,
@@ -300,7 +302,6 @@ class Stagehand(SyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
-            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
             # Preserve local-mode configuration when cloning the client without
             # duplicating that branching logic in generated code.
             **copy_local_mode_kwargs(
@@ -314,12 +315,12 @@ class Stagehand(SyncAPIClient):
                 local_ready_timeout_s=local_ready_timeout_s,
                 local_shutdown_on_close=local_shutdown_on_close,
             ),
-            ### </END CUSTOM CODE>
             **_extra_kwargs,
         )
+    ### </END CUSTOM CODE>
 
     # Alias for `copy` for nicer inline usage, e.g.
-    # client.with_options(timeout=10).foo.start(...)
+    # client.with_options(timeout=10).foo.create(...)
     with_options = copy
 
     @override
@@ -357,11 +358,11 @@ class Stagehand(SyncAPIClient):
 
 
 class AsyncStagehand(AsyncAPIClient):
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     # client options
     browserbase_api_key: str | None
     browserbase_project_id: str | None
     model_api_key: str | None
-    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     # These are assigned indirectly by `configure_client_base_url(...)` so the
     # generated class still exposes typed local-mode state for `copy()` and tests.
     _server_mode: Literal["remote", "local"]
@@ -375,6 +376,7 @@ class AsyncStagehand(AsyncAPIClient):
     _sea_server: SeaServerManager | None
     ### </END CUSTOM CODE>
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     def __init__(
         self,
         *,
@@ -428,7 +430,6 @@ class AsyncStagehand(AsyncAPIClient):
 
         self.model_api_key = model_api_key
 
-        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
         # Centralize local-mode state hydration and base-url selection in `_custom`
         # so no constructor branching lives in the generated client.
         base_url = configure_client_base_url(
@@ -444,7 +445,7 @@ class AsyncStagehand(AsyncAPIClient):
             base_url=base_url,
             model_api_key=model_api_key,
         )
-        ### </END CUSTOM CODE>
+    ### </END CUSTOM CODE>
 
         super().__init__(
             version=__version__,
@@ -459,15 +460,14 @@ class AsyncStagehand(AsyncAPIClient):
 
         self._default_stream_cls = AsyncStream
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
         # Start the local SEA server lazily on first request instead of at client
         # construction time, then swap the base URL to the started process.
         local_base_url = await prepare_async_client_base_url(self)
         if local_base_url is not None:
             self.base_url = local_base_url
-        ### </END CUSTOM CODE>
         return await super()._prepare_options(options)
 
     @override
@@ -475,13 +475,12 @@ class AsyncStagehand(AsyncAPIClient):
         try:
             await super().close()
         finally:
-            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
             # Tear down the managed SEA process after HTTP resources close.
             await close_async_client_sea_server(self)
-            ### </END CUSTOM CODE>
+    ### </END CUSTOM CODE>
 
     @cached_property
-    def sessions(self) -> sessions.AsyncSessionsResource:
+    def sessions(self) -> AsyncSessionsResource:
         from .resources.sessions import AsyncSessionsResource
 
         return AsyncSessionsResource(self)
@@ -504,6 +503,7 @@ class AsyncStagehand(AsyncAPIClient):
     def auth_headers(self) -> dict[str, str]:
         return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     @property
     def _bb_api_key_auth(self) -> dict[str, str]:
         browserbase_api_key = self.browserbase_api_key
@@ -529,7 +529,9 @@ class AsyncStagehand(AsyncAPIClient):
             "X-Stainless-Async": f"async:{get_async_library()}",
             **self._custom_headers,
         }
+    ### </END CUSTOM CODE>
 
+    ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     def copy(
         self,
         *,
@@ -586,7 +588,6 @@ class AsyncStagehand(AsyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
-            ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
             # Preserve local-mode configuration when cloning the client without
             # duplicating that branching logic in generated code.
             **copy_local_mode_kwargs(
@@ -600,12 +601,12 @@ class AsyncStagehand(AsyncAPIClient):
                 local_ready_timeout_s=local_ready_timeout_s,
                 local_shutdown_on_close=local_shutdown_on_close,
             ),
-            ### </END CUSTOM CODE>
             **_extra_kwargs,
         )
+    ### </END CUSTOM CODE>
 
     # Alias for `copy` for nicer inline usage, e.g.
-    # client.with_options(timeout=10).foo.start(...)
+    # client.with_options(timeout=10).foo.create(...)
     with_options = copy
 
     @override
