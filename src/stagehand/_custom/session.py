@@ -39,6 +39,9 @@ class _PlaywrightCDPSession(Protocol):
     def send(self, method: str, params: Any = ...) -> Any:  # noqa: ANN401
         ...
 
+    def detach(self) -> Any:  # noqa: ANN401
+        ...
+
 
 class _PlaywrightContext(Protocol):
     def new_cdp_session(self, page: Any) -> Any:  # noqa: ANN401
@@ -71,11 +74,21 @@ def _extract_frame_id_from_playwright_page(page: Any) -> str:
         raise StagehandError("Playwright CDP session missing .send(...) method")
 
     pw_cdp = cast(_PlaywrightCDPSession, cdp)
-    result = pw_cdp.send("Page.getFrameTree")
-    if inspect.isawaitable(result):
-        raise StagehandError(
-            "Expected a synchronous Playwright Page, but received an async CDP session; use AsyncSession methods"
-        )
+    try:
+        result = pw_cdp.send("Page.getFrameTree")
+        if inspect.isawaitable(result):
+            raise StagehandError(
+                "Expected a synchronous Playwright Page, but received an async CDP session; use AsyncSession methods"
+            )
+    finally:
+        detach = getattr(cdp, "detach", None)
+        if callable(detach):
+            try:
+                detach_result = detach()
+                if inspect.isawaitable(detach_result):
+                    logger.warning("Playwright sync CDP detach() returned an awaitable; session may remain open")
+            except Exception:  # noqa: BLE001
+                logger.debug("Failed to detach Playwright CDP session", exc_info=True)
 
     try:
         return cast(str, result["frameTree"]["frame"]["id"])
@@ -107,9 +120,19 @@ async def _extract_frame_id_from_playwright_page_async(page: Any) -> str:
         raise StagehandError("Playwright CDP session missing .send(...) method")
 
     pw_cdp = cast(_PlaywrightCDPSession, cdp)
-    result = pw_cdp.send("Page.getFrameTree")
-    if inspect.isawaitable(result):
-        result = await result
+    try:
+        result = pw_cdp.send("Page.getFrameTree")
+        if inspect.isawaitable(result):
+            result = await result
+    finally:
+        detach = getattr(cdp, "detach", None)
+        if callable(detach):
+            try:
+                detach_result = detach()
+                if inspect.isawaitable(detach_result):
+                    await detach_result
+            except Exception:  # noqa: BLE001
+                logger.debug("Failed to detach Playwright CDP session", exc_info=True)
 
     try:
         return cast(str, result["frameTree"]["frame"]["id"])

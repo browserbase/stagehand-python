@@ -19,18 +19,24 @@ base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 class _SyncCDP:
     def __init__(self, frame_id: str) -> None:
         self._frame_id = frame_id
+        self.detached = False
 
     def send(self, method: str) -> dict[str, Any]:
         assert method == "Page.getFrameTree"
         return {"frameTree": {"frame": {"id": self._frame_id}}}
 
+    def detach(self) -> None:
+        self.detached = True
+
 
 class _SyncContext:
     def __init__(self, frame_id: str) -> None:
         self._frame_id = frame_id
+        self.last_cdp: _SyncCDP | None = None
 
     def new_cdp_session(self, _page: Any) -> _SyncCDP:
-        return _SyncCDP(self._frame_id)
+        self.last_cdp = _SyncCDP(self._frame_id)
+        return self.last_cdp
 
 
 class _SyncPage:
@@ -41,18 +47,24 @@ class _SyncPage:
 class _AsyncCDP:
     def __init__(self, frame_id: str) -> None:
         self._frame_id = frame_id
+        self.detached = False
 
     async def send(self, method: str) -> dict[str, Any]:
         assert method == "Page.getFrameTree"
         return {"frameTree": {"frame": {"id": self._frame_id}}}
 
+    async def detach(self) -> None:
+        self.detached = True
+
 
 class _AsyncContext:
     def __init__(self, frame_id: str) -> None:
         self._frame_id = frame_id
+        self.last_cdp: _AsyncCDP | None = None
 
     async def new_cdp_session(self, _page: Any) -> _AsyncCDP:
-        return _AsyncCDP(self._frame_id)
+        self.last_cdp = _AsyncCDP(self._frame_id)
+        return self.last_cdp
 
 
 class _AsyncPage:
@@ -64,6 +76,7 @@ class _AsyncPage:
 def test_session_act_injects_frame_id_from_page(respx_mock: MockRouter, client: Stagehand) -> None:
     session_id = "00000000-0000-0000-0000-000000000000"
     frame_id = "frame-123"
+    page = _SyncPage(frame_id)
 
     respx_mock.post("/v1/sessions/start").mock(
         return_value=httpx.Response(
@@ -80,9 +93,11 @@ def test_session_act_injects_frame_id_from_page(respx_mock: MockRouter, client: 
     )
 
     session = client.sessions.start(model_name="openai/gpt-5-nano")
-    session.act(input="click something", page=_SyncPage(frame_id))
+    session.act(input="click something", page=page)
 
     assert act_route.called is True
+    assert page.context.last_cdp is not None
+    assert page.context.last_cdp.detached is True
     first_call = cast(Call, act_route.calls[0])
     request_body = json.loads(first_call.request.content)
     assert request_body["frameId"] == frame_id
@@ -129,6 +144,7 @@ async def test_async_session_act_injects_frame_id_from_page(
 ) -> None:
     session_id = "00000000-0000-0000-0000-000000000000"
     frame_id = "frame-async-456"
+    page = _AsyncPage(frame_id)
 
     respx_mock.post("/v1/sessions/start").mock(
         return_value=httpx.Response(
@@ -145,9 +161,11 @@ async def test_async_session_act_injects_frame_id_from_page(
     )
 
     session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
-    await session.act(input="click something", page=_AsyncPage(frame_id))
+    await session.act(input="click something", page=page)
 
     assert act_route.called is True
+    assert page.context.last_cdp is not None
+    assert page.context.last_cdp.detached is True
     first_call = cast(Call, act_route.calls[0])
     request_body = json.loads(first_call.request.content)
     assert request_body["frameId"] == frame_id
