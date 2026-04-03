@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.19.4 (2026-04-03)
+
+Full Changelog: [v3.19.3...v3.19.4](https://github.com/browserbase/stagehand-python/compare/v3.19.3...v3.19.4)
+
 ## 3.19.3 (2026-04-03)
 
 Full Changelog: [v3.19.2...v3.19.3](https://github.com/browserbase/stagehand-python/compare/v3.19.2...v3.19.3)
