@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+from typing import TYPE_CHECKING, Dict, Optional, cast
+
+### </END CUSTOM CODE>
 from typing_extensions import Literal, overload
 
 import httpx
@@ -36,6 +39,13 @@ from ..types.session_execute_response import SessionExecuteResponse
 from ..types.session_extract_response import SessionExtractResponse
 from ..types.session_observe_response import SessionObserveResponse
 from ..types.session_navigate_response import SessionNavigateResponse
+
+### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+# These imports are type-checking only. Runtime patching in `_custom.session`
+# swaps `start()` to return real bound session objects.
+if TYPE_CHECKING:
+    from .. import Session, AsyncSession
+### </END CUSTOM CODE>
 
 __all__ = ["SessionsResource", "AsyncSessionsResource"]
 
@@ -928,7 +938,11 @@ class SessionsResource(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SessionStartResponse:
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # The runtime monkey patch returns a bound `Session`; mirror that public
+        # return type here so users see the right API surface.
+    ) -> Session:
+        ### </END CUSTOM CODE>
         """Creates a new browser session with the specified configuration.
 
         Returns a
@@ -967,7 +981,12 @@ class SessionsResource(SyncAPIResource):
             ),
             **(extra_headers or {}),
         }
-        return self._post(
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # This cast is type-only. `install_stainless_session_patches()` replaces
+        # this generated method at runtime and constructs the real `Session`.
+        return cast(
+            "Session",
+            self._post(
             "/v1/sessions/start",
             body=maybe_transform(
                 {
@@ -989,7 +1008,9 @@ class SessionsResource(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionStartResponse,
+            ),
         )
+        ### </END CUSTOM CODE>
 
 
 class AsyncSessionsResource(AsyncAPIResource):
@@ -1880,7 +1901,11 @@ class AsyncSessionsResource(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SessionStartResponse:
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # The runtime monkey patch returns a bound `AsyncSession`; mirror that
+        # public return type here so users see the right API surface.
+    ) -> AsyncSession:
+        ### </END CUSTOM CODE>
         """Creates a new browser session with the specified configuration.
 
         Returns a
@@ -1919,7 +1944,12 @@ class AsyncSessionsResource(AsyncAPIResource):
             ),
             **(extra_headers or {}),
         }
-        return await self._post(
+        ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
+        # This cast is type-only. `install_stainless_session_patches()` replaces
+        # this generated method at runtime and constructs the real `AsyncSession`.
+        return cast(
+            "AsyncSession",
+            await self._post(
             "/v1/sessions/start",
             body=await async_maybe_transform(
                 {
@@ -1941,7 +1971,9 @@ class AsyncSessionsResource(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=SessionStartResponse,
+            ),
         )
+        ### </END CUSTOM CODE>
 
 
 class SessionsResourceWithRawResponse:

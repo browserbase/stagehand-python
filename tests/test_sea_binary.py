@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from stagehand.lib import sea_binary
+from stagehand._custom import sea_binary
 from stagehand._version import __version__
 
 
 def _load_download_binary_module():
-    script_path = Path(__file__).resolve().parents[1] / "scripts" / "download-binary.py"
+    script_path = Path(__file__).resolve().parents[1] / "scripts" / "download_binary.py"
     spec = importlib.util.spec_from_file_location("download_binary_script", script_path)
     assert spec is not None
     assert spec.loader is not None

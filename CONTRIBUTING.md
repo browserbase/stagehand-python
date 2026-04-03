@@ -24,7 +24,7 @@ uv run python script.py
 
 Most of the SDK is generated code. Modifications to code will be persisted between generations, but may
 result in merge conflicts between manual patches and changes from the generator. The generator will never
-modify the contents of the `src/stagehand/lib/` and `examples/` directories.
+modify the contents of the `src/stagehand/_custom/` and `examples/` directories.
 
 ## Setting up the local server binary (for development)
 
@@ -35,7 +35,7 @@ The SDK supports running a local Stagehand server for development and testing. T
 Run the download script to automatically download the correct binary:
 
 ```sh
-$ uv run python scripts/download-binary.py
+$ uv run python scripts/download_binary.py
 ```
 
 This will:
@@ -64,7 +64,7 @@ Instead of placing the binary in `bin/sea/`, you can point to any binary locatio
 
 ```sh
 $ export STAGEHAND_SEA_BINARY=/path/to/your/stagehand-binary
-$ uv run python test_local_mode.py
+$ uv run python scripts/test_local_mode.py
 ```
 
 ## Adding and running examples
