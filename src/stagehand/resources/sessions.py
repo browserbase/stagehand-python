@@ -917,6 +917,7 @@ class SessionsResource(SyncAPIResource):
         browserbase_session_id: str | Omit = omit,
         dom_settle_timeout_ms: float | Omit = omit,
         experimental: bool | Omit = omit,
+        model_client_options: session_start_params.ModelClientOptions | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
@@ -942,6 +943,9 @@ class SessionsResource(SyncAPIResource):
           browserbase_session_id: Existing Browserbase session ID to resume
 
           dom_settle_timeout_ms: Timeout in ms to wait for DOM to settle
+
+          model_client_options: Optional provider-specific configuration for the session model (for example
+              Bedrock region and credentials)
 
           self_heal: Enable self-healing for failed actions
 
@@ -978,6 +982,7 @@ class SessionsResource(SyncAPIResource):
                     "browserbase_session_id": browserbase_session_id,
                     "dom_settle_timeout_ms": dom_settle_timeout_ms,
                     "experimental": experimental,
+                    "model_client_options": model_client_options,
                     "self_heal": self_heal,
                     "system_prompt": system_prompt,
                     "verbose": verbose,
@@ -1869,6 +1874,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         browserbase_session_id: str | Omit = omit,
         dom_settle_timeout_ms: float | Omit = omit,
         experimental: bool | Omit = omit,
+        model_client_options: session_start_params.ModelClientOptions | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
@@ -1894,6 +1900,9 @@ class AsyncSessionsResource(AsyncAPIResource):
           browserbase_session_id: Existing Browserbase session ID to resume
 
           dom_settle_timeout_ms: Timeout in ms to wait for DOM to settle
+
+          model_client_options: Optional provider-specific configuration for the session model (for example
+              Bedrock region and credentials)
 
           self_heal: Enable self-healing for failed actions
 
@@ -1930,6 +1939,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "browserbase_session_id": browserbase_session_id,
                     "dom_settle_timeout_ms": dom_settle_timeout_ms,
                     "experimental": experimental,
+                    "model_client_options": model_client_options,
                     "self_heal": self_heal,
                     "system_prompt": system_prompt,
                     "verbose": verbose,

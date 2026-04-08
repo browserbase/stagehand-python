@@ -76,12 +76,6 @@ class ExecuteOptions(TypedDict, total=False):
     max_steps: Annotated[float, PropertyInfo(alias="maxSteps")]
     """Maximum number of steps the agent can take"""
 
-    tool_timeout: Annotated[float, PropertyInfo(alias="toolTimeout")]
-    """Timeout in milliseconds for each agent tool call"""
-
-    use_search: Annotated[bool, PropertyInfo(alias="useSearch")]
-    """Whether to enable the web search tool powered by Browserbase Search API"""
-
 
 class SessionExecuteParamsNonStreaming(SessionExecuteParamsBase, total=False):
     stream_response: Annotated[Literal[False], PropertyInfo(alias="streamResponse")]
