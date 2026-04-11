@@ -175,6 +175,10 @@ class BrowserbaseSessionCreateParamsBrowserSettings(TypedDict, total=False):
 
     block_ads: Annotated[bool, PropertyInfo(alias="blockAds")]
 
+    captcha_image_selector: Annotated[str, PropertyInfo(alias="captchaImageSelector")]
+
+    captcha_input_selector: Annotated[str, PropertyInfo(alias="captchaInputSelector")]
+
     context: BrowserbaseSessionCreateParamsBrowserSettingsContext
 
     extension_id: Annotated[str, PropertyInfo(alias="extensionId")]
@@ -183,9 +187,13 @@ class BrowserbaseSessionCreateParamsBrowserSettings(TypedDict, total=False):
 
     log_session: Annotated[bool, PropertyInfo(alias="logSession")]
 
+    os: Literal["windows", "mac", "linux", "mobile", "tablet"]
+
     record_session: Annotated[bool, PropertyInfo(alias="recordSession")]
 
     solve_captchas: Annotated[bool, PropertyInfo(alias="solveCaptchas")]
+
+    verified: bool
 
     viewport: BrowserbaseSessionCreateParamsBrowserSettingsViewport
 
