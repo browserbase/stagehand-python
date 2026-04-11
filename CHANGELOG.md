@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.20.0 (2026-04-11)
+
+Full Changelog: [v3.19.5...v3.20.0](https://github.com/browserbase/stagehand-python/compare/v3.19.5...v3.20.0)
+
+### Features
+
+* [STG-1798] feat: support Browserbase verified sessions ([078ab5c](https://github.com/browserbase/stagehand-python/commit/078ab5c76f13beee16e44d7eed5e3018f1cc5bd8))
+* Bedrock auth passthrough ([9463fa4](https://github.com/browserbase/stagehand-python/commit/9463fa49cb839abbb2c6a1adb0d053e5006216a7))
+* Revert "[STG-1573] Add providerOptions for extensible model auth ([#1822](https://github.com/browserbase/stagehand-python/issues/1822))" ([3c04086](https://github.com/browserbase/stagehand-python/commit/3c0408675154c9f7d241c4e92e9cb82f0419d6b3))
+
+
+### Bug Fixes
+
+* **client:** preserve hardcoded query params when merging with user params ([feac39d](https://github.com/browserbase/stagehand-python/commit/feac39d88a841ff710d672b622f3280037589f66))
+* ensure file data are only sent as 1 parameter ([b870657](https://github.com/browserbase/stagehand-python/commit/b8706575ab0f95b9e6781ee3685f9b79e0fe6036))
+
 ## 3.19.5 (2026-04-03)
 
 Full Changelog: [v3.19.4...v3.19.5](https://github.com/browserbase/stagehand-python/compare/v3.19.4...v3.19.5)
