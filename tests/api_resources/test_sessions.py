@@ -875,6 +875,8 @@ class TestSessions:
                 "browser_settings": {
                     "advanced_stealth": True,
                     "block_ads": True,
+                    "captcha_image_selector": "captchaImageSelector",
+                    "captcha_input_selector": "captchaInputSelector",
                     "context": {
                         "id": "id",
                         "persist": True,
@@ -894,8 +896,10 @@ class TestSessions:
                         },
                     },
                     "log_session": True,
+                    "os": "windows",
                     "record_session": True,
                     "solve_captchas": True,
+                    "verified": True,
                     "viewport": {
                         "height": 0,
                         "width": 0,
@@ -1801,6 +1805,8 @@ class TestAsyncSessions:
                 "browser_settings": {
                     "advanced_stealth": True,
                     "block_ads": True,
+                    "captcha_image_selector": "captchaImageSelector",
+                    "captcha_input_selector": "captchaInputSelector",
                     "context": {
                         "id": "id",
                         "persist": True,
@@ -1820,8 +1826,10 @@ class TestAsyncSessions:
                         },
                     },
                     "log_session": True,
+                    "os": "windows",
                     "record_session": True,
                     "solve_captchas": True,
+                    "verified": True,
                     "viewport": {
                         "height": 0,
                         "width": 0,
