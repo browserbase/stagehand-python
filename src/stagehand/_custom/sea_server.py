@@ -329,7 +329,7 @@ def configure_client_base_url(
         return base_url
 
     if base_url is None:
-        base_url = os.environ.get("STAGEHAND_BASE_URL")
+        base_url = os.environ.get("STAGEHAND_API_URL") or os.environ.get("STAGEHAND_BASE_URL")
     if base_url is None:
         base_url = "https://api.stagehand.browserbase.com"
     return base_url

@@ -257,7 +257,7 @@ See this table for the available options:
 | `browserbase_api_key`    | `BROWSERBASE_API_KEY`    | true     | -                                         |
 | `browserbase_project_id` | `BROWSERBASE_PROJECT_ID` | true     | -                                         |
 | `model_api_key`          | `MODEL_API_KEY`          | true     | -                                         |
-| `base_url`               | `STAGEHAND_BASE_URL`     | false    | `"https://api.stagehand.browserbase.com"` |
+| `base_url`               | `STAGEHAND_API_URL`     | false    | `"https://api.stagehand.browserbase.com"` |
 
 Keyword arguments take precedence over environment variables.
 
@@ -662,7 +662,7 @@ import httpx
 from stagehand import Stagehand, DefaultHttpxClient
 
 client = Stagehand(
-    # Or use the `STAGEHAND_BASE_URL` env var
+    # Or use the `STAGEHAND_API_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",

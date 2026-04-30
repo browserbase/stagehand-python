@@ -15,7 +15,7 @@ Environment variables required:
 - BROWSERBASE_PROJECT_ID
 
 Optional:
-- STAGEHAND_BASE_URL (defaults to https://api.stagehand.browserbase.com)
+- STAGEHAND_API_URL (defaults to https://api.stagehand.browserbase.com)
 """
 
 from __future__ import annotations

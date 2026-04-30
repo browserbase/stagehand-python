@@ -795,7 +795,7 @@ class TestStagehand:
         client.close()
 
     def test_base_url_env(self) -> None:
-        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
+        with update_env(STAGEHAND_API_URL="http://localhost:5000/from/env"):
             client = Stagehand(
                 browserbase_api_key=browserbase_api_key,
                 browserbase_project_id=browserbase_project_id,
@@ -803,6 +803,29 @@ class TestStagehand:
                 _strict_response_validation=True,
             )
             assert client.base_url == "http://localhost:5000/from/env/"
+
+    def test_base_url_legacy_env(self) -> None:
+        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/legacy/env"):
+            client = Stagehand(
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            )
+            assert client.base_url == "http://localhost:5000/from/legacy/env/"
+
+    def test_base_url_env_prefers_api_url(self) -> None:
+        with update_env(
+            STAGEHAND_API_URL="http://localhost:5000/from/api/env",
+            STAGEHAND_BASE_URL="http://localhost:5000/from/base/env",
+        ):
+            client = Stagehand(
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            )
+            assert client.base_url == "http://localhost:5000/from/api/env/"
 
     @pytest.mark.parametrize(
         "client",
@@ -1870,7 +1893,7 @@ class TestAsyncStagehand:
         await client.close()
 
     async def test_base_url_env(self) -> None:
-        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/env"):
+        with update_env(STAGEHAND_API_URL="http://localhost:5000/from/env"):
             client = AsyncStagehand(
                 browserbase_api_key=browserbase_api_key,
                 browserbase_project_id=browserbase_project_id,
@@ -1878,6 +1901,29 @@ class TestAsyncStagehand:
                 _strict_response_validation=True,
             )
             assert client.base_url == "http://localhost:5000/from/env/"
+
+    async def test_base_url_legacy_env(self) -> None:
+        with update_env(STAGEHAND_BASE_URL="http://localhost:5000/from/legacy/env"):
+            client = AsyncStagehand(
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            )
+            assert client.base_url == "http://localhost:5000/from/legacy/env/"
+
+    async def test_base_url_env_prefers_api_url(self) -> None:
+        with update_env(
+            STAGEHAND_API_URL="http://localhost:5000/from/api/env",
+            STAGEHAND_BASE_URL="http://localhost:5000/from/base/env",
+        ):
+            client = AsyncStagehand(
+                browserbase_api_key=browserbase_api_key,
+                browserbase_project_id=browserbase_project_id,
+                model_api_key=model_api_key,
+                _strict_response_validation=True,
+            )
+            assert client.base_url == "http://localhost:5000/from/api/env/"
 
     @pytest.mark.parametrize(
         "client",

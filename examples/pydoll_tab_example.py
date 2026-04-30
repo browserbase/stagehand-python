@@ -15,7 +15,7 @@ Environment variables required:
 - BROWSERBASE_PROJECT_ID
 
 Optional:
-- STAGEHAND_BASE_URL (defaults to https://api.stagehand.browserbase.com)
+- STAGEHAND_API_URL (defaults to https://api.stagehand.browserbase.com)
 
 Notes:
 - This example requires Python 3.10+ because `pydoll-python` requires Python 3.10+.

@@ -14,7 +14,7 @@ Environment variables required:
 - BROWSERBASE_PROJECT_ID
 
 Optional:
-- STAGEHAND_BASE_URL (defaults to http://127.0.0.1:3000 when server="local")
+- STAGEHAND_API_URL (defaults to http://127.0.0.1:3000 when server="local")
 """
 
 from __future__ import annotations

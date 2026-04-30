@@ -44,9 +44,6 @@ def load_example_env() -> None:
             + " (from examples/.env)"
         )
 
-    # Normalize for SDKs that expect STAGEHAND_BASE_URL
-    os.environ.setdefault("STAGEHAND_BASE_URL", os.environ["STAGEHAND_API_URL"])
-
     # Use the repo-local SEA binary when available (avoid global installs).
     sea_binary = env_path.parent.parent / "bin" / "sea" / "stagehand-darwin-arm64"
     if sea_binary.exists():
