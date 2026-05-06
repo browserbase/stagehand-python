@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from .._utils import PropertyInfo
@@ -14,6 +14,8 @@ __all__ = [
     "AgentConfigExecutionModel",
     "AgentConfigModel",
     "ExecuteOptions",
+    "ExecuteOptionsVariables",
+    "ExecuteOptionsVariablesUnionMember3",
     "SessionExecuteParamsNonStreaming",
     "SessionExecuteParamsStreaming",
 ]
@@ -66,6 +68,15 @@ class AgentConfig(TypedDict, total=False):
     """Custom system prompt for the agent"""
 
 
+class ExecuteOptionsVariablesUnionMember3(TypedDict, total=False):
+    value: Required[Union[str, float, bool]]
+
+    description: str
+
+
+ExecuteOptionsVariables: TypeAlias = Union[str, float, bool, ExecuteOptionsVariablesUnionMember3]
+
+
 class ExecuteOptions(TypedDict, total=False):
     instruction: Required[str]
     """Natural language instruction for the agent"""
@@ -81,6 +92,9 @@ class ExecuteOptions(TypedDict, total=False):
 
     use_search: Annotated[bool, PropertyInfo(alias="useSearch")]
     """Whether to enable the web search tool powered by Browserbase Search API"""
+
+    variables: Dict[str, ExecuteOptionsVariables]
+    """Variables available to the agent via %variableName% syntax in supported tools"""
 
 
 class SessionExecuteParamsNonStreaming(SessionExecuteParamsBase, total=False):
