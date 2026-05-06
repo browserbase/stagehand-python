@@ -56,12 +56,10 @@ class _DummyProcess:
 
 def _set_required_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BROWSERBASE_API_KEY", "bb_key")
-    monkeypatch.setenv("BROWSERBASE_PROJECT_ID", "bb_project")
 
 
 def _set_browserbase_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BROWSERBASE_API_KEY", "bb_key")
-    monkeypatch.setenv("BROWSERBASE_PROJECT_ID", "bb_project")
 
 
 def _install_fake_sea_runtime(
@@ -230,7 +228,6 @@ def test_local_server_requires_browserbase_keys_for_browserbase_sessions(
 ) -> None:
     _set_required_env(monkeypatch)
     monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
-    monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
     client = Stagehand(
         server="local",
         model_api_key="model_key",
@@ -241,12 +238,33 @@ def test_local_server_requires_browserbase_keys_for_browserbase_sessions(
         client.sessions.start(model_name="openai/gpt-5-nano")
 
 
+def test_local_server_allows_browserbase_sessions_without_project_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _set_required_env(monkeypatch)
+    monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
+    client = Stagehand(
+        server="local",
+        model_api_key="model_key",
+        _local_stagehand_binary_path="/does/not/matter/in/test",
+    )
+    client._sea_server = _DummySeaServer("http://127.0.0.1:43132")  # type: ignore[attr-defined]
+
+    def _post(*_args: object, **_kwargs: object) -> object:
+        raise RuntimeError("post called")
+
+    client.sessions._post = _post  # type: ignore[method-assign]
+    client.base_url = httpx.URL("http://127.0.0.1:43132")
+
+    with pytest.raises(RuntimeError, match="post called"):
+        client.sessions.start(model_name="openai/gpt-5-nano")
+
+
 def test_local_server_allows_local_browser_without_browserbase_keys(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _set_required_env(monkeypatch)
     monkeypatch.delenv("BROWSERBASE_API_KEY", raising=False)
-    monkeypatch.delenv("BROWSERBASE_PROJECT_ID", raising=False)
     client = Stagehand(
         server="local",
         model_api_key="model_key",

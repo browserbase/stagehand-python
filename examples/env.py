@@ -4,10 +4,8 @@ import os
 from pathlib import Path
 
 REQUIRED_KEYS = {
-    "STAGEHAND_API_URL",
     "MODEL_API_KEY",
     "BROWSERBASE_API_KEY",
-    "BROWSERBASE_PROJECT_ID",
 }
 
 

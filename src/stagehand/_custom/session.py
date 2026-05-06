@@ -699,7 +699,7 @@ def _resolve_start_browser(client: Any, browser: session_start_params.Browser | 
     if browser is not omit or getattr(client, "_server_mode", None) != "local":
         return browser
 
-    if client.browserbase_api_key is None or client.browserbase_project_id is None:
+    if client.browserbase_api_key is None:
         raise StagehandError(
             "Local server mode without Browserbase credentials requires an explicit local browser, "
             "e.g. browser={'type': 'local'}."

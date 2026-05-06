@@ -11,10 +11,9 @@ What this demonstrates:
 Environment variables required:
 - MODEL_API_KEY
 - BROWSERBASE_API_KEY
-- BROWSERBASE_PROJECT_ID
 
 Optional:
-- STAGEHAND_API_URL (defaults to http://127.0.0.1:3000 when server="local")
+- STAGEHAND_API_URL or STAGEHAND_BASE_URL (defaults to http://127.0.0.1:3000 when server="local")
 """
 
 from __future__ import annotations
@@ -53,11 +52,8 @@ def main() -> None:
         sys.exit("Set the MODEL_API_KEY environment variable to run this example.")
 
     bb_api_key = os.environ.get("BROWSERBASE_API_KEY")
-    bb_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
-    if not bb_api_key or not bb_project_id:
-        sys.exit(
-            "Set BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID to run this example."
-        )
+    if not bb_api_key:
+        sys.exit("Set BROWSERBASE_API_KEY to run this example.")
 
     try:
         from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
@@ -73,7 +69,6 @@ def main() -> None:
     with Stagehand(
         server="local",
         browserbase_api_key=bb_api_key,
-        browserbase_project_id=bb_project_id,
         model_api_key=model_api_key,
         local_ready_timeout_s=30.0,
     ) as client:

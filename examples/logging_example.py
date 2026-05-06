@@ -4,7 +4,6 @@ using the remote Browserbase Stagehand service.
 
 Required environment variables:
 - BROWSERBASE_API_KEY: Your Browserbase API key
-- BROWSERBASE_PROJECT_ID: Your Browserbase project ID
 - MODEL_API_KEY: Your OpenAI API key
 """
 
@@ -23,7 +22,6 @@ async def main() -> None:
     # Create client using environment variables
     async with AsyncStagehand(
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
-        browserbase_project_id=os.environ.get("BROWSERBASE_PROJECT_ID"),
         model_api_key=os.environ.get("MODEL_API_KEY"),
     ) as client:
         # Start a new browser session with verbose logging enabled

@@ -460,13 +460,12 @@ class TestStagehand:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-bb-api-key") == browserbase_api_key
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("x-bb-project-id") == browserbase_project_id
+        assert request.headers.get("x-bb-project-id") is None
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-model-api-key") == model_api_key
 
         with update_env(
             BROWSERBASE_API_KEY=Omit(),
-            BROWSERBASE_PROJECT_ID=Omit(),
         ):
             client2 = Stagehand(
                 base_url=base_url,
@@ -1554,13 +1553,12 @@ class TestAsyncStagehand:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-bb-api-key") == browserbase_api_key
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("x-bb-project-id") == browserbase_project_id
+        assert request.headers.get("x-bb-project-id") is None
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-model-api-key") == model_api_key
 
         with update_env(
             BROWSERBASE_API_KEY=Omit(),
-            BROWSERBASE_PROJECT_ID=Omit(),
         ):
             client2 = AsyncStagehand(
                 base_url=base_url,

@@ -87,10 +87,8 @@ Python 3.9 or higher.
 
 Set your environment variables (from `examples/.env.example`):
 
-- `STAGEHAND_API_URL`
 - `MODEL_API_KEY`
 - `BROWSERBASE_API_KEY`
-- `BROWSERBASE_PROJECT_ID`
 
 ```bash
 cp examples/.env.example examples/.env
@@ -139,7 +137,6 @@ def main() -> None:
     with Stagehand(
         server="remote",
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
-        browserbase_project_id=os.environ.get("BROWSERBASE_PROJECT_ID"),
         model_api_key=os.environ.get("MODEL_API_KEY"),
     ) as client:
         session = client.sessions.start(
@@ -234,7 +231,6 @@ from stagehand import AsyncStagehand
 
 client = AsyncStagehand(
     browserbase_api_key="My Browserbase API Key",
-    browserbase_project_id="My Browserbase Project ID",
     model_api_key="My Model API Key",
 )
 ```
@@ -255,9 +251,11 @@ See this table for the available options:
 | Keyword argument         | Environment variable     | Required | Default value                             |
 | ------------------------ | ------------------------ | -------- | ----------------------------------------- |
 | `browserbase_api_key`    | `BROWSERBASE_API_KEY`    | true     | -                                         |
-| `browserbase_project_id` | `BROWSERBASE_PROJECT_ID` | true     | -                                         |
+| `browserbase_project_id` | -                        | false    | -                                         |
 | `model_api_key`          | `MODEL_API_KEY`          | true     | -                                         |
-| `base_url`               | `STAGEHAND_API_URL`     | false    | `"https://api.stagehand.browserbase.com"` |
+| `base_url`               | `STAGEHAND_API_URL`      | false    | `"https://api.stagehand.browserbase.com"` |
+
+`browserbase_project_id` is deprecated, accepted for backwards compatibility, and ignored. `STAGEHAND_BASE_URL` remains supported as a deprecated fallback when `STAGEHAND_API_URL` is unset.
 
 Keyword arguments take precedence over environment variables.
 
@@ -662,7 +660,7 @@ import httpx
 from stagehand import Stagehand, DefaultHttpxClient
 
 client = Stagehand(
-    # Or use the `STAGEHAND_API_URL` env var
+    # Or use the `STAGEHAND_API_URL` env var, with `STAGEHAND_BASE_URL` as a fallback
     base_url="http://my.test.server.example.com:8083",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",

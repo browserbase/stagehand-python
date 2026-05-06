@@ -12,7 +12,6 @@ This example shows the full flow of:
 
 Required environment variables:
 - BROWSERBASE_API_KEY: Your Browserbase API key
-- BROWSERBASE_PROJECT_ID: Your Browserbase project ID
 - MODEL_API_KEY: Your OpenAI API key
 """
 
@@ -47,10 +46,9 @@ async def main() -> None:
     load_example_env()
     load_example_env()
     # Create client using environment variables
-    # BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, MODEL_API_KEY
+    # BROWSERBASE_API_KEY and MODEL_API_KEY
     async with AsyncStagehand(
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
-        browserbase_project_id=os.environ.get("BROWSERBASE_PROJECT_ID"),
         model_api_key=os.environ.get("MODEL_API_KEY"),
     ) as client:
         # Start a new browser session (returns a session helper bound to a session_id)

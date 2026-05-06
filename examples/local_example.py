@@ -4,7 +4,6 @@ that ships with the PyPI wheel.
 
 Required environment variables:
 - BROWSERBASE_API_KEY (can be any value in local mode)
-- BROWSERBASE_PROJECT_ID (can be any value in local mode)
 - MODEL_API_KEY (read by this example and passed explicitly to the client)
 
 

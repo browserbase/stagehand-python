@@ -132,7 +132,6 @@ class Stagehand(SyncAPIClient):
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
-        - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
 
         `model_api_key` is intentionally not inferred from any AI provider environment variable.
         Pass it explicitly when you want the SDK to send `x-model-api-key` on remote requests or
@@ -140,8 +139,6 @@ class Stagehand(SyncAPIClient):
         """
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
-        if browserbase_project_id is None:
-            browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
 
         self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
@@ -228,7 +225,7 @@ class Stagehand(SyncAPIClient):
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
+        return {**self._bb_api_key_auth, **self._llm_model_api_key_auth}
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     @property
@@ -238,8 +235,7 @@ class Stagehand(SyncAPIClient):
 
     @property
     def _bb_project_id_auth(self) -> dict[str, str]:
-        browserbase_project_id = self.browserbase_project_id
-        return {"x-bb-project-id": browserbase_project_id} if browserbase_project_id else {}
+        return {}
 
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:
@@ -427,7 +423,6 @@ class AsyncStagehand(AsyncAPIClient):
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `browserbase_api_key` from `BROWSERBASE_API_KEY`
-        - `browserbase_project_id` from `BROWSERBASE_PROJECT_ID`
 
         `model_api_key` is intentionally not inferred from any AI provider environment variable.
         Pass it explicitly when you want the SDK to send `x-model-api-key` on remote requests or
@@ -435,8 +430,6 @@ class AsyncStagehand(AsyncAPIClient):
         """
         if browserbase_api_key is None:
             browserbase_api_key = os.environ.get("BROWSERBASE_API_KEY")
-        if browserbase_project_id is None:
-            browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
 
         self.browserbase_api_key = browserbase_api_key
         self.browserbase_project_id = browserbase_project_id
@@ -523,7 +516,7 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        return {**self._bb_api_key_auth, **self._bb_project_id_auth, **self._llm_model_api_key_auth}
+        return {**self._bb_api_key_auth, **self._llm_model_api_key_auth}
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
     @property
@@ -533,8 +526,7 @@ class AsyncStagehand(AsyncAPIClient):
 
     @property
     def _bb_project_id_auth(self) -> dict[str, str]:
-        browserbase_project_id = self.browserbase_project_id
-        return {"x-bb-project-id": browserbase_project_id} if browserbase_project_id else {}
+        return {}
 
     @property
     def _llm_model_api_key_auth(self) -> dict[str, str]:

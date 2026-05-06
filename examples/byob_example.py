@@ -6,7 +6,6 @@ plan the interactions (observe → extract) without having Stagehand own the pag
 
 Required environment variables:
 - BROWSERBASE_API_KEY
-- BROWSERBASE_PROJECT_ID
 - MODEL_API_KEY
 
 Usage:
@@ -52,7 +51,6 @@ async def main() -> None:
     load_example_env()
     async with AsyncStagehand(
         browserbase_api_key=os.environ.get("BROWSERBASE_API_KEY"),
-        browserbase_project_id=os.environ.get("BROWSERBASE_PROJECT_ID"),
         model_api_key=os.environ.get("MODEL_API_KEY"),
     ) as client, async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)

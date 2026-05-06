@@ -3,7 +3,6 @@ Minimal example using the Sessions Agent Execute endpoint.
 
 Required environment variables:
 - BROWSERBASE_API_KEY
-- BROWSERBASE_PROJECT_ID
 - MODEL_API_KEY
 
 Optional:
