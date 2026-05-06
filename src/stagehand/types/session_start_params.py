@@ -240,6 +240,11 @@ class BrowserbaseSessionCreateParams(TypedDict, total=False):
     keep_alive: Annotated[bool, PropertyInfo(alias="keepAlive")]
 
     project_id: Annotated[str, PropertyInfo(alias="projectId")]
+    """Deprecated.
+
+    Browserbase API keys are now project-scoped, so this field is no longer
+    required.
+    """
 
     proxies: Union[bool, Iterable[BrowserbaseSessionCreateParamsProxiesProxyConfigList]]
 
