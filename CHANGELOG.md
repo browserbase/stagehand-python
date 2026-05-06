@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.20.0 (2026-05-06)
+
+Full Changelog: [v3.19.5...v3.20.0](https://github.com/browserbase/stagehand-python/compare/v3.19.5...v3.20.0)
+
+### Features
+
+* [feat]: add `ignoreSelectors` to `extract()` ([f11a102](https://github.com/browserbase/stagehand-python/commit/f11a102884344ddefd2dd0b98f22fea687a12e6e))
+* [STG-1798] feat: support Browserbase verified sessions ([078ab5c](https://github.com/browserbase/stagehand-python/commit/078ab5c76f13beee16e44d7eed5e3018f1cc5bd8))
+* [STG-1808] Deprecate Browserbase project ID ([bfe505c](https://github.com/browserbase/stagehand-python/commit/bfe505cb1c3c1c6a85d7873ee05860476d71a9d6))
+* Bedrock auth passthrough ([9463fa4](https://github.com/browserbase/stagehand-python/commit/9463fa49cb839abbb2c6a1adb0d053e5006216a7))
+* remove experimental requirement on agent variables ([#2079](https://github.com/browserbase/stagehand-python/issues/2079)) ([92ed1e1](https://github.com/browserbase/stagehand-python/commit/92ed1e1d43e89d92ffc4c3aa30c7f1a521f5d0e6))
+* Revert "[STG-1573] Add providerOptions for extensible model auth ([#1822](https://github.com/browserbase/stagehand-python/issues/1822))" ([3c04086](https://github.com/browserbase/stagehand-python/commit/3c0408675154c9f7d241c4e92e9cb82f0419d6b3))
+* support setting headers via env ([b1c6127](https://github.com/browserbase/stagehand-python/commit/b1c61276ff9cecf89c078e1d97a6b927d8d308e1))
+
+
+### Bug Fixes
+
+* **client:** preserve hardcoded query params when merging with user params ([feac39d](https://github.com/browserbase/stagehand-python/commit/feac39d88a841ff710d672b622f3280037589f66))
+* ensure file data are only sent as 1 parameter ([b870657](https://github.com/browserbase/stagehand-python/commit/b8706575ab0f95b9e6781ee3685f9b79e0fe6036))
+* use correct field name format for multipart file arrays ([852600a](https://github.com/browserbase/stagehand-python/commit/852600a4c6169df6497fc4d77a06abae8812e375))
+
+
+### Performance Improvements
+
+* **client:** optimize file structure copying in multipart requests ([69d396f](https://github.com/browserbase/stagehand-python/commit/69d396fa404d0ad3905786dcf6f56be8be7ab9b2))
+
+
+### Chores
+
+* **internal:** more robust bootstrap script ([9bc61e1](https://github.com/browserbase/stagehand-python/commit/9bc61e12f1599b14dd8b2a0c38a50c089512e9c7))
+* **internal:** reformat pyproject.toml ([03f4dbe](https://github.com/browserbase/stagehand-python/commit/03f4dbe5ef6e230f3e96302ba8e5f4064edda10f))
+
 ## 3.19.5 (2026-04-03)
 
 Full Changelog: [v3.19.4...v3.19.5](https://github.com/browserbase/stagehand-python/compare/v3.19.4...v3.19.5)
