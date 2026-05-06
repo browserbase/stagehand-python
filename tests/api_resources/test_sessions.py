@@ -443,6 +443,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
@@ -511,6 +512,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
@@ -1373,6 +1375,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
@@ -1441,6 +1444,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Extract all product names and prices from the page",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
