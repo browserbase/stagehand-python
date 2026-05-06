@@ -53,7 +53,7 @@ __all__ = [
 class Stagehand(SyncAPIClient):
     # client options
     browserbase_api_key: str
-    browserbase_project_id: str
+    browserbase_project_id: str | None
     model_api_key: str
 
     def __init__(
@@ -98,10 +98,6 @@ class Stagehand(SyncAPIClient):
 
         if browserbase_project_id is None:
             browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
-        if browserbase_project_id is None:
-            raise StagehandError(
-                "The browserbase_project_id client option must be set either by passing browserbase_project_id to the client or by setting the BROWSERBASE_PROJECT_ID environment variable"
-            )
         self.browserbase_project_id = browserbase_project_id
 
         if model_api_key is None:
@@ -171,6 +167,8 @@ class Stagehand(SyncAPIClient):
     @property
     def _bb_project_id_auth(self) -> dict[str, str]:
         browserbase_project_id = self.browserbase_project_id
+        if browserbase_project_id is None:
+            return {}
         return {"x-bb-project-id": browserbase_project_id}
 
     @property
@@ -279,7 +277,7 @@ class Stagehand(SyncAPIClient):
 class AsyncStagehand(AsyncAPIClient):
     # client options
     browserbase_api_key: str
-    browserbase_project_id: str
+    browserbase_project_id: str | None
     model_api_key: str
 
     def __init__(
@@ -324,10 +322,6 @@ class AsyncStagehand(AsyncAPIClient):
 
         if browserbase_project_id is None:
             browserbase_project_id = os.environ.get("BROWSERBASE_PROJECT_ID")
-        if browserbase_project_id is None:
-            raise StagehandError(
-                "The browserbase_project_id client option must be set either by passing browserbase_project_id to the client or by setting the BROWSERBASE_PROJECT_ID environment variable"
-            )
         self.browserbase_project_id = browserbase_project_id
 
         if model_api_key is None:
@@ -397,6 +391,8 @@ class AsyncStagehand(AsyncAPIClient):
     @property
     def _bb_project_id_auth(self) -> dict[str, str]:
         browserbase_project_id = self.browserbase_project_id
+        if browserbase_project_id is None:
+            return {}
         return {"x-bb-project-id": browserbase_project_id}
 
     @property
