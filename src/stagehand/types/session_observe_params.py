@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
+from .._types import SequenceNotStr
 from .._utils import PropertyInfo
 from .model_config_param import ModelConfigParam
 
@@ -45,6 +46,9 @@ OptionsVariables: TypeAlias = Union[str, float, bool, OptionsVariablesUnionMembe
 
 
 class Options(TypedDict, total=False):
+    ignore_selectors: Annotated[SequenceNotStr[str], PropertyInfo(alias="ignoreSelectors")]
+    """Selectors for elements and subtrees that should be excluded from observation"""
+
     model: OptionsModel
     """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
