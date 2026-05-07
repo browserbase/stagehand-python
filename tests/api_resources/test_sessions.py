@@ -645,6 +645,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
@@ -719,6 +720,7 @@ class TestSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
@@ -1579,6 +1581,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
@@ -1653,6 +1656,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             instruction="Find all clickable navigation links",
             options={
+                "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
                     "model_name": "openai/gpt-5.4-mini",
                     "api_key": "sk-some-openai-api-key",
