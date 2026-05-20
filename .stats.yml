@@ -1,4 +1,4 @@
 configured_endpoints: 8
-openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/browserbase/stagehand-eae8400fade7b2c8329c4148f56de92e147c34c0feecb420c015aab6544a9acc.yml
-openapi_spec_hash: 0a9eff1ac1d464e89cbd9db64709b08a
+openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/browserbase/stagehand-e77d6b15f0a94b16a54ef87a84d2cabe49eb11cff5ceba76f00dd788ff483eab.yml
+openapi_spec_hash: a1dab7fe72a772d188a15305124ebd73
 config_hash: 1fb12ae9b478488bc1e56bfbdc210b01
