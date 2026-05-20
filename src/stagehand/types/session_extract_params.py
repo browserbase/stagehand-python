@@ -44,6 +44,12 @@ class Options(TypedDict, total=False):
     model: OptionsModel
     """Model configuration object or model name string (e.g., 'openai/gpt-5-nano')"""
 
+    screenshot: bool
+    """
+    When true, include a screenshot of the current viewport in the extraction LLM
+    call. Defaults to false.
+    """
+
     selector: str
     """CSS selector to scope extraction to a specific element"""
 
