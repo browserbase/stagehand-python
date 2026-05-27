@@ -44,10 +44,7 @@ class TestSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -61,14 +58,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "timeout": 30000,
                 "variables": {
@@ -141,10 +148,7 @@ class TestSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -158,14 +162,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "timeout": 30000,
                 "variables": {
@@ -290,10 +304,7 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -307,21 +318,28 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -335,14 +353,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -429,10 +457,7 @@ class TestSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -446,21 +471,28 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -474,14 +506,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -567,10 +609,7 @@ class TestSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -584,14 +623,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "screenshot": False,
                 "selector": "#main-content",
@@ -657,10 +706,7 @@ class TestSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -674,14 +720,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "screenshot": False,
                 "selector": "#main-content",
@@ -809,10 +865,7 @@ class TestSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -826,14 +879,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "selector": "nav",
                 "timeout": 30000,
@@ -904,10 +967,7 @@ class TestSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -921,14 +981,24 @@ class TestSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "selector": "nav",
                 "timeout": 30000,
@@ -1182,10 +1252,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1199,14 +1266,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "timeout": 30000,
                 "variables": {
@@ -1279,10 +1356,7 @@ class TestAsyncSessions:
             frame_id="frameId",
             options={
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1296,14 +1370,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "timeout": 30000,
                 "variables": {
@@ -1428,10 +1512,7 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1445,21 +1526,28 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1473,14 +1561,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -1567,10 +1665,7 @@ class TestAsyncSessions:
             agent_config={
                 "cua": True,
                 "execution_model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1584,21 +1679,28 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "mode": "cua",
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1612,14 +1714,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "provider": "openai",
                 "system_prompt": "systemPrompt",
@@ -1705,10 +1817,7 @@ class TestAsyncSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1722,14 +1831,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "screenshot": False,
                 "selector": "#main-content",
@@ -1795,10 +1914,7 @@ class TestAsyncSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1812,14 +1928,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "screenshot": False,
                 "selector": "#main-content",
@@ -1947,10 +2073,7 @@ class TestAsyncSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -1964,14 +2087,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "selector": "nav",
                 "timeout": 30000,
@@ -2042,10 +2175,7 @@ class TestAsyncSessions:
             options={
                 "ignore_selectors": ["nav", ".cookie-banner", "#sidebar-ads"],
                 "model": {
-                    "model_name": "openai/gpt-5.4-mini",
-                    "api_key": "sk-some-openai-api-key",
-                    "base_url": "https://api.openai.com/v1",
-                    "google_auth_options": {
+                    "auth": {
                         "credentials": {
                             "client_email": "client_email",
                             "private_key": "private_key",
@@ -2059,14 +2189,24 @@ class TestAsyncSessions:
                             "type": "service_account",
                             "universe_domain": "universe_domain",
                         },
+                        "type": "googleServiceAccount",
                         "project_id": "projectId",
                         "scopes": "string",
                         "universe_domain": "universeDomain",
                     },
+                    "model_name": "openai/gpt-5.4-mini",
+                    "provider": "vertex",
+                    "provider_options": {
+                        "vertex": {
+                            "location": "us-central1",
+                            "project": "my-gcp-project",
+                            "base_url": "https://example.com",
+                            "headers": {"foo": "string"},
+                        }
+                    },
+                    "api_key": "sk-some-openai-api-key",
+                    "base_url": "https://api.openai.com/v1",
                     "headers": {"foo": "string"},
-                    "location": "us-central1",
-                    "project": "my-gcp-project",
-                    "provider": "openai",
                 },
                 "selector": "nav",
                 "timeout": 30000,
