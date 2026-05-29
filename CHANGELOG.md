@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.21.0 (2026-05-29)
+
+Full Changelog: [v3.20.0...v3.21.0](https://github.com/browserbase/stagehand-python/compare/v3.20.0...v3.21.0)
+
+### Features
+
+* [feat]: add `ignoreSelectors` to `observe()` ([77be2c2](https://github.com/browserbase/stagehand-python/commit/77be2c2463c7b1d0ce6768eecf130adc3ef91149))
+* [STG-1756] forward Vertex model config ([09bdd54](https://github.com/browserbase/stagehand-python/commit/09bdd5484e09c3827bed41e8fca5dbefd6d9ada9))
+* Add `screenshot` option to Extract ([393ebbe](https://github.com/browserbase/stagehand-python/commit/393ebbee487278360fc844e1fb5034651f37cce4))
+* **internal/types:** support eagerly validating pydantic iterators ([95a4cc8](https://github.com/browserbase/stagehand-python/commit/95a4cc8cd9228e21ea7eefa7138e498bf628e376))
+* STG-1756 add Vertex auth params to Stagehand spec ([2bdeae8](https://github.com/browserbase/stagehand-python/commit/2bdeae8adfe292c4bffc8ff93444f5be4c255c2e))
+
+
+### Bug Fixes
+
+* **client:** add missing f-string prefix in file type error message ([fb40f50](https://github.com/browserbase/stagehand-python/commit/fb40f50c2fb3337be84a3f973b8a27a8f53fbfae))
+
 ## 3.20.0 (2026-05-06)
 
 Full Changelog: [v3.19.5...v3.20.0](https://github.com/browserbase/stagehand-python/compare/v3.19.5...v3.20.0)
