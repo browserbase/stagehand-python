@@ -17,6 +17,13 @@ __all__ = [
     "AgentConfigExecutionModelVertexModelConfigObjectAuthCredentials",
     "AgentConfigExecutionModelVertexModelConfigObjectProviderOptions",
     "AgentConfigExecutionModelVertexModelConfigObjectProviderOptionsVertex",
+    "AgentConfigExecutionModelAzureEntraModelConfigObject",
+    "AgentConfigExecutionModelAzureEntraModelConfigObjectAuth",
+    "AgentConfigExecutionModelAzureEntraModelConfigObjectProviderOptions",
+    "AgentConfigExecutionModelAzureEntraModelConfigObjectProviderOptionsAzure",
+    "AgentConfigExecutionModelAzureAPIKeyModelConfigObject",
+    "AgentConfigExecutionModelAzureAPIKeyModelConfigObjectProviderOptions",
+    "AgentConfigExecutionModelAzureAPIKeyModelConfigObjectProviderOptionsAzure",
     "AgentConfigExecutionModelGenericModelConfigObject",
     "AgentConfigModel",
     "AgentConfigModelVertexModelConfigObject",
@@ -24,6 +31,13 @@ __all__ = [
     "AgentConfigModelVertexModelConfigObjectAuthCredentials",
     "AgentConfigModelVertexModelConfigObjectProviderOptions",
     "AgentConfigModelVertexModelConfigObjectProviderOptionsVertex",
+    "AgentConfigModelAzureEntraModelConfigObject",
+    "AgentConfigModelAzureEntraModelConfigObjectAuth",
+    "AgentConfigModelAzureEntraModelConfigObjectProviderOptions",
+    "AgentConfigModelAzureEntraModelConfigObjectProviderOptionsAzure",
+    "AgentConfigModelAzureAPIKeyModelConfigObject",
+    "AgentConfigModelAzureAPIKeyModelConfigObjectProviderOptions",
+    "AgentConfigModelAzureAPIKeyModelConfigObjectProviderOptionsAzure",
     "AgentConfigModelGenericModelConfigObject",
     "ExecuteOptions",
     "ExecuteOptionsVariables",
@@ -143,6 +157,116 @@ class AgentConfigExecutionModelVertexModelConfigObject(TypedDict, total=False):
     """Custom headers sent with every request to the model provider"""
 
 
+class AgentConfigExecutionModelAzureEntraModelConfigObjectAuth(TypedDict, total=False):
+    """Azure provider authentication configuration"""
+
+    token: Required[str]
+    """Microsoft Entra ID bearer token for Azure OpenAI"""
+
+    type: Required[Literal["azureEntraId"]]
+    """Use a Microsoft Entra ID bearer token for authentication"""
+
+
+class AgentConfigExecutionModelAzureEntraModelConfigObjectProviderOptionsAzure(TypedDict, total=False):
+    """Azure OpenAI provider-specific settings"""
+
+    api_version: Annotated[str, PropertyInfo(alias="apiVersion")]
+    """Azure OpenAI API version"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the Azure OpenAI provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the Azure OpenAI provider"""
+
+    resource_name: Annotated[str, PropertyInfo(alias="resourceName")]
+    """Azure OpenAI resource name"""
+
+    use_deployment_based_urls: Annotated[bool, PropertyInfo(alias="useDeploymentBasedUrls")]
+    """Whether to use deployment-based Azure OpenAI URLs"""
+
+
+class AgentConfigExecutionModelAzureEntraModelConfigObjectProviderOptions(TypedDict, total=False):
+    """Azure provider-specific model configuration"""
+
+    azure: Required[AgentConfigExecutionModelAzureEntraModelConfigObjectProviderOptionsAzure]
+    """Azure OpenAI provider-specific settings"""
+
+
+class AgentConfigExecutionModelAzureEntraModelConfigObject(TypedDict, total=False):
+    auth: Required[AgentConfigExecutionModelAzureEntraModelConfigObjectAuth]
+    """Azure provider authentication configuration"""
+
+    model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
+    """Model name string with provider prefix (e.g., 'openai/gpt-5-nano')"""
+
+    provider: Required[Literal["azure"]]
+    """Azure OpenAI model provider"""
+
+    provider_options: Required[
+        Annotated[
+            AgentConfigExecutionModelAzureEntraModelConfigObjectProviderOptions, PropertyInfo(alias="providerOptions")
+        ]
+    ]
+    """Azure provider-specific model configuration"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the model provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the model provider"""
+
+
+class AgentConfigExecutionModelAzureAPIKeyModelConfigObjectProviderOptionsAzure(TypedDict, total=False):
+    """Azure OpenAI provider-specific settings"""
+
+    api_version: Annotated[str, PropertyInfo(alias="apiVersion")]
+    """Azure OpenAI API version"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the Azure OpenAI provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the Azure OpenAI provider"""
+
+    resource_name: Annotated[str, PropertyInfo(alias="resourceName")]
+    """Azure OpenAI resource name"""
+
+    use_deployment_based_urls: Annotated[bool, PropertyInfo(alias="useDeploymentBasedUrls")]
+    """Whether to use deployment-based Azure OpenAI URLs"""
+
+
+class AgentConfigExecutionModelAzureAPIKeyModelConfigObjectProviderOptions(TypedDict, total=False):
+    """Azure provider-specific model configuration"""
+
+    azure: Required[AgentConfigExecutionModelAzureAPIKeyModelConfigObjectProviderOptionsAzure]
+    """Azure OpenAI provider-specific settings"""
+
+
+class AgentConfigExecutionModelAzureAPIKeyModelConfigObject(TypedDict, total=False):
+    model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
+    """Model name string with provider prefix (e.g., 'openai/gpt-5-nano')"""
+
+    provider: Required[Literal["azure"]]
+    """Azure OpenAI model provider"""
+
+    provider_options: Required[
+        Annotated[
+            AgentConfigExecutionModelAzureAPIKeyModelConfigObjectProviderOptions, PropertyInfo(alias="providerOptions")
+        ]
+    ]
+    """Azure provider-specific model configuration"""
+
+    api_key: Annotated[str, PropertyInfo(alias="apiKey")]
+    """API key for the model provider"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the model provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the model provider"""
+
+
 class AgentConfigExecutionModelGenericModelConfigObject(TypedDict, total=False):
     model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
     """Model name string with provider prefix (e.g., 'openai/gpt-5-nano')"""
@@ -161,7 +285,11 @@ class AgentConfigExecutionModelGenericModelConfigObject(TypedDict, total=False):
 
 
 AgentConfigExecutionModel: TypeAlias = Union[
-    AgentConfigExecutionModelVertexModelConfigObject, AgentConfigExecutionModelGenericModelConfigObject, str
+    AgentConfigExecutionModelVertexModelConfigObject,
+    AgentConfigExecutionModelAzureEntraModelConfigObject,
+    AgentConfigExecutionModelAzureAPIKeyModelConfigObject,
+    AgentConfigExecutionModelGenericModelConfigObject,
+    str,
 ]
 
 
@@ -258,6 +386,112 @@ class AgentConfigModelVertexModelConfigObject(TypedDict, total=False):
     """Custom headers sent with every request to the model provider"""
 
 
+class AgentConfigModelAzureEntraModelConfigObjectAuth(TypedDict, total=False):
+    """Azure provider authentication configuration"""
+
+    token: Required[str]
+    """Microsoft Entra ID bearer token for Azure OpenAI"""
+
+    type: Required[Literal["azureEntraId"]]
+    """Use a Microsoft Entra ID bearer token for authentication"""
+
+
+class AgentConfigModelAzureEntraModelConfigObjectProviderOptionsAzure(TypedDict, total=False):
+    """Azure OpenAI provider-specific settings"""
+
+    api_version: Annotated[str, PropertyInfo(alias="apiVersion")]
+    """Azure OpenAI API version"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the Azure OpenAI provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the Azure OpenAI provider"""
+
+    resource_name: Annotated[str, PropertyInfo(alias="resourceName")]
+    """Azure OpenAI resource name"""
+
+    use_deployment_based_urls: Annotated[bool, PropertyInfo(alias="useDeploymentBasedUrls")]
+    """Whether to use deployment-based Azure OpenAI URLs"""
+
+
+class AgentConfigModelAzureEntraModelConfigObjectProviderOptions(TypedDict, total=False):
+    """Azure provider-specific model configuration"""
+
+    azure: Required[AgentConfigModelAzureEntraModelConfigObjectProviderOptionsAzure]
+    """Azure OpenAI provider-specific settings"""
+
+
+class AgentConfigModelAzureEntraModelConfigObject(TypedDict, total=False):
+    auth: Required[AgentConfigModelAzureEntraModelConfigObjectAuth]
+    """Azure provider authentication configuration"""
+
+    model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
+    """Model name string with provider prefix (e.g., 'openai/gpt-5-nano')"""
+
+    provider: Required[Literal["azure"]]
+    """Azure OpenAI model provider"""
+
+    provider_options: Required[
+        Annotated[AgentConfigModelAzureEntraModelConfigObjectProviderOptions, PropertyInfo(alias="providerOptions")]
+    ]
+    """Azure provider-specific model configuration"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the model provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the model provider"""
+
+
+class AgentConfigModelAzureAPIKeyModelConfigObjectProviderOptionsAzure(TypedDict, total=False):
+    """Azure OpenAI provider-specific settings"""
+
+    api_version: Annotated[str, PropertyInfo(alias="apiVersion")]
+    """Azure OpenAI API version"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the Azure OpenAI provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the Azure OpenAI provider"""
+
+    resource_name: Annotated[str, PropertyInfo(alias="resourceName")]
+    """Azure OpenAI resource name"""
+
+    use_deployment_based_urls: Annotated[bool, PropertyInfo(alias="useDeploymentBasedUrls")]
+    """Whether to use deployment-based Azure OpenAI URLs"""
+
+
+class AgentConfigModelAzureAPIKeyModelConfigObjectProviderOptions(TypedDict, total=False):
+    """Azure provider-specific model configuration"""
+
+    azure: Required[AgentConfigModelAzureAPIKeyModelConfigObjectProviderOptionsAzure]
+    """Azure OpenAI provider-specific settings"""
+
+
+class AgentConfigModelAzureAPIKeyModelConfigObject(TypedDict, total=False):
+    model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
+    """Model name string with provider prefix (e.g., 'openai/gpt-5-nano')"""
+
+    provider: Required[Literal["azure"]]
+    """Azure OpenAI model provider"""
+
+    provider_options: Required[
+        Annotated[AgentConfigModelAzureAPIKeyModelConfigObjectProviderOptions, PropertyInfo(alias="providerOptions")]
+    ]
+    """Azure provider-specific model configuration"""
+
+    api_key: Annotated[str, PropertyInfo(alias="apiKey")]
+    """API key for the model provider"""
+
+    base_url: Annotated[str, PropertyInfo(alias="baseURL")]
+    """Base URL for the model provider"""
+
+    headers: Dict[str, str]
+    """Custom headers sent with every request to the model provider"""
+
+
 class AgentConfigModelGenericModelConfigObject(TypedDict, total=False):
     model_name: Required[Annotated[str, PropertyInfo(alias="modelName")]]
     """Model name string with provider prefix (e.g., 'openai/gpt-5-nano')"""
@@ -276,7 +510,11 @@ class AgentConfigModelGenericModelConfigObject(TypedDict, total=False):
 
 
 AgentConfigModel: TypeAlias = Union[
-    AgentConfigModelVertexModelConfigObject, AgentConfigModelGenericModelConfigObject, str
+    AgentConfigModelVertexModelConfigObject,
+    AgentConfigModelAzureEntraModelConfigObject,
+    AgentConfigModelAzureAPIKeyModelConfigObject,
+    AgentConfigModelGenericModelConfigObject,
+    str,
 ]
 
 
