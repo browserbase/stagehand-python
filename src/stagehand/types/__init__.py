@@ -8,6 +8,7 @@ from .session_act_params import SessionActParams as SessionActParams
 from .session_act_response import SessionActResponse as SessionActResponse
 from .session_end_response import SessionEndResponse as SessionEndResponse
 from .session_start_params import SessionStartParams as SessionStartParams
+from .session_start_params import ValkeyCacheOptions as ValkeyCacheOptions
 from .session_execute_params import SessionExecuteParams as SessionExecuteParams
 from .session_extract_params import SessionExtractParams as SessionExtractParams
 from .session_observe_params import SessionObserveParams as SessionObserveParams
