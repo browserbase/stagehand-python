@@ -92,6 +92,13 @@ class Stagehand(SyncAPIClient):
     _local_ready_timeout_s: float
     _local_shutdown_on_close: bool
     _sea_server: SeaServerManager | None
+    _valkey_host: str | None
+    _valkey_port: int | None
+    _valkey_tls: bool | None
+    _valkey_password: str | None
+    _valkey_username: str | None
+    _cache_ttl: int | None
+    _valkey_key_prefix: str | None
     ### </END CUSTOM CODE>
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
@@ -109,6 +116,13 @@ class Stagehand(SyncAPIClient):
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float = 10.0,
         local_shutdown_on_close: bool = True,
+        valkey_host: str | None = None,
+        valkey_port: int | None = None,
+        valkey_tls: bool | None = None,
+        valkey_password: str | None = None,
+        valkey_username: str | None = None,
+        cache_ttl: int | None = None,
+        valkey_key_prefix: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -159,6 +173,13 @@ class Stagehand(SyncAPIClient):
             local_shutdown_on_close=local_shutdown_on_close,
             base_url=base_url,
             model_api_key=model_api_key,
+            valkey_host=valkey_host,
+            valkey_port=valkey_port,
+            valkey_tls=valkey_tls,
+            valkey_password=valkey_password,
+            valkey_username=valkey_username,
+            cache_ttl=cache_ttl,
+            valkey_key_prefix=valkey_key_prefix,
         )
     ### </END CUSTOM CODE>
 
@@ -269,6 +290,13 @@ class Stagehand(SyncAPIClient):
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float | None = None,
         local_shutdown_on_close: bool | None = None,
+        valkey_host: str | None = None,
+        valkey_port: int | None = None,
+        valkey_tls: bool | None = None,
+        valkey_password: str | None = None,
+        valkey_username: str | None = None,
+        cache_ttl: int | None = None,
+        valkey_key_prefix: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
@@ -323,6 +351,13 @@ class Stagehand(SyncAPIClient):
                 local_chrome_path=local_chrome_path,
                 local_ready_timeout_s=local_ready_timeout_s,
                 local_shutdown_on_close=local_shutdown_on_close,
+                valkey_host=valkey_host,
+                valkey_port=valkey_port,
+                valkey_tls=valkey_tls,
+                valkey_password=valkey_password,
+                valkey_username=valkey_username,
+                cache_ttl=cache_ttl,
+                valkey_key_prefix=valkey_key_prefix,
             ),
             **_extra_kwargs,
         )
@@ -383,6 +418,13 @@ class AsyncStagehand(AsyncAPIClient):
     _local_ready_timeout_s: float
     _local_shutdown_on_close: bool
     _sea_server: SeaServerManager | None
+    _valkey_host: str | None
+    _valkey_port: int | None
+    _valkey_tls: bool | None
+    _valkey_password: str | None
+    _valkey_username: str | None
+    _cache_ttl: int | None
+    _valkey_key_prefix: str | None
     ### </END CUSTOM CODE>
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
@@ -400,6 +442,13 @@ class AsyncStagehand(AsyncAPIClient):
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float = 10.0,
         local_shutdown_on_close: bool = True,
+        valkey_host: str | None = None,
+        valkey_port: int | None = None,
+        valkey_tls: bool | None = None,
+        valkey_password: str | None = None,
+        valkey_username: str | None = None,
+        cache_ttl: int | None = None,
+        valkey_key_prefix: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -450,6 +499,13 @@ class AsyncStagehand(AsyncAPIClient):
             local_shutdown_on_close=local_shutdown_on_close,
             base_url=base_url,
             model_api_key=model_api_key,
+            valkey_host=valkey_host,
+            valkey_port=valkey_port,
+            valkey_tls=valkey_tls,
+            valkey_password=valkey_password,
+            valkey_username=valkey_username,
+            cache_ttl=cache_ttl,
+            valkey_key_prefix=valkey_key_prefix,
         )
     ### </END CUSTOM CODE>
 
@@ -560,6 +616,13 @@ class AsyncStagehand(AsyncAPIClient):
         local_chrome_path: str | None = None,
         local_ready_timeout_s: float | None = None,
         local_shutdown_on_close: bool | None = None,
+        valkey_host: str | None = None,
+        valkey_port: int | None = None,
+        valkey_tls: bool | None = None,
+        valkey_password: str | None = None,
+        valkey_username: str | None = None,
+        cache_ttl: int | None = None,
+        valkey_key_prefix: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
@@ -614,6 +677,13 @@ class AsyncStagehand(AsyncAPIClient):
                 local_chrome_path=local_chrome_path,
                 local_ready_timeout_s=local_ready_timeout_s,
                 local_shutdown_on_close=local_shutdown_on_close,
+                valkey_host=valkey_host,
+                valkey_port=valkey_port,
+                valkey_tls=valkey_tls,
+                valkey_password=valkey_password,
+                valkey_username=valkey_username,
+                cache_ttl=cache_ttl,
+                valkey_key_prefix=valkey_key_prefix,
             ),
             **_extra_kwargs,
         )

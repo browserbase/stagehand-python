@@ -929,6 +929,7 @@ class SessionsResource(SyncAPIResource):
         experimental: bool | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
+        valkey_cache: session_start_params.ValkeyCacheOptions | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
@@ -960,6 +961,8 @@ class SessionsResource(SyncAPIResource):
           self_heal: Enable self-healing for failed actions
 
           system_prompt: Custom system prompt for AI operations
+
+          valkey_cache: Valkey cache backend configuration. When set, uses Valkey for caching.
 
           verbose: Logging verbosity level (0=quiet, 1=normal, 2=debug)
 
@@ -999,6 +1002,7 @@ class SessionsResource(SyncAPIResource):
                     "experimental": experimental,
                     "self_heal": self_heal,
                     "system_prompt": system_prompt,
+                    "valkey_cache": valkey_cache,
                     "verbose": verbose,
                     "wait_for_captcha_solves": wait_for_captcha_solves,
                 },
@@ -1892,6 +1896,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         experimental: bool | Omit = omit,
         self_heal: bool | Omit = omit,
         system_prompt: str | Omit = omit,
+        valkey_cache: session_start_params.ValkeyCacheOptions | Omit = omit,
         verbose: Literal[0, 1, 2] | Omit = omit,
         wait_for_captcha_solves: bool | Omit = omit,
         x_stream_response: Literal["true", "false"] | Omit = omit,
@@ -1923,6 +1928,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           self_heal: Enable self-healing for failed actions
 
           system_prompt: Custom system prompt for AI operations
+
+          valkey_cache: Valkey cache backend configuration. When set, uses Valkey for caching.
 
           verbose: Logging verbosity level (0=quiet, 1=normal, 2=debug)
 
@@ -1962,6 +1969,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                     "experimental": experimental,
                     "self_heal": self_heal,
                     "system_prompt": system_prompt,
+                    "valkey_cache": valkey_cache,
                     "verbose": verbose,
                     "wait_for_captcha_solves": wait_for_captcha_solves,
                 },
