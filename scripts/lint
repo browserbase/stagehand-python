@@ -13,7 +13,7 @@ else
 fi
 
 echo "==> Running pyright"
-uv run pyright
+uv run pyright -p .
 
 echo "==> Running mypy"
 uv run mypy .
