@@ -257,6 +257,12 @@ class OptionsModelGenericModelConfigObject(TypedDict, total=False):
     headers: Dict[str, str]
     """Custom headers sent with every request to the model provider"""
 
+    openai_endpoint_format: Annotated[Literal["responses", "chat"], PropertyInfo(alias="openaiEndpointFormat")]
+    """Wire format used by an OpenAI-compatible endpoint.
+
+    Defaults to the Responses API; use chat for Chat Completions-only endpoints.
+    """
+
     provider: Literal["openai", "anthropic", "google", "microsoft", "bedrock"]
     """AI provider for the model (or provide a baseURL endpoint instead)"""
 
