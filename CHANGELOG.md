@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.22.0 (2026-07-21)
+
+Full Changelog: [v3.21.0...v3.22.0](https://github.com/browserbase/stagehand-python/compare/v3.21.0...v3.22.0)
+
+### Features
+
+* [STG-2090] Add Azure Entra model auth support ([2727cc9](https://github.com/browserbase/stagehand-python/commit/2727cc967c63b7e5ecf16e9b503e7ee1b605559a))
+* **server-v3:** expose OpenAI endpoint format ([9aaa305](https://github.com/browserbase/stagehand-python/commit/9aaa3057322d66e8a04c11ea02265788a7d206d6))
+* **stlc:** configurable CI runner and private-production-repo support in workflow templates ([b99fa9d](https://github.com/browserbase/stagehand-python/commit/b99fa9da33fdc108e6f15c7eba89014f44de8571))
+
+
+### Bug Fixes
+
+* **internal:** resolve build failures ([d406b2e](https://github.com/browserbase/stagehand-python/commit/d406b2e0a7bb9d85f3053f73fd82c78c1ff6a21c))
+
 ## 3.21.0 (2026-05-29)
 
 Full Changelog: [v3.20.0...v3.21.0](https://github.com/browserbase/stagehand-python/compare/v3.20.0...v3.21.0)
