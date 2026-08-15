@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import sys
-import hashlib
 import platform
+import tempfile
 import importlib.resources as importlib_resources
 from pathlib import Path
 from contextlib import suppress
@@ -71,9 +71,21 @@ def _copy_to_cache(*, src: Path, filename: str, version: str) -> Path:
         return dst
 
     data = src.read_bytes()
-    tmp = cache_root / f".{filename}.{hashlib.sha256(data).hexdigest()}.tmp"
-    tmp.write_bytes(data)
-    tmp.replace(dst)
+    with tempfile.NamedTemporaryFile(dir=cache_root, prefix=f".{filename}.", suffix=".tmp", delete=False) as file:
+        file.write(data)
+        tmp = Path(file.name)
+
+    try:
+        try:
+            tmp.replace(dst)
+        except OSError:
+            # Another process may have populated the cache first. Its atomic
+            # replace guarantees that an existing destination is complete.
+            if not dst.exists():
+                raise
+    finally:
+        tmp.unlink(missing_ok=True)
+
     _ensure_executable(dst)
     return dst
 
