@@ -23,6 +23,27 @@ def _load_download_binary_module():
 download_binary = _load_download_binary_module()
 
 
+@pytest.mark.parametrize(
+    ("sys_platform", "machine", "expected"),
+    [
+        ("linux", "aarch64", "stagehand-linux-arm64"),
+        ("linux", "x86_64", "stagehand-linux-x64"),
+        ("win32", "ARM64", "stagehand-win32-arm64.exe"),
+        ("win32", "AMD64", "stagehand-win32-x64.exe"),
+    ],
+)
+def test_default_binary_filename_matches_published_wheel(
+    monkeypatch: pytest.MonkeyPatch,
+    sys_platform: str,
+    machine: str,
+    expected: str,
+) -> None:
+    monkeypatch.setattr(sea_binary.sys, "platform", sys_platform)
+    monkeypatch.setattr(sea_binary.platform, "machine", lambda: machine)
+
+    assert sea_binary.default_binary_filename() == expected
+
+
 def test_resolve_binary_path_defaults_cache_version_to_package_version(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
