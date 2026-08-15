@@ -54,6 +54,53 @@ class _DummyProcess:
         self._returncode = 0
 
 
+def test_sync_copy_reuses_local_server_without_taking_ownership(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_required_env(monkeypatch)
+    client = Stagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
+    dummy = _DummySeaServer("http://127.0.0.1:43123")
+    client._sea_server = dummy  # type: ignore[assignment]
+
+    copied = client.with_options(max_retries=3)
+
+    assert copied._sea_server is dummy
+    assert copied._owns_sea_server is False
+    copied.close()
+    assert dummy.closed == 0
+    client.close()
+    assert dummy.closed == 1
+
+
+@pytest.mark.asyncio
+async def test_async_copy_reuses_local_server_without_taking_ownership(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_required_env(monkeypatch)
+    client = AsyncStagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
+    dummy = _DummySeaServer("http://127.0.0.1:43123")
+    client._sea_server = dummy  # type: ignore[assignment]
+
+    copied = client.with_options(timeout=3)
+
+    assert copied._sea_server is dummy
+    assert copied._owns_sea_server is False
+    await copied.close()
+    assert dummy.closed == 0
+    await client.close()
+    assert dummy.closed == 1
+
+
+def test_copy_with_local_process_override_uses_independent_server(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_required_env(monkeypatch)
+    client = Stagehand(server="local", _local_stagehand_binary_path="/does/not/matter/in/test")
+    dummy = _DummySeaServer("http://127.0.0.1:43123")
+    client._sea_server = dummy  # type: ignore[assignment]
+
+    copied = client.with_options(local_port=43124)
+
+    assert copied._sea_server is not dummy
+    assert copied._owns_sea_server is True
+    copied.close()
+    client.close()
+
+
 def _set_required_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BROWSERBASE_API_KEY", "bb_key")
 
