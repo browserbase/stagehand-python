@@ -295,10 +295,10 @@ from stagehand import AsyncStagehand
 
 
 async def main() -> None:
-    client = AsyncStagehand()
-    session = await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
-    response = await session.act(input="click the first link on the page")
-    print(response.data)
+    async with AsyncStagehand() as client:
+        session = await client.sessions.start(model_name="anthropic/claude-sonnet-4-6")
+        response = await session.act(input="click the first link on the page")
+        print(response.data)
 
 
 asyncio.run(main())
@@ -677,7 +677,9 @@ client.with_options(http_client=DefaultHttpxClient(...))
 
 ### Managing HTTP resources
 
-By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
+The synchronous client makes a best effort to close underlying HTTP connections when it is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can close it deterministically with `.close()` or a context manager.
+
+Async clients cannot reliably close connections during garbage collection when no event loop is running. Always use `async with AsyncStagehand(...)` or call `await client.close()`.
 
 ```py
 from stagehand import Stagehand
