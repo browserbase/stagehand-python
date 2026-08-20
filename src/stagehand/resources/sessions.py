@@ -922,6 +922,7 @@ class SessionsResource(SyncAPIResource):
         *,
         model_name: str,
         act_timeout_ms: float | Omit = omit,
+        use_touch: bool | Omit = omit,
         browser: session_start_params.Browser | Omit = omit,
         browserbase_session_create_params: session_start_params.BrowserbaseSessionCreateParams | Omit = omit,
         browserbase_session_id: str | Omit = omit,
@@ -952,6 +953,8 @@ class SessionsResource(SyncAPIResource):
           model_name: Model name to use for AI operations
 
           act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
+
+          use_touch: Actuate coordinate pointer actions as trusted touch taps instead of mouse input for mobile layouts
 
           browserbase_session_id: Existing Browserbase session ID to resume
 
@@ -992,6 +995,7 @@ class SessionsResource(SyncAPIResource):
                 {
                     "model_name": model_name,
                     "act_timeout_ms": act_timeout_ms,
+                    "use_touch": use_touch,
                     "browser": browser,
                     "browserbase_session_create_params": browserbase_session_create_params,
                     "browserbase_session_id": browserbase_session_id,
@@ -1885,6 +1889,7 @@ class AsyncSessionsResource(AsyncAPIResource):
         *,
         model_name: str,
         act_timeout_ms: float | Omit = omit,
+        use_touch: bool | Omit = omit,
         browser: session_start_params.Browser | Omit = omit,
         browserbase_session_create_params: session_start_params.BrowserbaseSessionCreateParams | Omit = omit,
         browserbase_session_id: str | Omit = omit,
@@ -1915,6 +1920,8 @@ class AsyncSessionsResource(AsyncAPIResource):
           model_name: Model name to use for AI operations
 
           act_timeout_ms: Timeout in ms for act operations (deprecated, v2 only)
+
+          use_touch: Actuate coordinate pointer actions as trusted touch taps instead of mouse input for mobile layouts
 
           browserbase_session_id: Existing Browserbase session ID to resume
 
@@ -1955,6 +1962,7 @@ class AsyncSessionsResource(AsyncAPIResource):
                 {
                     "model_name": model_name,
                     "act_timeout_ms": act_timeout_ms,
+                    "use_touch": use_touch,
                     "browser": browser,
                     "browserbase_session_create_params": browserbase_session_create_params,
                     "browserbase_session_id": browserbase_session_id,
