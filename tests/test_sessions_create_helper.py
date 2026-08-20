@@ -20,7 +20,7 @@ base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 def test_sessions_create_returns_bound_session(respx_mock: MockRouter, client: Stagehand) -> None:
     session_id = "00000000-0000-0000-0000-000000000000"
 
-    respx_mock.post("/v1/sessions/start").mock(
+    start_route = respx_mock.post("/v1/sessions/start").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -37,8 +37,10 @@ def test_sessions_create_returns_bound_session(respx_mock: MockRouter, client: S
         )
     )
 
-    session = client.sessions.start(model_name="openai/gpt-5-nano")
+    session = client.sessions.start(model_name="openai/gpt-5-nano", use_touch=True)
     assert session.id == session_id
+    start_call = cast(Call, start_route.calls[0])
+    assert json.loads(start_call.request.content)["useTouch"] is True
 
     session.navigate(url="https://example.com")
     assert navigate_route.called is True
@@ -53,7 +55,7 @@ async def test_async_sessions_create_returns_bound_session(
 ) -> None:
     session_id = "00000000-0000-0000-0000-000000000000"
 
-    respx_mock.post("/v1/sessions/start").mock(
+    start_route = respx_mock.post("/v1/sessions/start").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -70,8 +72,10 @@ async def test_async_sessions_create_returns_bound_session(
         )
     )
 
-    session = await async_client.sessions.start(model_name="openai/gpt-5-nano")
+    session = await async_client.sessions.start(model_name="openai/gpt-5-nano", use_touch=True)
     assert session.id == session_id
+    start_call = cast(Call, start_route.calls[0])
+    assert json.loads(start_call.request.content)["useTouch"] is True
 
     await session.navigate(url="https://example.com")
     assert navigate_route.called is True

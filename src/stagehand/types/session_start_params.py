@@ -34,6 +34,9 @@ class SessionStartParams(TypedDict, total=False):
     act_timeout_ms: Annotated[float, PropertyInfo(alias="actTimeoutMs")]
     """Timeout in ms for act operations (deprecated, v2 only)"""
 
+    use_touch: Annotated[bool, PropertyInfo(alias="useTouch")]
+    """Actuate coordinate pointer actions as trusted touch taps instead of mouse input for mobile layouts."""
+
     browser: Browser
 
     browserbase_session_create_params: Annotated[

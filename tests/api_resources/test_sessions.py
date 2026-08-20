@@ -1115,6 +1115,7 @@ class TestSessions:
         session = client.sessions.start(
             model_name="openai/gpt-5.4-mini",
             act_timeout_ms=0,
+            use_touch=True,
             browser={
                 "cdp_url": "ws://localhost:9222",
                 "launch_options": {
@@ -2323,6 +2324,7 @@ class TestAsyncSessions:
         session = await async_client.sessions.start(
             model_name="openai/gpt-5.4-mini",
             act_timeout_ms=0,
+            use_touch=True,
             browser={
                 "cdp_url": "ws://localhost:9222",
                 "launch_options": {

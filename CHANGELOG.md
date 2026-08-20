@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.23.0 (2026-08-19)
+
+Full Changelog: [v3.22.0...v3.23.0](https://github.com/browserbase/stagehand-python/compare/v3.22.0...v3.23.0)
+
+### Features
+
+* expose `use_touch` for session start ([#364](https://github.com/browserbase/stagehand-python/pull/364))
+
 ## 3.22.0 (2026-07-21)
 
 Full Changelog: [v3.21.0...v3.22.0](https://github.com/browserbase/stagehand-python/compare/v3.21.0...v3.22.0)
