@@ -43,7 +43,7 @@ def _ensure_executable(path: Path) -> None:
         path.chmod(mode | 0o100)
 
 
-def _resource_binary_path(filename: str) -> Path | None:
+def _resource_binary_path(filename: str, *, version: str) -> Path | None:
     # Expect binaries to live at stagehand/_sea/<filename> inside the installed package.
     try:
         root = importlib_resources.files("stagehand")
@@ -58,7 +58,9 @@ def _resource_binary_path(filename: str) -> Path | None:
         return None
 
     with importlib_resources.as_file(candidate) as extracted:
-        return extracted
+        # ZIP-backed resources are temporary and disappear when this context
+        # exits, so persist the binary before returning its path.
+        return _copy_to_cache(src=extracted, filename=filename, version=version)
 
 
 def _copy_to_cache(*, src: Path, filename: str, version: str) -> Path:
@@ -97,12 +99,11 @@ def resolve_binary_path(
     filename = default_binary_filename()
 
     # Prefer packaged resources (works for wheel installs).
-    resource_path = _resource_binary_path(filename)
+    if version is None:
+        version = os.environ.get("STAGEHAND_VERSION") or __version__
+    resource_path = _resource_binary_path(filename, version=version)
     if resource_path is not None:
-        # Best-effort versioning to keep cached binaries stable across upgrades.
-        if version is None:
-            version = os.environ.get("STAGEHAND_VERSION") or __version__
-        return _copy_to_cache(src=resource_path, filename=filename, version=version)
+        return resource_path
 
     # Fallback: source checkout layout (works for local dev in-repo).
     here = Path(__file__).resolve()
