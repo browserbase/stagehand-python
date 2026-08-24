@@ -40,6 +40,7 @@ class _HasLocalModeState(Protocol):
     _local_ready_timeout_s: float
     _local_shutdown_on_close: bool
     _sea_server: SeaServerManager | None
+    _owns_sea_server: bool
 
 
 class LocalModeKwargs(TypedDict):
@@ -309,6 +310,7 @@ def configure_client_base_url(
     client._local_ready_timeout_s = local_ready_timeout_s
     client._local_shutdown_on_close = local_shutdown_on_close
     client._sea_server = None
+    client._owns_sea_server = False
 
     if server == "local":
         if base_url is None:
@@ -326,6 +328,7 @@ def configure_client_base_url(
             ),
             _local_stagehand_binary_path=_local_stagehand_binary_path,
         )
+        client._owns_sea_server = True
         return base_url
 
     if base_url is None:
@@ -373,6 +376,40 @@ def copy_local_mode_kwargs(
     }
 
 
+def reuse_local_mode_server(
+    source: _HasLocalModeState,
+    target: _HasLocalModeState,
+    *,
+    server: Literal["remote", "local"] | None,
+    model_api_key: str | None,
+    _local_stagehand_binary_path: str | os.PathLike[str] | None,
+    local_host: str | None,
+    local_port: int | None,
+    local_headless: bool | None,
+    local_chrome_path: str | None,
+    local_ready_timeout_s: float | None,
+    local_shutdown_on_close: bool | None,
+) -> None:
+    """Share an unchanged local server with a derived client."""
+    local_overrides = (
+        model_api_key,
+        _local_stagehand_binary_path,
+        local_host,
+        local_port,
+        local_headless,
+        local_chrome_path,
+        local_ready_timeout_s,
+        local_shutdown_on_close,
+    )
+    if (
+        source._sea_server is not None
+        and (server is None or server == "local")
+        and all(value is None for value in local_overrides)
+    ):
+        target._sea_server = source._sea_server
+        target._owns_sea_server = False
+
+
 def prepare_sync_client_base_url(client: _HasLocalModeState) -> str | None:
     if client._sea_server is None:
         return None
@@ -386,10 +423,10 @@ async def prepare_async_client_base_url(client: _HasLocalModeState) -> str | Non
 
 
 def close_sync_client_sea_server(client: _HasLocalModeState) -> None:
-    if client._sea_server is not None:
+    if client._sea_server is not None and client._owns_sea_server:
         client._sea_server.close()
 
 
 async def close_async_client_sea_server(client: _HasLocalModeState) -> None:
-    if client._sea_server is not None:
+    if client._sea_server is not None and client._owns_sea_server:
         await client._sea_server.aclose()
