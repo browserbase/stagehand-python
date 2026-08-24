@@ -113,10 +113,10 @@ def resolve_binary_path(
         raise FileNotFoundError(
             f"Stagehand SEA binary not found at {candidate}.\n"
             f"For local development, download the binary using:\n"
-            f"  uv run python scripts/download-binary.py\n"
+            f"  uv run python scripts/download_binary.py\n"
             f"Or set the STAGEHAND_SEA_BINARY environment variable to point to your binary.\n"
             f"For production use, install a platform-specific wheel from PyPI.\n"
-            f"See: https://github.com/browserbase/stagehand-python#local-development"
+            f"See: https://github.com/browserbase/stagehand-python/blob/main/CONTRIBUTING.md"
         )
 
     _ensure_executable(candidate)
