@@ -1,3 +1,8 @@
+> **⚠️ No longer maintained**
+>
+> The official Stagehand Python source has moved [here](https://github.com/browserbase/stagehand). Documentation can be found [here](https://docs.stagehand.dev)
+> 
+> **This** version of the Stagehand Python SDK is **no longer maintained** and will not receive updates, bug fixes, or security patches.
 <!-- x-stagehand-custom-start -->
 <div id="toc" align="center" style="margin-bottom: 0;">
   <ul style="list-style: none; margin: 0; padding: 0;">
