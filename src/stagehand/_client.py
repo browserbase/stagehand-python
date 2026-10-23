@@ -40,6 +40,7 @@ from ._base_client import (
 from ._custom.session import install_stainless_session_patches
 from ._custom.sea_server import (
     copy_local_mode_kwargs,
+    reuse_local_mode_server,
     configure_client_base_url,
     close_sync_client_sea_server,
     prepare_sync_client_base_url,
@@ -92,6 +93,7 @@ class Stagehand(SyncAPIClient):
     _local_ready_timeout_s: float
     _local_shutdown_on_close: bool
     _sea_server: SeaServerManager | None
+    _owns_sea_server: bool
     ### </END CUSTOM CODE>
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
@@ -301,7 +303,7 @@ class Stagehand(SyncAPIClient):
             params = set_default_query
 
         http_client = http_client or self._client
-        return self.__class__(
+        copied = self.__class__(
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
@@ -326,6 +328,21 @@ class Stagehand(SyncAPIClient):
             ),
             **_extra_kwargs,
         )
+        reuse_local_mode_server(
+            self,
+            copied,
+            server=server,
+            model_api_key=model_api_key,
+            _local_stagehand_binary_path=_local_stagehand_binary_path,
+            local_host=local_host,
+            local_port=local_port,
+            local_headless=local_headless,
+            local_chrome_path=local_chrome_path,
+            local_ready_timeout_s=local_ready_timeout_s,
+            local_shutdown_on_close=local_shutdown_on_close,
+        )
+        return copied
+
     ### </END CUSTOM CODE>
 
     # Alias for `copy` for nicer inline usage, e.g.
@@ -383,6 +400,7 @@ class AsyncStagehand(AsyncAPIClient):
     _local_ready_timeout_s: float
     _local_shutdown_on_close: bool
     _sea_server: SeaServerManager | None
+    _owns_sea_server: bool
     ### </END CUSTOM CODE>
 
     ### <CUSTOM CODE HANDWRITTEN BY STAGEHAND TEAM (not codegen)>
@@ -592,7 +610,7 @@ class AsyncStagehand(AsyncAPIClient):
             params = set_default_query
 
         http_client = http_client or self._client
-        return self.__class__(
+        copied = self.__class__(
             browserbase_api_key=browserbase_api_key or self.browserbase_api_key,
             browserbase_project_id=browserbase_project_id or self.browserbase_project_id,
             model_api_key=model_api_key or self.model_api_key,
@@ -617,6 +635,21 @@ class AsyncStagehand(AsyncAPIClient):
             ),
             **_extra_kwargs,
         )
+        reuse_local_mode_server(
+            self,
+            copied,
+            server=server,
+            model_api_key=model_api_key,
+            _local_stagehand_binary_path=_local_stagehand_binary_path,
+            local_host=local_host,
+            local_port=local_port,
+            local_headless=local_headless,
+            local_chrome_path=local_chrome_path,
+            local_ready_timeout_s=local_ready_timeout_s,
+            local_shutdown_on_close=local_shutdown_on_close,
+        )
+        return copied
+
     ### </END CUSTOM CODE>
 
     # Alias for `copy` for nicer inline usage, e.g.
