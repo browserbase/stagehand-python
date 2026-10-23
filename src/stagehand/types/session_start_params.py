@@ -24,7 +24,38 @@ __all__ = [
     "BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfig",
     "BrowserbaseSessionCreateParamsProxiesProxyConfigListBrowserbaseProxyConfigGeolocation",
     "BrowserbaseSessionCreateParamsProxiesProxyConfigListExternalProxyConfig",
+    "ValkeyCacheOptions",
 ]
+
+
+class ValkeyCacheOptions(TypedDict, total=False):
+    """Configuration for the Valkey cache backend."""
+
+    host: Required[Annotated[str, PropertyInfo(alias="valkeyHost")]]
+    """Valkey host address. Required to enable Valkey caching."""
+
+    port: Annotated[int, PropertyInfo(alias="valkeyPort")]
+    """Valkey port (default: 6379)."""
+
+    tls: Annotated[bool, PropertyInfo(alias="valkeyTls")]
+    """Enable TLS for the Valkey connection.
+
+    Defaults to True when password is set, False otherwise. Set explicitly to
+    False when connecting to a non-TLS Valkey instance with password auth
+    (e.g. local development).
+    """
+
+    password: Annotated[str, PropertyInfo(alias="valkeyPassword")]
+    """Valkey authentication password."""
+
+    username: Annotated[str, PropertyInfo(alias="valkeyUsername")]
+    """Valkey authentication username (for ACL-enabled instances)."""
+
+    cache_ttl: Annotated[int, PropertyInfo(alias="cacheTtl")]
+    """TTL in seconds for cache entries. Omit for no expiry."""
+
+    key_prefix: Annotated[str, PropertyInfo(alias="valkeyKeyPrefix")]
+    """Key prefix namespace (default: "stagehand")."""
 
 
 class SessionStartParams(TypedDict, total=False):
@@ -62,6 +93,9 @@ class SessionStartParams(TypedDict, total=False):
 
     wait_for_captcha_solves: Annotated[bool, PropertyInfo(alias="waitForCaptchaSolves")]
     """Wait for captcha solves (deprecated, v2 only)"""
+
+    valkey_cache: Annotated[ValkeyCacheOptions, PropertyInfo(alias="valkeyCache")]
+    """Valkey cache backend configuration. When set, uses Valkey for caching."""
 
     x_stream_response: Annotated[Literal["true", "false"], PropertyInfo(alias="x-stream-response")]
     """Whether to stream the response via SSE"""

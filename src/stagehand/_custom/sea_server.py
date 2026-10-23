@@ -7,6 +7,7 @@ import atexit
 import signal
 import socket
 import asyncio
+import warnings
 import subprocess
 from pathlib import Path
 from threading import Lock
@@ -28,6 +29,13 @@ class SeaServerConfig:
     model_api_key: str | None
     chrome_path: str | None
     shutdown_on_close: bool
+    valkey_host: str | None = None
+    valkey_port: int | None = None
+    valkey_tls: bool | None = None
+    valkey_password: str | None = None
+    valkey_username: str | None = None
+    valkey_cache_ttl: int | None = None
+    valkey_key_prefix: str | None = None
 
 
 class _HasLocalModeState(Protocol):
@@ -40,6 +48,13 @@ class _HasLocalModeState(Protocol):
     _local_ready_timeout_s: float
     _local_shutdown_on_close: bool
     _sea_server: SeaServerManager | None
+    _valkey_host: str | None
+    _valkey_port: int | None
+    _valkey_tls: bool | None
+    _valkey_password: str | None
+    _valkey_username: str | None
+    _valkey_cache_ttl: int | None
+    _valkey_key_prefix: str | None
 
 
 class LocalModeKwargs(TypedDict):
@@ -51,6 +66,13 @@ class LocalModeKwargs(TypedDict):
     local_chrome_path: str | None
     local_ready_timeout_s: float
     local_shutdown_on_close: bool
+    valkey_host: str | None
+    valkey_port: int | None
+    valkey_tls: bool | None
+    valkey_password: str | None
+    valkey_username: str | None
+    valkey_cache_ttl: int | None
+    valkey_key_prefix: str | None
 
 
 def _pick_free_port(host: str) -> int:
@@ -163,6 +185,28 @@ class SeaServerManager:
         if self._config.chrome_path:
             proc_env["CHROME_PATH"] = self._config.chrome_path
             proc_env["LIGHTHOUSE_CHROMIUM_PATH"] = self._config.chrome_path
+        if self._config.valkey_host is not None:
+            proc_env["VALKEY_HOST"] = self._config.valkey_host
+        if self._config.valkey_port is not None:
+            proc_env["VALKEY_PORT"] = str(self._config.valkey_port)
+        if self._config.valkey_tls is not None:
+            proc_env["VALKEY_TLS"] = "true" if self._config.valkey_tls else "false"
+        if self._config.valkey_password is not None:
+            host = self._config.valkey_host or ""
+            if not self._config.valkey_tls and host not in ("localhost", "127.0.0.1", "::1"):
+                warnings.warn(
+                    "valkey_password is set but valkey_tls is not enabled. "
+                    "Credentials will be sent in cleartext. Set valkey_tls=True for non-local hosts.",
+                    UserWarning,
+                    stacklevel=6,
+                )
+            proc_env["VALKEY_PASSWORD"] = self._config.valkey_password
+        if self._config.valkey_username is not None:
+            proc_env["VALKEY_USERNAME"] = self._config.valkey_username
+        if self._config.valkey_cache_ttl is not None:
+            proc_env["CACHE_TTL"] = str(self._config.valkey_cache_ttl)
+        if self._config.valkey_key_prefix is not None:
+            proc_env["VALKEY_KEY_PREFIX"] = self._config.valkey_key_prefix
         return proc_env
 
     def ensure_running_sync(self) -> str:
@@ -299,6 +343,13 @@ def configure_client_base_url(
     local_shutdown_on_close: bool,
     base_url: str | httpx.URL | None,
     model_api_key: str | None,
+    valkey_host: str | None = None,
+    valkey_port: int | None = None,
+    valkey_tls: bool | None = None,
+    valkey_password: str | None = None,
+    valkey_username: str | None = None,
+    valkey_cache_ttl: int | None = None,
+    valkey_key_prefix: str | None = None,
 ) -> str | httpx.URL:
     client._server_mode = server
     client._local_stagehand_binary_path = _local_stagehand_binary_path
@@ -308,9 +359,34 @@ def configure_client_base_url(
     client._local_chrome_path = local_chrome_path
     client._local_ready_timeout_s = local_ready_timeout_s
     client._local_shutdown_on_close = local_shutdown_on_close
+    client._valkey_host = valkey_host
+    client._valkey_port = valkey_port
+    client._valkey_tls = valkey_tls
+    client._valkey_password = valkey_password
+    client._valkey_username = valkey_username
+    client._valkey_cache_ttl = valkey_cache_ttl
+    client._valkey_key_prefix = valkey_key_prefix
     client._sea_server = None
 
+    _valkey_params_given = any(
+        p is not None
+        for p in (valkey_host, valkey_port, valkey_tls, valkey_password, valkey_username, valkey_cache_ttl, valkey_key_prefix)
+    )
+    if server != "local" and _valkey_params_given:
+        warnings.warn(
+            "Client-level Valkey parameters (valkey_host, valkey_port, etc.) are only used in "
+            'server="local" mode. In remote mode, pass valkey_cache= to sessions.start() instead. '
+            "These parameters will have no effect.",
+            UserWarning,
+            stacklevel=3,
+        )
+
     if server == "local":
+        # NOTE: Valkey caching in local mode requires the @valkey/valkey-glide native
+        # addon to be loadable by the SEA binary. Pre-built binaries do not bundle
+        # native addons, so the cache connection will silently fall back to disabled.
+        # Use server="remote" for Valkey caching, or supply a custom binary built
+        # with @valkey/valkey-glide installed alongside it.
         if base_url is None:
             base_url = "http://127.0.0.1"
 
@@ -323,6 +399,13 @@ def configure_client_base_url(
                 model_api_key=model_api_key,
                 chrome_path=local_chrome_path,
                 shutdown_on_close=local_shutdown_on_close,
+                valkey_host=valkey_host,
+                valkey_port=valkey_port,
+                valkey_tls=valkey_tls,
+                valkey_password=valkey_password,
+                valkey_username=valkey_username,
+                valkey_cache_ttl=valkey_cache_ttl,
+                valkey_key_prefix=valkey_key_prefix,
             ),
             _local_stagehand_binary_path=_local_stagehand_binary_path,
         )
@@ -346,6 +429,13 @@ def copy_local_mode_kwargs(
     local_chrome_path: str | None,
     local_ready_timeout_s: float | None,
     local_shutdown_on_close: bool | None,
+    valkey_host: str | None = None,
+    valkey_port: int | None = None,
+    valkey_tls: bool | None = None,
+    valkey_password: str | None = None,
+    valkey_username: str | None = None,
+    valkey_cache_ttl: int | None = None,
+    valkey_key_prefix: str | None = None,
 ) -> LocalModeKwargs:
     return {
         "server": server or client._server_mode,
@@ -370,6 +460,13 @@ def copy_local_mode_kwargs(
             if local_shutdown_on_close is not None
             else client._local_shutdown_on_close
         ),
+        "valkey_host": valkey_host if valkey_host is not None else client._valkey_host,
+        "valkey_port": valkey_port if valkey_port is not None else client._valkey_port,
+        "valkey_tls": valkey_tls if valkey_tls is not None else client._valkey_tls,
+        "valkey_password": valkey_password if valkey_password is not None else client._valkey_password,
+        "valkey_username": valkey_username if valkey_username is not None else client._valkey_username,
+        "valkey_cache_ttl": valkey_cache_ttl if valkey_cache_ttl is not None else client._valkey_cache_ttl,
+        "valkey_key_prefix": valkey_key_prefix if valkey_key_prefix is not None else client._valkey_key_prefix,
     }
 
 
