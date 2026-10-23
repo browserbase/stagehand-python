@@ -1419,7 +1419,23 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
 
         try:
             # TODO(someday): support non asyncio runtimes here
-            asyncio.get_running_loop().create_task(self.aclose())
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            try:
+                warnings.warn(
+                    "Unclosed async HTTP client; use `async with AsyncStagehand(...)` or `await client.close()`",
+                    ResourceWarning,
+                    stacklevel=2,
+                    source=self,
+                )
+            except Exception:
+                pass
+            return
+        except Exception:
+            return
+
+        try:
+            loop.create_task(self.aclose())
         except Exception:
             pass
 
