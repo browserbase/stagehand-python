@@ -77,8 +77,12 @@ jobs:
 
   test:
     timeout-minutes: 10
-    name: test
-    runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || matrix.os }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -89,7 +93,9 @@ jobs:
           version: '0.10.2'
 
       - name: Bootstrap
+        shell: bash
         run: ./scripts/bootstrap
 
       - name: Run tests
+        shell: bash
         run: ./scripts/test

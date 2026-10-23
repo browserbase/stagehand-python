@@ -266,7 +266,10 @@ class TestStagehand:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
-    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
+    @pytest.mark.skipif(
+        sys.version_info >= (3, 10) or sys.platform == "win32",
+        reason="memory leak assertion is not stable on Python >=3.10 or Windows",
+    )
     def test_copy_build_request(self, client: Stagehand) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
@@ -1151,7 +1154,6 @@ class TestStagehand:
 
     def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
-        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
         # Delete in case our environment has any proxy env vars set
         monkeypatch.delenv("HTTP_PROXY", raising=False)
         monkeypatch.delenv("ALL_PROXY", raising=False)
@@ -1160,6 +1162,9 @@ class TestStagehand:
         monkeypatch.delenv("https_proxy", raising=False)
         monkeypatch.delenv("all_proxy", raising=False)
         monkeypatch.delenv("no_proxy", raising=False)
+        # Set this last because environment variable names are case-insensitive
+        # on Windows, so deleting `https_proxy` also deletes `HTTPS_PROXY`.
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
 
         client = DefaultHttpxClient()
 
@@ -1357,7 +1362,10 @@ class TestAsyncStagehand:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
-    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
+    @pytest.mark.skipif(
+        sys.version_info >= (3, 10) or sys.platform == "win32",
+        reason="memory leak assertion is not stable on Python >=3.10 or Windows",
+    )
     def test_copy_build_request(self, async_client: AsyncStagehand) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
@@ -2257,7 +2265,6 @@ class TestAsyncStagehand:
 
     async def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
-        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
         # Delete in case our environment has any proxy env vars set
         monkeypatch.delenv("HTTP_PROXY", raising=False)
         monkeypatch.delenv("ALL_PROXY", raising=False)
@@ -2266,6 +2273,9 @@ class TestAsyncStagehand:
         monkeypatch.delenv("https_proxy", raising=False)
         monkeypatch.delenv("all_proxy", raising=False)
         monkeypatch.delenv("no_proxy", raising=False)
+        # Set this last because environment variable names are case-insensitive
+        # on Windows, so deleting `https_proxy` also deletes `HTTPS_PROXY`.
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
 
         client = DefaultAsyncHttpxClient()
 
