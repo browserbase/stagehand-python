@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.23.1 (2026-10-23)
+
+Full Changelog: [v3.23.0...v3.23.1](https://github.com/browserbase/stagehand-python/compare/v3.23.0...v3.23.1)
+
+### Bug Fixes
+
+* **security:** update the bundled standalone server to [v3.7.7](https://github.com/browserbase/stagehand/releases/tag/stagehand-server-v3/v3.7.7), which includes Node.js 24.22.1 and Undici 7.30.1 with the October 2026 security fixes. Upgrade the Python SDK and restart applications using the local server to use the updated binary. Custom binaries configured with `STAGEHAND_SEA_BINARY` or `_local_stagehand_binary_path` must be updated separately.
+
 ## 3.23.0 (2026-08-19)
 
 Full Changelog: [v3.22.0...v3.23.0](https://github.com/browserbase/stagehand-python/compare/v3.22.0...v3.23.0)
