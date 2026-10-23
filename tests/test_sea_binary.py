@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
@@ -21,6 +22,37 @@ def _load_download_binary_module():
 
 
 download_binary = _load_download_binary_module()
+
+
+def test_copy_to_cache_reuses_existing_binary(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    source.write_bytes(b"new")
+    cached = tmp_path / "cache" / "test" / "stagehand-test"
+    cached.parent.mkdir(parents=True)
+    cached.write_bytes(b"cached")
+    monkeypatch.setattr(sea_binary, "_cache_dir", lambda: tmp_path / "cache")
+
+    result = sea_binary._copy_to_cache(src=source, filename="stagehand-test", version="test")
+
+    assert result == cached
+    assert result.read_bytes() == b"cached"
+
+
+def test_copy_to_cache_is_safe_when_called_concurrently(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    source.write_bytes(b"binary" * 1_000_000)
+    monkeypatch.setattr(sea_binary, "_cache_dir", lambda: tmp_path / "cache")
+
+    def copy(_index: int) -> Path:
+        return sea_binary._copy_to_cache(src=source, filename="stagehand-test", version="test")
+
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        results = list(executor.map(copy, range(16)))
+
+    expected = tmp_path / "cache" / "test" / "stagehand-test"
+    assert results == [expected] * 16
+    assert expected.read_bytes() == source.read_bytes()
+    assert list(expected.parent.glob("*.tmp")) == []
 
 
 def test_resolve_binary_path_defaults_cache_version_to_package_version(
