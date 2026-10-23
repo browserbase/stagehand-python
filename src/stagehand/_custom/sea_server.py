@@ -89,6 +89,45 @@ def _terminate_process(proc: subprocess.Popen[bytes]) -> None:
             pass
 
 
+def _terminate_process_async_atexit(proc: asyncio.subprocess.Process) -> None:
+    if proc.returncode is not None:
+        return
+
+    try:
+        if sys.platform != "win32":
+            os.killpg(proc.pid, signal.SIGTERM)
+        else:
+            proc.terminate()
+    except Exception:
+        pass
+
+
+async def _terminate_process_async(proc: asyncio.subprocess.Process) -> None:
+    if proc.returncode is not None:
+        return
+
+    try:
+        if sys.platform != "win32":
+            os.killpg(proc.pid, signal.SIGTERM)
+        else:
+            proc.terminate()
+        await asyncio.wait_for(proc.wait(), timeout=3)
+        return
+    except Exception:
+        pass
+
+    try:
+        if sys.platform != "win32":
+            os.killpg(proc.pid, signal.SIGKILL)
+        else:
+            proc.kill()
+    finally:
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=3)
+        except Exception:
+            pass
+
+
 def _wait_ready_sync(*, base_url: str, timeout_s: float) -> None:
     deadline = time.monotonic() + timeout_s
     with httpx.Client(timeout=1.0) as client:
@@ -138,6 +177,7 @@ class SeaServerManager:
         self._async_lock = asyncio.Lock()
 
         self._proc: subprocess.Popen[bytes] | None = None
+        self._async_proc: asyncio.subprocess.Process | None = None
         self._base_url: str | None = None
         self._atexit_registered: bool = False
 
@@ -177,12 +217,12 @@ class SeaServerManager:
 
     async def ensure_running_async(self) -> str:
         async with self._async_lock:
-            if self._proc is not None and self._proc.poll() is None and self._base_url is not None:
+            if self._async_proc is not None and self._async_proc.returncode is None and self._base_url is not None:
                 return self._base_url
 
             base_url, proc = await self._start_async()
             self._base_url = base_url
-            self._proc = proc
+            self._async_proc = proc
             return base_url
 
     def close(self) -> None:
@@ -201,10 +241,10 @@ class SeaServerManager:
             return
 
         async with self._async_lock:
-            if self._proc is None:
+            if self._async_proc is None:
                 return
-            _terminate_process(self._proc)
-            self._proc = None
+            await _terminate_process_async(self._async_proc)
+            self._async_proc = None
             self._base_url = None
 
     def _start_sync(self) -> tuple[str, subprocess.Popen[bytes]]:
@@ -246,7 +286,7 @@ class SeaServerManager:
 
         return base_url, proc
 
-    async def _start_async(self) -> tuple[str, subprocess.Popen[bytes]]:
+    async def _start_async(self) -> tuple[str, asyncio.subprocess.Process]:
         if not self._binary_path.exists():
             raise FileNotFoundError(
                 f"Stagehand SEA binary not found at {self._binary_path}. "
@@ -257,30 +297,22 @@ class SeaServerManager:
         base_url = _build_base_url(host=self._config.host, port=port)
         proc_env = self._build_process_env(port=port)
 
-        preexec_fn = None
-        creationflags = 0
-        if sys.platform != "win32":
-            preexec_fn = os.setsid
-        else:
-            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
-
-        proc = subprocess.Popen(
-            [str(self._binary_path)],
+        proc = await asyncio.create_subprocess_exec(
+            str(self._binary_path),
             env=proc_env,
             stdout=None,
             stderr=None,
-            preexec_fn=preexec_fn,
-            creationflags=creationflags,
+            start_new_session=True,
         )
 
         if not self._atexit_registered:
-            atexit.register(_terminate_process, proc)
+            atexit.register(_terminate_process_async_atexit, proc)
             self._atexit_registered = True
 
         try:
             await _wait_ready_async(base_url=base_url, timeout_s=self._config.ready_timeout_s)
         except Exception:
-            _terminate_process(proc)
+            await _terminate_process_async(proc)
             raise
 
         return base_url, proc
