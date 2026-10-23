@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from contextlib import contextmanager
+from collections.abc import Iterator
 
 import pytest
 
@@ -37,25 +39,53 @@ def test_resolve_binary_path_defaults_cache_version_to_package_version(
     monkeypatch.delenv("STAGEHAND_SEA_BINARY", raising=False)
     monkeypatch.delenv("STAGEHAND_VERSION", raising=False)
 
-    def _fake_resource_binary_path(_filename: str) -> Path:
+    def _fake_resource_binary_path(_filename: str, *, version: str) -> Path:
+        captured["version"] = version
         return resource_path
 
     monkeypatch.setattr(sea_binary, "_resource_binary_path", _fake_resource_binary_path)
 
-    def _fake_copy_to_cache(*, src: Path, filename: str, version: str) -> Path:
-        captured["src"] = src
-        captured["filename"] = filename
-        captured["version"] = version
-        return tmp_path / "cache" / filename
-
-    monkeypatch.setattr(sea_binary, "_copy_to_cache", _fake_copy_to_cache)
-
     resolved = sea_binary.resolve_binary_path()
 
-    assert resolved == tmp_path / "cache" / sea_binary.default_binary_filename()
-    assert captured["src"] == resource_path
-    assert captured["filename"] == sea_binary.default_binary_filename()
+    assert resolved == resource_path
     assert captured["version"] == __version__
+
+
+def test_resolve_binary_path_caches_resource_before_context_exits(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class FakeResource:
+        def joinpath(self, _name: str) -> FakeResource:
+            return self
+
+        def is_file(self) -> bool:
+            return True
+
+    extracted = tmp_path / "temporary-binary"
+
+    @contextmanager
+    def fake_as_file(_resource: object) -> Iterator[Path]:
+        extracted.write_bytes(b"binary")
+        try:
+            yield extracted
+        finally:
+            extracted.unlink()
+
+    def fake_files(_package: str) -> FakeResource:
+        return FakeResource()
+
+    monkeypatch.delenv("STAGEHAND_SEA_BINARY", raising=False)
+    monkeypatch.setattr(sea_binary.importlib_resources, "files", fake_files)
+    monkeypatch.setattr(sea_binary.importlib_resources, "as_file", fake_as_file)
+    monkeypatch.setattr(sea_binary, "_cache_dir", lambda: tmp_path / "cache")
+    monkeypatch.setattr(sea_binary, "default_binary_filename", lambda: "stagehand-test")
+
+    resolved = sea_binary.resolve_binary_path(version="test")
+
+    assert resolved == tmp_path / "cache" / "test" / "stagehand-test"
+    assert resolved.read_bytes() == b"binary"
+    assert not extracted.exists()
 
 
 def test_parse_server_tag_rejects_prerelease_tags() -> None:
