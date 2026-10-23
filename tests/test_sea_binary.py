@@ -87,3 +87,21 @@ def test_resolve_latest_server_tag_ignores_dev_releases(
     monkeypatch.setattr(download_binary, "_http_get_json", _fake_http_get_json)
 
     assert download_binary.resolve_latest_server_tag() == "stagehand-server-v3/v3.19.1"
+
+
+def test_missing_binary_error_uses_valid_download_instructions(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("STAGEHAND_SEA_BINARY", raising=False)
+
+    def _missing_resource(_filename: str) -> None:
+        return None
+
+    monkeypatch.setattr(sea_binary, "_resource_binary_path", _missing_resource)
+    monkeypatch.setattr(sea_binary, "default_binary_filename", lambda: "missing-stagehand-binary")
+
+    with pytest.raises(FileNotFoundError) as exc_info:
+        sea_binary.resolve_binary_path()
+
+    message = str(exc_info.value)
+    assert "uv run python scripts/download_binary.py" in message
+    assert "scripts/download-binary.py" not in message
+    assert "blob/main/CONTRIBUTING.md" in message
